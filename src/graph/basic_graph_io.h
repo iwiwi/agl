@@ -46,16 +46,29 @@ void write_graph_tsv(const GraphType &g, const char *filename) {
 }
 
 template<typename GraphType = G>
-void pretty_print(const GraphType &g, std::ostream &os = std::cerr, D d = kFwd) {
-  for (V v = 0; v < std::min(10, g.num_vertices()); ++v) {
-    os << v << " -> ";
-    size_t i = 0;
-    for (; i < std::min(size_t(10), g.degree(v, d)); ++i) {
-      if (i > 0) os << ", ";
-      os << g.edge(v, i, d);
+void pretty_print(const GraphType &g, std::ostream &os = std::cerr) {
+  static constexpr V kLimitNumVertices = 5;
+  static constexpr size_t kLimitNumEdges = 10;
+
+  os << "=========" << std::endl;
+  os << "  Vertices: " << g.num_vertices() << std::endl;
+  os << "  Edges: " << g.num_edges() << std::endl;
+  os << "  Type: " << typename_of(g) << std::endl;
+  for (D d : directions()) {
+    os << "----------" << std::endl;
+    for (V v = 0; v < std::min(kLimitNumVertices, g.num_vertices()); ++v) {
+      os << "  " << v << (d == kFwd ? " -> " : " <- ");
+      for (size_t i = 0; i < std::min(kLimitNumEdges, g.degree(v, d)); ++i) {
+        if (i > 0) os << ", ";
+        os << g.edge(v, i, d);
+      }
+      if (kLimitNumEdges < g.degree(v, d)) os << ", ...";
+      os << std::endl;
     }
-    if (i < g.degree(v, d)) os << "...";
-    os << std::endl;
+    if (kLimitNumVertices < g.num_vertices()) {
+      os << "  ..." << std::endl;
+    }
   }
+  os << "=========" << std::endl;
 }
 }  // namespace agl

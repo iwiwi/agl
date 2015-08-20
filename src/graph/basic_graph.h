@@ -1,24 +1,12 @@
 #pragma once
 #include "base/base.h"
+#include "direction.h"
 #include <vector>
 #include <cstdint>
 #include <fstream>
 #include <iostream>
 
 namespace agl {
-// We don't use scoped enum to avoid writing |static_cast| every time
-enum D : uint8_t {
-  kFwd = 0,
-  kBwd = 1,
-  kNumDirections = 2,
-};
-
-using direction_underlying_type = std::underlying_type<D>::type;
-
-inline irange<direction_underlying_type> directions() {
-  return irange<direction_underlying_type>(kNumDirections);
-}
-
 template<typename EdgeType>
 class neighbor_range {
  public:
@@ -86,6 +74,12 @@ public:
   inline V num_vertices() const {
     assert(edges_from_[kFwd].size() == edges_from_[kBwd].size());
     return edges_from_[kFwd].size();
+  }
+
+  inline size_t num_edges() const {
+    size_t n = 0;
+    for (V v : vertices()) n += degree(v);
+    return n;
   }
 
   //

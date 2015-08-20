@@ -13,11 +13,15 @@ TEST(unweighted_graph_test, instantiation) {
           {3, {1}},
   });
 
-  pretty_print(g, cerr, kFwd);
-  pretty_print(g, cerr, kBwd);
+  pretty_print(g);
 }
 
 TEST(unweighted_graph_test, read_graph_tsv) {
   G g(gen_erdos_renyi(10, 2));
-  pretty_print(g, cerr, kFwd);
+  pretty_print(g);
+}
+
+TEST(unweighted_graph_test, built_in) {
+  G g = built_in_graph("karate_club");
+  pretty_print(g);
 }

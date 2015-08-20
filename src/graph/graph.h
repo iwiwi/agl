@@ -5,6 +5,7 @@ namespace agl {
 using V = int32_t;
 }
 
+#include "direction.h"
 #include "edge_type.h"
 #include "basic_graph.h"
 #include "unweighted_graph.h"
@@ -20,3 +21,4 @@ static constexpr W kInfW = std::numeric_limits<W>::max();
 #include "basic_graph_io.h"
 #include "weight_type.h"
 #include "generator.h"
+#include "built_in_data.h"

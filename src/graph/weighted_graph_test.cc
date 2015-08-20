@@ -15,11 +15,11 @@ TEST(weighted_graph_test, instantiation) {
                                               {3, {1, 0.01}},
                                       });
 
-  pretty_print(g, cerr, kFwd);
-  pretty_print(g, cerr, kBwd);
+  pretty_print(g);
+  pretty_print(g);
 
 }
 TEST(weighted_graph, read_graph_tsv) {
   graph_type g(add_weight<graph_type::W>(gen_erdos_renyi(10, 2)));
-  pretty_print(g, cerr, kFwd);
+  pretty_print(g);
 }
