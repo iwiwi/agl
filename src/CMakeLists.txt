@@ -43,5 +43,5 @@ add_library(gflags STATIC
     ../3rd_party/gflags/mutex.h
     ../3rd_party/gflags/util.h)
 
-add_executable(test_all ${LIBRARY_SOURCE_FILES} ${TEST_SOURCE_FILES})
+add_executable(test_all EXCLUDE_FROM_ALL ${LIBRARY_SOURCE_FILES} ${TEST_SOURCE_FILES})
 target_link_libraries(test_all gflags gtest)
