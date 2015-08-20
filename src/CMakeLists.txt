@@ -31,5 +31,17 @@ add_library(gtest STATIC
     ../3rd_party/gtest/gtest_all.cc
     ../3rd_party/gtest/gtest_main.cc)
 
+add_library(gflags STATIC
+    ../3rd_party/gflags/config.h
+    ../3rd_party/gflags/gflags_completions.cc
+    ../3rd_party/gflags/gflags_completions.h
+    ../3rd_party/gflags/gflags_declare.h
+    ../3rd_party/gflags/gflags_gflags.h
+    ../3rd_party/gflags/gflags_reporting.cc
+    ../3rd_party/gflags/gflags.cc
+    ../3rd_party/gflags/gflags.h
+    ../3rd_party/gflags/mutex.h
+    ../3rd_party/gflags/util.h)
+
 add_executable(test_all ${LIBRARY_SOURCE_FILES} ${TEST_SOURCE_FILES})
 target_link_libraries(test_all gflags gtest)
