@@ -20,6 +20,7 @@ GraphType read_graph_tsv(const char *filename) {
     return read_graph_tsv(std::cin);
   } else {
     std::ifstream ifs(filename);
+    ifs.sync_with_stdio(false);
     CHECK_PERROR(ifs);
     return read_graph_tsv<GraphType>(ifs);
   }
