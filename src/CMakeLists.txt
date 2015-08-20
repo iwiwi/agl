@@ -14,8 +14,8 @@ endif()
 
 include_directories(. ../3rd_party)
 
-file(GLOB TEST_SOURCE_FILES */*_test.cc */*/*_test.cc)
-file(GLOB MAIN_SOURCE_FILES */*_main.cc */*/*_main.cc)
+file(GLOB TEST_SOURCE_FILES *_test.cc */*_test.cc */*/*_test.cc)
+file(GLOB MAIN_SOURCE_FILES *_main.cc */*_main.cc */*/*_main.cc)
 file(GLOB LIBRARY_SOURCE_FILES */*.h */*.cc)
 list(REMOVE_ITEM LIBRARY_SOURCE_FILES ${TEST_SOURCE_FILES} ${MAIN_SOURCE_FILES})
 

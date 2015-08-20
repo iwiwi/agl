@@ -4,7 +4,7 @@
 using namespace std;
 
 namespace agl {
-vector<pair<V, V>> gen_erdos_renyi(V num_vertices, size_t avg_deg) {
+unweighted_edge_list gen_erdos_renyi(V num_vertices, size_t avg_deg) {
   avg_deg = min(avg_deg, static_cast<size_t>(max(0, num_vertices - 1)));
   set<pair<V, V>> es;
   std::uniform_int_distribution<V> rng(0, num_vertices - 1);
@@ -16,7 +16,7 @@ vector<pair<V, V>> gen_erdos_renyi(V num_vertices, size_t avg_deg) {
   return vector<pair<V, V>>(es.begin(), es.end());
 };
 
-vector<pair<V, V>> gen_grid(size_t num_rows, size_t num_cols) {
+unweighted_edge_list gen_grid(size_t num_rows, size_t num_cols) {
   auto vid = [=](int i, int j) { return i * num_cols + j; };
 
   vector<pair<V, V>> es;
@@ -28,4 +28,17 @@ vector<pair<V, V>> gen_grid(size_t num_rows, size_t num_cols) {
   }
   return es;
 }
+
+unweighted_edge_list force_undirected(const unweighted_edge_list& es) {
+  unweighted_edge_list out(es.size() * 2);
+  for (auto i : make_irange(es.size())) {
+    V u = es[i].first, v = es[i].second;
+    out[i * 2 + 0] = make_pair(u, v);
+    out[i * 2 + 1] = make_pair(v, u);
+  }
+  sort(out.begin(), out.end());
+  out.erase(unique(out.begin(), out.end()), out.end());
+  return out;
+}
 }  // namespace agl
+

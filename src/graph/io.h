@@ -4,26 +4,36 @@
 
 namespace agl {
 template<typename GraphType = G>
-GraphType read_graph_tsv(std::istream &is = std::cin) {
+typename GraphType::edge_list_type read_edge_list_tsv(std::istream &is = std::cin) {
   using E = typename GraphType::E;
-
   V v;
   E e;
   typename GraphType::edge_list_type es;
   while (is >> v >> e) es.emplace_back(v, e);
-  return GraphType(es);
+  return es;
 }
 
 template<typename GraphType = G>
-GraphType read_graph_tsv(const char *filename) {
+typename GraphType::edge_list_type read_edge_list_tsv(const char *filename) {
   if (strcmp(filename, "-") == 0) {
-    return read_graph_tsv(std::cin);
+    return read_edge_list_tsv<GraphType>(std::cin);
   } else {
     std::ifstream ifs(filename);
     ifs.sync_with_stdio(false);
     CHECK_PERROR(ifs);
-    return read_graph_tsv<GraphType>(ifs);
+    return read_edge_list_tsv<GraphType>(ifs);
   }
+}
+
+
+template<typename GraphType = G>
+GraphType read_graph_tsv(std::istream &is = std::cin) {
+  return GraphType(read_edge_list_tsv(is));
+}
+
+template<typename GraphType = G>
+GraphType read_graph_tsv(const char *filename) {
+  return GraphType(read_edge_list_tsv(filename));
 }
 
 template<typename GraphT = G>

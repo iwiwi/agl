@@ -31,7 +31,11 @@ template<typename GraphType = G>
 GraphType easy_cui_init(int argc, char **argv) {
   JLOG_INIT(&argc, argv);
   google::ParseCommandLineFlags(&argc, &argv, true);
-  GraphType g = read_graph_tsv<GraphType>(FLAGS_graph.c_str());
+
+  G::edge_list_type es = read_edge_list_tsv(FLAGS_graph.c_str());
+  if (FLAGS_force_undirected) es = force_undirected(es);
+
+  GraphType g(es);
   pretty_print(g);
   return g;
 }

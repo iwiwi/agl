@@ -3,15 +3,17 @@
 #include "graph/weight_type.h"
 
 namespace agl {
-std::vector<std::pair<V, V>> gen_erdos_renyi(V num_vertices, size_t avg_deg);
-std::vector<std::pair<V, V>> gen_grid(size_t num_rows, size_t num_cols);
+unweighted_edge_list gen_erdos_renyi(V num_vertices, size_t avg_deg);
+unweighted_edge_list gen_grid(size_t num_rows, size_t num_cols);
+
+unweighted_edge_list force_undirected(const unweighted_edge_list &es);
 
 /*
 template<typename GraphT>
 typename GraphT::edge_list_type add_weight(const unweighted_graph::edge_list_type &es);
 */
 
-inline unweighted_graph::edge_list_type add_weight(const unweighted_graph::edge_list_type &es) {
+inline unweighted_edge_list add_weight(const unweighted_edge_list &es) {
   return es;
 }
 
