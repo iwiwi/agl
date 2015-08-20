@@ -18,7 +18,7 @@ using W = G::W;
 static constexpr W kInfW = std::numeric_limits<W>::max();
 }  // namespace agl
 
-#include "basic_graph_io.h"
+#include "io.h"
 #include "weight_type.h"
 #include "generator.h"
 #include "built_in_data.h"

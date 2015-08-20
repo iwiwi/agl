@@ -25,6 +25,7 @@ using namespace std;
 using namespace agl;
 
 DEFINE_string(graph, "-", "input graph");
+DEFINE_bool(force_undirected, false, "Automatically add reverse edges?");
 
 template<typename GraphType = G>
 GraphType easy_cui_init(int argc, char **argv) {
