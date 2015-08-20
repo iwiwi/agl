@@ -49,7 +49,7 @@ TEST(edge_betweenness_centrality, sample_multiple) {
 
 TEST(edge_betweenness_centrality, random) {
   constexpr int kNumSamples = 10000;
-  constexpr double kErrorTolerance = 5 * 1 / sqrt(kNumSamples);
+  const double kErrorTolerance = 5 * 1 / sqrt(kNumSamples);
   FLAGS_edge_betweenness_centrality_num_samples = kNumSamples;
 
   for (int t = 0; t < 100; ++t) {
