@@ -3,7 +3,7 @@
 using namespace agl;
 using namespace std;
 
-using graph_type = weighted_graph<int>;
+using graph_type = weighted_graph<double>;
 
 TEST(weighted_graph_test, instantiation) {
   graph_type g;
