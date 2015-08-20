@@ -2,7 +2,7 @@
 using namespace std;
 
 namespace agl {
-void graphviz(const G &g, const char *filename) {
+void graphviz(const G &g, const char *filename, const char *command) {
   string dot_filename = string(filename) + ".dot";
   {
     ofstream ofs(dot_filename.c_str());
@@ -15,7 +15,7 @@ void graphviz(const G &g, const char *filename) {
     ofs << "}";
   }
   {
-    string cmd = "dot " + dot_filename + " -T png -o " + filename + ".png";
+    string cmd = command + string(" ") + dot_filename + " -T png -o " + filename + ".png";
     system(cmd.c_str());
   }
 }
