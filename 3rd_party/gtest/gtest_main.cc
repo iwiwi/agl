@@ -27,7 +27,13 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+// Dirty hack for Cygwin
+// http://srz-zumix.blogspot.jp/2014/01/google-test-stdc11.html
+#ifdef __STRICT_ANSI__
+#undef __STRICT_ANSI__
 #include <stdio.h>
+#define __STRICT_ANSI__
+#endif
 
 #include "gtest/gtest.h"
 

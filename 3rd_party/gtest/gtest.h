@@ -51,6 +51,16 @@
 #ifndef GTEST_INCLUDE_GTEST_GTEST_H_
 #define GTEST_INCLUDE_GTEST_GTEST_H_
 
+// Dirty hack for Cygwin
+// http://srz-zumix.blogspot.jp/2014/01/google-test-stdc11.html
+#ifdef __STRICT_ANSI__
+#undef __STRICT_ANSI__
+#include <cstdio>
+#include <string.h>
+#include <stdlib.h>
+#define __STRICT_ANSI__
+#endif
+
 #include <limits>
 #include <ostream>
 #include <vector>
