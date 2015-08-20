@@ -1,16 +1,8 @@
-#include "base/base.h"
-#include "graph/graph.h"
+#include "easy_cui.h"
 #include "edge_centrality/edge_centrality.h"
-#include <gflags/gflags.h>
-using namespace std;
-using namespace agl;
-
-DEFINE_string(graph, "-", "input graph");
 
 int main(int argc, char **argv) {
-  google::ParseCommandLineFlags(&argc, &argv, true);
-
-  G g = read_graph_tsv(FLAGS_graph.c_str());
+  G g = easy_cui_init(argc, argv);
 
   auto ebc = edge_betweenness_centrality(g);
   for (auto i : ebc) {
