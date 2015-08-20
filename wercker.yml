@@ -13,15 +13,25 @@ build:
           make -j
           sudo make install
     - script:
-        name: build
+        name: build-gcc
         code: |
-          make
+          make clean
+          CXX=g++ make all
     - script:
-        name: test
+        name: test-gcc
         code: |
           bin/test_all
     - script:
-        name: document
+        name: build-clang
+        code: |
+          make clean
+          CXX=clang make all
+    - script:
+        name: test-clang
+        code: |
+          bin/test_all
+    - script:
+        name: doxygen
         code: |
           doxygen
 
