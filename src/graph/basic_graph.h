@@ -20,6 +20,25 @@ inline irange<direction_underlying_type> directions() {
 }
 
 template<typename EdgeType>
+class neighbor_range {
+ public:
+  struct iterator_type {
+    typename std::vector<EdgeType>::iterator ite;
+    V operator*() const { return to(*ite); }
+    void operator++() { ++ite; }
+  };
+
+  neighbor_range(std::vector<EdgeType> &edges) :
+    i_{edges.begin()}, n_{edges.end()} {}
+
+  iterator_type begin() { return i_; }
+  iterator_type end() { return n_; }
+
+ private:
+  iterator_type i_, n_;
+};
+
+template<typename EdgeType>
 class basic_graph {
 public:
   using V = agl::V;
@@ -49,6 +68,14 @@ public:
   }
 
   inline const E &edge(V v, size_t i, D d = kFwd) const {
+    return edges_from_[d][v][i];
+  }
+
+  inline neighbor_range<E> neighbors(V v, D d = kFwd) const {
+    return neighbor_range<E>(edges_from_[d][v]);
+  }
+
+  inline V neighbor(V v, size_t i, D d = kFwd) const {
     return edges_from_[d][v][i];
   }
 
