@@ -5,7 +5,7 @@ build:
         name: build-gcc
         code: |
           make clean
-          CXX=g++ make all
+          CXX=g++ make all bin/test_all
     - script:
         name: test-gcc
         code: |
@@ -14,7 +14,7 @@ build:
         name: build-clang
         code: |
           make clean
-          CXX=clang CXXFLAGS="-lstdc++" make all
+          CXX=clang CXXFLAGS="-lstdc++" make all bin/test_all
     - script:
         name: test-clang
         code: |
