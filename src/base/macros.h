@@ -25,6 +25,13 @@
       exit(EXIT_FAILURE);                                                 \
     } while (0)
 
+#define FAIL_MSG(msg) \
+    do {              \
+      fprintf(stderr, "Error (%s:%d): msg\n", __FILE__, __LINE__); \
+      exit(EXIT_FAILURE);                                                 \
+    } while (0)
+
+
 #define DISALLOW_COPY_AND_ASSIGN(TypeName)  \
   TypeName(const TypeName&);                \
   void operator=(const TypeName&)
