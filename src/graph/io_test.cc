@@ -6,6 +6,7 @@ using testing::Types;
 
 /*
 namespace {
+
 typedef Types<unweighted_graph, weighted_graph<int>> GraphTypes;
 }
 
