@@ -1,6 +1,8 @@
 #include "graphviz.h"
 using namespace std;
 
+DEFINE_string(graphviz_engine, "dot", "dot (default), fdp, neato, twopi, circo, sfdp, ...");
+
 namespace agl {
 void graphviz(const G &g, const char *filename, const char *command) {
   string dot_filename = string(filename) + ".dot";
