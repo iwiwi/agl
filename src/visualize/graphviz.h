@@ -2,6 +2,7 @@
 
 #include <unordered_map>
 #include "graph/graph.h"
+#include "edge_centrality/edge_centrality.h"
 
 DECLARE_string(graphviz_engine);
 
@@ -71,5 +72,8 @@ void graphviz_draw_graph(const G &g,
                          const char *png_filename,
                          const char *graphviz_engine = FLAGS_graphviz_engine.c_str());
 
-// void graphviz_draw_edge_centrality(const G &g,)
+void graphviz_draw_edge_centrality(const G &g,
+                                   const edge_centrality_map &ec,
+                                   const char *png_filename,
+                                   const char *graphviz_engine = FLAGS_graphviz_engine.c_str());
 }  // namespace agl

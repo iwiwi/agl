@@ -179,4 +179,38 @@ void graphviz_draw_graph(const G &g, const char *filename, const char *engine) {
 
   gz.generate_png(filename);
 }
+
+void graphviz_draw_edge_centrality(const G& g, const edge_centrality_map& ec,
+                                   const char* png_filename,
+                                   const char* graphviz_engine) {
+  double min_value = numeric_limits<double>::max();
+  double max_value = numeric_limits<double>::min();
+  for (const auto &i : ec) {
+    min_value = min(min_value, i.second);
+    max_value = max(max_value, i.second);
+  }
+
+  graphviz gz(g);
+
+  gz.set_graph_property("splines", "true");
+  gz.set_graph_property("overlap", "scale");
+  gz.set_vertex_property("shape", [](V) { return "circle"; });
+
+  for (V u : g.vertices()) {
+    for (V v : g.neighbors(u)) {
+      const double x = ec.at({u, v});
+      gz.set_edge_property(u, v, "label", to_string(x));
+
+      double A = 1.0 / 3.0;
+      char buf[256];
+      sprintf(buf, "%.3f 1.000 1.000", 1.0 - (((x - min_value) / (max_value - min_value)) * (1.0 - A) + A));
+      gz.set_edge_property(u, v, "color", buf);
+    }
+  }
+
+  gz.ignore_isolated_vertex();
+  gz.ignore_direction();
+  gz.set_graphviz_engine(graphviz_engine);
+  gz.generate_png(png_filename);
+}
 }  // namespace agl
