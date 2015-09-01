@@ -38,6 +38,26 @@ GraphType easy_cui_init(int argc, char **argv) {
     es = read_edge_list_tsv(FLAGS_graph.c_str());
   } else if (FLAGS_type == "built_in") {
     es = built_in_edge_list(FLAGS_graph.c_str());
+  } else if (FLAGS_type == "gen") {
+    istringstream iss(FLAGS_graph);
+    string family;
+    iss >> family;
+    if (family == "barbell") {
+      V n;
+      if (!(iss >> n)) n = 4;
+      es = gen_barbell(n);
+    } else if (family == "grid") {
+      size_t r, c;
+      if (!(iss >> r)) r = 4;
+      if (!(iss >> c)) c = r;
+      es = gen_grid(r, c);
+    } else if (family == "erdos_renyi") {
+      V n;
+      size_t d;
+      if (!(iss >> n)) n = 10;
+      if (!(iss >> d)) d = 3;
+      es = gen_erdos_renyi(n, d);
+    }
   }
 
   if (FLAGS_force_undirected) es = force_undirected(es);
