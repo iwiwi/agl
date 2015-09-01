@@ -19,8 +19,7 @@
 #include <cctype>
 #include <cmath>
 #include <cassert>
-#include "base/base.h"
-#include "graph/graph.h"
+#include "agl.h"
 using namespace std;
 using namespace agl;
 
@@ -53,9 +52,9 @@ GraphType easy_cui_init(int argc, char **argv) {
       es = gen_grid(r, c);
     } else if (family == "erdos_renyi") {
       V n;
-      size_t d;
+      double d;
       if (!(iss >> n)) n = 10;
-      if (!(iss >> d)) d = 3;
+      if (!(iss >> d)) d = 3.0;
       es = gen_erdos_renyi(n, d);
     }
   }

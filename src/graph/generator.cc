@@ -4,8 +4,8 @@
 using namespace std;
 
 namespace agl {
-unweighted_edge_list gen_erdos_renyi(V num_vertices, size_t avg_deg) {
-  avg_deg = min(avg_deg, static_cast<size_t>(max(0, num_vertices - 1)));
+unweighted_edge_list gen_erdos_renyi(V num_vertices, double avg_deg) {
+  avg_deg = min(avg_deg, static_cast<double>(max(0, num_vertices - 1)));
   set<pair<V, V>> es;
   std::uniform_int_distribution<V> rng(0, num_vertices - 1);
   while (es.size() < num_vertices * avg_deg) {
