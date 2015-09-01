@@ -140,7 +140,7 @@ void graphviz::ignore_direction() {
 
 void graphviz::ignore_isolated_vertex() {
   for (V v : g_.vertices()) {
-    if (g_.degree(v) == 0) vertex_property_.erase(v);
+    if (g_.degree(v, kFwd) + g_.degree(v, kBwd) == 0) vertex_property_.erase(v);
   }
 }
 
