@@ -41,7 +41,7 @@ unweighted_edge_list force_undirected(const unweighted_edge_list& es) {
   return out;
 }
 
-unweighted_edge_list agl::gen_barbell(V size_clique) {
+unweighted_edge_list gen_barbell(V size_clique) {
   unweighted_edge_list out;
   for (V i : make_irange(2)) {
     for (V v : make_irange(size_clique)) {
