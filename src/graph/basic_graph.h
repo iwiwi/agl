@@ -11,12 +11,13 @@ template<typename EdgeType>
 class neighbor_range {
  public:
   struct iterator_type {
-    typename std::vector<EdgeType>::iterator ite;
+    typename std::vector<EdgeType>::const_iterator ite;
     V operator*() const { return to(*ite); }
     void operator++() { ++ite; }
+    bool operator!=(const iterator_type &i) const { return ite < i.ite; }
   };
 
-  neighbor_range(std::vector<EdgeType> &edges) :
+  neighbor_range(const std::vector<EdgeType> &edges) :
     i_{edges.begin()}, n_{edges.end()} {}
 
   iterator_type begin() { return i_; }
