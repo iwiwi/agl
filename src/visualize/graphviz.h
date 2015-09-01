@@ -44,7 +44,7 @@ class graphviz {
                          std::function<std::string(V, V)> value_func);
 
   //
-  // Other configuration
+  // High-level property configuration
   //
   void merge_reverse_edges();
   void ignore_direction();
@@ -64,7 +64,12 @@ class graphviz {
   static void output_property_string(std::ostream &os, const property_map&);
 };
 
+//
+// Easy interfaces
+//
 void graphviz_draw_graph(const G &g,
                          const char *png_filename,
                          const char *graphviz_engine = FLAGS_graphviz_engine.c_str());
+
+// void graphviz_draw_edge_centrality(const G &g,)
 }  // namespace agl

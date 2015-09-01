@@ -17,7 +17,9 @@ graphviz::graphviz(const G &g) :
   }
 }
 
-
+//
+// Output
+//
 void graphviz::output_dot(ostream &os) const {
   os << "digraph G {" << endl;
 
@@ -65,7 +67,7 @@ void graphviz::generate_eps(const string &filename) const {
 
 
 //
-// Properties
+// Direct property manipulation
 //
 
 void graphviz::set_graph_property(const std::string& property,
@@ -86,8 +88,8 @@ void graphviz::set_vertex_property(
 
 void graphviz::set_vertex_property(const std::string& property,
                                    std::function<std::string(V)> value_func) {
-  for (V v : g_.vertices()) {
-    set_vertex_property(v, property, value_func(v));
+  for (auto &i : vertex_property_) {
+    i.second[property] = value_func(i.first);
   }
 }
 
@@ -138,7 +140,7 @@ void graphviz::ignore_direction() {
 
 void graphviz::ignore_isolated_vertex() {
   for (V v : g_.vertices()) {
-    vertex_property_.erase(v);
+    if (g_.degree(v) == 0) vertex_property_.erase(v);
   }
 }
 
@@ -166,11 +168,15 @@ void graphviz_draw_graph(const G &g, const char *filename, const char *engine) {
 
   gz.set_graph_property("splines", "true");
   gz.set_graph_property("overlap", "scale");
-  gz.set_vertex_property("label", [](V) { return ""; });
-  gz.ignore_direction();
+  // gz.set_vertex_property("label", [](V) { return ""; });
+  gz.set_vertex_property("shape", [](V) { return "circle"; });
+
+  for (V u : g.vertices()) for (V v : g.neighbors(u)) gz.set_edge_property(u, v, "label", "");
+
   gz.ignore_isolated_vertex();
+  gz.ignore_direction();
+
 
   gz.generate_png(filename);
 }
-
 }  // namespace agl
