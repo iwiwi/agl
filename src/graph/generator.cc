@@ -40,5 +40,17 @@ unweighted_edge_list force_undirected(const unweighted_edge_list& es) {
   out.erase(unique(out.begin(), out.end()), out.end());
   return out;
 }
-}  // namespace agl
 
+unweighted_edge_list agl::gen_barbell(V size_clique) {
+  unweighted_edge_list out;
+  for (V i : make_irange(2)) {
+    for (V v : make_irange(size_clique)) {
+      for (V u : make_irange(v)) {
+        out.emplace_back(i * size_clique + u, i * size_clique + v);
+      }
+    }
+  }
+  out.emplace_back(0, size_clique);
+  return out;
+}
+}  // namespace agl
