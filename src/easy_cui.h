@@ -19,6 +19,8 @@
 #include <cctype>
 #include <cmath>
 #include <cassert>
+#include <unordered_set>
+#include <unordered_map>
 #include "agl.h"
 using namespace std;
 using namespace agl;
