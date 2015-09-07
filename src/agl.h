@@ -5,3 +5,5 @@
 #include "heap/heap.h"
 #include "edge_centrality/edge_centrality.h"
 #include "connectivity/connectivity.h"
+#include "visualize/graphviz.h"
+#include "statistics/statistics.h"

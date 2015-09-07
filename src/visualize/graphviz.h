@@ -69,11 +69,11 @@ class graphviz {
 // Easy interfaces
 //
 void graphviz_draw_graph(const G &g,
-                         const char *png_filename,
+                         const char *png_filename = "tmp.png",
                          const char *graphviz_engine = FLAGS_graphviz_engine.c_str());
 
 void graphviz_draw_edge_centrality(const G &g,
                                    const edge_centrality_map &ec,
-                                   const char *png_filename,
+                                   const char *png_filename = "tmp.png",
                                    const char *graphviz_engine = FLAGS_graphviz_engine.c_str());
 }  // namespace agl
