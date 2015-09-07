@@ -1,4 +1,4 @@
-.PHONY: all test clean
+.PHONY: all test clean bin/test_all
 
 all:
 	mkdir -p build && cd build && cmake .. && make -j
