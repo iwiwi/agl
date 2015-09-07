@@ -25,3 +25,17 @@ TEST(unweighted_graph_test, built_in) {
   G g = built_in_graph("karate_club");
   pretty_print(g);
 }
+
+TEST(unweighted_graph, undirected_neighbors) {
+  for (int trial = 0; trial < 10; ++trial) {
+    unweighted_edge_list es = gen_erdos_renyi(100, 2);
+    G g1(es);
+    G g2(force_undirected(es));
+
+    for (V v : g1.vertices()) {
+      auto ns1 = range_to_vector(g1.undirected_neighbors(v));
+      auto ns2 = range_to_vector<neighbor_range<unweighted_edge>>(g2.neighbors(v));
+      ASSERT_TRUE(ns1 == ns2);
+    }
+  }
+}

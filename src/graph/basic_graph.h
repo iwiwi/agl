@@ -5,6 +5,7 @@
 #include <cstdint>
 #include <fstream>
 #include <iostream>
+#include <algorithm>
 
 namespace agl {
 template<typename EdgeType>
@@ -19,6 +20,46 @@ class neighbor_range {
 
   neighbor_range(const std::vector<EdgeType> &edges) :
     i_{edges.begin()}, n_{edges.end()} {}
+
+  iterator_type begin() { return i_; }
+  iterator_type end() { return n_; }
+
+ private:
+  iterator_type i_, n_;
+};
+
+template<typename EdgeType>
+class undirected_neighbor_range {
+ public:
+  struct iterator_type {
+    typename std::vector<EdgeType>::const_iterator i0, i1;
+    const undirected_neighbor_range &p;
+
+    V operator*() const {
+      if (i0 == p.n_.i0) return to(*i1);
+      if (i1 == p.n_.i1) return to(*i0);
+      return std::min(to(*i0), to(*i1));
+    }
+
+    bool operator!=(const iterator_type &i) const {
+      return std::tie(i0, i1) != std::tie(i.i0, i.i1);
+    }
+
+    void operator++() {
+      if (i0 == p.n_.i0) ++i1;
+      else if (i1 == p.n_.i1) ++i0;
+      else if (to(*i0) == to(*i1)) {
+        ++i0;
+        ++i1;
+      } else {
+        ++(to(*i0) < to(*i1) ? i0 : i1);
+      }
+    }
+  };
+
+  undirected_neighbor_range(const std::vector<EdgeType> &es0,
+                            const std::vector<EdgeType> &es1)
+  : i_{es0.begin(), es1.begin(), *this}, n_{es0.end(), es1.end(), *this} {}
 
   iterator_type begin() { return i_; }
   iterator_type end() { return n_; }
@@ -48,6 +89,17 @@ public:
   //
   // Graph access
   //
+  inline V num_vertices() const {
+    assert(edges_from_[kFwd].size() == edges_from_[kBwd].size());
+    return edges_from_[kFwd].size();
+  }
+
+  inline size_t num_edges() const {
+    size_t n = 0;
+    for (V v : vertices()) n += degree(v);
+    return n;
+  }
+
   inline irange<V> vertices() const {
     return make_irange(num_vertices());
   }
@@ -72,15 +124,8 @@ public:
     return edges_from_[d][v].size();
   }
 
-  inline V num_vertices() const {
-    assert(edges_from_[kFwd].size() == edges_from_[kBwd].size());
-    return edges_from_[kFwd].size();
-  }
-
-  inline size_t num_edges() const {
-    size_t n = 0;
-    for (V v : vertices()) n += degree(v);
-    return n;
+  inline undirected_neighbor_range<E> undirected_neighbors(V v) const {
+    return undirected_neighbor_range<E>(edges_from_[kFwd][v], edges_from_[kBwd][v]);
   }
 
   //
@@ -88,6 +133,7 @@ public:
   //
   template<typename... Args>
   void add_edge(V from, Args&&... args) {
+    assert(false);  // TODO: keep edge lists sorted!
     edges_from_[kFwd][from].emplace_back(std::forward<Args>(args)...);
     const E &e = edges_from_[kFwd][from].back();
     edges_from_[kBwd][to(e)].emplace_back(reverse_edge(from, e));
@@ -119,6 +165,14 @@ void basic_graph<EdgeType>::assign(const basic_graph<EdgeType>::edge_list_type &
   for (const auto &p : es) {
     edges_from_[kFwd][p.first].emplace_back(p.second);
     edges_from_[kBwd][to(p.second)].emplace_back(reverse_edge(p.first, p.second));
+  }
+  for (D d : directions()) {
+    for (V v : vertices()) {
+      auto cmp = [](const EdgeType &e0, const EdgeType &e1) {
+        return to(e0) < to(e1);
+      };
+      std::sort(edges_from_[d][v].begin(), edges_from_[d][v].end(), cmp);
+    }
   }
 }
 }  // namespace agl
