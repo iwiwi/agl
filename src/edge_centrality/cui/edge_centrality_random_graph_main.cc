@@ -6,8 +6,8 @@ DEFINE_int64(m, 30, "m");
 
 namespace {
 unweighted_edge_list gen_connected_random_graph(V num_vs, size_t num_es) {
-  assert(num_es + 1 >= (size_t)num_vs);
-  assert(num_es <= num_vs * (size_t)(num_vs - 1));
+  CHECK(num_es + 1 >= (size_t)num_vs);
+  CHECK(num_es <= num_vs * (size_t)(num_vs - 1));
 
   unordered_set<pair<V, V>> es;
 
@@ -32,7 +32,7 @@ int main(int argc, char **argv) {
   google::ParseCommandLineFlags(&argc, &argv, true);
 
   G g(force_undirected(gen_connected_random_graph(FLAGS_n, FLAGS_m)));
-  CHECK(is_connected(g));
+  // CHECK(is_connected(g));
 
   auto ebc = edge_betweenness_centrality(g);
   for (auto i : ebc) {
