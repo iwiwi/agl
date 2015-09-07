@@ -128,6 +128,10 @@ public:
     return undirected_neighbor_range<E>(edges_from_[kFwd][v], edges_from_[kBwd][v]);
   }
 
+  bool is_adjacent(V u, V v, D d = kFwd) const {
+    return binary_search(edges_from_[d][u].begin(), edges_from_[d][u].end(), v);
+  }
+
   //
   // Dynamic graph update
   //
