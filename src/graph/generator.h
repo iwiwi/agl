@@ -3,6 +3,7 @@
 #include "graph/weight_type.h"
 
 namespace agl {
+unweighted_edge_list gen_path(V num_vertices);
 unweighted_edge_list gen_erdos_renyi(V num_vertices, double avg_deg);
 unweighted_edge_list gen_grid(size_t num_rows, size_t num_cols);
 unweighted_edge_list gen_barbell(V size_clique);

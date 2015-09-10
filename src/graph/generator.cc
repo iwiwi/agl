@@ -4,6 +4,14 @@
 using namespace std;
 
 namespace agl {
+unweighted_edge_list gen_path(V num_vertices) {
+  unweighted_edge_list es;
+  for (V v = 0; v + 1 < num_vertices; ++v) {
+    es.emplace_back(v, v + 1);
+  }
+  return es;
+}
+
 unweighted_edge_list gen_erdos_renyi(V num_vertices, double avg_deg) {
   avg_deg = min(avg_deg, static_cast<double>(max(0, num_vertices - 1)));
   set<pair<V, V>> es;
