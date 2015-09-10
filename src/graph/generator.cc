@@ -76,4 +76,9 @@ unweighted_edge_list gen_random_spanning_tree(V num_vertices) {
 
   return es;
 }
+
+template<>
+unweighted_edge_list add_random_weight<unweighted_graph>(const unweighted_edge_list &es) {
+  return es;
+}
 }  // namespace agl

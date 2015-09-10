@@ -20,6 +20,6 @@ TEST(weighted_graph_test, instantiation) {
 
 }
 TEST(weighted_graph, read_graph_tsv) {
-  graph_type g(add_weight<graph_type::W>(gen_erdos_renyi(10, 2)));
+  graph_type g(add_random_weight<graph_type>(gen_erdos_renyi(10, 2)));
   pretty_print(g);
 }

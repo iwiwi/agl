@@ -17,17 +17,18 @@ template<typename GraphT>
 typename GraphT::edge_list_type add_weight(const unweighted_graph::edge_list_type &es);
 */
 
-inline unweighted_edge_list add_weight(const unweighted_edge_list &es) {
-  return es;
-}
+template<typename GraphType>
+typename GraphType::edge_list_type add_random_weight(const unweighted_edge_list &es);
 
-template<typename WeightT>
-typename weighted_graph<WeightT>::edge_list_type add_weight(const unweighted_graph::edge_list_type &es) {
-  typename weighted_graph<WeightT>::edge_list_type wes(es.size());
+template<>
+unweighted_edge_list add_random_weight<unweighted_graph>(const unweighted_edge_list &es);
+
+template<typename GraphType>
+typename GraphType::edge_list_type add_random_weight(const unweighted_edge_list &es) {
+  typename GraphType::edge_list_type wes(es.size());
   for (size_t i = 0; i < es.size(); ++i) {
     wes[i].first = es[i].first;
-    wes[i].second.to = to(es[i].second);
-    wes[i].second.weight = random_weight<WeightT>();
+    wes[i].second = typename GraphType::E{es[i].second, random_weight<typename GraphType::W>()};
   }
   return wes;
 }
