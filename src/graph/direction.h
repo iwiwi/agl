@@ -32,4 +32,8 @@ class direction_range {
 inline direction_range directions() {
   return direction_range();
 }
+
+inline D reverse_direction(D d) {
+  return D(1 - d);
+}
 }  // namespace agl
