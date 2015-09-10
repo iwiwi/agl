@@ -15,14 +15,12 @@ public:
     if (is_le(ws_[v], w)) return false;
     ws_[v] = w;
     h_.push(w, v);
-    canonicalize();
     return true;
   }
 
   inline void pop() {
     vs_.emplace_back(top_vertex());
     h_.pop();
-    canonicalize();
   }
 
   void clear() {
@@ -35,15 +33,18 @@ public:
     h_.clear();
   }
 
-  inline bool empty() const {
+  inline bool empty() {
+    canonicalize();
     return h_.empty();
   }
 
   inline V top_vertex()  {
+    canonicalize();
     return h_.top_value();
   }
 
   inline W top_weight() {
+    canonicalize();
     return h_.top_key();
   }
 
