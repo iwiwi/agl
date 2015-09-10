@@ -7,3 +7,6 @@
 #include "connectivity/connectivity.h"
 #include "visualize/graphviz.h"
 #include "statistics/statistics.h"
+#include "shortest_path/shortest_path.h"
+
+#include "prettyprint.h"
