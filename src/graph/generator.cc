@@ -81,4 +81,9 @@ template<>
 unweighted_edge_list add_random_weight<unweighted_graph>(const unweighted_edge_list &es) {
   return es;
 }
+
+template<>
+unweighted_edge_list add_unit_weight<unweighted_graph>(const unweighted_edge_list &es) {
+  return es;
+}
 }  // namespace agl

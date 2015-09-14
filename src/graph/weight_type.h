@@ -28,6 +28,10 @@ struct weight_traits {
   static constexpr inline T random() {
     return std::uniform_int_distribution<T>(0, 10)(agl::random);
   }
+
+  static constexpr inline T unit() {
+    return 1;
+  }
 };
 
 template<class T, class Derived>
@@ -46,6 +50,10 @@ struct weight_traits_decimal {
 
   static constexpr inline T random() {
     return std::uniform_real_distribution<T>(0.0, 1.0)(agl::random);
+  }
+
+  static constexpr inline T unit() {
+    return 1;
   }
 };
 
@@ -106,5 +114,10 @@ inline bool is_le(T x, T y) {
 template<typename T>
 inline T random_weight() {
   return weight_traits<T>::random();
+}
+
+template<typename T>
+inline T unit_weight() {
+  return weight_traits<T>::unit();
 }
 }  // namespace agl

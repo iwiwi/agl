@@ -12,11 +12,6 @@ unweighted_edge_list gen_random_spanning_tree(V num_vertices);
 
 unweighted_edge_list force_undirected(const unweighted_edge_list &es);
 
-/*
-template<typename GraphT>
-typename GraphT::edge_list_type add_weight(const unweighted_graph::edge_list_type &es);
-*/
-
 template<typename GraphType>
 typename GraphType::edge_list_type add_random_weight(const unweighted_edge_list &es);
 
@@ -29,6 +24,22 @@ typename GraphType::edge_list_type add_random_weight(const unweighted_edge_list 
   for (size_t i = 0; i < es.size(); ++i) {
     wes[i].first = es[i].first;
     wes[i].second = typename GraphType::E{es[i].second, random_weight<typename GraphType::W>()};
+  }
+  return wes;
+}
+
+template<typename GraphType>
+typename GraphType::edge_list_type add_unit_weight(const unweighted_edge_list &es);
+
+template<>
+unweighted_edge_list add_unit_weight<unweighted_graph>(const unweighted_edge_list &es);
+
+template<typename GraphType>
+typename GraphType::edge_list_type add_unit_weight(const unweighted_edge_list &es) {
+  typename GraphType::edge_list_type wes(es.size());
+  for (size_t i = 0; i < es.size(); ++i) {
+    wes[i].first = es[i].first;
+    wes[i].second = typename GraphType::E{es[i].second, unit_weight<typename GraphType::W>()};
   }
   return wes;
 }
