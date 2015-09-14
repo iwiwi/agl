@@ -59,7 +59,12 @@ using vertex_sketch_raw = std::vector<entry>;
 class graph_sketches_interface {
  public:
   virtual ~graph_sketches_interface() {}
+
+  // Access
   virtual vertex_sketch_raw retrieve_sketch(V v) = 0;
+
+  // Statistics
+  virtual double average_size() const = 0;
 };
 
 struct all_distances_sketches : public graph_sketches_interface {
@@ -69,6 +74,13 @@ struct all_distances_sketches : public graph_sketches_interface {
 
   virtual vertex_sketch_raw retrieve_sketch(V v) {
     return sketches[v];
+  }
+
+  virtual double average_size() const {
+    auto f = [](double r, const vertex_sketch_raw &s) -> double {
+      return r + s.size();
+    };
+    return std::accumulate(sketches.begin(), sketches.end(), 0.0, f) / sketches.size();
   }
 
   virtual ~all_distances_sketches() {}
@@ -90,7 +102,7 @@ void pretty_print(const all_distances_sketches &ads, std::ostream &ofs = std::ce
 // Sketch Retrieval Shortcuts
 ///////////////////////////////////////////////////////////////////////////////
 struct sketch_retrieval_shortcuts : public all_distances_sketches {
-  sketch_retrieval_shortcuts(const G &g) : g_(g) {}
+  explicit sketch_retrieval_shortcuts(const G &g) : g_(g) {}
 
   // TODO: neighbor removal
   virtual vertex_sketch_raw retrieve_sketch(V v);
@@ -105,7 +117,6 @@ struct sketch_retrieval_shortcuts : public all_distances_sketches {
 
 sketch_retrieval_shortcuts compute_sketch_retrieval_shortcuts
 (const G &g, size_t k, const rank_array &ranks = {}, D d = kFwd);
-
 
 sketch_retrieval_shortcuts compute_sketch_retrieval_shortcuts_via_ads_naive
 (const G &g, size_t k, const rank_array &ranks = {}, D d = kFwd);

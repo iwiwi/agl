@@ -2,6 +2,7 @@
 #include <sstream>
 #include <vector>
 #include <iostream>
+#include <algorithm>
 #include "type.h"
 
 namespace agl {
@@ -23,4 +24,20 @@ auto range_to_vector(RangeType range) -> std::vector<decltype(*range.begin())> {
   for (auto x : range) v.emplace_back(x);
   return v;
 }
+
+template<typename T>
+std::vector<T> parse_space_separated_string(const std::string &str) {
+  std::istringstream ss(str);
+  std::vector<T> res;
+  for (T t; ss >> t; ) res.emplace_back(t);
+  return res;
+}
+
+template<typename T>
+std::vector<T> parse_comma_separated_string(std::string str) {
+  std::replace(str.begin(), str.end(), ',', ' ');
+  return parse_space_separated_string<T>(str);
+}
+
+double get_current_time_sec();
 }  // namespace agl
