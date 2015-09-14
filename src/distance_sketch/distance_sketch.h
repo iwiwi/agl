@@ -72,11 +72,11 @@ struct all_distances_sketches : public graph_sketches_interface {
   std::vector<vertex_sketch_raw> sketches;
   rank_array ranks;
 
-  virtual vertex_sketch_raw retrieve_sketch(V v) {
+  virtual vertex_sketch_raw retrieve_sketch(V v) override {
     return sketches[v];
   }
 
-  virtual double average_size() const {
+  virtual double average_size() const override {
     auto f = [](double r, const vertex_sketch_raw &s) -> double {
       return r + s.size();
     };
@@ -105,7 +105,7 @@ struct sketch_retrieval_shortcuts : public all_distances_sketches {
   explicit sketch_retrieval_shortcuts(const G &g) : g_(g) {}
 
   // TODO: neighbor removal
-  virtual vertex_sketch_raw retrieve_sketch(V v);
+  virtual vertex_sketch_raw retrieve_sketch(V v) override;
 
   virtual vertex_sketch_raw retrieve_shortcuts(V v) {
     return all_distances_sketches::retrieve_sketch(v);
@@ -122,6 +122,9 @@ sketch_retrieval_shortcuts compute_sketch_retrieval_shortcuts_via_ads_naive
 (const G &g, size_t k, const rank_array &ranks = {}, D d = kFwd);
 
 sketch_retrieval_shortcuts compute_sketch_retrieval_shortcuts_via_ads_fast
+(const G &g, size_t k, const rank_array &ranks = {}, D d = kFwd);
+
+sketch_retrieval_shortcuts compute_sketch_retrieval_shortcuts_via_ads_unweighted
 (const G &g, size_t k, const rank_array &ranks = {}, D d = kFwd);
 }  // namespace distance_sketch
 }  // namespace agl

@@ -3,7 +3,7 @@
 using namespace distance_sketch;
 
 DEFINE_string(ks, "1,8,64", "");
-DEFINE_int32(num_retrieval_trials, 1000, "");
+DEFINE_int32(num_retrieval_trials, 10000, "");
 
 namespace {
 template<typename Lambda>
@@ -33,6 +33,9 @@ int main(int argc, char **argv) {
 
   for (auto k : parse_comma_separated_string<int>(FLAGS_ks)) {
     JLOG_ADD_OPEN("ks") eval(g, k, compute_all_distances_sketches);
+  }
+  for (auto k : parse_comma_separated_string<int>(FLAGS_ks)) {
+    JLOG_ADD_OPEN("ks") eval(g, k, compute_sketch_retrieval_shortcuts_via_ads_unweighted);
   }
   for (auto k : parse_comma_separated_string<int>(FLAGS_ks)) {
     JLOG_ADD_OPEN("ks") eval(g, k, compute_sketch_retrieval_shortcuts_via_ads_fast);

@@ -76,6 +76,7 @@ all_distances_sketches compute_all_distances_sketches
     return ads.ranks[u] < ads.ranks[v];
   });
 
+  visitor_by_distance<G> visitor(g);
   for (V v_source : ord) {
     auto f = [&](V v_visiting, W d) -> bool {
       vertex_sketch_raw &sketch = ads.sketches[v_visiting];
@@ -89,7 +90,7 @@ all_distances_sketches compute_all_distances_sketches
       return true;
     };
 
-    visit_by_distance(g, v_source, f, reverse_direction(d));
+    visitor.visit(v_source, f, reverse_direction(d));
   }
 
   for (auto &s : ads.sketches) {
@@ -223,6 +224,7 @@ sketch_retrieval_shortcuts compute_sketch_retrieval_shortcuts_via_ads_fast
       }
     }
   }
+  JLOG_PUT_BENCHMARK("sorting")
   sort(es.begin(), es.end());
 
   priority_queue<tuple_type, vector<tuple_type>, greater<tuple_type>> gs;
@@ -238,7 +240,62 @@ sketch_retrieval_shortcuts compute_sketch_retrieval_shortcuts_via_ads_fast
     srs.sketches[v].emplace_back(s, d);
 
     for (const auto &r : rev[v]) {
+      // TODO: this is the bottleneck
       gs.emplace(make_tuple(r.d + d, s, r.v));  // r.v -> v -> s
+    }
+  }
+  return srs;
+}
+
+sketch_retrieval_shortcuts compute_sketch_retrieval_shortcuts_via_ads_unweighted
+(const G& g, size_t k, const rank_array& ranks, D d) {
+  all_distances_sketches ads = compute_all_distances_sketches(g, k, ranks, d);
+
+  sketch_retrieval_shortcuts srs(g);
+  srs.k = ads.k;
+  srs.ranks = ads.ranks;
+  srs.sketches.resize(g.num_vertices());
+
+  // (Distance, to, from)
+  using tuple_type = tuple<W, V, V>;
+  vector<tuple_type> es;
+  vector<vertex_sketch_raw> rev(g.num_vertices());
+  {
+    for (V v : g.vertices()) {
+      const vertex_sketch_raw &s = ads.retrieve_sketch(v);
+      for (const auto &e : s) {
+        es.emplace_back(make_tuple(e.d, e.v, v));
+        rev[e.v].emplace_back(v, e.d);
+      }
+    }
+  }
+  JLOG_PUT_BENCHMARK("sorting")
+  sort(es.begin(), es.end());
+
+  vector<vector<pair<V, V>>> gs(10);
+  size_t i_es = 0;
+  for (W d = 0; i_es < es.size(); ++d) {
+    vector<pair<V, V>> gsd;
+    if (d < (W)gs.size()) gsd = move(gs[d]);
+    sort(gsd.begin(), gsd.end());
+    size_t i_gsd = 0;
+
+    for (; i_es < es.size() && get<0>(es[i_es]) == d; ++i_es) {
+      const auto &e = es[i_es];
+      const V s = get<1>(e);
+      const V v = get<2>(e);
+      if (d == 0) continue;
+
+      while (i_gsd < gsd.size() && gsd[i_gsd] < make_pair(s, v)) ++i_gsd;
+      if (i_gsd < gsd.size() && gsd[i_gsd] == make_pair(s, v)) continue;
+
+      srs.sketches[v].emplace_back(s, d);
+
+      for (const auto &r : rev[v]) {
+        W td = r.d + d;
+        if (td >= (W)gs.size()) gs.resize(gs.size() * 2);
+        gs[td].emplace_back(make_pair(s, r.v));  // r.v -> v -> s
+      }
     }
   }
   return srs;

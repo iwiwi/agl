@@ -27,7 +27,7 @@
 
 #define FAIL_MSG(msg) \
     do {              \
-      fprintf(stderr, "Error (%s:%d): msg\n", __FILE__, __LINE__); \
+      fprintf(stderr, "Error (%s:%d): %s\n", __FILE__, __LINE__, msg); \
       exit(EXIT_FAILURE);                                                 \
     } while (0)
 
