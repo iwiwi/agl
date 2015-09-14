@@ -2,6 +2,8 @@
 #include "agl.h"
 #include "distance_sketch.h"
 
+DECLARE_int32(distance_sketch_k);
+
 namespace agl {
 namespace distance_sketch {
 ///////////////////////////////////////////////////////////////////////////////
@@ -93,7 +95,7 @@ vertex_sketch_raw compute_all_distances_sketch_from
 (const G &g, V v, size_t k, const rank_array &ranks, D d = kFwd);
 
 all_distances_sketches compute_all_distances_sketches
-(const G &g, size_t k, const rank_array &ranks = {}, D d = kFwd);
+(const G &g, size_t k = FLAGS_distance_sketch_k, const rank_array &ranks = {}, D d = kFwd);
 
 void pretty_print(const vertex_sketch_raw &s, std::ostream &ofs = std::cerr);
 void pretty_print(const all_distances_sketches &ads, std::ostream &ofs = std::cerr);
@@ -116,15 +118,15 @@ struct sketch_retrieval_shortcuts : public all_distances_sketches {
 };
 
 sketch_retrieval_shortcuts compute_sketch_retrieval_shortcuts
-(const G &g, size_t k, const rank_array &ranks = {}, D d = kFwd);
+(const G &g, size_t k = FLAGS_distance_sketch_k, const rank_array &ranks = {}, D d = kFwd);
 
 sketch_retrieval_shortcuts compute_sketch_retrieval_shortcuts_via_ads_naive
-(const G &g, size_t k, const rank_array &ranks = {}, D d = kFwd);
+(const G &g, size_t k = FLAGS_distance_sketch_k, const rank_array &ranks = {}, D d = kFwd);
 
 sketch_retrieval_shortcuts compute_sketch_retrieval_shortcuts_via_ads_fast
-(const G &g, size_t k, const rank_array &ranks = {}, D d = kFwd);
+(const G &g, size_t k = FLAGS_distance_sketch_k, const rank_array &ranks = {}, D d = kFwd);
 
 sketch_retrieval_shortcuts compute_sketch_retrieval_shortcuts_via_ads_unweighted
-(const G &g, size_t k, const rank_array &ranks = {}, D d = kFwd);
+(const G &g, size_t k = FLAGS_distance_sketch_k, const rank_array &ranks = {}, D d = kFwd);
 }  // namespace distance_sketch
 }  // namespace agl

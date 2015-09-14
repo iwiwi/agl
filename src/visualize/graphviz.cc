@@ -4,17 +4,112 @@ using namespace std;
 DEFINE_string(graphviz_engine, "fdp", "fdp (default), dot, neato, twopi, circo, sfdp, ...");
 
 namespace agl {
-graphviz::graphviz(const G &g) :
-    g_(g), graphviz_engine_(FLAGS_graphviz_engine) {
-  for (V v : g_.vertices()) {
+//
+// Input
+//
+
+graphviz::graphviz(const G &g) : graphviz_engine_(FLAGS_graphviz_engine) {
+  for (V v : g.vertices()) {
     vertex_property_[v] = property_map();
   }
 
-  for (V v : g_.vertices()) {
-    for (E e : g_.edges(v)) {
+  for (V v : g.vertices()) {
+    for (E e : g.edges(v)) {
       edge_property_[make_pair(v, to(e))]["dir"] = "forward";
     }
   }
+}
+
+void graphviz::read_dot(const string &filename) {
+  ifstream ifs(filename);
+  CHECK_PERROR(ifs);
+  read_dot(ifs);
+}
+
+void graphviz::read_dot(istream &is) {
+  // TODO: more robust implementation
+  clear();
+
+  // Header
+  {
+    string s;
+    CHECK(is >> s && (s == "graph" || s == "digraph"));
+    CHECK(is >> s);
+    if (s != "{") {
+      CHECK(is >> s && s == "{");
+    }
+  }
+  // Commands
+  while (!is.eof()) {
+    string cmd = "";
+    // TODO: ';' in escaped strings
+    for (char c; !is.eof() && is.get(c) && c != ';'; ) cmd += c;
+
+    vector<string> tokens = parse_space_separated_string<string>(cmd);
+    if (tokens.size() < 2) continue;
+
+    // "hoge=piyo,foo=bar"
+    string property_str;
+    {
+      auto v = split(cmd, '[');
+      CHECK(v.size() == 2);
+      property_str = v[1];
+      CHECK(property_str.back() == ']');
+      property_str.pop_back();
+    }
+
+    // Where to put the properties
+    property_map *target_property_map = nullptr;
+    {
+      if (tokens[1] == "->") {
+        target_property_map = &edge_property_[make_pair(stoi(tokens[0]), stoi(tokens[2]))];
+      } else {
+        if (tokens[0] == "graph") {
+          target_property_map = &graph_property_;
+        } else if (tokens[0] == "node") {
+          target_property_map = &vertex_common_property_;
+        } else {
+          target_property_map = &vertex_property_[stoi(tokens[0])];
+        }
+      }
+    }
+
+    // [name1, value1, name2, value2, ...]
+    vector<string> name_and_values;
+    {
+      // TODO: '~' in escaped strings
+      auto vs = split(property_str, '=');
+      for (auto j : make_irange(vs.size())) {
+        const string &s = vs[j];
+        string::size_type i = s.rfind(',');
+        if (j + 1 == vs.size() || i == string::npos) {
+          name_and_values.emplace_back(strip(s));
+        } else {
+          name_and_values.emplace_back(strip(s.substr(0, i)));
+          name_and_values.emplace_back(strip(s.substr(i + 1)));
+        }
+      }
+    }
+
+    CHECK(name_and_values.size() % 2 == 0);
+    for (size_t i : make_irange(name_and_values.size() / 2)) {
+      string &name = name_and_values[i * 2];
+      string &value = name_and_values[i * 2 + 1];
+      if (value[0] == '"') {
+        CHECK(value.length() >= 2 && value.back() == '"');
+        value = value.substr(1, value.length() - 2);
+      }
+      target_property_map->insert(make_pair(name, value));
+    }
+  }
+}
+
+void graphviz::clear() {
+  graphviz_engine_ = FLAGS_graphviz_engine;
+  graph_property_.clear();
+  vertex_common_property_.clear();
+  vertex_property_.clear();
+  edge_property_.clear();
 }
 
 //
@@ -49,20 +144,20 @@ void graphviz::output_dot(const string &filename) const {
   CHECK_PERROR(ofs);
 }
 
-void graphviz::generate_iamge(const string &img_filename, const string &img_type) const {
+void graphviz::generate_image(const string &img_filename, const string &img_type) const {
   string dot_filename = img_filename + ".dot";
   output_dot(dot_filename);
 
-  string cmd = graphviz_engine_ + string(" ") + dot_filename + " -T " + img_type + " -o " + img_filename;
+  string cmd = graphviz_engine_ + string(" ") + graphviz_option_ + " " + dot_filename + " -T " + img_type + " -o " + img_filename;
   CHECK(0 == system(cmd.c_str()));
 }
 
 void graphviz::generate_png(const string &filename) const {
-  generate_iamge(filename, "png");
+  generate_image(filename, "png");
 }
 
 void graphviz::generate_eps(const string &filename) const {
-  generate_iamge(filename, "eps");
+  generate_image(filename, "eps");
 }
 
 
@@ -138,9 +233,9 @@ void graphviz::ignore_direction() {
   set_edge_property("dir", [](V, V) { return "none"; });
 }
 
-void graphviz::ignore_isolated_vertex() {
-  for (V v : g_.vertices()) {
-    if (g_.degree(v, kFwd) + g_.degree(v, kBwd) == 0) vertex_property_.erase(v);
+void graphviz::ignore_isolated_vertex(const G &g) {
+  for (V v : g.vertices()) {
+    if (g.degree(v, kFwd) + g.degree(v, kBwd) == 0) vertex_property_.erase(v);
   }
 }
 
@@ -173,7 +268,7 @@ void graphviz_draw_graph(const G &g, const char *filename, const char *engine) {
 
   for (V u : g.vertices()) for (V v : g.neighbors(u)) gz.set_edge_property(u, v, "label", "");
 
-  gz.ignore_isolated_vertex();
+  gz.ignore_isolated_vertex(g);
   gz.ignore_direction();
 
 
@@ -194,12 +289,13 @@ void graphviz_draw_edge_centrality(const G& g, const edge_centrality_map& ec,
 
   gz.set_graph_property("splines", "true");
   gz.set_graph_property("overlap", "scale");
-  gz.set_vertex_property("shape", [](V) { return "circle"; });
+  gz.set_vertex_property("shape", [](V) { return "point"; });
+  gz.set_vertex_property("label", [](V) { return ""; });
 
   for (V u : g.vertices()) {
     for (V v : g.neighbors(u)) {
       const double x = ec.at({u, v});
-      gz.set_edge_property(u, v, "label", to_string(x));
+      // gz.set_edge_property(u, v, "label", to_string(x));
 
       double A = 1.0 / 3.0;
       char buf[256];
@@ -208,7 +304,7 @@ void graphviz_draw_edge_centrality(const G& g, const edge_centrality_map& ec,
     }
   }
 
-  gz.ignore_isolated_vertex();
+  gz.ignore_isolated_vertex(g);
   gz.ignore_direction();
   gz.set_graphviz_engine(graphviz_engine);
   gz.generate_png(png_filename);

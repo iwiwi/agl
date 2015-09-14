@@ -2,6 +2,8 @@
 #include "agl.h"
 using namespace std;
 
+DEFINE_int32(distance_sketch_k, 16, "");
+
 namespace agl {
 namespace distance_sketch {
 ///////////////////////////////////////////////////////////////////////////////

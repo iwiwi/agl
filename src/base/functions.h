@@ -39,5 +39,8 @@ std::vector<T> parse_comma_separated_string(std::string str) {
   return parse_space_separated_string<T>(str);
 }
 
+std::vector<std::string> split(const std::string &str, char splitter);
+std::string strip(const std::string &str);
+
 double get_current_time_sec();
 }  // namespace agl
