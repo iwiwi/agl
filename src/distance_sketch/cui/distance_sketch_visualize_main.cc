@@ -2,15 +2,78 @@
 #include "distance_sketch/distance_sketch.h"
 using namespace distance_sketch;
 
+DEFINE_string(dir, "vis", "");
+
 namespace {
+int image_id = 0;
+
 string double_to_string(double x) {
   ostringstream oss;
   oss << fixed << setprecision(2) << x;
   return oss.str();
 }
+
+string int_to_string_02d(int i) {
+  ostringstream oss;
+  oss << setfill('0') << setw(2) << right << i;
+  return oss.str();
+}
+
+void generate_original_graph_layout(const G &g, const rank_array &ranks) {
+  graphviz gz(g);
+  gz.set_graph_property("splines", "true");
+  gz.set_graph_property("overlap", "scale");
+  gz.set_graph_property("size", "20");
+  gz.ignore_isolated_vertex(g);
+
+  gz.set_vertex_property("shape", [](V) { return "Mrecord"; });
+  gz.set_vertex_property("label", [&](V v) {
+    return "{" + to_string(v) + "|" + double_to_string(ranks[v] / (double)numeric_limits<rank_type>::max()) + "}";
+  });
+
+  gz.ignore_direction();
+  gz.generate_image(FLAGS_dir + "/layout.dot", "dot");
+}
+
+struct distance_sketch_visualizer {
+  graphviz gz;
+
+  distance_sketch_visualizer() {
+    gz.read_dot(FLAGS_dir + "/layout.dot");
+    gz.set_graphviz_option("-n");
+  }
+
+  void add_sketch_edges(const all_distances_sketches *ads, string color) {
+    for (V v : make_irange(ads->sketches.size())) {
+      for (auto e : ads->sketches[v]) {
+        if (e.d > 1) {
+          gz.add_edge(v, e.v);
+          gz.set_edge_property(v, e.v, "color", color);
+        }
+      }
+    }
+  }
+
+  void generate() {
+    for (const char *image_type : {"png", "eps"}) {
+      gz.generate_image(FLAGS_dir + "/" + int_to_string_02d(image_id) + "." + image_type,
+                        image_type);
+    }
+    ++image_id;
+  }
+
+  void highlight_vertices_in_sketch(const vertex_sketch_raw &s,
+                          const string &property, const string &value) {
+    for (const auto &e : s) {
+      gz.set_vertex_property(e.v, property, value);
+    }
+  }
+};
 }  // namespace
 
 int main(int argc, char **argv) {
+  CHECK(0 == system(("mkdir -p " + FLAGS_dir).c_str()));
+
   G g = easy_cui_init(argc, argv);
   vector<pair<V, V>> original_es = g.edge_list();
   sort(original_es.begin(), original_es.end());
@@ -19,69 +82,42 @@ int main(int argc, char **argv) {
   auto ads = compute_all_distances_sketches(g, FLAGS_distance_sketch_k, ranks);
   auto srs = compute_sketch_retrieval_shortcuts(g, FLAGS_distance_sketch_k, ranks);
 
+  generate_original_graph_layout(g, ranks);
 
-  {
-    graphviz gz(g);
-    gz.set_graph_property("splines", "true");
-    gz.set_graph_property("overlap", "scale");
-    gz.set_graph_property("size", "20");
-    gz.ignore_isolated_vertex(g);
-
-    gz.set_vertex_property("shape", [](V) { return "Mrecord"; });
-    gz.set_vertex_property("label", [&](V v) {
-      return "{" + to_string(v) + "|" + double_to_string(ads.ranks[v] / (double)numeric_limits<rank_type>::max()) + "}";
-    });
-
-    gz.ignore_direction();
-    gz.generate_image("tmp.dot", "dot");
-    gz.generate_png("01_graph.png");
+  for (int b : make_irange(4)) {
+    distance_sketch_visualizer dsv;
+    if (b & 1) dsv.add_sketch_edges(&ads, "orange");
+    if (b & 2) dsv.add_sketch_edges(&srs, "lightskyblue");
+    dsv.generate();
   }
 
-  graphviz gz;
-  gz.read_dot("tmp.dot");
-  //gz.set_graphviz_option("-s1 -n100");
-  gz.set_graphviz_option("-n");
+  for (V v_source : g.vertices()) {
+    distance_sketch_visualizer dsv;
+    dsv.add_sketch_edges(&srs, "lightskyblue");
+    const auto &s = ads.sketches[v_source];
+    dsv.highlight_vertices_in_sketch(s, "style", "filled");
+    dsv.highlight_vertices_in_sketch(s, "fillcolor", "gold");
+    dsv.gz.set_vertex_property(v_source, "fillcolor", "pink");
 
-  map<pair<V, V>, int> map_ads, map_srs;
-  for (V v : g.vertices()) {
-    {
-      for (auto e : ads.sketches[v]) {
-        if (e.d > 1) gz.add_edge(v, (int)e.v);
-        map_ads.emplace(make_pair(v, (int)e.v), (int)e.d);
-      }
+    vector<int> ds(g.num_vertices(), -1000);
+    for (auto e : s) ds[e.v] = e.d;
+
+    for (auto &i : dsv.gz.edge_properties()) {
+      V u = i.first.first, v = i.first.second;
+      if (abs(ds[v] - ds[u]) == 1) i.second["penwidth"] = "2";
+      if (ds[v] == ds[u] + 1) i.second["dir"] = "forward";
+      if (ds[u] == ds[v] + 1) i.second["dir"] = "back";
     }
-    {
+    for (V v : g.vertices()) {
       for (auto e : srs.sketches[v]) {
-        if (e.d > 1) gz.add_edge(v, (int)e.v);
-        map_srs.emplace(make_pair(v, (int)e.v), (int)e.d);
+        if (ds[e.v] == ds[v] + e.d) {
+          dsv.gz.set_edge_property(v, e.v, "penwidth", "4");
+        }
       }
     }
-  }
-  gz.set_edge_property("color", [&](V u, V v) {
-    return binary_search(original_es.begin(), original_es.end(), make_pair(u, v)) ? "black" :
-        map_srs.count(make_pair(u, v)) ? "blue" : "red";
-  });
 
-  for (auto &i : gz.edge_properties()) {
-    if (binary_search(original_es.begin(), original_es.end(), i.first)) {
-      i.second["dir"] = "none";
-    }
+    dsv.generate();
   }
-
-  for (auto &vp : gz.vertex_properties()) {
-    vp.second.erase("width");
-    vp.second.erase("height");
-  }
-
-  /*
-  for (V v : g.vertices()) {
-    for (auto e : ads.sketches[v]) {
-      if (e.d > 1) gz.set_edge_property(v, e.v, "label", to_string(e.d));
-    }
-  }
-  */
-
-  gz.generate_png("02_ads_and_srs.png");
 
   return 0;
 }
