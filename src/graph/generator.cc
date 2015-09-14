@@ -37,18 +37,6 @@ unweighted_edge_list gen_grid(size_t num_rows, size_t num_cols) {
   return es;
 }
 
-unweighted_edge_list force_undirected(const unweighted_edge_list& es) {
-  unweighted_edge_list out(es.size() * 2);
-  for (auto i : make_irange(es.size())) {
-    V u = es[i].first, v = es[i].second;
-    out[i * 2 + 0] = make_pair(u, v);
-    out[i * 2 + 1] = make_pair(v, u);
-  }
-  sort(out.begin(), out.end());
-  out.erase(unique(out.begin(), out.end()), out.end());
-  return out;
-}
-
 unweighted_edge_list gen_barbell(V size_clique) {
   unweighted_edge_list out;
   for (V i : make_irange(2)) {
@@ -60,6 +48,73 @@ unweighted_edge_list gen_barbell(V size_clique) {
   }
   out.emplace_back(0, size_clique);
   return out;
+}
+
+unweighted_edge_list gen_random_planar(V num_vertices, size_t num_edges) {
+  using namespace agl::geometry2d;
+
+  uniform_real_distribution<double> urd(0.0, 1.0);
+  vector<point_type> points(num_vertices);
+  for (auto &p : points) p = point_type(urd(random), urd(random));
+
+  vector<tuple<double, V, V>> es_sorted;
+  for (V v : make_irange(num_vertices)) {
+    for (V u : make_irange(v)) {
+      es_sorted.emplace_back(abs(points[u] - points[v]), u, v);
+    }
+  }
+  sort(es_sorted.begin(), es_sorted.end());
+
+  set<pair<V, V>> es;
+  for (const auto &t : es_sorted) {
+    if (es.size() >= num_edges) break;
+    V u = get<1>(t);;
+    V v = get<2>(t);
+    if (u == v) continue;
+
+    bool ins = false;
+    for (const auto &e : es) {
+      if (u == e.first || u == e.second ||
+          v == e.first || v == e.second) continue;
+      ins = does_intersect(segment_type(points[u], points[v]),
+                            segment_type(points[e.first], points[e.second]));
+      if (ins) break;
+    }
+
+    if (!ins) es.emplace(u, v);
+    cout << es.size() << endl;
+  }
+
+  return unweighted_edge_list(es.begin(), es.end());
+}
+
+unweighted_edge_list gen_random_planar_(V num_vertices, size_t num_edges) {
+  using namespace agl::geometry2d;
+
+  uniform_real_distribution<double> urd(0.0, 1.0);
+  vector<point_type> points(num_vertices);
+  for (auto &p : points) p = point_type(urd(random), urd(random));
+
+  set<pair<V, V>> es;
+  while (es.size() < num_edges) {
+    V u = random(num_vertices);
+    V v = random(num_vertices);
+    if (u == v) continue;
+
+    bool ins = false;
+    for (const auto &e : es) {
+      if (u == e.first || u == e.second ||
+          v == e.first || v == e.second) continue;
+      ins = does_intersect(segment_type(points[u], points[v]),
+                            segment_type(points[e.first], points[e.second]));
+      if (ins) break;
+    }
+
+    if (!ins) es.emplace(u, v);
+    cout << es.size() << endl;
+  }
+
+  return unweighted_edge_list(es.begin(), es.end());
 }
 
 unweighted_edge_list gen_random_spanning_tree(V num_vertices) {
@@ -75,6 +130,18 @@ unweighted_edge_list gen_random_spanning_tree(V num_vertices) {
   }
 
   return es;
+}
+
+unweighted_edge_list force_undirected(const unweighted_edge_list& es) {
+  unweighted_edge_list out(es.size() * 2);
+  for (auto i : make_irange(es.size())) {
+    V u = es[i].first, v = es[i].second;
+    out[i * 2 + 0] = make_pair(u, v);
+    out[i * 2 + 1] = make_pair(v, u);
+  }
+  sort(out.begin(), out.end());
+  out.erase(unique(out.begin(), out.end()), out.end());
+  return out;
 }
 
 template<>
