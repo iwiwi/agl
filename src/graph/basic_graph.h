@@ -86,6 +86,8 @@ public:
 
   void assign(const edge_list_type &es);
 
+  edge_list_type edge_list(D d = kFwd) const;
+
   //
   // Graph access
   //
@@ -136,11 +138,16 @@ public:
   // Dynamic graph update
   //
   template<typename... Args>
-  void add_edge(V from, Args&&... args) {
-    assert(false);  // TODO: keep edge lists sorted!
-    edges_from_[kFwd][from].emplace_back(std::forward<Args>(args)...);
-    const E &e = edges_from_[kFwd][from].back();
-    edges_from_[kBwd][to(e)].emplace_back(reverse_edge(from, e));
+  void add_edge(V v_from, Args&&... args) {
+    edges_from_[kFwd][v_from].emplace_back(std::forward<Args>(args)...);
+    const E &e = edges_from_[kFwd][v_from].back();
+    const V v_to = to(e);
+    edges_from_[kBwd][v_to].emplace_back(reverse_edge(v_from, e));
+
+    // TODO: faster by insertion
+    auto cmp = [](const E &e0, const E &e1) { return to(e0) < to(e1); };
+    std::sort(edges_from_[kFwd][v_from].begin(), edges_from_[kFwd][v_from].end(), cmp);
+    std::sort(edges_from_[kBwd][v_to].begin(), edges_from_[kBwd][v_to].end(), cmp);
   }
 
 private:
@@ -178,5 +185,16 @@ void basic_graph<EdgeType>::assign(const basic_graph<EdgeType>::edge_list_type &
       std::sort(edges_from_[d][v].begin(), edges_from_[d][v].end(), cmp);
     }
   }
+}
+
+template<typename EdgeType>
+typename basic_graph<EdgeType>::edge_list_type basic_graph<EdgeType>::edge_list(D d) const {
+  decltype(edge_list(d)) el;
+  for (V v : vertices()) {
+    for (const E &e : edges(v, d)) {
+      el.emplace_back(v, e);
+    }
+  }
+  return el;
 }
 }  // namespace agl
