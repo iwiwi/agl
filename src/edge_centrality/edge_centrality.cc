@@ -21,6 +21,23 @@ edge_centrality_map init_edge_centrality_map(const G &g) {
 }
 }  // namespace
 
+
+edge_centrality_map merge_edge_centrality_map_entries_for_undirected_graph
+(const edge_centrality_map &ecm) {
+  edge_centrality_map t;
+
+  for (const auto &i : ecm) {
+    V u = i.first.first, v = i.first.second;
+    if (t.count({v, u})) {
+      double &x = t[{v, u}];
+      x = (x + i.second) / 2.0;
+    } else {
+      t[{u, v}] = i.second;
+    }
+  }
+  return t;
+}
+
 edge_centrality_map edge_betweenness_centrality(const G &g) {
   if (FLAGS_edge_betweenness_centrality_algorithm == "naive") {
     return edge_betweenness_centrality_naive(g);

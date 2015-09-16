@@ -36,6 +36,8 @@ int main(int argc, char **argv) {
   // CHECK(is_connected(g));
 
   auto ebc = edge_betweenness_centrality(g);
+  ebc = merge_edge_centrality_map_entries_for_undirected_graph(ebc);
+
   for (auto i : ebc) {
     cout << i.first.first << "\t" << i.first.second << "\t" << i.second << endl;
   }
