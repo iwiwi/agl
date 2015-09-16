@@ -21,6 +21,7 @@ unweighted_edge_list gen_connected_random_graph(V num_vs, size_t num_es) {
   std::uniform_int_distribution<V> rng(0, num_vs - 1);
   while (es.size() < num_es) {
     V u = rng(agl::random), v = rng(agl::random);
+    if (u > v) swap(u, v);
     if (u != v) es.insert(make_pair(u, v));
   }
   return vector<pair<V, V>>(es.begin(), es.end());
