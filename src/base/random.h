@@ -25,7 +25,9 @@ class xorshift64star {
     return std::numeric_limits<uint64_t>::max();
   }
 
-  xorshift64star(uint64_t seed = FLAGS_random_seed) : x_(seed) {}
+  xorshift64star(uint64_t seed = FLAGS_random_seed) : x_(seed) {
+    CHECK(seed != 0);
+  }
 
   uint64_t operator()() {
     x_ ^= x_ >> 12;
@@ -54,12 +56,26 @@ class xorshift1024star {
     return std::numeric_limits<uint64_t>::max();
   }
 
-  xorshift1024star(uint64_t seed = FLAGS_random_seed) : p_(0) {
+  // Delay the initialization to wait |FLAGS_random_seed| to be set.
+  xorshift1024star() : p_(-1) {}
+
+  xorshift1024star(uint64_t seed) {
+    srand(seed);
+  }
+
+  void srand(uint64_t seed) {
+    CHECK(seed != 0);
+    p_ = 0;
     xorshift64star x(seed);
     for (int i = 0; i < 16; ++i) s_[i] = x();
   }
 
+
   uint64_t operator()() {
+    if (p_ == -1) {
+      srand(FLAGS_random_seed);
+    }
+
     uint64_t s0 = s_[p_];
     uint64_t s1 = s_[p_ = (p_ + 1) & 15];
     s1 ^= s1 << 31; // a
