@@ -52,8 +52,8 @@ TEST(edge_betweenness_centrality, random) {
   const double kErrorTolerance = 5 * 1 / sqrt(kNumSamples);
   FLAGS_edge_betweenness_centrality_num_samples = kNumSamples;
 
-  for (int t = 0; t < 100; ++t) {
-    G g(gen_erdos_renyi(30, 2));
+  for (int t = 0; t < 10; ++t) {
+    G g(gen_erdos_renyi(110, 2));  // V * V >= kNumSamples
     const edge_centrality_map ans = edge_betweenness_centrality_naive(g);
     const edge_centrality_map out1 = edge_betweenness_centrality_sample_slow(g);
     const edge_centrality_map out2 = edge_betweenness_centrality_sample(g);

@@ -95,6 +95,10 @@ edge_centrality_map edge_betweenness_centrality_naive(const G &g) {
 
 edge_centrality_map edge_betweenness_centrality_sample_slow(const G &g) {
   const auto num_samples = FLAGS_edge_betweenness_centrality_num_samples;
+  if (g.num_vertices() * (size_t)g.num_vertices() < (size_t)num_samples) {
+    return edge_betweenness_centrality_naive(g);
+  }
+
   random_type rng;
   auto res = init_edge_centrality_map(g);
 
@@ -130,6 +134,10 @@ edge_centrality_map edge_betweenness_centrality_sample_slow(const G &g) {
 
 edge_centrality_map edge_betweenness_centrality_sample(const G &g) {
   const auto num_samples = FLAGS_edge_betweenness_centrality_num_samples;
+  if (g.num_vertices() * (size_t)g.num_vertices() < (size_t)num_samples) {
+    return edge_betweenness_centrality_naive(g);
+  }
+
   auto res = init_edge_centrality_map(g);
   dijkstra_heap<G> hs[2] = {make_dijkstra_heap(g), make_dijkstra_heap(g)};
   vector<pair<W, double>> ds[2];
