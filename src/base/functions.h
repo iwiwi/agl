@@ -3,6 +3,7 @@
 #include <vector>
 #include <iostream>
 #include <algorithm>
+#include <cstdlib>
 #include "type.h"
 
 namespace agl {
@@ -16,6 +17,13 @@ std::string to_string(const T& n) {
   std::ostringstream stm;
   stm << n;
   return stm.str();
+}
+
+// Cygwin/MinGW では stoi もない...
+// http://stackoverflow.com/questions/20145488/cygwin-g-stdstoi-error-stoi-is-not-a-member-of-std
+template<typename ...>
+int stoi(const std::string& str) {
+  return atoi(str.c_str());
 }
 
 template<typename RangeType>
