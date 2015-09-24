@@ -19,8 +19,30 @@ edge_centrality_map init_edge_centrality_map(const G &g) {
   }
   return res;
 }
-}  // namespace
 
+vector<pair<V, V>> sample_vertex_pairs(const G &g, int num_samples) {
+  vector<pair<V, V>> sampled_vertex_pairs;
+  if (g.num_vertices() * (g.num_vertices() - 1) <= num_samples) {
+    for (V s : g.vertices()) {
+      for (V t : g.vertices()) {
+        if (s == t) continue;
+        sampled_vertex_pairs.emplace_back(s, t);
+      }
+    }
+  } else {
+    random_type rng;
+    for (int i = 0; i < num_samples; ++i) {
+      V s, t;
+      do {
+        s = rng(g.num_vertices());
+        t = rng(g.num_vertices());
+      } while (s == t);
+      sampled_vertex_pairs.emplace_back(s, t);
+    }
+  }
+  return sampled_vertex_pairs;
+}
+}  // namespace
 
 edge_centrality_map merge_edge_centrality_map_entries_for_undirected_graph
 (const edge_centrality_map &ecm) {
@@ -30,7 +52,7 @@ edge_centrality_map merge_edge_centrality_map_entries_for_undirected_graph
     V u = i.first.first, v = i.first.second;
     if (t.count({v, u})) {
       double &x = t[{v, u}];
-      x = (x + i.second) / 2.0;
+      x = (x + i.second);
     } else {
       t[{u, v}] = i.second;
     }
@@ -68,6 +90,9 @@ edge_centrality_map edge_betweenness_centrality_naive(const G &g) {
 
       for (auto s : g.vertices()) {
         for (auto t : g.vertices()) {
+          // s -> u -> v -> t
+          if (s == t) continue;
+
           const auto &ms = mat[kFwd][s], &mt = mat[kBwd][t];
           assert(is_eq(ms[t].first, mt[s].first));
           assert(is_eq(ms[t].second, mt[s].second));
@@ -84,7 +109,7 @@ edge_centrality_map edge_betweenness_centrality_naive(const G &g) {
         }
       }
 
-      const double ebc = sum / (g.num_vertices() * g.num_vertices());
+      const double ebc = sum / (g.num_vertices() * (g.num_vertices() - 1));
       res[make_pair(u, v)] = ebc;
     }
   }
@@ -93,18 +118,14 @@ edge_centrality_map edge_betweenness_centrality_naive(const G &g) {
 }
 
 
-edge_centrality_map edge_betweenness_centrality_sample_slow(const G &g) {
-  const auto num_samples = FLAGS_edge_betweenness_centrality_num_samples;
-  if (g.num_vertices() * (size_t)g.num_vertices() < (size_t)num_samples) {
-    return edge_betweenness_centrality_naive(g);
-  }
 
-  random_type rng;
+edge_centrality_map edge_betweenness_centrality_sample_slow(const G &g) {
+  const auto sampled_vertex_pairs = sample_vertex_pairs(g, FLAGS_edge_betweenness_centrality_num_samples);
   auto res = init_edge_centrality_map(g);
 
-  for (int iter = 0; iter < num_samples; ++iter) {
-    const V s = rng(g.num_vertices());
-    const V t = rng(g.num_vertices());
+  for (pair<V, V> p : sampled_vertex_pairs) {
+    // Sampled vertex pair
+    const V s = p.first, t = p.second;
 
     auto ms = single_source_distance_with_num_paths(g, s, kFwd);
     auto mt = single_source_distance_with_num_paths(g, t, kBwd);
@@ -124,7 +145,7 @@ edge_centrality_map edge_betweenness_centrality_sample_slow(const G &g) {
         const double np = psu.second * pvt.second / pst.second;
         assert(is_le(np, 1.0));
 
-        res[make_pair(u, v)] += np / num_samples;
+        res[make_pair(u, v)] += np / sampled_vertex_pairs.size();
       }
     }
   }
@@ -133,22 +154,17 @@ edge_centrality_map edge_betweenness_centrality_sample_slow(const G &g) {
 }
 
 edge_centrality_map edge_betweenness_centrality_sample(const G &g) {
-  const auto num_samples = FLAGS_edge_betweenness_centrality_num_samples;
-  if (g.num_vertices() * (size_t)g.num_vertices() < (size_t)num_samples) {
-    return edge_betweenness_centrality_naive(g);
-  }
+  const auto sampled_vertex_pairs = sample_vertex_pairs(g, FLAGS_edge_betweenness_centrality_num_samples);
 
   auto res = init_edge_centrality_map(g);
   dijkstra_heap<G> hs[2] = {make_dijkstra_heap(g), make_dijkstra_heap(g)};
   vector<pair<W, double>> ds[2];
   ds[kFwd].assign(g.num_vertices(), {kInfW, 0});
   ds[kBwd].assign(g.num_vertices(), {kInfW, 0});
-  random_type rng;
 
-  for (int iter = 0; iter < num_samples; ++iter) {
+  for (pair<V, V> p : sampled_vertex_pairs) {
     // Sampled vertex pair
-    const V s = rng(g.num_vertices());
-    const V t = rng(g.num_vertices());
+    const V s = p.first, t = p.second;
 
     hs[kFwd].decrease(s, 0);
     hs[kBwd].decrease(t, 0);
@@ -211,7 +227,7 @@ edge_centrality_map edge_betweenness_centrality_sample(const G &g) {
 
         const double np = psu.second * pvt.second / pst.second;
         assert(is_le(np, 1.0));
-        res[make_pair(u, v)] += np / num_samples;
+        res[make_pair(u, v)] += np / sampled_vertex_pairs.size();
       }
     }
 
