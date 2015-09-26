@@ -1,5 +1,13 @@
-Copyright 2015, Takuya Akiba.
-All rights reserved.
+# AGL
+
+
+## ビルド方法
+
+  ./waf configure
+  ./waf
+
+
+## ライセンス
 
 現在 AGL は初期段階にあります，フィードバックと改善のサイクルを短くし，
 互換性の破壊を含む大きな変更を必要に応じて行えるようにするため，
