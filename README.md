@@ -3,9 +3,10 @@
 
 ## ビルド方法
 
-  ./waf configure
-  ./waf
-
+```
+./waf configure
+./waf
+```
 
 ## ライセンス
 
