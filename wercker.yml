@@ -14,7 +14,7 @@ build:
     - script:
         name: build-clang
         code: |
-          CXX=clang CXXFLAGS="-lstdc++" ./waf configure
+          CXX=clang CXXFLAGS="-lstdc++" LINKFLAGS="-lstdc++" ./waf configure
           ./waf clean
           ./waf
     - script:
