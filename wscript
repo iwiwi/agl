@@ -10,12 +10,14 @@ out = 'bin'
 
 def options(opt):
   opt.load('compiler_cxx')
+  opt.load('unittest_gtest')
   opt.add_option('--build_debug', action='store_true', default=False, help='debug build')
   opt.add_option('--build_profile', action='store_true', default=False, help='debug build')
 
 def configure(conf):
   conf.load('compiler_cxx')
-  conf.env.CXXFLAGS += ['-Wall', '-Wextra', '-g', '-std=c++0x', '-pthread']
+  conf.load('unittest_gtest')
+  conf.env.CXXFLAGS += ['-Wall', '-g', '-std=c++0x', '-pthread']
   conf.env.LINKFLAGS += ['-pthread']
 
   if conf.options.build_debug:
@@ -48,12 +50,6 @@ def build(bld):
     target   = 'agl',
     includes = ['src', '3rd_party'])
 
-  bld.program(
-    source = cc_file_test,
-    target = 'test',
-    use = ['agl', 'gflags', 'gtest'],
-    includes = ['src', '3rd_party'])
-
   for cc in cc_file_main:
     n = os.path.basename(cc).replace('_main.cc', '')
     bld.program(
@@ -62,3 +58,16 @@ def build(bld):
       target = n,
       use = ['agl', 'gflags'],
       includes = ['src', '3rd_party'])
+
+  bld.program(
+    source = cc_file_test,
+    target = 'test',
+    use = ['agl', 'gflags', 'gtest'],
+    includes = ['src', '3rd_party'])
+
+  bld.program(
+    features = 'testt',
+    source = cc_file_test,
+    target = 'test_',
+    use = ['agl', 'gflags', 'gtest'],
+    includes = ['src', '3rd_party'])
