@@ -4,8 +4,8 @@ build:
     - script:
         name: build-gcc
         code: |
-          ./waf clean
           CXX=g++ ./waf configure
+          ./waf clean
           ./waf
     - script:
         name: test-gcc
@@ -14,8 +14,8 @@ build:
     - script:
         name: build-clang
         code: |
-          ./waf clean
           CXX=clang CXXFLAGS="-lstdc++" ./waf configure
+          ./waf clean
           ./waf
     - script:
         name: test-clang
