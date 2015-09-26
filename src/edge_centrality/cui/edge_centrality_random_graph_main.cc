@@ -32,7 +32,7 @@ int main(int argc, char **argv) {
   JLOG_INIT(&argc, argv);
   google::ParseCommandLineFlags(&argc, &argv, true);
 
-  G g(force_undirected(gen_connected_random_graph(FLAGS_n, FLAGS_m)));
+  G g(make_undirected(gen_connected_random_graph(FLAGS_n, FLAGS_m)));
   // CHECK(is_connected(g));
 
   auto ebc = edge_betweenness_centrality(g);

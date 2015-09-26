@@ -69,7 +69,7 @@ GraphType easy_cui_init(int argc, char **argv) {
     }
   }
 
-  if (FLAGS_force_undirected) es = force_undirected(es);
+  if (FLAGS_force_undirected) es = make_undirected(es);
 
   GraphType g(es);
   pretty_print(g);

@@ -12,7 +12,7 @@ TEST(gen_radom_spanning_tree, connectivity) {
     ASSERT_EQ((V)es.size(), num_vs - 1);
 
     // Connectivity
-    G g(force_undirected(es));
+    G g(make_undirected(es));
     pretty_print(g);
     ASSERT_TRUE(is_connected(g));
   }

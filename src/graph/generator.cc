@@ -132,7 +132,7 @@ unweighted_edge_list generate_random_spanning_tree(V num_vertices) {
   return es;
 }
 
-unweighted_edge_list force_undirected(const unweighted_edge_list& es) {
+unweighted_edge_list make_undirected(const unweighted_edge_list& es) {
   unweighted_edge_list out(es.size() * 2);
   for (auto i : make_irange(es.size())) {
     V u = es[i].first, v = es[i].second;

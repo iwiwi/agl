@@ -30,7 +30,7 @@ TEST(unweighted_graph, undirected_neighbors) {
   for (int trial = 0; trial < 10; ++trial) {
     unweighted_edge_list es = generate_erdos_renyi(100, 2);
     G g1(es);
-    G g2(force_undirected(es));
+    G g2(make_undirected(es));
 
     for (V v : g1.vertices()) {
       auto ns1 = range_to_vector(g1.undirected_neighbors(v));

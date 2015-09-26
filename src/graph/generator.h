@@ -11,7 +11,7 @@ unweighted_edge_list generate_random_planar(V num_verticese, size_t num_edges);
 
 unweighted_edge_list generate_random_spanning_tree(V num_vertices);
 
-unweighted_edge_list force_undirected(const unweighted_edge_list &es);
+unweighted_edge_list make_undirected(const unweighted_edge_list &es);
 
 template<typename GraphType>
 typename GraphType::edge_list_type add_random_weight(const unweighted_edge_list &es);
