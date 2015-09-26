@@ -34,7 +34,7 @@ def build(bld):
   cc_file_main = []
   cc_file_test = []
   cc_file_stlib = []
-  for src_dirname in ['src']:
+  for src_dirname in ['src', 'tutorial']:
     for root, dirnames, filenames in os.walk(src_dirname):
       for filename in fnmatch.filter(filenames, '*.cc'):
         filepath = os.path.join(root, filename)
