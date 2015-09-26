@@ -12,7 +12,7 @@ unweighted_edge_list gen_connected_random_graph(V num_vs, size_t num_es) {
   unordered_set<pair<V, V>> es;
 
   // Generate a spanning tree
-  unweighted_edge_list spanning_es = gen_random_spanning_tree(num_vs);
+  unweighted_edge_list spanning_es = generate_random_spanning_tree(num_vs);
   for (auto e : spanning_es) {
     es.emplace(min(e.first, e.second), max(e.first, e.second));
   }

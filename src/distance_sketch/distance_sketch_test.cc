@@ -5,7 +5,7 @@ using namespace std;
 using namespace agl::distance_sketch;
 
 TEST(distance_sketch, hoge) {
-  G g(gen_erdos_renyi(10, 2));
+  G g(generate_erdos_renyi(10, 2));
   auto rs = generate_rank_array(g.num_vertices());
 
   auto ads = compute_all_distances_sketches(g, 2, rs);
@@ -29,7 +29,7 @@ TEST(distance_sketch, hoge) {
 }
 
 TEST(distance_sketch, shortcuts) {
-  G g(gen_erdos_renyi(10, 2));
+  G g(generate_erdos_renyi(10, 2));
   auto rs = generate_rank_array(g.num_vertices());
 
   auto srs1 = compute_sketch_retrieval_shortcuts_via_ads_naive(g, 2, rs);

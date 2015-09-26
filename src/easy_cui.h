@@ -46,24 +46,24 @@ GraphType easy_cui_init(int argc, char **argv) {
     if (family == "barbell") {
       V n;
       if (!(iss >> n)) n = 4;
-      es = gen_barbell(n);
+      es = generate_barbell(n);
     } else if (family == "grid") {
       size_t r, c;
       if (!(iss >> r)) r = 4;
       if (!(iss >> c)) c = r;
-      es = gen_grid(r, c);
+      es = generate_grid(r, c);
     } else if (family == "erdos_renyi") {
       V n;
       double d;
       if (!(iss >> n)) n = 10;
       if (!(iss >> d)) d = 3.0;
-      es = gen_erdos_renyi(n, d);
+      es = generate_erdos_renyi(n, d);
     } else if (family == "random_planar") {
       V n;
       size_t e;
       if (!(iss >> n)) n = 10;
       if (!(iss >> e)) e = 25;
-      es = gen_random_planar(n, e);
+      es = generate_random_planar(n, e);
     } else {
       FAIL_MSG("Unknown generator family: " + family);
     }

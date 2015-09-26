@@ -4,7 +4,7 @@
 using namespace std;
 
 namespace agl {
-unweighted_edge_list gen_path(V num_vertices) {
+unweighted_edge_list generate_path(V num_vertices) {
   unweighted_edge_list es;
   for (V v = 0; v + 1 < num_vertices; ++v) {
     es.emplace_back(v, v + 1);
@@ -12,7 +12,7 @@ unweighted_edge_list gen_path(V num_vertices) {
   return es;
 }
 
-unweighted_edge_list gen_erdos_renyi(V num_vertices, double avg_deg) {
+unweighted_edge_list generate_erdos_renyi(V num_vertices, double avg_deg) {
   avg_deg = min(avg_deg, static_cast<double>(max(0, num_vertices - 1)));
   set<pair<V, V>> es;
   std::uniform_int_distribution<V> rng(0, num_vertices - 1);
@@ -24,7 +24,7 @@ unweighted_edge_list gen_erdos_renyi(V num_vertices, double avg_deg) {
   return vector<pair<V, V>>(es.begin(), es.end());
 };
 
-unweighted_edge_list gen_grid(size_t num_rows, size_t num_cols) {
+unweighted_edge_list generate_grid(size_t num_rows, size_t num_cols) {
   auto vid = [=](int i, int j) { return i * num_cols + j; };
 
   vector<pair<V, V>> es;
@@ -37,7 +37,7 @@ unweighted_edge_list gen_grid(size_t num_rows, size_t num_cols) {
   return es;
 }
 
-unweighted_edge_list gen_barbell(V size_clique) {
+unweighted_edge_list generate_barbell(V size_clique) {
   unweighted_edge_list out;
   for (V i : make_irange(2)) {
     for (V v : make_irange(size_clique)) {
@@ -50,7 +50,7 @@ unweighted_edge_list gen_barbell(V size_clique) {
   return out;
 }
 
-unweighted_edge_list gen_random_planar(V num_vertices, size_t num_edges) {
+unweighted_edge_list generate_random_planar(V num_vertices, size_t num_edges) {
   using namespace agl::geometry2d;
 
   uniform_real_distribution<double> urd(0.0, 1.0);
@@ -117,7 +117,7 @@ unweighted_edge_list gen_random_planar_(V num_vertices, size_t num_edges) {
   return unweighted_edge_list(es.begin(), es.end());
 }
 
-unweighted_edge_list gen_random_spanning_tree(V num_vertices) {
+unweighted_edge_list generate_random_spanning_tree(V num_vertices) {
   union_find uf(num_vertices);
   unweighted_edge_list es;
   std::uniform_int_distribution<V> rng(0, num_vertices - 1);

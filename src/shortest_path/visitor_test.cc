@@ -5,7 +5,7 @@ using namespace std;
 using namespace agl;
 
 TEST(visitor_by_distance, unweighted_path) {
-  unweighted_edge_list es = gen_path(100);
+  unweighted_edge_list es = generate_path(100);
   G g(es);
   visitor_by_distance<G> vis(g);
 
@@ -24,7 +24,7 @@ TEST(visitor_by_distance, unweighted_path) {
 
 TEST(visitor_by_distance, weighted_path) {
   using graph_type = weighted_graph<double>;
-  graph_type::edge_list_type es = add_random_weight<graph_type>(gen_path(100));
+  graph_type::edge_list_type es = add_random_weight<graph_type>(generate_path(100));
   graph_type g(es);
   visitor_by_distance<graph_type> vis(g);
 

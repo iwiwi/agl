@@ -26,33 +26,6 @@ constexpr unweighted_edge reverse_edge(V v, const unweighted_edge&) {
   return unweighted_edge{v};
 }
 
-/*
-struct unweighted_edge {
-  using weight_type = int32_t;
-  V to;
-};
-
-constexpr V to(const unweighted_edge &e) {
-  return e.to;
-}
-
-constexpr unweighted_edge::weight_type weight(const unweighted_edge&) {
-  return 1;
-}
-
-constexpr unweighted_edge reverse(V v, const unweighted_edge&) {
-  return unweighted_edge{v};
-}
-
-inline std::ostream &operator<<(std::ostream &os, const unweighted_edge &e) {
-  return os << e.to;
-};
-
-inline std::istream &operator>>(std::istream &is, unweighted_edge &e) {
-  return is >> e.to;
-};
-*/
-
 //
 // Weighted edge
 //

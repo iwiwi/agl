@@ -47,7 +47,7 @@ TEST(single_source_distance_with_num_paths, grid) {
   static constexpr int kNumRows = 5, kNumCols = 5;
   auto vid = [=](int i, int j) { return i * kNumCols + j; };
 
-  G g(gen_grid(kNumRows, kNumCols));
+  G g(generate_grid(kNumRows, kNumCols));
   auto r = single_source_distance_with_num_paths(g, 0);
 
   for (auto i : make_irange(kNumRows)) {

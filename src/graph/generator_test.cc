@@ -6,7 +6,7 @@ using namespace agl;
 TEST(gen_radom_spanning_tree, connectivity) {
   for (int trial : make_irange(10)) {
     V num_vs = 1 + agl::random(100000);
-    auto es = gen_random_spanning_tree(num_vs);
+    auto es = generate_random_spanning_tree(num_vs);
 
     // Number of edges
     ASSERT_EQ((V)es.size(), num_vs - 1);

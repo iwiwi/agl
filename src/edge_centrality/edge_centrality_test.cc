@@ -45,7 +45,7 @@ TEST(edge_betweenness_centrality, sample_single) {
   FLAGS_edge_betweenness_centrality_num_samples = 1;
 
   for (int t = 0; t < 10000; ++t) {
-    G g(gen_erdos_renyi(8, 3));
+    G g(generate_erdos_renyi(8, 3));
     // pretty_print(g);
 
     const edge_centrality_map out1 = edge_betweenness_centrality_sample_slow(g);
@@ -67,7 +67,7 @@ TEST(edge_betweenness_centrality, sample_multiple) {
   FLAGS_edge_betweenness_centrality_num_samples = 2;
 
   for (int t = 0; t < 1000; ++t) {
-    G g(gen_erdos_renyi(8, 2));
+    G g(generate_erdos_renyi(8, 2));
     // pretty_print(g);
 
     const edge_centrality_map out1 = edge_betweenness_centrality_sample_slow(g);
@@ -91,7 +91,7 @@ TEST(edge_betweenness_centrality, random) {
   FLAGS_edge_betweenness_centrality_num_samples = kNumSamples;
 
   for (int t = 0; t < 10; ++t) {
-    G g(gen_erdos_renyi(110, 2));  // V * V >= kNumSamples
+    G g(generate_erdos_renyi(110, 2));  // V * V >= kNumSamples
     const edge_centrality_map ans = edge_betweenness_centrality_naive(g);
     const edge_centrality_map out1 = edge_betweenness_centrality_sample_slow(g);
     const edge_centrality_map out2 = edge_betweenness_centrality_sample(g);

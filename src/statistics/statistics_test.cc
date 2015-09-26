@@ -58,14 +58,14 @@ vector<pair<size_t, size_t>> num_local_triangles_and_wedges_naive(const G &g) {
 
 TEST(num_triangles_and_wedges, random) {
   for (int trial = 0; trial < 10; ++trial) {
-    G g(gen_erdos_renyi(100, 5));
+    G g(generate_erdos_renyi(100, 5));
     ASSERT_EQ(num_triangles_and_wedges_naive(g), num_triangles_and_wedges(g));
   }
 }
 
 TEST(num_local_triangles_and_wedges, random) {
   for (int trial = 0; trial < 10; ++trial) {
-    G g(gen_erdos_renyi(100, 5));
+    G g(generate_erdos_renyi(100, 5));
     ASSERT_EQ(num_local_triangles_and_wedges_naive(g), num_local_triangles_and_wedges(g));
   }
 }

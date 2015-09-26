@@ -73,7 +73,7 @@ class basic_graph {
 public:
   using V = agl::V;
   using E = EdgeType;
-  using W = decltype(weight(E())); // typename E::weight_type;
+  using W = decltype(weight(E()));
   using edge_list_type = std::vector<std::pair<V, E>>;
 
   basic_graph() = default;
@@ -119,7 +119,7 @@ public:
   }
 
   inline V neighbor(V v, size_t i, D d = kFwd) const {
-    return edges_from_[d][v][i];
+    return to(edges_from_[d][v][i]);
   }
 
   inline size_t degree(V v, D d = kFwd) const {

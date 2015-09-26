@@ -17,7 +17,7 @@ TEST(unweighted_graph_test, instantiation) {
 }
 
 TEST(unweighted_graph_test, read_graph_tsv) {
-  G g(gen_erdos_renyi(10, 2));
+  G g(generate_erdos_renyi(10, 2));
   pretty_print(g);
 }
 
@@ -28,7 +28,7 @@ TEST(unweighted_graph_test, built_in) {
 
 TEST(unweighted_graph, undirected_neighbors) {
   for (int trial = 0; trial < 10; ++trial) {
-    unweighted_edge_list es = gen_erdos_renyi(100, 2);
+    unweighted_edge_list es = generate_erdos_renyi(100, 2);
     G g1(es);
     G g2(force_undirected(es));
 
