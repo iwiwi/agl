@@ -34,7 +34,7 @@ def build(bld):
   cc_file_main = []
   cc_file_test = []
   cc_file_stlib = []
-  for src_dirname in ['src', 'tutorial']:
+  for src_dirname in ['src', 'tutorial', 'playground']:
     for root, dirnames, filenames in os.walk(src_dirname):
       for filename in fnmatch.filter(filenames, '*.cc'):
         filepath = os.path.join(root, filename)
@@ -48,7 +48,7 @@ def build(bld):
   bld.stlib(
     source   = cc_file_stlib,
     target   = 'agl',
-    includes = ['src', '3rd_party'])
+    includes = ['src', 'playground', '3rd_party'])
 
   for cc in cc_file_main:
     n = os.path.basename(cc).replace('_main.cc', '')
@@ -57,17 +57,17 @@ def build(bld):
       source = cc,
       target = n,
       use = ['agl', 'gflags'],
-      includes = ['src', '3rd_party'])
+      includes = ['src', 'playground', '3rd_party'])
 
   bld.program(
     source = cc_file_test,
     target = 'test',
     use = ['agl', 'gflags', 'gtest'],
-    includes = ['src', '3rd_party'])
+    includes = ['src', 'playground', '3rd_party'])
 
   bld.program(
     features = 'testt',
     source = cc_file_test,
     target = 'test_',
     use = ['agl', 'gflags', 'gtest'],
-    includes = ['src', '3rd_party'])
+    includes = ['src', 'playground', '3rd_party'])
