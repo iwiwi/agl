@@ -21,10 +21,16 @@ int main() {
     {
       V v = to(e);
       W w = weight(e);
+      cout << v << ", " << w << endl;
+    }
+
+    // 次数は degree で取得でき，以下のように辺は走査できます．
+    for (size_t i = 0; i < g.degree(1); ++i) {
+      const E &e = g.edge(1, i);
       cout << to(e) << ", " << weight(e) << endl;
     }
 
-    // 関数 |edges| を用いると辺を走査できます．
+    // ただし，関数 |edges| を用いると range-based for で辺を走査できます．
     // 以下では頂点 1 から出ている辺を全て舐めています．
     for (const auto &e : g.edges(1)) {
       cout << e << endl;
@@ -33,6 +39,8 @@ int main() {
     // 連結成分分解や幅優先探索など，重みを用いないアルゴリズムの記述では，
     // |edge|, |edges| の代わりに |neighbor|, |neighbors| を必ず用いて下さい．
     V n1 = g.neighbor(1, 0);  // |to(g.edge(1, 0))| と同値
+    assert(n1 == to(g.edge(1, 0)));
+
     for (V n : g.neighbors(1)) {
       cout << n << endl;
     }

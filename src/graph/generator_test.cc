@@ -4,7 +4,7 @@
 using namespace agl;
 
 TEST(gen_radom_spanning_tree, connectivity) {
-  for (int trial : make_irange(10)) {
+  for (int trial = 0; trial < 10; ++trial) {
     V num_vs = 1 + agl::random(100000);
     auto es = generate_random_spanning_tree(num_vs);
 
