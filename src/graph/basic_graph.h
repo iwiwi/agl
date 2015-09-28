@@ -142,6 +142,19 @@ public:
     std::sort(edges_from_[kBwd][v_to].begin(), edges_from_[kBwd][v_to].end(), cmp);
   }
 
+  void remove_edge(V v_from, V v_to) {
+    {
+      auto &es = edges_from_[kFwd][v_from];
+      es.erase(std::remove_if(es.begin(), es.end(), [&](const E &e) { to(e) == v_to; }),
+               es.end());
+    }
+    {
+      auto &es = edges_from_[kBwd][v_to];
+      es.erase(std::remove_if(es.begin(), es.end(), [&](const E &e) { to(e) == v_from; }),
+               es.end());
+    }
+  }
+
 private:
   std::vector<std::vector<E>> edges_from_[kNumDirections];
 };
