@@ -15,9 +15,9 @@ pair<size_t, size_t> num_triangles_and_wedges_naive(const G &g) {
       for (V z : g.vertices()) {
         if (x < y && y < z) {
           int c = 0;
-          c += (g.is_adjacent(x, y) || g.is_adjacent(y, x));
-          c += (g.is_adjacent(y, z) || g.is_adjacent(z, y));
-          c += (g.is_adjacent(z, x) || g.is_adjacent(x, z));
+          c += (is_adjacent(g, x, y) || is_adjacent(g, y, x));
+          c += (is_adjacent(g, y, z) || is_adjacent(g, z, y));
+          c += (is_adjacent(g, z, x) || is_adjacent(g, x, z));
           if (c == 3) ++num_triangles;
           if (c == 2) ++num_wedges;
         }
@@ -35,18 +35,18 @@ vector<pair<size_t, size_t>> num_local_triangles_and_wedges_naive(const G &g) {
       for (V z : g.vertices()) {
         if (x < y && y < z) {
           int c = 0;
-          c += (g.is_adjacent(x, y) || g.is_adjacent(y, x));
-          c += (g.is_adjacent(y, z) || g.is_adjacent(z, y));
-          c += (g.is_adjacent(z, x) || g.is_adjacent(x, z));
+          c += (is_adjacent(g, x, y) || is_adjacent(g, y, x));
+          c += (is_adjacent(g, y, z) || is_adjacent(g, z, y));
+          c += (is_adjacent(g, z, x) || is_adjacent(g, x, z));
           if (c == 3) {
             ++res[x].first;
             ++res[y].first;
             ++res[z].first;
           }
           if (c == 2) {
-            if (!(g.is_adjacent(x, y) || g.is_adjacent(y, x))) ++res[z].second;
-            if (!(g.is_adjacent(y, z) || g.is_adjacent(z, y))) ++res[x].second;
-            if (!(g.is_adjacent(z, x) || g.is_adjacent(x, z))) ++res[y].second;
+            if (!(is_adjacent(g, x, y) || is_adjacent(g, y, x))) ++res[z].second;
+            if (!(is_adjacent(g, y, z) || is_adjacent(g, z, y))) ++res[x].second;
+            if (!(is_adjacent(g, z, x) || is_adjacent(g, x, z))) ++res[y].second;
           }
         }
       }

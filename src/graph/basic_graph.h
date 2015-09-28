@@ -126,14 +126,6 @@ public:
     return edges_from_[d][v].size();
   }
 
-  inline undirected_neighbor_range<E> undirected_neighbors(V v) const {
-    return undirected_neighbor_range<E>(edges_from_[kFwd][v], edges_from_[kBwd][v]);
-  }
-
-  bool is_adjacent(V u, V v, D d = kFwd) const {
-    return binary_search(edges_from_[d][u].begin(), edges_from_[d][u].end(), v);
-  }
-
   //
   // Dynamic graph update
   //
@@ -196,5 +188,19 @@ typename basic_graph<EdgeType>::edge_list_type basic_graph<EdgeType>::edge_list(
     }
   }
   return el;
+}
+
+//
+// Easy utility functions
+//
+template<typename GraphType>
+bool is_adjacent(const GraphType &g, V u, V v, D d = kFwd) {
+  const auto &r = g.edges(u, d);
+  return std::binary_search(r.begin(), r.end(), v);
+}
+
+template<typename GraphType>
+inline undirected_neighbor_range<typename GraphType::E> undirected_neighbors(const GraphType &g, V v) {
+  return undirected_neighbor_range<typename GraphType::E>(g.edges(v, kFwd), g.edges(v, kBwd));
 }
 }  // namespace agl

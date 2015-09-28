@@ -37,8 +37,8 @@ int main() {
     // 先ほどの |pretty_print| で分かったとおり，このように作成すると，
     // グラフは有向グラフになります．
     G g1(el1);
-    assert(g1.is_adjacent(0, 1) == true);
-    assert(g1.is_adjacent(1, 0) == false);
+    assert(is_adjacent(g1, 0, 1) == true);
+    assert(is_adjacent(g1, 1, 0) == false);
 
     // AGL では，無向グラフは，逆辺の追加により有向グラフと同じ扱いをします．
     // 上のパスグラフを無向にしたい場合，以下のようになります．
@@ -50,8 +50,8 @@ int main() {
 
     G g2(el2);
     pretty_print(g2);
-    assert(g2.is_adjacent(0, 1) == true);
-    assert(g2.is_adjacent(1, 0) == true);
+    assert(is_adjacent(g2, 0, 1) == true);
+    assert(is_adjacent(g2, 1, 0) == true);
 
     // 一方向のみの辺リストに逆辺を追加するには，|make_undirected| 関数を用います．
     unweighted_edge_list el3 = make_undirected(el2);

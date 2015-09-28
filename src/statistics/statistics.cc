@@ -11,18 +11,18 @@ pair<size_t, size_t> num_triangles_and_wedges(const G &g) {
   for (V x : g.vertices()) {
     size_t dx = g.degree(x, kFwd) + g.degree(x, kBwd);
 
-    for (V y : g.undirected_neighbors(x)) {
+    for (V y : undirected_neighbors(g, x)) {
       size_t du = g.degree(y, kFwd) + g.degree(y, kBwd);
       if (tie(du, y) > tie(dx, x)) continue;
 
-      for (V z : g.undirected_neighbors(y)) {
+      for (V z : undirected_neighbors(g, y)) {
         if (adj[z]) ++num_triangles;
       }
       adj[y] = true;
     }
 
     size_t undirected_deg_x = 0;
-    for (V u : g.undirected_neighbors(x)) {
+    for (V u : undirected_neighbors(g, x)) {
       adj[u] = false;
       ++undirected_deg_x;
     }
@@ -40,11 +40,11 @@ vector<pair<size_t, size_t>> num_local_triangles_and_wedges(const G &g) {
   for (V x : g.vertices()) {
     size_t dx = g.degree(x, kFwd) + g.degree(x, kBwd);
 
-    for (V y : g.undirected_neighbors(x)) {
+    for (V y : undirected_neighbors(g, x)) {
       size_t du = g.degree(y, kFwd) + g.degree(y, kBwd);
       if (tie(du, y) > tie(dx, x)) continue;
 
-      for (V z : g.undirected_neighbors(y)) {
+      for (V z : undirected_neighbors(g, y)) {
         if (adj[z]) {
           ++res[x].first;
           ++res[y].first;
@@ -55,7 +55,7 @@ vector<pair<size_t, size_t>> num_local_triangles_and_wedges(const G &g) {
     }
 
     size_t undirected_deg_x = 0;
-    for (V u : g.undirected_neighbors(x)) {
+    for (V u : undirected_neighbors(g, x)) {
       adj[u] = false;
       ++undirected_deg_x;
     }
