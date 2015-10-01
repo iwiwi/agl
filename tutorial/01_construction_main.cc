@@ -10,9 +10,7 @@ int main() {
     // AGL では |V| が頂点の型です (実際は int）．
     // グラフを作るためには，まず辺リストを用意します．
     vector<pair<V, V>> el = {
-        {0, 1},
-        {1, 2},
-        {2, 3},
+        {0, 1}, {1, 2}, {2, 3},
     };
 
     // AGL では |G| がグラフの型です．
@@ -29,9 +27,7 @@ int main() {
     // 上と同じグラフをもう一度作ってみます．
     // |unweighted_edge_list| は |vector<pair<V, V>>| の alias です．
     unweighted_edge_list el1 = {
-        {0, 1},
-        {1, 2},
-        {2, 3},
+        {0, 1}, {1, 2}, {2, 3},
     };
 
     // 先ほどの |pretty_print| で分かったとおり，このように作成すると，
@@ -43,9 +39,7 @@ int main() {
     // AGL では，無向グラフは，逆辺の追加により有向グラフと同じ扱いをします．
     // 上のパスグラフを無向にしたい場合，以下のようになります．
     unweighted_edge_list el2 = {
-        {0, 1}, {1, 0},
-        {1, 2}, {2, 1},
-        {2, 3}, {3, 2},
+        {0, 1}, {1, 0}, {1, 2}, {2, 1}, {2, 3}, {3, 2},
     };
 
     G g2(el2);
@@ -53,7 +47,8 @@ int main() {
     assert(is_adjacent(g2, 0, 1) == true);
     assert(is_adjacent(g2, 1, 0) == true);
 
-    // 一方向のみの辺リストに逆辺を追加するには，|make_undirected| 関数を用います．
+    // 一方向のみの辺リストに逆辺を追加するには，|make_undirected|
+    // 関数を用います．
     unweighted_edge_list el3 = make_undirected(el2);
     G g3(el3);
     pretty_print(g3);  // g2 と全く同じ
