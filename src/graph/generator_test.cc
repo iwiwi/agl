@@ -18,9 +18,15 @@ TEST(gen_radom_spanning_tree, connectivity) {
   }
 }
 
-TEST(gen_cycle, zero_vertice) {
-  auto el = generate_cycle(0);
-  ASSERT_EQ((V)el.size(), 0);
+TEST(gen_cycle, some_vertices) {
+  auto l0 = generate_cycle(0);
+  ASSERT_EQ((V)l0.size(), 0);
+
+  auto l1 = generate_cycle(1);
+  ASSERT_EQ((V)l1.size(), 0);
+
+  auto l2 = generate_cycle(2);
+  ASSERT_EQ((V)l2.size(), 2);
 }
 
 TEST(gen_cycle, random_num_vertices) {
