@@ -33,7 +33,7 @@ int main() {
     // ただし，関数 |edges| を用いると range-based for で辺を走査できます．
     // 以下では頂点 1 から出ている辺を全て舐めています．
     for (const auto &e : g.edges(1)) {
-      cout << to(e) << endl;
+      cout << e << endl;
     }
 
     // 連結成分分解や幅優先探索など，重みを用いないアルゴリズムの記述では，
