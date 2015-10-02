@@ -17,3 +17,23 @@ TEST(gen_radom_spanning_tree, connectivity) {
     ASSERT_TRUE(is_connected(g));
   }
 }
+
+TEST(gen_cycle, zero_vertice) {
+  auto el = generate_cycle(0);
+  ASSERT_EQ((V)el.size(), 0);
+}
+
+TEST(gen_cycle, random_num_vertices) {
+  for (int trial = 0; trial < 10; ++trial) {
+    V num_vs = 1 + agl::random(100000);
+    auto el = generate_cycle(num_vs);
+
+    // Number of edges
+    ASSERT_EQ((V)el.size(), num_vs);
+
+    // Connectivity
+    G g(el);
+    pretty_print(g);
+    ASSERT_TRUE(is_connected(g));
+  }
+}
