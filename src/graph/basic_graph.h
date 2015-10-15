@@ -85,7 +85,7 @@ class basic_graph {
     assign(es);
   }
 
-  basic_graph(const basic_graph<EdgeType> &g) : edges_from_(g.edges_from_) {
+  basic_graph(const basic_graph<EdgeType> &g) : edges_from_{g.edges_from_[0], g.edges_from_[1]} {
     CHECK(g.graph_indices_.empty());
     CHECK(g.graph_dynamic_indices_.empty());
   }
