@@ -6,6 +6,7 @@
 #include <fstream>
 #include <iostream>
 #include <algorithm>
+#include <memory>
 
 namespace agl {
 template<typename EdgeType>
@@ -68,9 +69,29 @@ class undirected_neighbor_range {
   iterator_type i_, n_;
 };
 
+template<typename GraphType>
+class graph_index_interface {
+ public:
+  virtual ~graph_index_interface() {}
+  virtual void construct(const GraphType &g) = 0;
+};
+
+template<typename GraphType>
+class graph_dynamic_index_interface : public graph_index_interface<GraphType> {
+ public:
+  using E = typename GraphType::E;
+  virtual ~graph_dynamic_index_interface() {}
+
+  virtual void add_edge(const GraphType &g, V v_from, const E &e) = 0;
+  virtual void remove_edge(const GraphType &g, V v_from, V v_to) = 0;
+  virtual void add_vertices(const GraphType &g, V old_num_vertices) = 0;
+  virtual void remove_vertices(const GraphType &g, V old_num_vertices) = 0;
+};
+
 template<typename EdgeType>
 class basic_graph {
-public:
+ public:
+  using G = basic_graph<EdgeType>;
   using V = agl::V;
   using E = EdgeType;
   using W = decltype(weight(E()));
@@ -140,23 +161,87 @@ public:
     auto cmp = [](const E &e0, const E &e1) { return to(e0) < to(e1); };
     std::sort(edges_from_[kFwd][v_from].begin(), edges_from_[kFwd][v_from].end(), cmp);
     std::sort(edges_from_[kBwd][v_to].begin(), edges_from_[kBwd][v_to].end(), cmp);
+
+    // Notification to dynamic indices
+    for (auto i : graph_dynamic_indices_) {
+      i->add_edge(*this, v_from, e);
+    }
   }
 
   void remove_edge(V v_from, V v_to) {
     {
       auto &es = edges_from_[kFwd][v_from];
-      es.erase(std::remove_if(es.begin(), es.end(), [&](const E &e) { to(e) == v_to; }),
-               es.end());
+      auto i = std::remove_if(es.begin(), es.end(), [&](const E &e) { return to(e) == v_to; });
+      es.erase(i, es.end());
     }
     {
       auto &es = edges_from_[kBwd][v_to];
-      es.erase(std::remove_if(es.begin(), es.end(), [&](const E &e) { to(e) == v_from; }),
-               es.end());
+      auto i = std::remove_if(es.begin(), es.end(), [&](const E &e) { return to(e) == v_from; });
+      es.erase(i, es.end());
     }
+
+    // Notification to dynamic indices
+    for (auto i : graph_dynamic_indices_) {
+      i->remove_edge(*this, v_from, v_to);
+    }
+  }
+
+  void add_vertices(V new_num_vertices) {
+    V old_num_vertices = num_vertices();
+    CHECK(new_num_vertices >= old_num_vertices);
+    edges_from_[kFwd].resize(new_num_vertices);
+    edges_from_[kBwd].resize(new_num_vertices);
+
+    // Notification to dynamic indices
+    for (auto i : graph_dynamic_indices_) {
+      i->add_vertices(*this, old_num_vertices);
+    }
+  }
+
+  void remove_vertices(V new_num_vertices) {
+    V old_num_vertices = num_vertices();
+    CHECK(new_num_vertices <= old_num_vertices);
+    for (V v = new_num_vertices; v < old_num_vertices; ++v) {
+      CHECK(degree(v, kFwd) == 0);
+      CHECK(degree(v, kBwd) == 0);
+    }
+
+    edges_from_[kFwd].resize(new_num_vertices);
+    edges_from_[kBwd].resize(new_num_vertices);
+
+    // Notification to dynamic indices
+    for (auto i : graph_dynamic_indices_) {
+      i->remove_vertices(*this, old_num_vertices);
+    }
+  }
+
+  //
+  // Indexing
+  //
+  template<typename GraphIndexType>
+  void construct_and_own_index(GraphIndexType *index) {
+    index->construct(*this);  // Construct
+    graph_indices_.emplace_back(index);  // Own
+  }
+
+  template<typename GraphIndexType>
+  void construct_and_observe_dynamic_index(GraphIndexType *index) {
+    index->construct(*this);  // Construct
+    graph_dynamic_indices_.emplace_back(index);  // Observe
+  }
+
+  template<typename GraphIndexType>
+  void construct_observe_and_own_dynamic_index(GraphIndexType *index) {
+    index->construct(*this);  // Construct
+    graph_dynamic_indices_.emplace_back(index);  // Observe
+    graph_indices_.emplace_back(index);  // Own
   }
 
 private:
   std::vector<std::vector<E>> edges_from_[kNumDirections];
+
+  std::vector<std::unique_ptr<graph_index_interface<G>>> graph_indices_;
+  std::vector<graph_dynamic_index_interface<G>*> graph_dynamic_indices_;  // Observer pattern
 };
 
 namespace internal {
