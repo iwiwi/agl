@@ -99,13 +99,13 @@ class basic_graph {
 
   basic_graph() = default;
 
-  explicit basic_graph(const edge_list_type &es) {
+  explicit basic_graph(const edge_list_type &es, V num_vs = -1) {
     assign(es);
   }
 
   void clear();
 
-  void assign(const edge_list_type &es);
+  void assign(const edge_list_type &es, V num_vs = -1);
 
   edge_list_type edge_list(D d = kFwd) const;
 
@@ -244,26 +244,28 @@ private:
   std::vector<graph_dynamic_index_interface<G>*> graph_dynamic_indices_;  // Observer pattern
 };
 
-namespace internal {
+//
+// Member functions of |basic_graph|
+//
 template<typename EdgePairType>
-V num_vertices(const std::vector<EdgePairType> &es) {
+V num_vertices_from_edge_list(const std::vector<EdgePairType> &es) {
   V num_vs = 0;
   for (const auto &p : es) {
     num_vs = std::max(num_vs, std::max(p.first, to(p.second)) + 1);
   }
   return num_vs;
 }
-}  // namespace internal
 
-//
-// Member functions of |basic_graph|
-//
 template<typename EdgeType>
-void basic_graph<EdgeType>::assign(const basic_graph<EdgeType>::edge_list_type &es) {
-  V num_vs = internal::num_vertices(es);
+void basic_graph<EdgeType>::assign(const basic_graph<EdgeType>::edge_list_type &es, V num_vs) {
+  if (num_vs == -1) {
+    num_vs = num_vertices_from_edge_list(es);
+  }
   edges_from_[kFwd].assign(num_vs, {});
   edges_from_[kBwd].assign(num_vs, {});
   for (const auto &p : es) {
+    assert(p.first < num_vs);
+    assert(to(p.second) < num_vs);
     edges_from_[kFwd][p.first].emplace_back(p.second);
     edges_from_[kBwd][to(p.second)].emplace_back(reverse_edge(p.first, p.second));
   }
@@ -275,6 +277,10 @@ void basic_graph<EdgeType>::assign(const basic_graph<EdgeType>::edge_list_type &
       std::sort(edges_from_[d][v].begin(), edges_from_[d][v].end(), cmp);
     }
   }
+
+  // TODO: reconstruction?
+  assert(graph_indices_.empty());
+  assert(graph_dynamic_indices_.empty());
 }
 
 template<typename EdgeType>
