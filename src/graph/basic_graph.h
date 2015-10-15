@@ -85,11 +85,18 @@ class basic_graph {
     assign(es);
   }
 
+  basic_graph(const basic_graph<EdgeType> &g) : edges_from_(g.edges_from_) {
+    CHECK(g.graph_indices_.empty());
+    CHECK(g.graph_dynamic_indices_.empty());
+  }
+
   void clear();
 
   void assign(const edge_list_type &es, V num_vs = -1);
 
   edge_list_type edge_list(D d = kFwd) const;
+
+
 
   //
   // Graph access

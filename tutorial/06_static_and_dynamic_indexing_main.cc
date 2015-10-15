@@ -3,7 +3,7 @@
 using namespace std;
 using namespace agl;
 
-class nothing_index : public graph_dynamic_index_interface<G> {
+class my_super_index : public graph_dynamic_index_interface<G> {
  public:
   virtual void construct(const G &g) override {
     cout << "CONSTRUCT" << endl;
@@ -29,7 +29,7 @@ int main(int argc, char **argv) {
   {
     G g(generate_path(3));
 
-    g.construct_observe_and_own_dynamic_index(new nothing_index());
+    g.construct_observe_and_own_dynamic_index(new my_super_index());
 
     g.add_edge(0, 2);
     g.remove_edge(0, 2);
@@ -43,7 +43,7 @@ int main(int argc, char **argv) {
   {
     G g(generate_path(3));
 
-    nothing_index i;
+    my_super_index i;
     g.construct_and_observe_dynamic_index(&i);
 
     g.add_edge(0, 2);
