@@ -1,14 +1,15 @@
+// This is how we evaluate dynamic indexing methods
 // TODO: write explanation
 #include "agl.h"
-#include "graph/dynamic_index_evaluation.h"
 using namespace std;
 using namespace agl;
 
+// An example of dynamic indices
 class my_slow_index : public graph_dynamic_index_interface<G> {
  public:
   virtual void construct(const G &g) override {
     cout << "CONSTRUCT" << endl;
-    pretty_print(g);
+    usleep(300000);
   }
 
   virtual void add_edge(const G &g, V v_from, const E &e) override {
@@ -26,12 +27,12 @@ class my_slow_index : public graph_dynamic_index_interface<G> {
 };
 
 int main() {
-  unweighted_edge_list es = generate_path(10);
-  dynamic_update_scenario<G> s;
+  // Prepare the scenario
+  dynamic_index_evaluation_scenario<G> s;
+  s.initial_graph.assign(generate_path(10));
+  s.add_workload_edge_addition_and_removal_random(10);
 
-  s.initial_graph.assign(es);
-  dynamic_update_scenario<G>::generator::add_workload_edge_addition_and_removal_random(&s, 10);
-
+  // Evaluate
   my_slow_index i;
-  dynamic_update_scenario<G>::evaluator::evaluate(s, &i);
+  s.evaluate(&i);
 }
