@@ -42,13 +42,13 @@ struct dynamic_index_evaluation_scenario {
 //
 // Definition of dynamic update queries
 //
-template<typename GraphType = G>
+template<typename GraphType>
 class dynamic_index_evaluation_scenario<GraphType>::update_interface {
  public:
   virtual void apply(GraphType *g, graph_dynamic_index_interface<GraphType> *i) const = 0;
 };
 
-template<typename GraphType = G>
+template<typename GraphType>
 class dynamic_index_evaluation_scenario<GraphType>::update_add_edge
 : public dynamic_index_evaluation_scenario<GraphType>::update_interface {
  public:
@@ -65,7 +65,7 @@ class dynamic_index_evaluation_scenario<GraphType>::update_add_edge
   }
 };
 
-template<typename GraphType = G>
+template<typename GraphType>
 class dynamic_index_evaluation_scenario<GraphType>::update_remove_edge
 : public dynamic_index_evaluation_scenario<GraphType>::update_interface {
  public:
