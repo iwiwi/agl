@@ -3,6 +3,7 @@
 using namespace std;
 
 DEFINE_int32(distance_sketch_k, 16, "");
+DEFINE_bool(distance_sketch_implicit_neighbor, true, "");
 
 namespace agl {
 namespace distance_sketch {
@@ -139,6 +140,7 @@ vertex_sketch_raw sketch_retrieval_shortcuts::retrieve_sketch(const G &g, V v) {
 
   que.emplace(0, v);
   pot[v] = 0;
+
   while (!que.empty()) {
     V v = que.top().second;
     W d = que.top().first;
@@ -154,6 +156,17 @@ vertex_sketch_raw sketch_retrieval_shortcuts::retrieve_sketch(const G &g, V v) {
       que.emplace(td, tv);
       i.first->second = td;
     }
+
+    if (!FLAGS_distance_sketch_implicit_neighbor) continue;
+    // TODO: faster by using only first |k| edges
+    for (const auto &e : g.edges(v)) {
+      W tv = to(e);
+      W td = d + weight(e);
+      auto i = pot.insert(make_pair(tv, td));
+      if (!i.second && i.first->second <= td) continue;
+      que.emplace(td, tv);
+      i.first->second = td;
+    }
   }
   sort(ads.begin(), ads.end());
   return ads;
@@ -161,7 +174,7 @@ vertex_sketch_raw sketch_retrieval_shortcuts::retrieve_sketch(const G &g, V v) {
 
 sketch_retrieval_shortcuts compute_sketch_retrieval_shortcuts
 (const G& g, size_t k, const rank_array& ranks, D d) {
-  return compute_sketch_retrieval_shortcuts_via_ads_fast(g, k, ranks, d);
+  return compute_sketch_retrieval_shortcuts_via_ads_unweighted(g, k, ranks, d);
 }
 
 sketch_retrieval_shortcuts compute_sketch_retrieval_shortcuts_via_ads_naive
@@ -192,12 +205,13 @@ sketch_retrieval_shortcuts compute_sketch_retrieval_shortcuts_via_ads_naive
     const V v = get<2>(e);
 
     vertex_sketch_raw a = srs.retrieve_sketch(g, v);
-    cout << make_tuple(v, s, d) << " " << endl;
-    pretty_print(a);
+    // pretty_print(a);
     if (find(a.begin(), a.end(), entry(s, d)) != a.end()) {
-      cout << endl;
+//      cout << "SKIP: " << make_tuple(v, s, d) << " " << endl;
+      // cout << endl;
       continue;
     }
+//    cout << "IN: " << make_tuple(v, s, d) << " " << endl;
     srs.sketches[v].emplace_back(s, d);
   }
 
@@ -217,16 +231,13 @@ sketch_retrieval_shortcuts compute_sketch_retrieval_shortcuts_via_ads_fast
   using tuple_type = tuple<W, V, V>;
   vector<tuple_type> es;
   vector<vertex_sketch_raw> rev(g.num_vertices());
-  {
-    for (V v : g.vertices()) {
-      const vertex_sketch_raw &s = ads.retrieve_sketch(g, v);
-      for (const auto &e : s) {
-        es.emplace_back(make_tuple(e.d, e.v, v));
-        rev[e.v].emplace_back(v, e.d);
-      }
+  for (V v : g.vertices()) {
+    const vertex_sketch_raw &s = ads.retrieve_sketch(g, v);
+    for (const auto &e : s) {
+      es.emplace_back(make_tuple(e.d, e.v, v));
+      rev[e.v].emplace_back(v, e.d);
     }
   }
-  JLOG_PUT_BENCHMARK("sorting")
   sort(es.begin(), es.end());
 
   priority_queue<tuple_type, vector<tuple_type>, greater<tuple_type>> gs;
@@ -239,7 +250,9 @@ sketch_retrieval_shortcuts compute_sketch_retrieval_shortcuts_via_ads_fast
     const V v = get<2>(e);
     if (d == 0) continue;
 
-    srs.sketches[v].emplace_back(s, d);
+    if (!(FLAGS_distance_sketch_implicit_neighbor && d <= 1)) {
+      srs.sketches[v].emplace_back(s, d);
+    }
 
     for (const auto &r : rev[v]) {
       // TODO: this is the bottleneck
@@ -262,16 +275,13 @@ sketch_retrieval_shortcuts compute_sketch_retrieval_shortcuts_via_ads_unweighted
   using tuple_type = tuple<W, V, V>;
   vector<tuple_type> es;
   vector<vertex_sketch_raw> rev(g.num_vertices());
-  {
-    for (V v : g.vertices()) {
-      const vertex_sketch_raw &s = ads.retrieve_sketch(g, v);
-      for (const auto &e : s) {
-        es.emplace_back(make_tuple(e.d, e.v, v));
-        rev[e.v].emplace_back(v, e.d);
-      }
+  for (V v : g.vertices()) {
+    const vertex_sketch_raw &s = ads.retrieve_sketch(g, v);
+    for (const auto &e : s) {
+      es.emplace_back(make_tuple(e.d, e.v, v));
+      rev[e.v].emplace_back(v, e.d);
     }
   }
-  JLOG_PUT_BENCHMARK("sorting")
   sort(es.begin(), es.end());
 
   vector<vector<pair<V, V>>> gs(10);
@@ -291,7 +301,9 @@ sketch_retrieval_shortcuts compute_sketch_retrieval_shortcuts_via_ads_unweighted
       while (i_gsd < gsd.size() && gsd[i_gsd] < make_pair(s, v)) ++i_gsd;
       if (i_gsd < gsd.size() && gsd[i_gsd] == make_pair(s, v)) continue;
 
-      srs.sketches[v].emplace_back(s, d);
+      if (!(FLAGS_distance_sketch_implicit_neighbor && d <= 1)) {
+        srs.sketches[v].emplace_back(s, d);
+      }
 
       for (const auto &r : rev[v]) {
         W td = r.d + d;
