@@ -21,7 +21,7 @@ void eval(const G &g, size_t k, Lambda lmd) {
   {
     double t = get_current_time_sec();
     for (int trial = 0; trial < FLAGS_num_retrieval_trials; ++trial) {
-      s->retrieve_sketch(agl::random(g.num_vertices()));
+      s->retrieve_sketch(g, agl::random(g.num_vertices()));
     }
     JLOG_PUT("time_avg_retrieval", (get_current_time_sec() - t) / FLAGS_num_retrieval_trials);
   }

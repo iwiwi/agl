@@ -119,7 +119,7 @@ void pretty_print(const all_distances_sketches& ads, std::ostream& ofs) {
 ///////////////////////////////////////////////////////////////////////////////
 // Sketch Retrieval Shortcuts
 ///////////////////////////////////////////////////////////////////////////////
-vertex_sketch_raw sketch_retrieval_shortcuts::retrieve_sketch(V v) {
+vertex_sketch_raw sketch_retrieval_shortcuts::retrieve_sketch(const G &g, V v) {
   vertex_sketch_raw ads;
   priority_queue<rank_type> thr;
   auto add_entry = [&](V v_source, W d) -> bool {
@@ -145,7 +145,7 @@ vertex_sketch_raw sketch_retrieval_shortcuts::retrieve_sketch(V v) {
     que.pop();
     if (d > pot[v] || !add_entry(v, d)) continue;
 
-    auto sv = retrieve_shortcuts(v);
+    auto sv = retrieve_shortcuts(g, v);
     for (const auto &e : sv) {
       V tv = e.v;
       W td = d + e.d;
@@ -168,7 +168,7 @@ sketch_retrieval_shortcuts compute_sketch_retrieval_shortcuts_via_ads_naive
 (const G& g, size_t k, const rank_array& ranks, D d) {
   all_distances_sketches ads = compute_all_distances_sketches(g, k, ranks, d);
 
-  sketch_retrieval_shortcuts srs(g);
+  sketch_retrieval_shortcuts srs;
   srs.k = ads.k;
   srs.ranks = ads.ranks;
   srs.sketches.resize(g.num_vertices());
@@ -178,7 +178,7 @@ sketch_retrieval_shortcuts compute_sketch_retrieval_shortcuts_via_ads_naive
   vector<tuple_type> es;
   {
     for (V v : g.vertices()) {
-      const vertex_sketch_raw &s = ads.retrieve_sketch(v);
+      const vertex_sketch_raw &s = ads.retrieve_sketch(g, v);
       for (const auto &e : s) {
         es.emplace_back(make_tuple(e.d, e.v, v));
       }
@@ -191,7 +191,7 @@ sketch_retrieval_shortcuts compute_sketch_retrieval_shortcuts_via_ads_naive
     const V s = get<1>(e);
     const V v = get<2>(e);
 
-    vertex_sketch_raw a = srs.retrieve_sketch(v);
+    vertex_sketch_raw a = srs.retrieve_sketch(g, v);
     cout << make_tuple(v, s, d) << " " << endl;
     pretty_print(a);
     if (find(a.begin(), a.end(), entry(s, d)) != a.end()) {
@@ -208,7 +208,7 @@ sketch_retrieval_shortcuts compute_sketch_retrieval_shortcuts_via_ads_fast
 (const G& g, size_t k, const rank_array& ranks, D d) {
   all_distances_sketches ads = compute_all_distances_sketches(g, k, ranks, d);
 
-  sketch_retrieval_shortcuts srs(g);
+  sketch_retrieval_shortcuts srs;
   srs.k = ads.k;
   srs.ranks = ads.ranks;
   srs.sketches.resize(g.num_vertices());
@@ -219,7 +219,7 @@ sketch_retrieval_shortcuts compute_sketch_retrieval_shortcuts_via_ads_fast
   vector<vertex_sketch_raw> rev(g.num_vertices());
   {
     for (V v : g.vertices()) {
-      const vertex_sketch_raw &s = ads.retrieve_sketch(v);
+      const vertex_sketch_raw &s = ads.retrieve_sketch(g, v);
       for (const auto &e : s) {
         es.emplace_back(make_tuple(e.d, e.v, v));
         rev[e.v].emplace_back(v, e.d);
@@ -253,7 +253,7 @@ sketch_retrieval_shortcuts compute_sketch_retrieval_shortcuts_via_ads_unweighted
 (const G& g, size_t k, const rank_array& ranks, D d) {
   all_distances_sketches ads = compute_all_distances_sketches(g, k, ranks, d);
 
-  sketch_retrieval_shortcuts srs(g);
+  sketch_retrieval_shortcuts srs;
   srs.k = ads.k;
   srs.ranks = ads.ranks;
   srs.sketches.resize(g.num_vertices());
@@ -264,7 +264,7 @@ sketch_retrieval_shortcuts compute_sketch_retrieval_shortcuts_via_ads_unweighted
   vector<vertex_sketch_raw> rev(g.num_vertices());
   {
     for (V v : g.vertices()) {
-      const vertex_sketch_raw &s = ads.retrieve_sketch(v);
+      const vertex_sketch_raw &s = ads.retrieve_sketch(g, v);
       for (const auto &e : s) {
         es.emplace_back(make_tuple(e.d, e.v, v));
         rev[e.v].emplace_back(v, e.d);

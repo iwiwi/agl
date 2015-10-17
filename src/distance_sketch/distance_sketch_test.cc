@@ -18,13 +18,13 @@ TEST(distance_sketch, hoge) {
   for (V v : g.vertices()) {
     auto s = compute_all_distances_sketch_from(g, v, 2, rs);
     pretty_print(s);
-    ASSERT_EQ(s, ads.retrieve_sketch(v));
+    ASSERT_EQ(s, ads.retrieve_sketch(g, v));
 
-    pretty_print(srs1.retrieve_shortcuts(v));
-    pretty_print(srs1.retrieve_sketch(v));
-    ASSERT_EQ(s, srs1.retrieve_sketch(v));
-    ASSERT_EQ(s, srs2.retrieve_sketch(v));
-    ASSERT_EQ(s, srs3.retrieve_sketch(v));
+    pretty_print(srs1.retrieve_shortcuts(g, v));
+    pretty_print(srs1.retrieve_sketch(g, v));
+    ASSERT_EQ(s, srs1.retrieve_sketch(g, v));
+    ASSERT_EQ(s, srs2.retrieve_sketch(g, v));
+    ASSERT_EQ(s, srs3.retrieve_sketch(g, v));
   }
 }
 
@@ -37,9 +37,9 @@ TEST(distance_sketch, shortcuts) {
   auto srs3 = compute_sketch_retrieval_shortcuts_via_ads_unweighted(g, 2, rs);
 
   for (V v : g.vertices()) {
-    pretty_print(srs1.retrieve_shortcuts(v));
-    pretty_print(srs1.retrieve_sketch(v));
-    ASSERT_EQ(srs1.retrieve_shortcuts(v), srs2.retrieve_shortcuts(v));
-    ASSERT_EQ(srs1.retrieve_shortcuts(v), srs3.retrieve_shortcuts(v));
+    pretty_print(srs1.retrieve_shortcuts(g, v));
+    pretty_print(srs1.retrieve_sketch(g, v));
+    ASSERT_EQ(srs1.retrieve_shortcuts(g, v), srs2.retrieve_shortcuts(g, v));
+    ASSERT_EQ(srs1.retrieve_shortcuts(g, v), srs3.retrieve_shortcuts(g, v));
   }
 }

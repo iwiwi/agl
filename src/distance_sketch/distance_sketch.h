@@ -63,7 +63,7 @@ class graph_sketches_interface {
   virtual ~graph_sketches_interface() {}
 
   // Access
-  virtual vertex_sketch_raw retrieve_sketch(V v) = 0;
+  virtual vertex_sketch_raw retrieve_sketch(const G &g, V v) = 0;
 
   // Statistics
   virtual double average_size() const = 0;
@@ -74,7 +74,7 @@ struct all_distances_sketches : public graph_sketches_interface {
   std::vector<vertex_sketch_raw> sketches;
   rank_array ranks;
 
-  virtual vertex_sketch_raw retrieve_sketch(V v) override {
+  virtual vertex_sketch_raw retrieve_sketch(const G &g, V v) override {
     return sketches[v];
   }
 
@@ -104,17 +104,12 @@ void pretty_print(const all_distances_sketches &ads, std::ostream &ofs = std::ce
 // Sketch Retrieval Shortcuts
 ///////////////////////////////////////////////////////////////////////////////
 struct sketch_retrieval_shortcuts : public all_distances_sketches {
-  explicit sketch_retrieval_shortcuts(const G &g) : g_(g) {}
-
   // TODO: neighbor removal
-  virtual vertex_sketch_raw retrieve_sketch(V v) override;
+  virtual vertex_sketch_raw retrieve_sketch(const G &g, V v) override;
 
-  virtual vertex_sketch_raw retrieve_shortcuts(V v) {
-    return all_distances_sketches::retrieve_sketch(v);
+  virtual vertex_sketch_raw retrieve_shortcuts(const G &g, V v) {
+    return all_distances_sketches::retrieve_sketch(g, v);
   }
-
- private:
-  const G &g_;
 };
 
 sketch_retrieval_shortcuts compute_sketch_retrieval_shortcuts
@@ -128,5 +123,90 @@ sketch_retrieval_shortcuts compute_sketch_retrieval_shortcuts_via_ads_fast
 
 sketch_retrieval_shortcuts compute_sketch_retrieval_shortcuts_via_ads_unweighted
 (const G &g, size_t k = FLAGS_distance_sketch_k, const rank_array &ranks = {}, D d = kFwd);
+
+///////////////////////////////////////////////////////////////////////////////
+// Dynamization
+//////////////////////////////////////////////////////////////////////////////
+class dynamic_graph_sketches : public dynamic_graph_index_interface<G> {
+ public:
+  virtual vertex_sketch_raw retrieve_sketch(const G &g, V v) = 0;
+  virtual double average_sketch_length() const = 0;
+};
+
+class dynamic_all_distances_sketches : public dynamic_graph_sketches {
+ public:
+  dynamic_all_distances_sketches
+  (size_t k = FLAGS_distance_sketch_k, const rank_array &ranks = {}, D d = kFwd) :
+    d_(d) {
+    ads_.k = k;
+    ads_.ranks = ranks;
+  }
+
+  virtual void construct(const G &g) override {
+    ads_ = compute_all_distances_sketches(g, ads_.k, ads_.ranks, d_);
+  }
+
+  virtual vertex_sketch_raw retrieve_sketch(const G &g, V v) override {
+    return ads_.retrieve_sketch(g, v);
+  }
+
+  virtual double average_sketch_length() const override {
+    return ads_.average_size();
+  }
+
+  virtual void add_edge(const G &g, V v_from, const E &e) override {}
+
+  virtual void remove_edge(const G &g, V v_from, V v_to) override {}
+
+  virtual void add_vertices(const G &g, V old_num_vertices) override {
+    assert(false);
+  }
+
+  virtual void remove_vertices(const G&, V) override {
+    assert(false);
+  }
+
+ private:
+  D d_;
+  all_distances_sketches ads_;
+};
+
+class dynamic_sketch_retrieval_shortcuts : public dynamic_graph_sketches {
+ public:
+  dynamic_sketch_retrieval_shortcuts
+  (size_t k = FLAGS_distance_sketch_k, const rank_array &ranks = {}, D d = kFwd) :
+    d_(d) {
+    srs_.k = k;
+    srs_.ranks = ranks;
+  }
+
+  virtual void construct(const G &g) override {
+    srs_ = compute_sketch_retrieval_shortcuts(g, srs_.k, srs_.ranks, d_);
+  }
+
+  virtual vertex_sketch_raw retrieve_sketch(const G &g, V v) override {
+    return srs_.retrieve_sketch(g, v);
+  }
+
+  virtual double average_sketch_length() const override {
+    return srs_.average_size();
+  }
+
+  virtual void add_edge(const G &g, V v_from, const E &e) override {}
+
+  virtual void remove_edge(const G &g, V v_from, V v_to) override {}
+
+  virtual void add_vertices(const G &g, V old_num_vertices) override {
+    assert(false);
+  }
+
+  virtual void remove_vertices(const G&, V) override {
+    assert(false);
+  }
+
+ private:
+  D d_;
+  sketch_retrieval_shortcuts srs_;
+};
 }  // namespace distance_sketch
 }  // namespace agl
