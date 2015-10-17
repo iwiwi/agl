@@ -47,6 +47,11 @@ vertex_sketch_raw purify_sketch(vertex_sketch_raw sketch, size_t k, const rank_a
   return new_sketch;
 }
 
+W find_distance(const vertex_sketch_raw &sketch, V v ) {
+  for (const auto &e : sketch) if (e.v == v) return e.d;
+  return kInfW;
+}
+
 vertex_sketch_raw compute_all_distances_sketch_from
 (const G& g, V v, size_t k, const std::vector<rank_type> &ranks, D d) {
   vertex_sketch_raw sketch;
@@ -343,33 +348,133 @@ bool dynamic_all_distances_sketches::add_entry(V v, V s, W d) {
   return true;
 }
 
+void dynamic_all_distances_sketches::expand(const G &g, V v, V s, W d) {
+  if (!add_entry(v, s, d)) return;
+
+  queue<pair<V, W>> que;
+  que.push({v, d});
+
+  while (!que.empty()) {
+    V x = que.front().first;
+    W d = que.front().second;
+    que.pop();
+    for (const auto &e : g.edges(x, reverse_direction(d_))) {
+      V tx = to(e);
+      if (!add_entry(tx, s, d + weight(e))) continue;
+      que.push({tx, d + weight(d)});
+    }
+  }
+}
+
+vector<V> dynamic_all_distances_sketches::shrink(const G &g, V u, V r, W durL) {
+  if (u == r) return {};
+  cout << "SHRINK: " << make_tuple(u, r, durL) << endl;
+
+  vector<V> S;
+//  priority_queue<pair<W, V>, vector<pair<W, V>>, greater<pair<W, V>>> Q;
+//  Q.emplace(durL, u);
+  heap_.clear();
+  heap_.decrease(u, durL);
+  set<V> vis;  // TODO: faster
+  while (!heap_.empty()) {
+//    V x = Q.top().second;
+//    W dxrL = Q.top().first;
+//    Q.pop();
+    V x = heap_.top_vertex();
+    W dxrL = heap_.top_weight();
+    heap_.pop();
+    cout << "DEQUE: " << make_tuple(r, x, dxrL) << endl;
+
+    W dxrU = kInfW;
+    for (const auto &e : g.edges(x, d_)) {
+      W d = find_distance(ads_.sketches[to(e)], r);
+      if (is_lt(d, dxrL)) dxrU = min(dxrU, d + weight(e));
+    }
+
+    if (is_lt(dxrL, dxrU)) {
+      auto &sketch = ads_.sketches[x];
+      {
+        cout << make_tuple(x, dxrL, r) << endl; pretty_print(sketch);
+        auto ite = remove(sketch.begin(), sketch.end(), entry(r, dxrL));
+        assert(ite != sketch.end());
+        sketch.erase(ite, sketch.end());
+      }
+      S.emplace_back(x);
+      for (const auto &e : g.edges(x, reverse_direction(d_))) {
+        V y = to(e);
+        W dyrL = find_distance(ads_.sketches[y], r);
+        if (is_eq(dyrL, weight(e) + dxrL) && !vis.count(y)) {
+          // Q.emplace(dyrL, y);
+          heap_.decrease(y, dyrL);
+          vis.insert(y);
+        }
+      }
+    }
+  }
+
+  return S;
+}
+
+void dynamic_all_distances_sketches::re_insert(const G &g, std::vector<V> S, V r) {
+  sort(S.begin(), S.end());
+  heap_.clear();
+  for (V x : S) {
+    W dxrU = kInfW;
+    for (const auto &e : g.edges(x)) {
+      W dyr = find_distance(ads_.sketches[to(e)], r);
+      if (dyr != kInfW) dxrU = min(dxrU, dyr + weight(e));
+    }
+    heap_.decrease(x, dxrU);
+  }
+
+  while (!heap_.empty()) {
+    V x = heap_.top_vertex();
+    W dxrU = heap_.top_weight();
+    heap_.pop();
+
+    add_entry(x, r, dxrU);  // TODO: if not, skip edge traversal?
+    for (const auto &e : g.edges(x, reverse_direction(d_))) {
+      V y = to(e);
+      if (!binary_search(S.begin(), S.end(), y)) continue;
+      W dyrU = weight(e) + dxrU;
+      heap_.decrease(y, dyrU);
+    }
+  }
+}
+
 void dynamic_all_distances_sketches::add_edge(const G& g, V v_from, const E& e) {
-  // TODO: visited flags
+  // TODO: visited flags (to avoid |add_entry|) -> lazy purify
   assert(d_ == kFwd);
 
   V v_to = to(e);
   for (const auto &ent : ads_.sketches[v_to]) {
-    V s = ent.v;
-    W d = ent.d + weight(e);  // New distance at vertex |v_from|
-    if (!add_entry(v_from, s, d)) continue;
+    expand(g, v_from, ent.v, ent.d + weight(e));
+  }
+}
 
-    queue<pair<V, W>> que;
-    que.push({v_from, d});
+void dynamic_all_distances_sketches::remove_edge(const G& g, V v_from, V v_to) {
+  assert(d_ == kFwd);
 
-    while (!que.empty()) {
-      V x = que.front().first;
-      W d = que.front().second;
-      que.pop();
-      for (const auto &e : g.edges(x, reverse_direction(d_))) {
-        V tx = to(e);
-        if (!add_entry(tx, s, d + weight(e))) continue;
-        que.push({tx, d + weight(d)});
+  vector<V> allS;
+  vertex_sketch_raw sketch = ads_.sketches[v_from];
+  for (const auto &ent : sketch) {
+    auto S = shrink(g, v_from, ent.v, ent.d);
+    allS.insert(allS.end(), S.begin(), S.end());
+    re_insert(g, move(S), ent.v);
+  }
+
+  sort(allS.begin(), allS.end());
+  allS.erase(unique(allS.begin(), allS.end()), allS.end());
+  for (V x : allS) {
+    for (const auto &edg : g.edges(x, d_)) {
+      V y = to(edg);
+      for (const auto &ent : ads_.sketches[y]) {
+        W dxrU = weight(edg) + ent.d;
+        expand(g, x, ent.v, dxrU);
       }
     }
   }
 }
 
-void dynamic_all_distances_sketches::remove_edge(const G& g, V v_from, V v_to) {
-}
 }  // namespace distance_sketch
 }  // namespace agl

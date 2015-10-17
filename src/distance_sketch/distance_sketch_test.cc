@@ -54,7 +54,7 @@ TEST(distance_sketch, shortcuts) {
 }
 
 TEST(distance_sketch, update) {
-  static constexpr V kNumVertices = 10;
+  static constexpr V kNumVertices = 20;
   static constexpr size_t kK = 2;
 
   for (int trial = 0; trial < 10; ++trial) {
@@ -68,12 +68,22 @@ TEST(distance_sketch, update) {
     dynamic_all_distances_sketches dads(kK, rs);
     dads.construct(g);
 
-    for (const auto &u : s.workloads[0]) {
-      u->apply(&g, &dads);
-      auto ads = compute_all_distances_sketches(g, kK, rs);
-      for (V v : g.vertices()) {
-        ASSERT_EQ(dads.retrieve_sketch(g, v), ads.retrieve_sketch(g, v));
+    for (const auto &w : s.workloads) {
+      for (const auto &u : w) {
+        //graphviz_draw_graph(g, "before.png");
+        pretty_print(g);
+        u->apply(&g, &dads);
+        //graphviz_draw_graph(g, "after.png");
+        pretty_print(g);
+        auto ads = compute_all_distances_sketches(g, kK, rs);
+        for (V v : g.vertices()) {
+          cout << v << endl;
+          pretty_print(ads.retrieve_sketch(g, v));
+          pretty_print(dads.retrieve_sketch(g, v));
+          ASSERT_EQ(dads.retrieve_sketch(g, v), ads.retrieve_sketch(g, v));
+        }
       }
+      pretty_print(g);
     }
   }
 }

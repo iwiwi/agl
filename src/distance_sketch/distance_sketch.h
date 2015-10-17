@@ -91,6 +91,8 @@ struct all_distances_sketches : public graph_sketches_interface {
 // Remove unnecessary entries
 vertex_sketch_raw purify_sketch(vertex_sketch_raw sketch, size_t k, const rank_array &ranks);
 
+W find_distance(const vertex_sketch_raw &sketch, V v);
+
 vertex_sketch_raw compute_all_distances_sketch_from
 (const G &g, V v, size_t k, const rank_array &ranks, D d = kFwd);
 
@@ -144,6 +146,7 @@ class dynamic_all_distances_sketches : public dynamic_graph_sketches {
 
   virtual void construct(const G &g) override {
     ads_ = compute_all_distances_sketches(g, ads_.k, ads_.ranks, d_);
+    heap_ = decltype(heap_)(g.num_vertices());
   }
 
   virtual vertex_sketch_raw retrieve_sketch(const G &g, V v) override {
@@ -169,9 +172,13 @@ class dynamic_all_distances_sketches : public dynamic_graph_sketches {
  private:
   D d_;
   all_distances_sketches ads_;
+  dijkstra_heap<G> heap_;
 
   // Helpers for update
   bool add_entry(V v, V s, W d);
+  void expand(const G &g, V v, V s, W d);
+  std::vector<V> shrink(const G &g, V u, V r, W dur);
+  void re_insert(const G &g, std::vector<V> S, V r);
 };
 
 class dynamic_sketch_retrieval_shortcuts : public dynamic_graph_sketches {
