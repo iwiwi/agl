@@ -46,6 +46,7 @@ def build(bld):
           cc_file_stlib.append(filepath)
 
   bld.stlib(
+    name     = 'agl',
     source   = cc_file_stlib,
     target   = 'agl',
     includes = ['src', 'playground', '3rd_party'])
@@ -53,21 +54,23 @@ def build(bld):
   for cc in cc_file_main:
     n = os.path.basename(cc).replace('_main.cc', '')
     bld.program(
-      name = n,
-      source = cc,
-      target = n,
-      use = ['agl', 'gflags'],
+      name     = n,
+      source   = cc,
+      target   = n,
+      use      = ['agl', 'gflags'],
       includes = ['src', 'playground', '3rd_party'])
 
   bld.program(
-    source = cc_file_test,
-    target = 'test',
-    use = ['agl', 'gflags', 'gtest'],
+    name     = 'test',
+    source   = cc_file_test,
+    target   = 'test',
+    use      = ['agl', 'gflags', 'gtest'],
     includes = ['src', 'playground', '3rd_party'])
 
   bld.program(
+    name     = 'testt',
     features = 'testt',
-    source = cc_file_test,
-    target = 'test_',
-    use = ['agl', 'gflags', 'gtest'],
+    source   = cc_file_test,
+    target   = 'testt',
+    use      = ['agl', 'gflags', 'gtest'],
     includes = ['src', 'playground', '3rd_party'])

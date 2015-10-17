@@ -50,6 +50,18 @@ unweighted_edge_list generate_barbell(V size_clique) {
   return out;
 }
 
+unweighted_edge_list generate_cycle(V num_vertices) {
+  unweighted_edge_list es;
+  if (num_vertices < 2) {
+    return es;
+  }
+  for (V v = 0; v + 1 < num_vertices; ++v) {
+    es.emplace_back(v, v + 1);
+  }
+  es.emplace_back(num_vertices - 1, 0);
+  return es;
+}
+
 unweighted_edge_list generate_random_planar(V num_vertices, size_t num_edges) {
   using namespace agl::geometry2d;
 

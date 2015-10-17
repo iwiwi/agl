@@ -25,3 +25,4 @@ using unweighted_edge_list = std::vector<std::pair<V, V>>;
 #include "weight_type.h"
 #include "generator.h"
 #include "built_in_data.h"
+#include "dynamic_index_evaluation.h"
