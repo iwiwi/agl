@@ -52,3 +52,28 @@ TEST(distance_sketch, shortcuts) {
     }
   }
 }
+
+TEST(distance_sketch, update) {
+  static constexpr V kNumVertices = 10;
+  static constexpr size_t kK = 2;
+
+  for (int trial = 0; trial < 10; ++trial) {
+    dynamic_index_evaluation_scenario<G> s;
+    s.initial_graph.assign(generate_erdos_renyi(kNumVertices, 2));
+    s.add_workload_edge_addition_and_removal_random(30);
+
+    auto rs = generate_rank_array(kNumVertices);
+
+    G g = s.initial_graph;
+    dynamic_all_distances_sketches dads(kK, rs);
+    dads.construct(g);
+
+    for (const auto &u : s.workloads[0]) {
+      u->apply(&g, &dads);
+      auto ads = compute_all_distances_sketches(g, kK, rs);
+      for (V v : g.vertices()) {
+        ASSERT_EQ(dads.retrieve_sketch(g, v), ads.retrieve_sketch(g, v));
+      }
+    }
+  }
+}

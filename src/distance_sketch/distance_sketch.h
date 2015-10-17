@@ -154,9 +154,9 @@ class dynamic_all_distances_sketches : public dynamic_graph_sketches {
     return ads_.average_size();
   }
 
-  virtual void add_edge(const G &g, V v_from, const E &e) override {}
+  virtual void add_edge(const G &g, V v_from, const E &e) override;
 
-  virtual void remove_edge(const G &g, V v_from, V v_to) override {}
+  virtual void remove_edge(const G &g, V v_from, V v_to) override;
 
   virtual void add_vertices(const G &g, V old_num_vertices) override {
     assert(false);
@@ -169,6 +169,9 @@ class dynamic_all_distances_sketches : public dynamic_graph_sketches {
  private:
   D d_;
   all_distances_sketches ads_;
+
+  // Helpers for update
+  bool add_entry(V v, V s, W d);
 };
 
 class dynamic_sketch_retrieval_shortcuts : public dynamic_graph_sketches {

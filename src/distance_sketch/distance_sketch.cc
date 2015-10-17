@@ -314,5 +314,62 @@ sketch_retrieval_shortcuts compute_sketch_retrieval_shortcuts_via_ads_unweighted
   }
   return srs;
 }
+
+///////////////////////////////////////////////////////////////////////////////
+// Update
+///////////////////////////////////////////////////////////////////////////////
+bool dynamic_all_distances_sketches::add_entry(V v, V s, W d) {
+  size_t num_lose = 0;
+
+  for (auto &e : ads_.sketches[v]) {
+    if (e.v == s) {
+      if (d >= e.d) return false;
+      e.d = d;
+      goto ins;
+    }
+    if (ads_.ranks[e.v] < ads_.ranks[s] &&
+        make_pair((W)e.d, (V)e.v) < make_pair(d, s)) {
+      ++num_lose;
+      if (num_lose >= ads_.k) return false;
+    }
+  }
+
+  assert(num_lose < ads_.k);
+  ads_.sketches[v].emplace_back(s, d);
+
+  // Remove no longer unnecessary entries
+  ins:
+  ads_.sketches[v] = purify_sketch(move(ads_.sketches[v]), ads_.k, ads_.ranks);
+  return true;
+}
+
+void dynamic_all_distances_sketches::add_edge(const G& g, V v_from, const E& e) {
+  // TODO: visited flags
+  assert(d_ == kFwd);
+
+  V v_to = to(e);
+  for (const auto &ent : ads_.sketches[v_to]) {
+    V s = ent.v;
+    W d = ent.d + weight(e);  // New distance at vertex |v_from|
+    if (!add_entry(v_from, s, d)) continue;
+
+    queue<pair<V, W>> que;
+    que.push({v_from, d});
+
+    while (!que.empty()) {
+      V x = que.front().first;
+      W d = que.front().second;
+      que.pop();
+      for (const auto &e : g.edges(x, reverse_direction(d_))) {
+        V tx = to(e);
+        if (!add_entry(tx, s, d + weight(e))) continue;
+        que.push({tx, d + weight(d)});
+      }
+    }
+  }
+}
+
+void dynamic_all_distances_sketches::remove_edge(const G& g, V v_from, V v_to) {
+}
 }  // namespace distance_sketch
 }  // namespace agl
