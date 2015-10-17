@@ -5,7 +5,7 @@ using namespace std;
 using namespace agl;
 
 // An example of dynamic indices
-class my_slow_index : public graph_dynamic_index_interface<G> {
+class my_slow_index : public dynamic_graph_index_interface<G> {
  public:
   virtual void construct(const G &g) override {
     cout << "CONSTRUCT" << endl;

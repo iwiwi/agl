@@ -14,7 +14,7 @@ struct dynamic_index_evaluation_scenario {
   class update_interface;
   using edge_list_type = typename GraphType::edge_list_type;
   using workload_type = std::vector<std::shared_ptr<update_interface>>;
-  using dynamic_index_type = graph_dynamic_index_interface<GraphType>;
+  using dynamic_index_type = dynamic_graph_index_interface<GraphType>;
 
   // Variables
   GraphType initial_graph;
@@ -45,7 +45,7 @@ struct dynamic_index_evaluation_scenario {
 template<typename GraphType>
 class dynamic_index_evaluation_scenario<GraphType>::update_interface {
  public:
-  virtual void apply(GraphType *g, graph_dynamic_index_interface<GraphType> *i) const = 0;
+  virtual void apply(GraphType *g, dynamic_graph_index_interface<GraphType> *i) const = 0;
 };
 
 template<typename GraphType>
@@ -59,7 +59,7 @@ class dynamic_index_evaluation_scenario<GraphType>::update_add_edge
 
   update_add_edge(V v_from, const E &e) : v_from(v_from), e(e) {}
 
-  virtual void apply(GraphType *g, graph_dynamic_index_interface<GraphType> *i) const override {
+  virtual void apply(GraphType *g, dynamic_graph_index_interface<GraphType> *i) const override {
     g->add_edge(v_from, e);
     i->add_edge(*g, v_from, e);
   }
@@ -73,7 +73,7 @@ class dynamic_index_evaluation_scenario<GraphType>::update_remove_edge
 
   update_remove_edge(V v_from, V v_to) : v_from(v_from), v_to(v_to) {}
 
-  virtual void apply(GraphType *g, graph_dynamic_index_interface<GraphType> *i) const override {
+  virtual void apply(GraphType *g, dynamic_graph_index_interface<GraphType> *i) const override {
     g->remove_edge(v_from, v_to);
     i->remove_edge(*g, v_from, v_to);
   }

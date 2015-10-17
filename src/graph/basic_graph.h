@@ -228,7 +228,7 @@ private:
   std::vector<std::vector<E>> edges_from_[kNumDirections];
 
   std::vector<std::unique_ptr<graph_index_interface<G>>> graph_indices_;
-  std::vector<graph_dynamic_index_interface<G>*> graph_dynamic_indices_;  // Observer pattern
+  std::vector<dynamic_graph_index_interface<G>*> graph_dynamic_indices_;  // Observer pattern
 };
 
 //
