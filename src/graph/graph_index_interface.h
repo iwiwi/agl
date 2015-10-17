@@ -9,10 +9,10 @@ class graph_index_interface {
 };
 
 template<typename GraphType>
-class graph_dynamic_index_interface : public graph_index_interface<GraphType> {
+class dynamic_graph_index_interface : public graph_index_interface<GraphType> {
  public:
   using E = typename GraphType::E;
-  virtual ~graph_dynamic_index_interface() {}
+  virtual ~dynamic_graph_index_interface() {}
 
   virtual void add_edge(const GraphType &g, V v_from, const E &e) = 0;
   virtual void remove_edge(const GraphType &g, V v_from, V v_to) = 0;
