@@ -96,8 +96,6 @@ class basic_graph {
 
   edge_list_type edge_list(D d = kFwd) const;
 
-
-
   //
   // Graph access
   //
