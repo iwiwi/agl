@@ -26,7 +26,7 @@ class distance_query_interface {
  public:
   virtual ~distance_query_interface() {}
 
-  virtual typename GraphType::W query_distance(const GraphType &g, V v_from, V v_to);
+  virtual typename GraphType::W query_distance(const GraphType &g, V v_from, V v_to) = 0;
 };
 
 template<typename GraphType>
@@ -35,6 +35,6 @@ class closeness_centrality_query_interface {
   virtual ~closeness_centrality_query_interface() {}
 
   virtual double query_closeness_centrality
-  (const GraphType &g, V v, std::function<double(typename GraphType::W)>);
+  (const GraphType &g, V v, std::function<double(typename GraphType::W)>) = 0;
 };
 }  // namespace agl
