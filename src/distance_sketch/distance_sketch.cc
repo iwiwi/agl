@@ -66,9 +66,15 @@ vertex_sketch_raw purify_sketch(vertex_sketch_raw sketch, size_t k, const rank_a
   return sort_by_vertices(move(new_sketch));
 }
 
-W find_distance(const vertex_sketch_raw &sketch, V v ) {
-  for (const auto &e : sketch) if (e.v == v) return e.d;
-  return kInfW;
+W find_distance(const vertex_sketch_raw &sketch, V v) {
+  size_t l = 0, r = sketch.size();
+  while (r - l > 1) {
+    size_t m = (r + l) / 2;
+    if (v < sketch[m].v) r = m;
+    else l = m;
+  }
+  if (sketch[l].v == v) return sketch[l].d;
+  else return kInfW;
 }
 
 vertex_sketch_raw compute_all_distances_sketch_from
