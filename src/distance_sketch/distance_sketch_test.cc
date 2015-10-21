@@ -82,9 +82,7 @@ TEST(distance_sketch, srs_static_small) {
 TEST(distance_sketch, srs_static_large) {
   for (int k : {1, 4, 16}) {
     for (int trial = 0; trial < 100; ++trial) {
-      G g(generate_erdos_renyi(100, k));
-      cout << k << endl;
-      write_graph_tsv(g, "challenge.tsv");
+      G g(generate_erdos_renyi(100, 2));
       auto rs = generate_rank_array(g.num_vertices());
       auto srs1 = compute_sketch_retrieval_shortcuts_via_ads_naive(g, k, rs);
       auto srs2 = compute_sketch_retrieval_shortcuts_via_ads_fast(g, k, rs);
@@ -99,14 +97,14 @@ TEST(distance_sketch, srs_static_large) {
 }
 
 
-TEST(distance_sketch, update) {
-  static constexpr V kNumVertices = 20;
+TEST(distance_sketch, update_small) {
+  static constexpr V kNumVertices = 10;
   static constexpr size_t kK = 2;
 
   for (int trial = 0; trial < 10; ++trial) {
     dynamic_index_evaluation_scenario<G> s;
-    s.initial_graph.assign(generate_erdos_renyi(kNumVertices, 2));
-    s.add_workload_edge_addition_and_removal_random(30);
+    s.initial_graph.assign(generate_erdos_renyi(kNumVertices, 2), kNumVertices);
+    s.add_workload_edge_addition_and_removal_random(10);
 
     auto rs = generate_rank_array(kNumVertices);
 
@@ -130,6 +128,33 @@ TEST(distance_sketch, update) {
         }
       }
       pretty_print(g);
+    }
+  }
+}
+
+TEST(distance_sketch, update_large) {
+  static constexpr V kNumVertices = 100;
+
+  for (int k : {1, 4, 16}) {
+    for (int trial = 0; trial < 100; ++trial) {
+      dynamic_index_evaluation_scenario<G> s;
+      s.initial_graph.assign(generate_erdos_renyi(kNumVertices, 2), kNumVertices);
+      s.add_workload_edge_addition_and_removal_random(100);
+
+      auto rs = generate_rank_array(kNumVertices);
+
+      G g = s.initial_graph;
+      dynamic_all_distances_sketches dads(k, rs);
+      dads.construct(g);
+
+      for (const auto &w : s.workloads) {
+        for (const auto &u : w) u->apply(&g, &dads);
+
+        auto ads = compute_all_distances_sketches(g, k, rs);
+        for (V v : g.vertices()) {
+          ASSERT_EQ(dads.retrieve_sketch(g, v), ads.retrieve_sketch(g, v));
+        }
+      }
     }
   }
 }
