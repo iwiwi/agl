@@ -6,6 +6,6 @@ int main(int argc, char **argv) {
   s.initial_graph = easy_cui_init(argc, argv);
   s.add_workload_edge_addition_and_removal_random(100);
 
-  distance_sketch::dynamic_all_distances_sketches ads();
+  distance_sketch::dynamic_all_distances_sketches ads;
   s.evaluate((dynamic_graph_index_interface<G>*)&ads);
 }

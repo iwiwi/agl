@@ -439,7 +439,7 @@ void dynamic_all_distances_sketches::expand(const G &g, V v, V s, W d) {
 
 vector<V> dynamic_all_distances_sketches::shrink(const G &g, V u, V r, W durL) {
   if (u == r) return {};
-  cout << "SHRINK: " << make_tuple(u, r, durL) << endl;
+  // cout << "SHRINK: " << make_tuple(u, r, durL) << endl;
 
   vector<V> S;
 //  priority_queue<pair<W, V>, vector<pair<W, V>>, greater<pair<W, V>>> Q;
@@ -454,7 +454,7 @@ vector<V> dynamic_all_distances_sketches::shrink(const G &g, V u, V r, W durL) {
     V x = heap_.top_vertex();
     W dxrL = heap_.top_weight();
     heap_.pop();
-    cout << "DEQUE: " << make_tuple(r, x, dxrL) << endl;
+    // cout << "DEQUE: " << make_tuple(r, x, dxrL) << endl;
 
     W dxrU = kInfW;
     for (const auto &e : g.edges(x, d_)) {
@@ -465,7 +465,7 @@ vector<V> dynamic_all_distances_sketches::shrink(const G &g, V u, V r, W durL) {
     if (is_lt(dxrL, dxrU)) {
       auto &sketch = ads_.sketches[x];
       {
-        cout << make_tuple(x, dxrL, r) << endl; pretty_print(sketch);
+        // cout << make_tuple(x, dxrL, r) << endl; pretty_print(sketch);
         auto ite = remove(sketch.begin(), sketch.end(), entry(r, dxrL));
         assert(ite != sketch.end());
         sketch.erase(ite, sketch.end());
