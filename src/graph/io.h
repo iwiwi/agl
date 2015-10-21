@@ -48,11 +48,11 @@ void write_graph_tsv(const GraphT &g, std::ostream &os = std::cout) {
 template<typename GraphType = G>
 void write_graph_tsv(const GraphType &g, const char *filename) {
   if (strcmp(filename, "-") == 0) {
-    return write_graph_tsv(g, std::cout);
+    write_graph_tsv(g, std::cout);
   } else {
     std::ifstream ofs(filename);
     CHECK_PERROR(ofs);
-    return write_graph_tsv(g, ofs);
+    write_graph_tsv(g, ofs);
   }
 }
 
