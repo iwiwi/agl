@@ -24,13 +24,17 @@ class dynamic_graph_index_interface : public graph_index_interface<GraphType> {
 template<typename GraphType>
 class distance_query_interface {
  public:
-  virtual typename GraphType::W query_distance(V v_from, V v_to);
+  virtual ~distance_query_interface() {}
+
+  virtual typename GraphType::W query_distance(const GraphType &g, V v_from, V v_to);
 };
 
 template<typename GraphType>
 class closeness_centrality_query_interface {
  public:
+  virtual ~closeness_centrality_query_interface() {}
+
   virtual double query_closeness_centrality
-  (V v, std::function<double(typename GraphType::W)>);
+  (const GraphType &g, V v, std::function<double(typename GraphType::W)>);
 };
 }  // namespace agl
