@@ -159,8 +159,14 @@ class dynamic_graph_sketches
   virtual size_t k() const = 0;
   virtual const rank_array &ranks() const = 0;
 
-  virtual W query_distance(V v_from, V v_to) override;
-  virtual double query_closeness_centrality(V v, std::function<double(W)> f) override;
+  virtual W query_distance(const G &g, V v_from, V v_to) override {
+    // TODO: works only for undirected graphs
+    return estimate_distance(retrieve_sketch(g, v_from), retrieve_sketch(g, v_to));
+  }
+
+  virtual double query_closeness_centrality(const G &g, V v, std::function<double(W)> f) override {
+    return estimate_closeness_centrality(k(), ranks(), retrieve_sketch(g, v), f);
+  }
 };
 
 class dynamic_all_distances_sketches : public dynamic_graph_sketches {
