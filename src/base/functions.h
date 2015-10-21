@@ -51,4 +51,9 @@ std::vector<std::string> split(const std::string &str, char splitter);
 std::string strip(const std::string &str);
 
 double get_current_time_sec();
+
+void execute_within_time_limit_or_die
+(double time_limit_sec,
+ std::function<void()> task,
+ std::function<void()> hook_before_death = [](){});
 }  // namespace agl

@@ -1,5 +1,9 @@
+#include "macros.h"
 #include "functions.h"
 
+#include <thread>
+#include <future>
+#include <chrono>
 #include <sys/time.h>
 #include <sys/utsname.h>
 #include <unistd.h>
@@ -33,5 +37,26 @@ double get_current_time_sec() {
   struct timeval tv;
   gettimeofday(&tv, NULL);
   return tv.tv_sec + tv.tv_usec * 1e-6;
+}
+
+void execute_within_time_limit_or_die(double time_limit_sec,
+                                      std::function<void()> task,
+                                      std::function<void()> hook_before_death) {
+  auto future = std::async(std::launch::async, task);
+  double start_time_sec = get_current_time_sec();
+
+  for (;;) {
+    auto status = future.wait_for(std::chrono::milliseconds(0));
+    if (status == std::future_status::ready) {
+      break;
+    }
+
+    if (get_current_time_sec() - start_time_sec > time_limit_sec) {
+      hook_before_death();
+      FAIL_MSG("Time limit exceeded");
+    }
+
+    this_thread::sleep_for(chrono::seconds(1));
+  }
 }
 }  // namespace agl
