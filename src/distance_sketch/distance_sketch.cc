@@ -122,6 +122,76 @@ void pretty_print(const all_distances_sketches& ads, std::ostream& ofs) {
   }
 }
 
+
+///////////////////////////////////////////////////////////////////////////////
+// Estimation
+///////////////////////////////////////////////////////////////////////////////
+
+vertex_sketch_raw sort_by_vertices(vertex_sketch_raw sketch) {
+  sort(sketch.begin(), sketch.end(),
+       [](entry e1, entry e2) { return e1.v < e2.v; });
+  return sketch;
+}
+
+vector<double> compute_taus
+(size_t k, const rank_array &ranks, const vertex_sketch_raw &sketch) {
+  const size_t n = sketch.size();
+  vector<size_t> ord(n);
+  iota(ord.begin(), ord.end(), 0);
+  sort(ord.begin(), ord.end(), [&](int i, int j) { return sketch[i] < sketch[j]; });
+
+  vector<double> taus(n);
+  priority_queue<double> pq;
+  for (size_t k = 0; k < n; ++k) {
+    size_t i = ord[k];
+    const auto &e = sketch[i];
+
+    taus[i] = pq.size() < k ? 1.0 : pq.top();
+    const double p = rank_to_p(ranks[e.v]);
+    assert(p <= taus[i]);
+
+    pq.push(p);
+    if (pq.size() > k) pq.pop();
+  }
+
+  return taus;
+}
+
+double estimate_closeness_centrality
+(size_t k, const rank_array &ranks, const vertex_sketch_raw &sketch,
+ std::function<double(W)> distance_decay_function) {
+  double ans = 0.0;
+  vector<double> taus = compute_taus(k, ranks, sketch);
+  assert(taus.size() == sketch.size());
+  for (size_t i = 0; i < sketch.size(); ++i) {
+    const auto &e = sketch[i];
+    ans += 1.0 / taus[i] * distance_decay_function(e.d);
+  }
+  return ans;
+}
+
+double estimate_distance(const vertex_sketch_raw& sketch1,
+                         const vertex_sketch_raw& sketch2) {
+  const vertex_sketch_raw s1 = sort_by_vertices(sketch1);
+  const vertex_sketch_raw s2 = sort_by_vertices(sketch2);
+
+  size_t i1 = 0, i2 = 0;
+  W d = kInfW;
+  while (i1 < s1.size() && i2 < s2.size()) {
+    const V v1 = s1[i1].v;
+    const V v2 = s2[i2].v;
+    /**/ if (v1 < v2) ++i1;
+    else if (v1 > v2) ++i2;
+    else {
+      d = min(d, s1[i1].d + s2[i2].d);
+      ++i1;
+      ++i2;
+    }
+  }
+
+  return d;
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 // Sketch Retrieval Shortcuts
 ///////////////////////////////////////////////////////////////////////////////
@@ -266,6 +336,7 @@ sketch_retrieval_shortcuts compute_sketch_retrieval_shortcuts_via_ads_fast
   }
   return srs;
 }
+
 
 sketch_retrieval_shortcuts compute_sketch_retrieval_shortcuts_via_ads_unweighted
 (const G& g, size_t k, const rank_array& ranks, D d) {

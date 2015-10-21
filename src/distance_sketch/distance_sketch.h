@@ -53,6 +53,10 @@ rank_array generate_rank_array(V num_vertices);
 
 void pretty_print_rank_array(const rank_array &rank_array, std::ostream &ofs = std::cerr);
 
+inline double rank_to_p(rank_type r) {
+  return r / (double)std::numeric_limits<rank_type>::max();
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 // Static Sketch
 ///////////////////////////////////////////////////////////////////////////////
@@ -103,6 +107,21 @@ void pretty_print(const vertex_sketch_raw &s, std::ostream &ofs = std::cerr);
 void pretty_print(const all_distances_sketches &ads, std::ostream &ofs = std::cerr);
 
 ///////////////////////////////////////////////////////////////////////////////
+// Estimation
+///////////////////////////////////////////////////////////////////////////////
+vertex_sketch_raw sort_by_vertices(vertex_sketch_raw sketch);
+
+std::vector<double> compute_taus
+(size_t k, const rank_array &ranks, const vertex_sketch_raw &sketch);
+
+double estimate_closeness_centrality
+(size_t k, const rank_array &ranks, const vertex_sketch_raw &sketch,
+ std::function<double(W)> distance_decay_function);
+
+double estimate_distance
+(const vertex_sketch_raw &sketch1, const vertex_sketch_raw &sketch2);
+
+///////////////////////////////////////////////////////////////////////////////
 // Sketch Retrieval Shortcuts
 ///////////////////////////////////////////////////////////////////////////////
 struct sketch_retrieval_shortcuts : public all_distances_sketches {
@@ -129,10 +148,19 @@ sketch_retrieval_shortcuts compute_sketch_retrieval_shortcuts_via_ads_unweighted
 ///////////////////////////////////////////////////////////////////////////////
 // Dynamization
 //////////////////////////////////////////////////////////////////////////////
-class dynamic_graph_sketches : public dynamic_graph_index_interface<G> {
+class dynamic_graph_sketches
+    : public dynamic_graph_index_interface<G>,
+      public distance_query_interface<G>,
+      public closeness_centrality_query_interface<G> {
  public:
+  virtual ~dynamic_graph_sketches() {}
   virtual vertex_sketch_raw retrieve_sketch(const G &g, V v) = 0;
   virtual double average_sketch_length() const = 0;
+  virtual size_t k() const = 0;
+  virtual const rank_array &ranks() const = 0;
+
+  virtual W query_distance(V v_from, V v_to) override;
+  virtual double query_closeness_centrality(V v, std::function<double(W)> f) override;
 };
 
 class dynamic_all_distances_sketches : public dynamic_graph_sketches {
@@ -142,6 +170,14 @@ class dynamic_all_distances_sketches : public dynamic_graph_sketches {
     d_(d) {
     ads_.k = k;
     ads_.ranks = ranks;
+  }
+
+  virtual size_t k() const override {
+    return ads_.k;
+  }
+
+  virtual const rank_array &ranks() const override {
+    return ads_.ranks;
   }
 
   virtual void construct(const G &g) override {
@@ -188,6 +224,14 @@ class dynamic_sketch_retrieval_shortcuts : public dynamic_graph_sketches {
     d_(d) {
     srs_.k = k;
     srs_.ranks = ranks;
+  }
+
+  virtual size_t k() const override {
+    return srs_.k;
+  }
+
+  virtual const rank_array &ranks() const override {
+    return srs_.ranks;
   }
 
   virtual void construct(const G &g) override {
