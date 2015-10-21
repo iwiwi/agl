@@ -86,8 +86,16 @@ class basic_graph {
   }
 
   basic_graph(const basic_graph<EdgeType> &g) : edges_from_{g.edges_from_[0], g.edges_from_[1]} {
-    CHECK(g.graph_indices_.empty());
-    CHECK(g.graph_dynamic_indices_.empty());
+    CHECK_MSG(g.graph_indices_.empty(), "Graphs with attached indices cannot be copied");
+    CHECK_MSG(g.graph_dynamic_indices_.empty(), "Graphs with attached indices cannot be copied");
+  }
+
+  basic_graph<EdgeType> &operator=(const basic_graph<EdgeType> &g) {
+    CHECK_MSG(g.graph_indices_.empty(), "Graphs with attached indices cannot be copied");
+    CHECK_MSG(g.graph_dynamic_indices_.empty(), "Graphs with attached indices cannot be copied");
+    edges_from_[0] = g.edges_from_[0];
+    edges_from_[1] = g.edges_from_[1];
+    return *this;
   }
 
   void clear();
