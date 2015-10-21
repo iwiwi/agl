@@ -20,6 +20,7 @@ TEST(distance_sketch, hoge) {
     for (V v : g.vertices()) {
       auto s = compute_all_distances_sketch_from(g, v, 2, rs);
       pretty_print(s);
+      pretty_print(ads.retrieve_sketch(g, v));
       ASSERT_EQ(s, ads.retrieve_sketch(g, v));
 
       pretty_print(srs1.retrieve_shortcuts(g, v));

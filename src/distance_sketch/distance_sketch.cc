@@ -26,12 +26,31 @@ void pretty_print_rank_array(const std::vector<rank_type>& rank_array, ostream &
 }
 
 
-///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////entry////////////////////////
 // Static Sketch
 ///////////////////////////////////////////////////////////////////////////////
+vertex_sketch_raw sort_by_vertices(vertex_sketch_raw sketch) {
+  sort(sketch.begin(), sketch.end(),
+       [](entry e1, entry e2) { return e1.v < e2.v; });
+  return sketch;
+}
+
+vertex_sketch_raw sort_by_distances(vertex_sketch_raw sketch) {
+  sort(sketch.begin(), sketch.end(),
+       [](entry e1, entry e2) {
+    return e1.d != e2.d ? e1.d < e2.d : e1.v < e2.v;
+  });
+  return sketch;
+}
+
+vertex_sketch_raw sort_by_ranks(vertex_sketch_raw sketch, const rank_array &ranks) {
+  sort(sketch.begin(), sketch.end(),
+       [&](entry e1, entry e2) { return ranks[e1.v] < ranks[e2.v]; });
+  return sketch;
+}
 
 vertex_sketch_raw purify_sketch(vertex_sketch_raw sketch, size_t k, const rank_array &ranks) {
-  sort(sketch.begin(), sketch.end());
+  sketch = sort_by_distances(move(sketch));
 
   vertex_sketch_raw new_sketch;
   priority_queue<rank_type> thr;
@@ -44,7 +63,7 @@ vertex_sketch_raw purify_sketch(vertex_sketch_raw sketch, size_t k, const rank_a
     }
   }
 
-  return new_sketch;
+  return sort_by_vertices(move(new_sketch));
 }
 
 W find_distance(const vertex_sketch_raw &sketch, V v ) {
@@ -62,7 +81,7 @@ vertex_sketch_raw compute_all_distances_sketch_from
   };
   visit_by_distance(g, v, f, d);
 
-  return purify_sketch(sketch, k, ranks);
+  return purify_sketch(move(sketch), k, ranks);
 }
 
 all_distances_sketches compute_all_distances_sketches
@@ -126,13 +145,6 @@ void pretty_print(const all_distances_sketches& ads, std::ostream& ofs) {
 ///////////////////////////////////////////////////////////////////////////////
 // Estimation
 ///////////////////////////////////////////////////////////////////////////////
-
-vertex_sketch_raw sort_by_vertices(vertex_sketch_raw sketch) {
-  sort(sketch.begin(), sketch.end(),
-       [](entry e1, entry e2) { return e1.v < e2.v; });
-  return sketch;
-}
-
 vector<double> compute_taus
 (size_t k, const rank_array &ranks, const vertex_sketch_raw &sketch) {
   const size_t n = sketch.size();

@@ -14,8 +14,8 @@ static const int kNumBitsDistance = 8;
 
 union entry {
   struct {
-    int v : kNumBitsVertex;
     int d : kNumBitsDistance;
+    int v : kNumBitsVertex;
   };
   uint32_t raw;
 
@@ -29,7 +29,7 @@ union entry {
   }
 
   bool operator<(const entry &e) const {
-    return std::make_pair(d, v) < std::make_pair(e.d, e.v);
+    return std::make_pair(v, d) < std::make_pair(e.v, e.d);
   }
 
   static constexpr V max_vertices() { return (1 << kNumBitsVertex) - 1; }
@@ -61,6 +61,11 @@ inline double rank_to_p(rank_type r) {
 // Static Sketch
 ///////////////////////////////////////////////////////////////////////////////
 using vertex_sketch_raw = std::vector<entry>;
+// We define the canonical form
+
+vertex_sketch_raw sort_by_vertices(vertex_sketch_raw sketch);
+vertex_sketch_raw sort_by_distances(vertex_sketch_raw sketch);
+vertex_sketch_raw sort_by_ranks(vertex_sketch_raw sketch, const rank_array &ranks);
 
 class graph_sketches_interface {
  public:
@@ -109,7 +114,6 @@ void pretty_print(const all_distances_sketches &ads, std::ostream &ofs = std::ce
 ///////////////////////////////////////////////////////////////////////////////
 // Estimation
 ///////////////////////////////////////////////////////////////////////////////
-vertex_sketch_raw sort_by_vertices(vertex_sketch_raw sketch);
 
 std::vector<double> compute_taus
 (size_t k, const rank_array &ranks, const vertex_sketch_raw &sketch);
