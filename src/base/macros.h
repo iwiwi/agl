@@ -9,6 +9,14 @@
     exit(EXIT_FAILURE);                                                 \
   }
 
+#define CHECK_MSG(expr, msg)                                            \
+  if (expr) {                                                           \
+  } else {                                                              \
+    fprintf(stderr, "CHECK Failed (%s:%d): %s (%s)\n",                  \
+            __FILE__, __LINE__, msg, #expr);                            \
+    exit(EXIT_FAILURE);                                                 \
+  }
+
 #define CHECK_PERROR(expr)                                                     \
   if (expr) {                                                           \
   } else {                                                              \
