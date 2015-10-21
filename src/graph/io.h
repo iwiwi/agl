@@ -50,7 +50,7 @@ void write_graph_tsv(const GraphType &g, const char *filename) {
   if (strcmp(filename, "-") == 0) {
     write_graph_tsv(g, std::cout);
   } else {
-    std::ifstream ofs(filename);
+    std::ofstream ofs(filename);
     CHECK_PERROR(ofs);
     write_graph_tsv(g, ofs);
   }
