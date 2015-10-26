@@ -6,7 +6,10 @@ template<typename GraphType>
 class graph_index_interface {
  public:
   virtual ~graph_index_interface() {}
+
   virtual void construct(const GraphType &g) = 0;
+
+  virtual size_t estimate_memory_usage() { return 0; }
 };
 
 template<typename GraphType>
