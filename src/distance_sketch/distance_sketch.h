@@ -3,6 +3,7 @@
 #include "distance_sketch.h"
 
 DECLARE_int32(distance_sketch_k);
+DECLARE_int32(distance_sketch_srs_cache_size);
 
 namespace agl {
 namespace distance_sketch {
@@ -246,17 +247,26 @@ class dynamic_sketch_retrieval_shortcuts : public dynamic_graph_sketches {
 
   virtual void construct(const G &g) override {
     srs_ = compute_sketch_retrieval_shortcuts(g, srs_.k, srs_.ranks, d_);
+    init_cache(g.num_vertices());
   }
 
   virtual vertex_sketch_raw retrieve_sketch(const G &g, V v) override {
-    return srs_.retrieve_sketch(g, v);
+    load_cache(g, v);
+    return ads_caches_[v].ads;
+    // return srs_.retrieve_sketch(g, v);
+  }
+
+  vertex_sketch_raw retrieve_shortcuts(const G &g, V v) {
+    assert(!ads_caches_[v].is_dirty);
+    return srs_.retrieve_shortcuts(g, v);
+    // return srs_.retrieve_sketch(g, v);
   }
 
   virtual double average_sketch_length() const override {
     return srs_.average_size();
   }
 
-  virtual void add_edge(const G &g, V v_from, const E &e) override {}
+  virtual void add_edge(const G &g, V v_from, const E &e) override;
 
   virtual void remove_edge(const G &g, V v_from, V v_to) override {}
 
@@ -268,9 +278,75 @@ class dynamic_sketch_retrieval_shortcuts : public dynamic_graph_sketches {
     assert(false);
   }
 
- private:
   D d_;
   sketch_retrieval_shortcuts srs_;
+ private:
+
+  //
+  // Caching
+  //
+  struct ads_cache {
+    vertex_sketch_raw ads;
+    bool is_dirty;
+    size_t last_touched_time;
+  };
+
+  size_t num_cached_vertices_, current_time_;
+  std::vector<ads_cache> ads_caches_;
+  std::queue<std::pair<V, size_t>> lru_queue_;
+
+  void init_cache(V num_vs) {
+    num_cached_vertices_ = 0;
+    current_time_ = 0;
+    ads_caches_.assign(num_vs, ads_cache{{}, false, 0});
+    lru_queue_ = decltype(lru_queue_)();
+  }
+
+  bool is_on_cache(V v) {
+    return !ads_caches_[v].ads.empty();
+  }
+
+  void load_cache(const G &g, V v) {
+    if (!is_on_cache(v)) {
+      ads_caches_[v].ads = srs_.retrieve_sketch(g, v);
+      ++num_cached_vertices_;
+    }
+    ads_caches_[v].last_touched_time = current_time_;
+    lru_queue_.emplace(v, current_time_);
+    current_time_++;
+
+    // TODO: purfy?
+  }
+
+  void purify_cache(const G &g, size_t cache_size_limit) {
+    while (num_cached_vertices_ > cache_size_limit) {
+      assert(!lru_queue_.empty());
+      const auto p = lru_queue_.front();
+      const V v = p.first;
+      auto &c = ads_caches_[v];
+      lru_queue_.pop();
+      if (c.last_touched_time != p.second) continue;
+
+      if (c.is_dirty) {
+        srs_.sketches[v] = compute_srs_from(g, v);
+        // std::cout << FLAGS_distance_sketch_srs_cache_size << std::endl;
+        // assert(false);  // TODO
+      }
+      c.ads.clear();
+      c.is_dirty = false;
+      c.last_touched_time = 0;
+      --num_cached_vertices_;
+    }
+  }
+
+  //
+  // Helpers for update
+  //
+  bool add_entry(const G &g, V v, V s, W d);
+  void expand(const G &g, V v, V s, W d);
+  std::vector<V> shrink(const G &g, V u, V r, W dur);
+  void re_insert(const G &g, std::vector<V> S, V r);
+  vertex_sketch_raw compute_srs_from(const G &g, V v);
 };
 }  // namespace distance_sketch
 }  // namespace agl

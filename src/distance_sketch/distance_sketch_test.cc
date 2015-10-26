@@ -158,3 +158,66 @@ TEST(distance_sketch, update_large) {
     }
   }
 }
+
+
+TEST(distance_sketch, srs_update_small) {
+  static constexpr V kNumVertices = 30;
+
+  for (int k : {1, 4, 16}) {
+    for (int trial = 0; trial < 100; ++trial) {
+      dynamic_index_evaluation_scenario<G> s;
+      s.initial_graph.assign(generate_erdos_renyi(kNumVertices, 2), kNumVertices);
+      s.add_workload_edge_addition_and_removal_random(30);
+
+      auto rs = generate_rank_array(kNumVertices);
+
+      G g1 = s.initial_graph, g2 = s.initial_graph;
+      dynamic_all_distances_sketches dads(k, rs);
+      dynamic_sketch_retrieval_shortcuts dsrs(k, rs);
+      dads.construct(g1);
+      dsrs.construct(g2);
+
+      for (const auto &w : s.workloads) {
+        for (const auto &u : w) u->apply(&g1, &dads);
+
+        //  puts("nya");
+       //   pretty_print(g2);
+       //   pretty_print(compute_all_distances_sketch_from(g2, 1, k, rs));
+      //    printf("1: "); pretty_print(dsrs.retrieve_sketch(g2, 1));
+      //    printf("3: "); pretty_print(dsrs.retrieve_sketch(g2, 3));
+        for (const auto &u : w) {
+          u->apply(&g2, &dsrs);
+          auto ads = compute_all_distances_sketches(g2, k, rs);
+          auto srs = compute_sketch_retrieval_shortcuts(g2, k, rs);
+
+          pretty_print(g2);
+          pretty_print(compute_all_distances_sketches(g2, k, rs));
+          pretty_print((const all_distances_sketches&)compute_sketch_retrieval_shortcuts(g2, k, rs));
+          pretty_print((const all_distances_sketches&)dsrs.srs_);
+
+          for (V v : g1.vertices()) {
+            // ASSERT_EQ(dsrs.retrieve_shortcuts(g2, v), srs.retrieve_shortcuts(g2, v)) << v;
+            pretty_print(dsrs.retrieve_sketch(g2, v));
+            pretty_print(ads.retrieve_sketch(g2, v));
+            ASSERT_EQ(dsrs.retrieve_sketch(g2, v), ads.retrieve_sketch(g2, v)) << v;
+          }
+        }
+
+        auto ads = compute_all_distances_sketches(g1, k, rs);
+        auto srs = compute_sketch_retrieval_shortcuts(g2, k, rs);
+        for (V v : g1.vertices()) {
+          //pretty_print(g1);
+          //cout << v << endl;
+       //   pretty_print(ads.retrieve_sketch(g1, v));
+       //   pretty_print(dads.retrieve_sketch(g1, v));
+       //   pretty_print(dsrs.retrieve_sketch(g1, v));
+          ASSERT_EQ(dads.retrieve_sketch(g1, v), ads.retrieve_sketch(g1, v));
+          // ASSERT_EQ(dsrs.retrieve_shortcuts(g2, v), srs.retrieve_shortcuts(g2, v));
+          ASSERT_EQ(dsrs.retrieve_sketch(g1, v), ads.retrieve_sketch(g1, v));
+        }
+
+        break;
+      }
+    }
+  }
+}

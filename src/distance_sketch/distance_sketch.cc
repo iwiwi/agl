@@ -3,7 +3,8 @@
 using namespace std;
 
 DEFINE_int32(distance_sketch_k, 16, "");
-DEFINE_bool(distance_sketch_implicit_neighbor, true, "");
+DEFINE_bool(distance_sketch_implicit_neighbor, false, "");
+DEFINE_int32(distance_sketch_srs_cache_size, 15, "");
 
 namespace agl {
 namespace distance_sketch {
@@ -67,6 +68,7 @@ vertex_sketch_raw purify_sketch(vertex_sketch_raw sketch, size_t k, const rank_a
 }
 
 W find_distance(const vertex_sketch_raw &sketch, V v) {
+  if (sketch.empty()) return kInfW;
   size_t l = 0, r = sketch.size();
   while (r - l > 1) {
     size_t m = (r + l) / 2;
@@ -142,8 +144,9 @@ void pretty_print(const vertex_sketch_raw &s, std::ostream &ofs) {
 
 void pretty_print(const all_distances_sketches& ads, std::ostream& ofs) {
   pretty_print_rank_array(ads.ranks, ofs);
-  for (const auto &s : ads.sketches) {
-    pretty_print(s, ofs);
+  for (size_t i : make_irange(ads.sketches.size())) {
+    ofs << i << ":";
+    pretty_print(ads.sketches[i], ofs);
   }
 }
 
@@ -308,6 +311,7 @@ sketch_retrieval_shortcuts compute_sketch_retrieval_shortcuts_via_ads_naive
     srs.sketches[v].emplace_back(s, d);
   }
 
+  for (auto &s : srs.sketches) sort(s.begin(), s.end());
   return srs;
 }
 
@@ -352,6 +356,9 @@ sketch_retrieval_shortcuts compute_sketch_retrieval_shortcuts_via_ads_fast
       gs.emplace(make_tuple(r.d + d, s, r.v));  // r.v -> v -> s
     }
   }
+
+
+  for (auto &s : srs.sketches) sort(s.begin(), s.end());
   return srs;
 }
 
@@ -406,16 +413,18 @@ sketch_retrieval_shortcuts compute_sketch_retrieval_shortcuts_via_ads_unweighted
       }
     }
   }
+  for (auto &s : srs.sketches) sort(s.begin(), s.end());
   return srs;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// Update
+// ADS Update
 ///////////////////////////////////////////////////////////////////////////////
 bool dynamic_all_distances_sketches::add_entry(V v, V s, W d) {
   size_t num_lose = 0;
+  auto &a = ads_.sketches[v];
 
-  for (auto &e : ads_.sketches[v]) {
+  for (auto &e : a) {
     if (e.v == s) {
       if (d >= e.d) return false;
       e.d = d;
@@ -429,11 +438,11 @@ bool dynamic_all_distances_sketches::add_entry(V v, V s, W d) {
   }
 
   assert(num_lose < ads_.k);
-  ads_.sketches[v].emplace_back(s, d);
+  a.emplace_back(s, d);
 
   // Remove no longer unnecessary entries
   ins:
-  ads_.sketches[v] = purify_sketch(move(ads_.sketches[v]), ads_.k, ads_.ranks);
+  a = purify_sketch(move(a), ads_.k, ads_.ranks);
   return true;
 }
 
@@ -565,5 +574,109 @@ void dynamic_all_distances_sketches::remove_edge(const G& g, V v_from, V v_to) {
   }
 }
 
+///////////////////////////////////////////////////////////////////////////////
+// SRS Update
+///////////////////////////////////////////////////////////////////////////////
+vertex_sketch_raw dynamic_sketch_retrieval_shortcuts::compute_srs_from(const G& g, V v) {
+  assert(is_on_cache(v));
+  const auto &a = ads_caches_[v].ads;
+
+  for (const auto &e : a) {
+    load_cache(g, e.v);  // TODO: bad?
+  }
+
+  vertex_sketch_raw s;
+  for (const auto &e : a) {
+    if (e.v == v) continue;
+    const auto &ta = ads_caches_[e.v].ads;
+    for (const auto &te : ta) {
+      if (te.v != e.v) {
+        if (make_pair(te.v, e.d + te.d) == make_pair(8, 4)) {
+          printf("YESSSS %d\n", e.v);
+        }
+        s.emplace_back(entry(te.v, e.d + te.d));
+      }
+    }
+  }
+  printf("BEFORE PURIFY %d:", v);
+  pretty_print(s);
+  s = purify_sketch(s, k(), ranks());
+  printf("AFTER PURIFY %d:", v);
+  pretty_print(s);
+
+  vertex_sketch_raw srs;
+  for (const auto &e : a) {
+    if (e.v == v) continue;
+    // TODO: faster by ga--method
+    if (find_distance(s, e.v) != e.d) {
+      srs.emplace_back(e);
+    }
+  }
+  return srs;
+}
+
+bool dynamic_sketch_retrieval_shortcuts::add_entry(const G &g, V v, V s, W d) {
+  size_t num_lose = 0;
+  load_cache(g, v);
+  auto &a = ads_caches_[v].ads;
+
+  for (auto &e : a) {
+    if (e.v == s) {
+      if (d >= e.d) return false;
+      e.d = d;
+      goto ins;
+    }
+    if (srs_.ranks[e.v] < srs_.ranks[s] &&
+        make_pair((W)e.d, (V)e.v) < make_pair(d, s)) {
+      ++num_lose;
+      if (num_lose >= srs_.k) return false;
+    }
+  }
+
+  assert(num_lose < srs_.k);
+  a.emplace_back(s, d);
+
+  // Remove no longer unnecessary entries
+  ins:
+  a = purify_sketch(move(a), srs_.k, srs_.ranks);
+  ads_caches_[v].is_dirty = true;
+  return true;
+}
+
+void dynamic_sketch_retrieval_shortcuts::expand(const G &g, V v, V s, W d) {
+  // cout << "EXPAND: " << v << " " << s << endl;
+  load_cache(g, v);
+  // pretty_print(ads_caches_[v].ads);
+  if (!add_entry(g, v, s, d)) return;
+
+  queue<pair<V, W>> que;
+  que.push({v, d});
+
+  while (!que.empty()) {
+    V x = que.front().first;
+    W d = que.front().second;
+    que.pop();
+    for (const auto &e : g.edges(x, reverse_direction(d_))) {
+      V tx = to(e);
+      if (!add_entry(g, tx, s, d + weight(e))) continue;
+      que.push({tx, d + weight(d)});
+    }
+  }
+}
+
+void dynamic_sketch_retrieval_shortcuts::add_edge(const G& g, V v_from, const E& e) {
+  // TODO: visited flags (to avoid |add_entry|) -> lazy purify
+  assert(d_ == kFwd);
+
+  V v_to = to(e);
+  cout << v_from << "===>" << v_to << endl;
+  load_cache(g, v_to);
+  for (const auto &ent : ads_caches_[v_to].ads) {
+    expand(g, v_from, ent.v, ent.d + weight(e));
+  }
+
+  purify_cache(g, 0);
+}
 }  // namespace distance_sketch
 }  // namespace agl
+
