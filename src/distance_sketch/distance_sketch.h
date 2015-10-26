@@ -101,7 +101,10 @@ struct all_distances_sketches : public graph_sketches_interface {
 // Remove unnecessary entries
 vertex_sketch_raw purify_sketch(vertex_sketch_raw sketch, size_t k, const rank_array &ranks);
 
+// Entry manipulation
 W find_distance(const vertex_sketch_raw &sketch, V v);
+vertex_sketch_raw remove_entry(vertex_sketch_raw sketch, V v);
+vertex_sketch_raw insert_entry(vertex_sketch_raw sketch, V v, W d);
 
 vertex_sketch_raw compute_all_distances_sketch_from
 (const G &g, V v, size_t k, const rank_array &ranks, D d = kFwd);
@@ -328,7 +331,7 @@ class dynamic_sketch_retrieval_shortcuts : public dynamic_graph_sketches {
       if (c.last_touched_time != p.second) continue;
 
       if (c.is_dirty) {
-        srs_.sketches[v] = compute_srs_from(g, v);
+        //srs_.sketches[v] = compute_srs_from(g, v);
         // std::cout << FLAGS_distance_sketch_srs_cache_size << std::endl;
         // assert(false);  // TODO
       }
@@ -342,11 +345,13 @@ class dynamic_sketch_retrieval_shortcuts : public dynamic_graph_sketches {
   //
   // Helpers for update
   //
+  std::vector<std::tuple<W, V, V>> updated_entries_;
+
   bool add_entry(const G &g, V v, V s, W d);
   void expand(const G &g, V v, V s, W d);
   std::vector<V> shrink(const G &g, V u, V r, W dur);
   void re_insert(const G &g, std::vector<V> S, V r);
-  vertex_sketch_raw compute_srs_from(const G &g, V v);
+  //vertex_sketch_raw compute_srs_from(const G &g, V v);
 };
 }  // namespace distance_sketch
 }  // namespace agl
