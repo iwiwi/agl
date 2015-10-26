@@ -660,8 +660,7 @@ bool dynamic_sketch_retrieval_shortcuts::add_entry(const G &g, V v, V s, W d) {
 
   // Remove no longer unnecessary entries
   ins:
-  //a = purify_sketch(move(a), srs_.k, srs_.ranks);
-  a = sort_by_vertices(move(a));
+  a = purify_sketch(move(a), srs_.k, srs_.ranks);
   ads_caches_[v].is_dirty = true;
   return true;
 }
@@ -681,8 +680,12 @@ void dynamic_sketch_retrieval_shortcuts::expand(const G &g, V v, V s, W d) {
     que.pop();
 
     cout << "EXPAND: "<< make_tuple(d, s, x) << endl;
-    srs_.sketches[x] = remove_entry(move(srs_.sketches[x]), s);
-    updated_entries_.emplace_back(d, s, x);
+    {
+      auto i = srs_invalidation_.insert(make_pair(x, make_pair(d, s)));
+      if (!i.second) i.first->second = min(i.first->second, make_pair(d, s));
+    }
+    // srs_.sketches[x] = remove_entry(move(srs_.sketches[x]), s);
+    // updated_entries_.emplace_back(d, s, x);
 
     for (const auto &e : g.edges(x, reverse_direction(d_))) {
       const V tx = to(e);
@@ -706,7 +709,6 @@ void dynamic_sketch_retrieval_shortcuts::expand(const G &g, V v, V s, W d) {
 void dynamic_sketch_retrieval_shortcuts::add_edge(const G& g, V v_from, const E& e) {
   // TODO: visited flags (to avoid |add_entry|) -> lazy purify
   assert(d_ == kFwd);
-  assert(updated_entries_.empty());
 
   const V v_to = to(e);
   cout << v_from << "===>" << v_to << endl;
@@ -720,7 +722,26 @@ void dynamic_sketch_retrieval_shortcuts::add_edge(const G& g, V v_from, const E&
    * Here, ADSs in the cache is already correctly updated.
    */
 
-  auto ues = move(updated_entries_);
+  std::vector<std::tuple<W, V, V>> ues;
+  for (const auto &i : srs_invalidation_) {
+    const V v = i.first;
+    // Removing invalidated SRS entries
+    {
+      auto &s = srs_.sketches[v];
+      auto si = remove_if(s.begin(), s.end(), [&](const entry &e) {
+        return make_pair(e.d, e.v) >= i.second;
+      });
+      s.erase(si, s.end());
+    }
+    // Pushing ADS entries to be examined
+    for (const auto &e : ads_caches_[v].ads) {
+      if (make_pair(e.d, e.v) >= i.second) {
+        ues.emplace_back(e.d, e.v, v);
+      }
+    }
+  }
+  srs_invalidation_.clear();
+
   sort(ues.begin(), ues.end());
   for (const auto &ue : ues) {
     const W d = get<0>(ue);
@@ -749,10 +770,6 @@ void dynamic_sketch_retrieval_shortcuts::add_edge(const G& g, V v_from, const E&
     found:;
   }
 
-  printf("HOGEEEE");
-  pretty_print(ads_caches_[2].ads);
-
-  updated_entries_.clear();
   purify_cache(g, 0);
 
 }

@@ -161,13 +161,14 @@ TEST(distance_sketch, update_large) {
 
 
 TEST(distance_sketch, srs_update_small) {
-  static constexpr V kNumVertices = 20;
+  static constexpr V kNumVertices = 100;
 
   for (int k : {1, 4, 16}) {
     for (int trial = 0; trial < 100; ++trial) {
       dynamic_index_evaluation_scenario<G> s;
-      s.initial_graph.assign(generate_random_planar(kNumVertices, kNumVertices), kNumVertices);
-      s.add_workload_edge_addition_and_removal_random(10);
+      // s.initial_graph.assign(generate_random_planar(kNumVertices, kNumVertices), kNumVertices);
+      s.initial_graph.assign(generate_erdos_renyi(kNumVertices, 2), kNumVertices);
+      s.add_workload_edge_addition_and_removal_random(100);
 
       auto rs = generate_rank_array(kNumVertices);
 
@@ -201,9 +202,9 @@ TEST(distance_sketch, srs_update_small) {
             ASSERT_EQ(dsrs.retrieve_sketch(g2, v), ads.retrieve_sketch(g2, v)) << v;
           }
 
-          graphviz_draw_graph(g2, "0.png");
+          //graphviz_draw_graph(g2, "0.png");
           u->apply(&g2, &dsrs);
-          graphviz_draw_graph(g2, "1.png");
+          //graphviz_draw_graph(g2, "1.png");
         }
 
         auto ads = compute_all_distances_sketches(g1, k, rs);
@@ -220,6 +221,33 @@ TEST(distance_sketch, srs_update_small) {
         }
 
         break;
+      }
+    }
+  }
+}
+
+TEST(distance_sketch, srs_update_large) {
+  static constexpr V kNumVertices = 100;
+
+  for (int k : {1, 4, 16}) {
+    for (int trial = 0; trial < 100; ++trial) {
+      dynamic_index_evaluation_scenario<G> s;
+      s.initial_graph.assign(generate_erdos_renyi(kNumVertices, 2), kNumVertices);
+      s.add_workload_edge_addition_and_removal_random(100);
+
+      auto rs = generate_rank_array(kNumVertices);
+
+      G g = s.initial_graph;
+      dynamic_sketch_retrieval_shortcuts dsrs(k, rs);
+      dsrs.construct(g);
+
+      for (const auto &w : s.workloads) {
+        for (const auto &u : w) u->apply(&g, &dsrs);
+
+        auto ads = compute_all_distances_sketches(g, k, rs);
+        for (V v : g.vertices()) {
+          ASSERT_EQ(dsrs.retrieve_sketch(g, v), ads.retrieve_sketch(g, v));
+        }
       }
     }
   }

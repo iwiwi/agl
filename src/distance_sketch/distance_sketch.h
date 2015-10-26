@@ -345,7 +345,7 @@ class dynamic_sketch_retrieval_shortcuts : public dynamic_graph_sketches {
   //
   // Helpers for update
   //
-  std::vector<std::tuple<W, V, V>> updated_entries_;
+  std::map<V, std::pair<W, V>> srs_invalidation_;
 
   bool add_entry(const G &g, V v, V s, W d);
   void expand(const G &g, V v, V s, W d);
