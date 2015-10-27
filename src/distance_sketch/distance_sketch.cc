@@ -670,41 +670,29 @@ void dynamic_sketch_retrieval_shortcuts::expand(const G &g, V v, V s, W d) {
   if (!add_entry(g, v, s, d)) return;
 
   queue<pair<V, W>> que;
-  set<V> vis;  // TODO: faster by bitsets
   que.push({v, d});
-  vis.insert(v);
 
   while (!que.empty()) {
     const V x = que.front().first;
     const W d = que.front().second;
     que.pop();
 
-    cout << "EXPAND: "<< make_tuple(d, s, x) << endl;
+    // cout << "EXPAND: "<< make_tuple(d, s, x) << endl;
     {
       auto i = srs_invalidation_.insert(make_pair(x, make_pair(d, s)));
       if (!i.second) i.first->second = min(i.first->second, make_pair(d, s));
     }
-    // srs_.sketches[x] = remove_entry(move(srs_.sketches[x]), s);
-    // updated_entries_.emplace_back(d, s, x);
 
     for (const auto &e : g.edges(x, reverse_direction(d_))) {
       const V tx = to(e);
       const W td = d + weight(e);
-
-      if (vis.count(tx)) continue;
-      load_cache(g, tx);
-
-      const W fd = find_distance(ads_caches_[tx].ads, s);
-      if (!add_entry(g, tx, s, d + weight(e)) && fd == kInfW) {
-        continue;
-      }
-      if (fd < td) continue;
-
+      if (!add_entry(g, tx, s, d + weight(e))) continue;
       que.push({tx, td});
-      vis.insert(tx);
     }
   }
 }
+
+
 
 void dynamic_sketch_retrieval_shortcuts::add_edge(const G& g, V v_from, const E& e) {
   // TODO: visited flags (to avoid |add_entry|) -> lazy purify
@@ -717,17 +705,13 @@ void dynamic_sketch_retrieval_shortcuts::add_edge(const G& g, V v_from, const E&
     expand(g, v_from, ent.v, ent.d + weight(e));
   }
 
-  /*
-   * Fix SRSs.
-   * Here, ADSs in the cache is already correctly updated.
-   */
-
-  std::vector<std::tuple<W, V, V>> ues;
+  assert(srs_new_sketches_.empty());
   for (const auto &i : srs_invalidation_) {
     const V v = i.first;
     // Removing invalidated SRS entries
     {
-      auto &s = srs_.sketches[v];
+      auto ite = srs_new_sketches_.emplace(v, srs_.sketches[v]);
+      auto &s = ite.first->second;
       auto si = remove_if(s.begin(), s.end(), [&](const entry &e) {
         return make_pair(e.d, e.v) >= i.second;
       });
@@ -736,19 +720,25 @@ void dynamic_sketch_retrieval_shortcuts::add_edge(const G& g, V v_from, const E&
     // Pushing ADS entries to be examined
     for (const auto &e : ads_caches_[v].ads) {
       if (make_pair(e.d, e.v) >= i.second) {
-        ues.emplace_back(e.d, e.v, v);
+        srs_tentative_entry_que_.emplace(e.d, e.v, v);
       }
     }
   }
   srs_invalidation_.clear();
 
-  sort(ues.begin(), ues.end());
-  for (const auto &ue : ues) {
+  srs_propagation_distance_.clear();
+  while (!srs_tentative_entry_que_.empty()) {
+    auto ue = srs_tentative_entry_que_.top();
+    srs_tentative_entry_que_.pop();
     const W d = get<0>(ue);
     const V s = get<1>(ue);
     const V v = get<2>(ue);
-    // Check if (s, d) is necessary for SRS[v]
 
+    // (s, d) is in SRS[v] now?
+    W prv_d = find_distance(srs_.sketches[v], s);
+
+    // Check if (s, d) is necessary for SRS[v]
+    W new_d = d;
     load_cache(g, v);
     const auto &a = ads_caches_[v].ads;
     for (const auto &ae : a) {
@@ -756,22 +746,80 @@ void dynamic_sketch_retrieval_shortcuts::add_edge(const G& g, V v_from, const E&
       const V tv = ae.v;
       const W td = ae.d;
       if (is_le(d, td)) continue;
-      const W td2 = find_distance(srs_.sketches[tv], s);
+
+      //const W td2 = find_distance(srs_.sketches[tv], s);
+      W td2;
+      if (srs_new_sketches_.count(tv)) td2 = find_distance(srs_new_sketches_[tv], s);
+      else td2 = find_distance(srs_.sketches[tv], s);
+
       if (td2 == kInfW || td + td2 != d) continue;
       assert(td + td2 >= d);
-      goto found;
-    }
-    {
-      // Retrieval path not found
-      auto &srs = srs_.sketches[v];
-      srs = insert_entry(move(srs), s, d);
+
+      new_d = kInfW;  // not necessary
+      break;
     }
 
-    found:;
+    if (prv_d != new_d) {
+      cout << "CHANGE!: " << v << " -> " << s << ": " << prv_d << "->" << new_d << endl;
+      // TODO: Need to propagate
+      propagate(g, v, s, d);
+    }
+
+    if (new_d != kInfW) {
+      // Retrieval path not found
+      assert(srs_new_sketches_.count(v));  // TODO: remove this line
+      auto &srs = srs_new_sketches_[v];
+      srs = insert_entry(move(srs), s, new_d);
+    }
   }
 
+  // Finalize
+  for (auto &i : srs_new_sketches_) srs_.sketches[i.first] = move(i.second);
+  srs_new_sketches_.clear();
   purify_cache(g, 0);
+}
 
+void dynamic_sketch_retrieval_shortcuts::propagate(const G& g, V v, V s, W d) {
+  queue<pair<V, W>> que;
+
+  auto enque = [&](V tv, W td) -> void {
+    if (srs_propagation_distance_.count({s, tv})) return;
+
+    load_cache(g, tv);
+    if (find_distance(ads_caches_[tv].ads, s) != td) return;
+
+    // if (find_distance(srs_.sketches[tv], s) == td) return;
+    if (find_distance(current_shortcuts(tv), s) == td) return;
+
+    que.push({tv, td});
+    srs_propagation_distance_.insert(make_pair(make_pair(s, tv), td));
+
+    // TODO: limit more!
+  };
+
+  for (const auto &e : g.edges(v, reverse_direction(d_))) {
+    enque(to(e), d + weight(e));
+  }
+
+  while (!que.empty()) {
+    const V x = que.front().first;
+    const W d = que.front().second;
+    que.pop();
+
+    // Invalidation
+    {
+      auto i = srs_new_sketches_.insert(make_pair(x, vertex_sketch_raw()));
+      auto &srs = i.first->second;
+      if (i.second) i.first->second = srs_.sketches[x];
+      srs = remove_entry(move(srs), s);
+      srs_tentative_entry_que_.emplace(d, s, x);
+    }
+
+    // Edge traversal
+    for (const auto &e : g.edges(x, reverse_direction(d_))) {
+      enque(to(e), d + weight(e));
+    }
+  }
 }
 }  // namespace distance_sketch
 }  // namespace agl

@@ -346,12 +346,26 @@ class dynamic_sketch_retrieval_shortcuts : public dynamic_graph_sketches {
   // Helpers for update
   //
   std::map<V, std::pair<W, V>> srs_invalidation_;
+  std::priority_queue<std::tuple<W, V, V>, std::vector<std::tuple<W, V, V>>,
+  std::greater<std::tuple<W, V, V>>> srs_tentative_entry_que_;
+  std::map<V, vertex_sketch_raw> srs_new_sketches_;
+  std::map<std::pair<V, V>, W> srs_propagation_distance_;
 
   bool add_entry(const G &g, V v, V s, W d);
   void expand(const G &g, V v, V s, W d);
   std::vector<V> shrink(const G &g, V u, V r, W dur);
   void re_insert(const G &g, std::vector<V> S, V r);
   //vertex_sketch_raw compute_srs_from(const G &g, V v);
+
+  void propagate(const G &g, V v, V s, W d);
+
+  const vertex_sketch_raw &current_shortcuts(V v) const {
+    if (srs_new_sketches_.count(v)) {
+      return srs_new_sketches_.at(v);
+    } else {
+      return srs_.sketches[v];
+    }
+  }
 };
 }  // namespace distance_sketch
 }  // namespace agl

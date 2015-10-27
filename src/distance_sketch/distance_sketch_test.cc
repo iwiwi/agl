@@ -161,14 +161,16 @@ TEST(distance_sketch, update_large) {
 
 
 TEST(distance_sketch, srs_update_small) {
-  static constexpr V kNumVertices = 100;
+  static constexpr V kNumVertices = 10;
 
-  for (int k : {1, 4, 16}) {
-    for (int trial = 0; trial < 100; ++trial) {
+  for (int k : {4 /*1, 4, 16*/}) {
+    for (int trial = 0; trial < 1000; ++trial) {
+      cout << "TRIAL: " << trial << endl;
+
       dynamic_index_evaluation_scenario<G> s;
-      // s.initial_graph.assign(generate_random_planar(kNumVertices, kNumVertices), kNumVertices);
-      s.initial_graph.assign(generate_erdos_renyi(kNumVertices, 2), kNumVertices);
-      s.add_workload_edge_addition_and_removal_random(100);
+      s.initial_graph.assign(generate_random_planar(kNumVertices, kNumVertices), kNumVertices);
+      // s.initial_graph.assign(generate_erdos_renyi(kNumVertices, 2), kNumVertices);
+      s.add_workload_edge_addition_and_removal_random(10);
 
       auto rs = generate_rank_array(kNumVertices);
 
@@ -187,6 +189,10 @@ TEST(distance_sketch, srs_update_small) {
       //    printf("1: "); pretty_print(dsrs.retrieve_sketch(g2, 1));
       //    printf("3: "); pretty_print(dsrs.retrieve_sketch(g2, 3));
         for (const auto &u : w) {
+          //graphviz_draw_graph(g2, "0.png");
+          u->apply(&g2, &dsrs);
+          //graphviz_draw_graph(g2, "1.png");
+
           auto ads = compute_all_distances_sketches(g2, k, rs);
           auto srs = compute_sketch_retrieval_shortcuts(g2, k, rs);
 
@@ -202,9 +208,6 @@ TEST(distance_sketch, srs_update_small) {
             ASSERT_EQ(dsrs.retrieve_sketch(g2, v), ads.retrieve_sketch(g2, v)) << v;
           }
 
-          //graphviz_draw_graph(g2, "0.png");
-          u->apply(&g2, &dsrs);
-          //graphviz_draw_graph(g2, "1.png");
         }
 
         auto ads = compute_all_distances_sketches(g1, k, rs);
@@ -229,8 +232,8 @@ TEST(distance_sketch, srs_update_small) {
 TEST(distance_sketch, srs_update_large) {
   static constexpr V kNumVertices = 100;
 
-  for (int k : {1, 4, 16}) {
-    for (int trial = 0; trial < 100; ++trial) {
+  for (int trial = 0; trial < 1000; ++trial) {
+    for (int k : {1, 4, 16}) {
       dynamic_index_evaluation_scenario<G> s;
       s.initial_graph.assign(generate_erdos_renyi(kNumVertices, 2), kNumVertices);
       s.add_workload_edge_addition_and_removal_random(100);
@@ -248,6 +251,8 @@ TEST(distance_sketch, srs_update_large) {
         for (V v : g.vertices()) {
           ASSERT_EQ(dsrs.retrieve_sketch(g, v), ads.retrieve_sketch(g, v));
         }
+
+        break;
       }
     }
   }
