@@ -64,7 +64,7 @@ unweighted_edge_list generate_cycle(V num_vertices) {
 
 unweighted_edge_list generate_ba(V final_num, V initial_num) {
   unweighted_edge_list es;
-  assert(initial_num > 1);
+  assert(initial_num > 2);
   for (int v = 0; v < initial_num; ++v) {
     for (int u = 0; u < v; ++u) {
       es.emplace_back(u, v);
@@ -72,10 +72,14 @@ unweighted_edge_list generate_ba(V final_num, V initial_num) {
   }
 
   for (int v = initial_num; v < final_num; ++v) {
-    for (int i = 0; i < initial_num; ++i) {
-      std::uniform_int_distribution<V> rng(0, es.size() - 1);
-      V e = rng(agl::random);
+    set<V> next;
+    while (next.size() < (size_t) initial_num) {
+      std::uniform_int_distribution<size_t> rng(0, es.size() - 1);
+      size_t e = rng(agl::random);
       V u = rng(agl::random) % 2 ? es[e].first : es[e].second;
+      next.insert(u);
+    }
+    for (auto u : next) {
       es.emplace_back(u, v);
     }
   }
