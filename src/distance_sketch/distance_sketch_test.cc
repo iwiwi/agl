@@ -5,6 +5,10 @@ using namespace agl;
 using namespace std;
 using namespace agl::distance_sketch;
 
+TEST(distance_sketch, entry_comparison) {
+  ASSERT_GT(entry(1, 2).raw, entry(2, 1).raw);
+}
+
 TEST(distance_sketch, ads_static_small) {
   for (int trial = 0; trial < 3; ++trial) {
     G g(generate_erdos_renyi(10, 2));
@@ -163,7 +167,7 @@ TEST(distance_sketch, update_large) {
 TEST(distance_sketch, srs_update_small) {
   static constexpr V kNumVertices = 10;
 
-  for (int k : {4 /*1, 4, 16*/}) {
+  for (int k : {2 /*1, 4, 16*/}) {
     for (int trial = 0; trial < 1000; ++trial) {
       cout << "TRIAL: " << trial << endl;
 
@@ -202,7 +206,7 @@ TEST(distance_sketch, srs_update_small) {
           pretty_print((const all_distances_sketches&)dsrs.srs_);
 
           for (V v : g1.vertices()) {
-            // ASSERT_EQ(dsrs.retrieve_shortcuts(g2, v), srs.retrieve_shortcuts(g2, v)) << v;
+            ASSERT_EQ(dsrs.retrieve_shortcuts(g2, v), srs.retrieve_shortcuts(g2, v)) << v;
             pretty_print(dsrs.retrieve_sketch(g2, v));
             pretty_print(ads.retrieve_sketch(g2, v));
             ASSERT_EQ(dsrs.retrieve_sketch(g2, v), ads.retrieve_sketch(g2, v)) << v;
@@ -248,7 +252,9 @@ TEST(distance_sketch, srs_update_large) {
         for (const auto &u : w) u->apply(&g, &dsrs);
 
         auto ads = compute_all_distances_sketches(g, k, rs);
+        auto srs = compute_sketch_retrieval_shortcuts(g, k, rs);
         for (V v : g.vertices()) {
+          ASSERT_EQ(dsrs.retrieve_shortcuts(g, v), srs.retrieve_shortcuts(g, v));
           ASSERT_EQ(dsrs.retrieve_sketch(g, v), ads.retrieve_sketch(g, v));
         }
 

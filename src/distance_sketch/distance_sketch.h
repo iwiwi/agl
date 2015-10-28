@@ -15,8 +15,8 @@ static const int kNumBitsDistance = 8;
 
 union entry {
   struct {
-    int d : kNumBitsDistance;
     int v : kNumBitsVertex;
+    int d : kNumBitsDistance;
   };
   uint32_t raw;
 
@@ -63,6 +63,12 @@ inline double rank_to_p(rank_type r) {
 ///////////////////////////////////////////////////////////////////////////////
 using vertex_sketch_raw = std::vector<entry>;
 // We define the canonical form
+
+struct entry_comparator_greater_distance {
+  bool operator() (const entry &a, const entry &b) const {
+    return a.raw > b.raw;
+  }
+};
 
 vertex_sketch_raw sort_by_vertices(vertex_sketch_raw sketch);
 vertex_sketch_raw sort_by_distances(vertex_sketch_raw sketch);
@@ -133,12 +139,14 @@ double estimate_distance
 // Sketch Retrieval Shortcuts
 ///////////////////////////////////////////////////////////////////////////////
 struct sketch_retrieval_shortcuts : public all_distances_sketches {
-  // TODO: neighbor removal
   virtual vertex_sketch_raw retrieve_sketch(const G &g, V v) override;
 
   virtual vertex_sketch_raw retrieve_shortcuts(const G &g, V v) {
     return all_distances_sketches::retrieve_sketch(g, v);
   }
+
+ private:
+  std::vector<W> pot_;
 };
 
 sketch_retrieval_shortcuts compute_sketch_retrieval_shortcuts

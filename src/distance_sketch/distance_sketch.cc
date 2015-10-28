@@ -237,6 +237,10 @@ double estimate_distance(const vertex_sketch_raw& sketch1,
 // Sketch Retrieval Shortcuts
 ///////////////////////////////////////////////////////////////////////////////
 vertex_sketch_raw sketch_retrieval_shortcuts::retrieve_sketch(const G &g, V v) {
+  if (pot_.size() < (size_t)g.num_vertices()) {
+    pot_.resize(max((pot_.size() + 10) * 2, (size_t)g.num_vertices()), kInfW);
+  }
+
   vertex_sketch_raw ads;
   priority_queue<rank_type> thr;
   auto add_entry = [&](V v_source, W d) -> bool {
@@ -249,41 +253,34 @@ vertex_sketch_raw sketch_retrieval_shortcuts::retrieve_sketch(const G &g, V v) {
       return true;
   };
 
-  // TODO: supporting |std::pair| in |dijkstra_heap|
-  typedef pair<W, V> queue_entry_type;
-  priority_queue<queue_entry_type, vector<queue_entry_type>, greater<queue_entry_type>> que;
-  unordered_map<V, W> pot;  // TODO
+  priority_queue<entry, vector<entry>, entry_comparator_greater_distance> que;
+  vector<V> vis;
+  auto enqueue = [&](V tv, W td) -> void {
+    if (td >= pot_[tv]) return;
+    que.emplace(tv, td);
+    if (pot_[tv] == kInfW) vis.emplace_back(tv);
+    pot_[tv] = td;
+  };
 
-  que.emplace(0, v);
-  pot[v] = 0;
-
+  enqueue(v, 0);
   while (!que.empty()) {
-    V v = que.top().second;
-    W d = que.top().first;
+    V v = que.top().v;
+    W d = que.top().d;
     que.pop();
-    if (d > pot[v] || !add_entry(v, d)) continue;
+    if (d > pot_[v] || !add_entry(v, d)) continue;
 
     auto sv = retrieve_shortcuts(g, v);
     for (const auto &e : sv) {
-      V tv = e.v;
-      W td = d + e.d;
-      auto i = pot.insert(make_pair(tv, td));
-      if (!i.second && i.first->second <= td) continue;
-      que.emplace(td, tv);
-      i.first->second = td;
+      enqueue(e.v, d + e.d);
     }
 
     if (!FLAGS_distance_sketch_implicit_neighbor) continue;
-    // TODO: faster by using only first |k| edges
     for (const auto &e : g.edges(v)) {
-      W tv = to(e);
-      W td = d + weight(e);
-      auto i = pot.insert(make_pair(tv, td));
-      if (!i.second && i.first->second <= td) continue;
-      que.emplace(td, tv);
-      i.first->second = td;
+      enqueue(to(e), d + weight(e));
     }
   }
+
+  for (V v : vis) pot_[v] = kInfW;
   sort(ads.begin(), ads.end());
   return ads;
 }
@@ -701,10 +698,13 @@ void dynamic_sketch_retrieval_shortcuts::add_edge(const G& g, V v_from, const E&
   const V v_to = to(e);
   cout << v_from << "===>" << v_to << endl;
   load_cache(g, v_to);
+  JLOG_ADD_BENCHMARK("expand") {
   for (const auto &ent : ads_caches_[v_to].ads) {
     expand(g, v_from, ent.v, ent.d + weight(e));
   }
+  }
 
+  JLOG_ADD_BENCHMARK("srs") {
   assert(srs_new_sketches_.empty());
   for (const auto &i : srs_invalidation_) {
     const V v = i.first;
@@ -730,6 +730,11 @@ void dynamic_sketch_retrieval_shortcuts::add_edge(const G& g, V v_from, const E&
   while (!srs_tentative_entry_que_.empty()) {
     auto ue = srs_tentative_entry_que_.top();
     srs_tentative_entry_que_.pop();
+
+    if (!srs_tentative_entry_que_.empty() && srs_tentative_entry_que_.top() == ue) {
+      srs_tentative_entry_que_.pop();
+    }
+
     const W d = get<0>(ue);
     const V s = get<1>(ue);
     const V v = get<2>(ue);
@@ -760,7 +765,7 @@ void dynamic_sketch_retrieval_shortcuts::add_edge(const G& g, V v_from, const E&
     }
 
     if (prv_d != new_d) {
-      cout << "CHANGE!: " << v << " -> " << s << ": " << prv_d << "->" << new_d << endl;
+      // cout << "CHANGE!: " << v << " -> " << s << ": " << prv_d << "->" << new_d << endl;
       // TODO: Need to propagate
       propagate(g, v, s, d);
     }
@@ -776,7 +781,10 @@ void dynamic_sketch_retrieval_shortcuts::add_edge(const G& g, V v_from, const E&
   // Finalize
   for (auto &i : srs_new_sketches_) srs_.sketches[i.first] = move(i.second);
   srs_new_sketches_.clear();
+  cout << num_cached_vertices_ << " / " << g.num_vertices() << endl;
   purify_cache(g, 0);
+
+  }
 }
 
 void dynamic_sketch_retrieval_shortcuts::propagate(const G& g, V v, V s, W d) {
@@ -788,13 +796,8 @@ void dynamic_sketch_retrieval_shortcuts::propagate(const G& g, V v, V s, W d) {
     load_cache(g, tv);
     if (find_distance(ads_caches_[tv].ads, s) != td) return;
 
-    // if (find_distance(srs_.sketches[tv], s) == td) return;
-    if (find_distance(current_shortcuts(tv), s) == td) return;
-
     que.push({tv, td});
     srs_propagation_distance_.insert(make_pair(make_pair(s, tv), td));
-
-    // TODO: limit more!
   };
 
   for (const auto &e : g.edges(v, reverse_direction(d_))) {
@@ -810,7 +813,7 @@ void dynamic_sketch_retrieval_shortcuts::propagate(const G& g, V v, V s, W d) {
     {
       auto i = srs_new_sketches_.insert(make_pair(x, vertex_sketch_raw()));
       auto &srs = i.first->second;
-      if (i.second) i.first->second = srs_.sketches[x];
+      if (i.second) srs = srs_.sketches[x];
       srs = remove_entry(move(srs), s);
       srs_tentative_entry_que_.emplace(d, s, x);
     }
