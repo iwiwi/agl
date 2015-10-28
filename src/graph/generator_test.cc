@@ -46,7 +46,7 @@ TEST(gen_cycle, random_num_vertices) {
 
 TEST(gen_ba, random_num_vertices) {
   for (int trial = 0; trial < 10; ++trial) {
-    V M = agl::random(1000);
+    V M = agl::random(1000) + 3;
     V N = M + agl::random(1000);
     auto es = generate_ba(N, M);
 
@@ -96,6 +96,40 @@ TEST(gen_dms, random_trial) {
     V N = M + agl::random(1000);
     V K0 = M - agl::random(1000);
     auto es = generate_dms(N, M, K0);
+
+    size_t expected_edge_num = M * (M - 1) / 2 + (N - M) * M;
+    // Number of edges
+
+    G g(es);
+    pretty_print(g);
+    ASSERT_EQ(es.size(), expected_edge_num);
+    ASSERT_TRUE(is_connected(g));
+  }
+}
+
+TEST(gen_hk, random_trial) {
+  for (int trial = 0; trial < 10; ++trial) {
+    V M = agl::random(1000) + 3;
+    V N = M + agl::random(1000);
+    double P = agl::random(1000) / 1000.0;
+    auto es = generate_hk(N, M, P);
+
+    size_t expected_edge_num = M * (M - 1) / 2 + (N - M) * M;
+    // Number of edges
+
+    G g(es);
+    pretty_print(g);
+    ASSERT_EQ(es.size(), expected_edge_num);
+    ASSERT_TRUE(is_connected(g));
+  }
+}
+
+TEST(gen_hk, small_case) {
+  for (int trial = 0; trial < 10; ++trial) {
+    V M = agl::random(5) + 3;
+    V N = M + agl::random(2) + 1;
+    double P = agl::random(1000) / 1000.0;
+    auto es = generate_hk(N, M, P);
 
     size_t expected_edge_num = M * (M - 1) / 2 + (N - M) * M;
     // Number of edges

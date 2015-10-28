@@ -63,8 +63,8 @@ unweighted_edge_list generate_cycle(V num_vertices) {
 }
 
 unweighted_edge_list generate_ba(V final_num, V initial_num) {
-  unweighted_edge_list es;
   assert(initial_num > 2);
+  unweighted_edge_list es;
   for (int v = 0; v < initial_num; ++v) {
     for (int u = 0; u < v; ++u) {
       es.emplace_back(u, v);
@@ -112,6 +112,42 @@ unweighted_edge_list generate_dms(V final_num, V initial_num, V K0) {
     }
     for (int i = 0; i < initial_num - K0; ++i) {
       vs.emplace_back(v);
+    }
+  }
+
+  return es;
+}
+
+unweighted_edge_list generate_hk(V final_num, V initial_num, double P) {
+  assert(initial_num > 2 && final_num > initial_num);
+  unweighted_edge_list es;
+  vector<vector<V>> adj(final_num);
+  for (int v = 0; v <= initial_num; ++v) {
+    for (int u = 0; u < v; ++u) {
+      es.emplace_back(u, v);
+      adj[u].emplace_back(v);
+      adj[v].emplace_back(u);
+    }
+  }
+
+  for (int v = initial_num + 1; v < final_num; ++v) {
+    set<V> next;
+    V u = -1;
+    while (next.size() < (size_t)initial_num) {
+      if (next.size() > 0 && agl::random() < agl::xorshift1024star::max() * P) {
+        std::uniform_int_distribution<size_t> adj_rng(0, adj[u].size() - 1);
+        u = adj[u][adj_rng(agl::random)];
+      } else {
+        std::uniform_int_distribution<size_t> rng(0, es.size() - 1);
+        size_t e = rng(agl::random);
+        u = rng(agl::random) % 2 ? es[e].first : es[e].second;
+      }
+      next.insert(u);
+    }
+    for (auto u : next) {
+      es.emplace_back(u, v);
+      adj[u].emplace_back(v);
+      adj[v].emplace_back(u);
     }
   }
 
