@@ -50,11 +50,59 @@ TEST(gen_ba, random_num_vertices) {
     V N = M + agl::random(1000);
     auto es = generate_ba(N, M);
 
+    size_t expected_edge_num = M * (M - 1) / 2 + (N - M) * M;
     // Number of edges
-    ASSERT_EQ((V)es.size(), M * (M - 1) / 2 + (N - M) * M);
+    ASSERT_EQ(es.size(), expected_edge_num);
 
     G g(es);
     pretty_print(g);
+    ASSERT_TRUE(is_connected(g));
+  }
+}
+
+TEST(gen_dms, small_case) {
+  V N = 5;
+  V M = 2;
+  V K0 = -1;
+  auto es = generate_dms(N, M, K0);
+
+  size_t expected_edge_num = M * (M - 1) / 2 + (N - M) * M;
+  // Number of edges
+
+  G g(es);
+  pretty_print(g);
+  ASSERT_EQ(es.size(), expected_edge_num);
+  ASSERT_TRUE(is_connected(g));
+}
+
+TEST(gen_dms, corner_case) {
+  V N = 1;
+  V M = 0;
+  V K0 = -1;
+  auto es = generate_dms(N, M, K0);
+
+  size_t expected_edge_num = M * (M - 1) / 2 + (N - M) * M;
+  // Number of edges
+
+  G g(es);
+  pretty_print(g);
+  ASSERT_EQ(es.size(), expected_edge_num);
+  ASSERT_TRUE(is_connected(g));
+}
+
+TEST(gen_dms, random_trial) {
+  for (int trial = 0; trial < 10; ++trial) {
+    V M = agl::random(1000);
+    V N = M + agl::random(1000);
+    V K0 = M - agl::random(1000);
+    auto es = generate_dms(N, M, K0);
+
+    size_t expected_edge_num = M * (M - 1) / 2 + (N - M) * M;
+    // Number of edges
+
+    G g(es);
+    pretty_print(g);
+    ASSERT_EQ(es.size(), expected_edge_num);
     ASSERT_TRUE(is_connected(g));
   }
 }

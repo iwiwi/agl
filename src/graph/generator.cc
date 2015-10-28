@@ -73,8 +73,8 @@ unweighted_edge_list generate_ba(V final_num, V initial_num) {
 
   for (int v = initial_num; v < final_num; ++v) {
     set<V> next;
+    std::uniform_int_distribution<size_t> rng(0, es.size() - 1);
     while (next.size() < (size_t) initial_num) {
-      std::uniform_int_distribution<size_t> rng(0, es.size() - 1);
       size_t e = rng(agl::random);
       V u = rng(agl::random) % 2 ? es[e].first : es[e].second;
       next.insert(u);
@@ -83,6 +83,38 @@ unweighted_edge_list generate_ba(V final_num, V initial_num) {
       es.emplace_back(u, v);
     }
   }
+  return es;
+}
+
+unweighted_edge_list generate_dms(V final_num, V initial_num, V K0) {
+  assert(initial_num > K0);
+  unweighted_edge_list es;
+  vector<V> vs;
+  for (int v = 0; v <= initial_num; ++v) {
+    for (int u = 0; u < v; ++u) {
+      es.emplace_back(u, v);
+    }
+    for (int i = 0; i < initial_num - K0; ++i) {
+      vs.emplace_back(v);
+    }
+  }
+
+  for (int v = initial_num + 1; v < final_num; ++v) {
+    set<V> next;
+    std::uniform_int_distribution<size_t> rng(0, vs.size() - 1);
+    while (next.size() < (size_t)initial_num) {
+      V u = vs[rng(agl::random)];
+      next.insert(u);
+    }
+    for (auto u : next) {
+      es.emplace_back(u, v);
+      vs.emplace_back(u);
+    }
+    for (int i = 0; i < initial_num - K0; ++i) {
+      vs.emplace_back(v);
+    }
+  }
+
   return es;
 }
 
