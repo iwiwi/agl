@@ -8,6 +8,7 @@ int main(int argc, char **argv) {
 
   distance_sketch::dynamic_all_distances_sketches ads;
   s.evaluate((dynamic_graph_index_interface<G>*)&ads);
+  return 0;  // Only ADS
 
   distance_sketch::dynamic_sketch_retrieval_shortcuts srs;
   s.evaluate((dynamic_graph_index_interface<G>*)&srs);

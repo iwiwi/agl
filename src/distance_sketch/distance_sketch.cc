@@ -238,9 +238,7 @@ double estimate_distance(const vertex_sketch_raw& sketch1,
 ///////////////////////////////////////////////////////////////////////////////
 vertex_sketch_raw sketch_retrieval_shortcuts::retrieve_sketch(const G &g, V v) {
   if (pot_.size() < (size_t)g.num_vertices()) {
-    pot_.resize(max((pot_.size() + 10) * 2,
-                    (size_t)g.num_vertices()),
-                kInfW);
+    pot_.resize(max((pot_.size() + 10) * 2, (size_t)g.num_vertices()), kInfW);
   }
 
   vertex_sketch_raw ads;
@@ -439,16 +437,28 @@ sketch_retrieval_shortcuts compute_sketch_retrieval_shortcuts_via_ads_unweighted
 ///////////////////////////////////////////////////////////////////////////////
 // ADS Update
 ///////////////////////////////////////////////////////////////////////////////
+
 bool dynamic_all_distances_sketches::add_entry(V v, V s, W d) {
   size_t num_lose = 0;
   auto &a = ads_.sketches[v];
+  if (find_distance(a, s) <= d) return false;
 
-  for (auto &e : a) {
+  const size_t n = a.size();
+  size_t i_ins = n;
+  for (size_t i = 0; i < n; ++i) {
+    auto &e = a[i];
+
     if (e.v == s) {
-      if (d >= e.d) return false;
+      if (d >= e.d) {
+        pretty_print(a);
+        assert(false);  // return false;
+      }
       e.d = d;
       goto ins;
+    } else if (e.v > s && i_ins == n) {
+      i_ins = i;
     }
+
     if (ads_.ranks[e.v] < ads_.ranks[s] &&
         make_pair((W)e.d, (V)e.v) < make_pair(d, s)) {
       ++num_lose;
@@ -457,11 +467,10 @@ bool dynamic_all_distances_sketches::add_entry(V v, V s, W d) {
   }
 
   assert(num_lose < ads_.k);
-  a.emplace_back(s, d);
+  a.insert(a.begin() + i_ins, entry(s, d));
 
-  // Remove no longer unnecessary entries
   ins:
-  a = purify_sketch(move(a), ads_.k, ads_.ranks);
+  vs_dirty_ads_.emplace_back(v);  // Lazy purification
   return true;
 }
 
@@ -540,7 +549,7 @@ void dynamic_all_distances_sketches::re_insert(const G &g, std::vector<V> S, V r
     W dxrU = heap_.top_weight();
     heap_.pop();
 
-    add_entry(x, r, dxrU);  // TODO: if not, skip edge traversal?
+    if (!add_entry(x, r, dxrU)) continue;
     for (const auto &e : g.edges(x, reverse_direction(d_))) {
       V y = to(e);
       if (!binary_search(S.begin(), S.end(), y)) continue;
@@ -551,17 +560,20 @@ void dynamic_all_distances_sketches::re_insert(const G &g, std::vector<V> S, V r
 }
 
 void dynamic_all_distances_sketches::add_edge(const G& g, V v_from, const E& e) {
-  // TODO: visited flags (to avoid |add_entry|) -> lazy purify
   assert(d_ == kFwd);
+  assert(vs_dirty_ads_.empty());
 
   V v_to = to(e);
   for (const auto &ent : ads_.sketches[v_to]) {
     expand(g, v_from, ent.v, ent.d + weight(e));
   }
+
+  purify_lazy();
 }
 
 void dynamic_all_distances_sketches::remove_edge(const G& g, V v_from, V v_to) {
   assert(d_ == kFwd);
+  assert(vs_dirty_ads_.empty());
 
   vector<V> allS;
   vertex_sketch_raw sketch = ads_.sketches[v_from];
@@ -582,6 +594,18 @@ void dynamic_all_distances_sketches::remove_edge(const G& g, V v_from, V v_to) {
       }
     }
   }
+
+  purify_lazy();
+}
+
+void dynamic_all_distances_sketches::purify_lazy() {
+  sort(vs_dirty_ads_.begin(), vs_dirty_ads_.end());
+  vs_dirty_ads_.erase(unique(vs_dirty_ads_.begin(), vs_dirty_ads_.end()), vs_dirty_ads_.end());
+  for (V v : vs_dirty_ads_) {
+    auto &a = ads_.sketches[v];
+    a = purify_sketch(move(a), ads_.k, ads_.ranks);
+  }
+  vs_dirty_ads_.clear();
 }
 
 ///////////////////////////////////////////////////////////////////////////////

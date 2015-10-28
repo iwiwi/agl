@@ -232,8 +232,13 @@ class dynamic_all_distances_sketches : public dynamic_graph_sketches {
   all_distances_sketches ads_;
   dijkstra_heap<G> heap_;
 
+  //
   // Helpers for update
+  //
+  std::vector<V> vs_dirty_ads_;
+
   bool add_entry(V v, V s, W d);
+  void purify_lazy();
   void expand(const G &g, V v, V s, W d);
   std::vector<V> shrink(const G &g, V u, V r, W dur);
   void re_insert(const G &g, std::vector<V> S, V r);

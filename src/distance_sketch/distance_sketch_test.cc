@@ -101,7 +101,7 @@ TEST(distance_sketch, srs_static_large) {
 }
 
 
-TEST(distance_sketch, update_small) {
+TEST(distance_sketch, ads_update_small) {
   static constexpr V kNumVertices = 10;
   static constexpr size_t kK = 2;
 
@@ -136,7 +136,7 @@ TEST(distance_sketch, update_small) {
   }
 }
 
-TEST(distance_sketch, update_large) {
+TEST(distance_sketch, ads_update_large) {
   static constexpr V kNumVertices = 100;
 
   for (int k : {1, 4, 16}) {
