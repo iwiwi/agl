@@ -238,7 +238,9 @@ double estimate_distance(const vertex_sketch_raw& sketch1,
 ///////////////////////////////////////////////////////////////////////////////
 vertex_sketch_raw sketch_retrieval_shortcuts::retrieve_sketch(const G &g, V v) {
   if (pot_.size() < (size_t)g.num_vertices()) {
-    pot_.resize(max((pot_.size() + 10) * 2, (size_t)g.num_vertices()), kInfW);
+    pot_.resize(max((pot_.size() + 10) * 2,
+                    (size_t)g.num_vertices()),
+                kInfW);
   }
 
   vertex_sketch_raw ads;
@@ -483,22 +485,15 @@ void dynamic_all_distances_sketches::expand(const G &g, V v, V s, W d) {
 
 vector<V> dynamic_all_distances_sketches::shrink(const G &g, V u, V r, W durL) {
   if (u == r) return {};
-  // cout << "SHRINK: " << make_tuple(u, r, durL) << endl;
 
   vector<V> S;
-//  priority_queue<pair<W, V>, vector<pair<W, V>>, greater<pair<W, V>>> Q;
-//  Q.emplace(durL, u);
   heap_.clear();
   heap_.decrease(u, durL);
   set<V> vis;  // TODO: faster
   while (!heap_.empty()) {
-//    V x = Q.top().second;
-//    W dxrL = Q.top().first;
-//    Q.pop();
     V x = heap_.top_vertex();
     W dxrL = heap_.top_weight();
     heap_.pop();
-    // cout << "DEQUE: " << make_tuple(r, x, dxrL) << endl;
 
     W dxrU = kInfW;
     for (const auto &e : g.edges(x, d_)) {
@@ -509,7 +504,6 @@ vector<V> dynamic_all_distances_sketches::shrink(const G &g, V u, V r, W durL) {
     if (is_lt(dxrL, dxrU)) {
       auto &sketch = ads_.sketches[x];
       {
-        // cout << make_tuple(x, dxrL, r) << endl; pretty_print(sketch);
         auto ite = remove(sketch.begin(), sketch.end(), entry(r, dxrL));
         assert(ite != sketch.end());
         sketch.erase(ite, sketch.end());
@@ -519,7 +513,6 @@ vector<V> dynamic_all_distances_sketches::shrink(const G &g, V u, V r, W durL) {
         V y = to(e);
         W dyrL = find_distance(ads_.sketches[y], r);
         if (is_eq(dyrL, weight(e) + dxrL) && !vis.count(y)) {
-          // Q.emplace(dyrL, y);
           heap_.decrease(y, dyrL);
           vis.insert(y);
         }
@@ -594,46 +587,6 @@ void dynamic_all_distances_sketches::remove_edge(const G& g, V v_from, V v_to) {
 ///////////////////////////////////////////////////////////////////////////////
 // SRS Update
 ///////////////////////////////////////////////////////////////////////////////
-/*
-vertex_sketch_raw dynamic_sketch_retrieval_shortcuts::compute_srs_from(const G& g, V v) {
-  assert(is_on_cache(v));
-  const auto &a = ads_caches_[v].ads;
-
-  for (const auto &e : a) {
-    load_cache(g, e.v);  // TODO: bad?
-  }
-
-  vertex_sketch_raw s;
-  for (const auto &e : a) {
-    if (e.v == v) continue;
-    const auto &ta = ads_caches_[e.v].ads;
-    for (const auto &te : ta) {
-      if (te.v != e.v) {
-        if (make_pair(te.v, e.d + te.d) == make_pair(8, 4)) {
-          printf("YESSSS %d\n", e.v);
-        }
-        s.emplace_back(entry(te.v, e.d + te.d));
-      }
-    }
-  }
-  printf("BEFORE PURIFY %d:", v);
-  pretty_print(s);
-  s = purify_sketch(s, k(), ranks());
-  printf("AFTER PURIFY %d:", v);
-  pretty_print(s);
-
-  vertex_sketch_raw srs;
-  for (const auto &e : a) {
-    if (e.v == v) continue;
-    // TODO: faster by ga--method
-    if (find_distance(s, e.v) != e.d) {
-      srs.emplace_back(e);
-    }
-  }
-  return srs;
-}
-*/
-
 bool dynamic_sketch_retrieval_shortcuts::add_entry(const G &g, V v, V s, W d) {
   size_t num_lose = 0;
   load_cache(g, v);
