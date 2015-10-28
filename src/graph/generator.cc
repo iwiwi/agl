@@ -62,6 +62,26 @@ unweighted_edge_list generate_cycle(V num_vertices) {
   return es;
 }
 
+unweighted_edge_list generate_ba(V final_num, V initial_num) {
+  unweighted_edge_list es;
+  assert(initial_num > 1);
+  for (int v = 0; v < initial_num; ++v) {
+    for (int u = 0; u < v; ++u) {
+      es.emplace_back(u, v);
+    }
+  }
+
+  for (int v = initial_num; v < final_num; ++v) {
+    for (int i = 0; i < initial_num; ++i) {
+      std::uniform_int_distribution<V> rng(0, es.size() - 1);
+      V e = rng(agl::random);
+      V u = rng(agl::random) % 2 ? es[e].first : es[e].second;
+      es.emplace_back(u, v);
+    }
+  }
+  return es;
+}
+
 unweighted_edge_list generate_random_planar(V num_vertices, size_t num_edges) {
   using namespace agl::geometry2d;
 

@@ -9,6 +9,7 @@ unweighted_edge_list generate_grid(size_t num_rows, size_t num_cols);
 unweighted_edge_list generate_barbell(V size_clique);
 unweighted_edge_list generate_random_planar(V num_verticese, size_t num_edges);
 unweighted_edge_list generate_cycle(V num_vertices);
+unweighted_edge_list generate_ba(V final_num, V initial_num);
 
 unweighted_edge_list generate_random_spanning_tree(V num_vertices);
 
