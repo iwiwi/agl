@@ -126,7 +126,7 @@ TEST(gen_hk, random_trial) {
 
 TEST(gen_hk, small_case) {
   for (int trial = 0; trial < 10; ++trial) {
-    V M = agl::random(5) + 3;
+    V M = 3;
     V N = M + agl::random(2) + 1;
     double P = agl::random(1000) / 1000.0;
     auto es = generate_hk(N, M, P);

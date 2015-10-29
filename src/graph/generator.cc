@@ -130,11 +130,12 @@ unweighted_edge_list generate_hk(V final_num, V initial_num, double P) {
     }
   }
 
+  std::uniform_real_distribution<> p_rng(0.0, 1.0);
   for (int v = initial_num + 1; v < final_num; ++v) {
     set<V> next;
     V u = -1;
     while (next.size() < (size_t)initial_num) {
-      if (next.size() > 0 && agl::random() < agl::xorshift1024star::max() * P) {
+      if (next.size() > 0 && p_rng(agl::random) < P) {
         std::uniform_int_distribution<size_t> adj_rng(0, adj[u].size() - 1);
         u = adj[u][adj_rng(agl::random)];
       } else {
