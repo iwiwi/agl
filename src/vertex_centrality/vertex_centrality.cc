@@ -2,7 +2,7 @@
 #include "shortest_path/shortest_path.h"
 using namespace std;
 
-DEFINE_int32(personalized_pagerank_num_iterations, 100, "");
+DEFINE_int32(personalized_pagerank_num_iterations, 300, "");
 
 namespace agl {
 vector<double> vertex_centrality_degree(const G &g) {
