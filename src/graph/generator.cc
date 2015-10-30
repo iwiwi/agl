@@ -62,6 +62,123 @@ unweighted_edge_list generate_cycle(V num_vertices) {
   return es;
 }
 
+/**
+ * Generate a random scale-free network by the Barabasi-Albert (BA) model.
+ * The degree distribution resulting from the BA model is scale free
+ * with power-law coefficient &gamma; = 3.
+ * \param initial_num is a number of nodes of the initial connected network.
+ * \param final_num is a number of finally generated network.
+ */
+unweighted_edge_list generate_ba(V final_num, V initial_num) {
+  assert(initial_num > 2);
+  unweighted_edge_list es;
+  for (int v = 0; v < initial_num; ++v) {
+    for (int u = 0; u < v; ++u) {
+      es.emplace_back(u, v);
+    }
+  }
+
+  for (int v = initial_num; v < final_num; ++v) {
+    set<V> next;
+    std::uniform_int_distribution<size_t> rng(0, es.size() - 1);
+    while (next.size() < (size_t)initial_num) {
+      size_t e = rng(agl::random);
+      V u = rng(agl::random) % 2 ? es[e].first : es[e].second;
+      next.insert(u);
+    }
+    for (auto u : next) {
+      es.emplace_back(u, v);
+    }
+  }
+  return es;
+}
+
+/**
+ * Generate a random scale-free network by the Dorogovtsev-Mendes-Samukhin (DMS) model.
+ * Depending on K0, the power-law coefficient &gamma; takes values from 2 to &infin;.
+ * \param initial_num is a number of nodes of the initial connected network.
+ * \param final_num is a number of finally generated network.
+ * \param K0 is a constant value and forms &gamma; = 3 - K0/initial_num .
+ */
+unweighted_edge_list generate_dms(V final_num, V initial_num, V K0) {
+  assert(initial_num > K0);
+  unweighted_edge_list es;
+  vector<V> vs;
+  for (int v = 0; v <= initial_num; ++v) {
+    for (int u = 0; u < v; ++u) {
+      es.emplace_back(u, v);
+    }
+    for (int i = 0; i < initial_num - K0; ++i) {
+      vs.emplace_back(v);
+    }
+  }
+
+  for (int v = initial_num + 1; v < final_num; ++v) {
+    set<V> next;
+    std::uniform_int_distribution<size_t> rng(0, vs.size() - 1);
+    while (next.size() < (size_t)initial_num) {
+      V u = vs[rng(agl::random)];
+      next.insert(u);
+    }
+    for (auto u : next) {
+      es.emplace_back(u, v);
+      vs.emplace_back(u);
+    }
+    for (int i = 0; i < initial_num - K0; ++i) {
+      vs.emplace_back(v);
+    }
+  }
+
+  return es;
+}
+
+/**
+ * Generate a random scale-free network by the Holme-Kim (HK) model.
+ * The degree distribution resulting from the HK model is scale free
+ * with power-law coefficient &gamma; = 3.
+ * The clustering coefficient C can be increased systematically by increasing P, 
+ * and finally it becomes C &asymp; 0.5 .
+ * \param initial_num is a number of nodes of the initial connected network.
+ * \param final_num is a number of finally generated network.
+ * \param P is the probability to perform a triangle formation step. 
+ */
+unweighted_edge_list generate_hk(V final_num, V initial_num, double P) {
+  assert(initial_num > 2 && final_num > initial_num);
+  unweighted_edge_list es;
+  vector<vector<V>> adj(final_num);
+  for (int v = 0; v <= initial_num; ++v) {
+    for (int u = 0; u < v; ++u) {
+      es.emplace_back(u, v);
+      adj[u].emplace_back(v);
+      adj[v].emplace_back(u);
+    }
+  }
+
+  std::uniform_real_distribution<> p_rng(0.0, 1.0);
+  for (int v = initial_num + 1; v < final_num; ++v) {
+    set<V> next;
+    V u = -1;
+    while (next.size() < (size_t)initial_num) {
+      if (next.size() > 0 && p_rng(agl::random) < P) {
+        std::uniform_int_distribution<size_t> adj_rng(0, adj[u].size() - 1);
+        u = adj[u][adj_rng(agl::random)];
+      } else {
+        std::uniform_int_distribution<size_t> rng(0, es.size() - 1);
+        size_t e = rng(agl::random);
+        u = rng(agl::random) % 2 ? es[e].first : es[e].second;
+      }
+      next.insert(u);
+    }
+    for (auto u : next) {
+      es.emplace_back(u, v);
+      adj[u].emplace_back(v);
+      adj[v].emplace_back(u);
+    }
+  }
+
+  return es;
+}
+
 unweighted_edge_list generate_random_planar(V num_vertices, size_t num_edges) {
   using namespace agl::geometry2d;
 
