@@ -43,3 +43,136 @@ TEST(gen_cycle, random_num_vertices) {
     ASSERT_TRUE(is_connected(g));
   }
 }
+
+TEST(gen_ba, random_num_vertices) {
+  for (int trial = 0; trial < 10; ++trial) {
+    V M = agl::random(1000) + 3;
+    V N = M + agl::random(1000);
+    auto es = generate_ba(N, M);
+
+    // Number of edges
+    size_t expected_edge_num = M * (M - 1) / 2 + (N - M) * M;
+    ASSERT_EQ(es.size(), expected_edge_num);
+
+    G g(es);
+    pretty_print(g);
+    ASSERT_TRUE(is_connected(g));
+
+    // Check degree
+    G ug(make_undirected(es));
+    for (V v : ug.vertices()) {
+      ASSERT_TRUE(ug.degree(v) >= (size_t)M);
+    }
+  }
+}
+
+TEST(gen_dms, small_case) {
+  V N = 5;
+  V M = 2;
+  V K0 = -1;
+  auto es = generate_dms(N, M, K0);
+
+  // Number of edges
+  size_t expected_edge_num = M * (M - 1) / 2 + (N - M) * M;
+  ASSERT_EQ(es.size(), expected_edge_num);
+
+  G g(es);
+  pretty_print(g);
+  ASSERT_TRUE(is_connected(g));
+
+  // Check degree
+  G ug(make_undirected(es));
+  for (V v : ug.vertices()) {
+    ASSERT_TRUE(ug.degree(v) >= (size_t)M);
+  }
+}
+
+TEST(gen_dms, corner_case) {
+  V N = 10;
+  V M = 0;
+  V K0 = -1;
+  auto es = generate_dms(N, M, K0);
+
+  // Number of edges
+  size_t expected_edge_num = M * (M - 1) / 2 + (N - M) * M;
+  ASSERT_EQ(es.size(), expected_edge_num);
+
+  G g(es);
+  pretty_print(g);
+  ASSERT_TRUE(is_connected(g));
+
+  // Check degree
+  G ug(make_undirected(es));
+  for (V v : ug.vertices()) {
+    ASSERT_TRUE(ug.degree(v) >= (size_t)M);
+  }
+}
+
+TEST(gen_dms, random_trial) {
+  for (int trial = 0; trial < 10; ++trial) {
+    V M = agl::random(1000);
+    V N = M + agl::random(1000);
+    V K0 = M - agl::random(1000);
+    auto es = generate_dms(N, M, K0);
+
+    // Number of edges
+    size_t expected_edge_num = M * (M - 1) / 2 + (N - M) * M;
+    ASSERT_EQ(es.size(), expected_edge_num);
+
+    G g(es);
+    pretty_print(g);
+    ASSERT_TRUE(is_connected(g));
+
+    // Check degree
+    G ug(make_undirected(es));
+    for (V v : ug.vertices()) {
+      ASSERT_TRUE(ug.degree(v) >= (size_t)M);
+    }
+  }
+}
+
+TEST(gen_hk, random_trial) {
+  for (int trial = 0; trial < 10; ++trial) {
+    V M = agl::random(1000) + 3;
+    V N = M + agl::random(1000);
+    double P = agl::random(1000) / 1000.0;
+    auto es = generate_hk(N, M, P);
+
+    // Number of edges
+    size_t expected_edge_num = M * (M - 1) / 2 + (N - M) * M;
+    ASSERT_EQ(es.size(), expected_edge_num);
+
+    G g(es);
+    pretty_print(g);
+    ASSERT_TRUE(is_connected(g));
+
+    // Check degree
+    G ug(make_undirected(es));
+    for (V v : ug.vertices()) {
+      ASSERT_TRUE(ug.degree(v) >= (size_t)M);
+    }
+  }
+}
+
+TEST(gen_hk, small_case) {
+  for (int trial = 0; trial < 10; ++trial) {
+    V M = 3;
+    V N = M + agl::random(2) + 1;
+    double P = agl::random(1000) / 1000.0;
+    auto es = generate_hk(N, M, P);
+
+    // Number of edges
+    size_t expected_edge_num = M * (M - 1) / 2 + (N - M) * M;
+    ASSERT_EQ(es.size(), expected_edge_num);
+
+    G g(es);
+    pretty_print(g);
+    ASSERT_TRUE(is_connected(g));
+
+    // Check degree
+    G ug(make_undirected(es));
+    for (V v : ug.vertices()) {
+      ASSERT_TRUE(ug.degree(v) >= (size_t)M);
+    }
+  }
+}
