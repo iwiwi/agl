@@ -136,6 +136,7 @@ unweighted_edge_list generate_dms(V final_num, V initial_num, V K0) {
  * Generate a random scale-free network by the Holme-Kim (HK) model.
  * The degree distribution resulting from the HK model is scale free
  * with power-law coefficient &gamma; = 3.
+ * The clustering coefficient can be increased systematically by increasing P.
  * \param initial_num is a number of nodes of the initial connected network.
  * \param final_num is a number of finally generated network.
  * \param P is the probability to perform a triangle formation step. 
