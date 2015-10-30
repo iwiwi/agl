@@ -98,7 +98,7 @@ unweighted_edge_list generate_ba(V final_num, V initial_num) {
  * Depending on K0, the power-law coefficient &gamma; takes values from 2 to &infin;.
  * \param initial_num is a number of nodes of the initial connected network.
  * \param final_num is a number of finally generated network.
- * \param K0 is a constant value. The smaller K0 is, the greater &gamma;.
+ * \param K0 is a constant value and forms &gamma; = 3 - K0/initial_num .
  */
 unweighted_edge_list generate_dms(V final_num, V initial_num, V K0) {
   assert(initial_num > K0);
