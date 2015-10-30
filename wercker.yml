@@ -28,7 +28,9 @@ deploy:
         name: install
         code: |
           sudo apt-get update
-          sudo apt-get install -y curl zip unzip graphviz
+          sudo apt-get install -y curl zip unzip graphviz doxygen wget
+          sudo wget http://launchpadlibrarian.net/163827726/doxygen_1.8.6-2_amd64.deb
+          sudo dpkg -i *.deb
     - script:
         name: doxygen
         code: |
