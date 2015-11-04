@@ -64,6 +64,9 @@ class PrunedLandmarkLabeling {
   // Otherwise, returns |INT_MAX|.
   inline int QueryDistance(int v, int w);
 
+  // Insert an edge (v, w)
+  bool InsertEdge(int v, int w);
+
   // Loads an index. Returns |true| when successful.
   bool LoadIndex(std::istream &ifs);
   bool LoadIndex(const char *filename);
@@ -84,6 +87,8 @@ class PrunedLandmarkLabeling {
 
  private:
   static const uint8_t INF8;  // For unreachable pairs
+  static const uint32_t INF32;  // For sentinel
+  static const int kInitialLabelCapacity;
 
   struct index_t {
     uint8_t bpspt_d[kNumBitParallelRoots];
@@ -93,6 +98,9 @@ class PrunedLandmarkLabeling {
   } __attribute__((aligned(64)));  // Aligned for cache lines
 
   int num_v_;
+  std::vector<std::vector<int> > adj_;
+  int index_l_;  // We don't need to use |size_t|
+  std::vector<int> ord_;  // ord_[i] = v (e.g., ord[spt_v[0]] = the vertex with the highest degree)
   index_t *index_;
 
   double GetCurrentTimeSec() {
@@ -107,6 +115,11 @@ class PrunedLandmarkLabeling {
 
 template<int kNumBitParallelRoots>
 const uint8_t PrunedLandmarkLabeling<kNumBitParallelRoots>::INF8 = 100;
+template <int kNumBitParallelRoots>
+const uint32_t PrunedLandmarkLabeling<kNumBitParallelRoots>::INF32 =
+    std::numeric_limits<int32_t>::max();  // signed for safety
+template <int kNumBitParallelRoots>
+const int PrunedLandmarkLabeling<kNumBitParallelRoots>::kInitialLabelCapacity = 8;
 
 template<int kNumBitParallelRoots>
 bool PrunedLandmarkLabeling<kNumBitParallelRoots>
@@ -542,6 +555,83 @@ void PrunedLandmarkLabeling<kNumBitParallelRoots>
   free(index_);
   index_ = NULL;
   num_v_ = 0;
+}
+
+template<int kNumBitParallelRoots>
+bool PrunedLandmarkLabeling<kNumBitParallelRoots>
+::InsertEdge(int u, int v) {
+  int new_num_v = std::max(num_v_, std::max(u, v) + 1);
+  if (new_num_v > index_l_) {
+    int new_index_l = std::max(new_num_v, index_l_ * 2);
+    index_t *new_index   = (index_t*)memalign(64, new_index_l * sizeof(index_t));
+    if (new_index == NULL) return false;
+    memcpy(new_index, index_, index_l_ * sizeof(index_t));
+    free(index_);
+    index_   = new_index;
+    // printf("EXPANDER: %d -> %d\n", index_l_, new_index_l);
+    index_l_ = new_index_l;
+  }
+  for (int i = num_v_; i < new_num_v; ++i) {
+    index_t &idx = index_[i];
+    for (int k = 0; k < kNumBitParallelRoots; ++k) {
+      idx.bpspt_d[k] = INF8;
+      idx.bpspt_s[k][0] = idx.bpspt_s[k][1] = 0;
+    }
+    idx.spt_v = (uint32_t *)memalign(64, kInitialLabelCapacity * sizeof(uint32_t));
+    idx.spt_d = (uint8_t *)memalign(64, kInitialLabelCapacity * sizeof(uint8_t));
+    if (!idx.spt_v || !idx.spt_d) return false;
+    idx.spt_l = kInitialLabelCapacity;
+    memset(idx.spt_v, 0, kInitialLabelCapacity * sizeof(uint32_t));
+    idx.spt_v[0] = INF32;
+  }
+  num_v_ = new_num_v;
+  adj_.resize(num_v_);
+  adj_[u].push_back(v);
+  adj_[v].push_back(u);
+  for (int i = 0; i < 2; ++i) {
+    int x = i == 0 ? u : v;
+    index_t &idx = index_[x];
+    if (adj_[x].size() == 1) {  // New comer
+      // printf("New comer: %d\n", x);
+      int id = ord_.size();
+      ord_.push_back(x);
+      if (idx.spt_l <= 1) idx.Expand();
+      idx.spt_v[0] = id;
+      idx.spt_d[0] = 0;
+      idx.spt_v[1] = INF32;
+    }
+  }
+
+  // Update bit-parallel labels
+  // puts("BIT PARALLEL");
+  for (int k = 0; k < kNumBitParallelRoots; ++k) {
+    PartialBPBFS(k, u, v);
+  }
+
+  // Update normal labels
+  // puts("NORMAL");
+  const index_t &idx_u = index_[u], &idx_v = index_[v];
+  int iu = 0, iv = 0;
+  for (;;) {
+    uint32_t vu = idx_u.spt_v[iu], vv = idx_v.spt_v[iv];
+    int      du = idx_u.spt_d[iu], dv = idx_v.spt_d[iv];
+
+    if (vu < vv) {  // u -> v
+      PartialBFS(vu, v, du + 1);
+      ++iu;
+    } else if (vu > vv) {  // v -> u
+      PartialBFS(vv, u, dv + 1);
+      ++iv;
+    } else {  // u <-> v
+      if (vu == INF32) break;
+      if (du + 1 < dv) PartialBFS(vu, v, du + 1);
+      if (dv + 1 < du) PartialBFS(vv, u, dv + 1);
+      ++iu;
+      ++iv;
+    }
+  }
+
+  return true;
 }
 
 template<int kNumBitParallelRoots>

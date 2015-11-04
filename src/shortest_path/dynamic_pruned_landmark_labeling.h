@@ -43,7 +43,6 @@ W dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::query_distance(const G
 
 template<size_t kNumBitParallelRoots>
 void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::add_edge(const G &g, V v_from, const E &e) {
-  puts("new edge");
 }
 }  // namespace agl
 
