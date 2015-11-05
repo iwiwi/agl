@@ -151,6 +151,25 @@ bool PrunedLandmarkLabeling<kNumBitParallelRoots>
   return ifs && ConstructIndex(ifs);
 }
 
+template<typename T>
+struct parallel_vector {
+  parallel_vector(size_t size_limit)
+      : v(1, std::vector<T>(size_limit)),
+        n(1, 0) {}
+
+  void push_back(const T &x) {
+    int id = 1;
+    v[id][n[id]++] = x;
+  }
+
+  void clear() {
+    for (int i = 0; i < 1; ++i) n[i] = 0;
+  }
+
+  std::vector<std::vector<T> > v;
+  std::vector<size_t> n;
+};
+
 template<int kNumBitParallelRoots>
 bool PrunedLandmarkLabeling<kNumBitParallelRoots>
 ::ConstructIndex(std::istream &ifs) {
@@ -177,15 +196,16 @@ bool PrunedLandmarkLabeling<kNumBitParallelRoots>
   for (size_t i = 0; i < es.size(); ++i) {
     V = std::max(V, std::max(es[i].first, es[i].second) + 1);
   }
-  std::vector<std::vector<int> > adj(V);
+  adj_.resize(V);
   for (size_t i = 0; i < es.size(); ++i) {
     int v = es[i].first, w = es[i].second;
-    adj[v].push_back(w);
-    adj[w].push_back(v);
+    adj_[v].push_back(w);
+    adj_[w].push_back(v);
   }
   time_load_ += GetCurrentTimeSec();
 
   index_ = (index_t*)memalign(64, V * sizeof(index_t));
+  index_l_ = V;
   if (index_ == NULL) {
     num_v_ = 0;
     return false;
@@ -193,33 +213,38 @@ bool PrunedLandmarkLabeling<kNumBitParallelRoots>
   for (int v = 0; v < V; ++v) {
     index_[v].spt_v = NULL;
     index_[v].spt_d = NULL;
+    index_[v].spt_l = 0;
   }
+
 
   //
   // Order vertices by decreasing order of degree
   //
   time_indexing_ = -GetCurrentTimeSec();
-  std::vector<int> inv(V);  // new label -> old label
+  std::vector<int> &inv = ord_;  // new label -> old label
+  std::vector<std::vector<int> > adj(V);  // Do not confuse with |adj_| (TODO: fix)
   {
     // Order
     std::vector<std::pair<float, int> > deg(V);
     for (int v = 0; v < V; ++v) {
       // We add a random value here to diffuse nearby vertices
-      deg[v] = std::make_pair(adj[v].size() + float(rand()) / RAND_MAX, v);
+      deg[v] = std::make_pair(adj_[v].size() + float(rand()) / RAND_MAX, v);
     }
+    // puts("TODO: SORT");
     std::sort(deg.rbegin(), deg.rend());
-    for (int i = 0; i < V; ++i) inv[i] = deg[i].second;
+    for (int i = 0; i < V; ++i) {
+      int v = deg[i].second;
+      if (!adj_[v].empty()) inv.push_back(v);  // We ignore isolated vertices here (to decide the ordering later)
+    }
 
     // Relabel the vertex IDs
     std::vector<int> rank(V);
     for (int i = 0; i < V; ++i) rank[deg[i].second] = i;
-    std::vector<std::vector<int> > new_adj(V);
     for (int v = 0; v < V; ++v) {
-      for (size_t i = 0; i < adj[v].size(); ++i) {
-        new_adj[rank[v]].push_back(rank[adj[v][i]]);
+      for (size_t i = 0; i < adj_[v].size(); ++i) {
+        adj[rank[v]].push_back(rank[adj_[v][i]]);
       }
     }
-    adj.swap(new_adj);
   }
 
   //
@@ -309,10 +334,15 @@ bool PrunedLandmarkLabeling<kNumBitParallelRoots>
         que_t1 = que_h;
       }
 
-      for (int v = 0; v < V; ++v) {
+      for (int v = 0; v < (int)inv.size(); ++v) {
         index_[inv[v]].bpspt_d[i_bpspt] = tmp_d[v];
         index_[inv[v]].bpspt_s[i_bpspt][0] = tmp_s[v].first;
         index_[inv[v]].bpspt_s[i_bpspt][1] = tmp_s[v].second & ~tmp_s[v].first;
+      }
+      for (int v = 0; v < V; ++v)
+        if (adj_[v].empty()) {
+        index_[v].bpspt_d[i_bpspt] = INF8;
+        index_[v].bpspt_s[i_bpspt][0] = index_[v].bpspt_s[i_bpspt][1] = 0;
       }
     }
   }
@@ -320,28 +350,33 @@ bool PrunedLandmarkLabeling<kNumBitParallelRoots>
   //
   // Pruned labeling
   //
+  int max_threads = 1;
   {
     // Sentinel (V, INF8) is added to all the vertices
     std::vector<std::pair<std::vector<int>, std::vector<uint8_t> > >
-        tmp_idx(V, make_pair(std::vector<int>(1, V),
+        tmp_idx(V, make_pair(std::vector<int>(1, INF32),
                              std::vector<uint8_t>(1, INF8)));
 
-    std::vector<bool> vis(V);
+    //std::vector<bool> vis(V);
+    std::vector<uint8_t> vis(V / 8 + 1);
     std::vector<int> que(V);
     std::vector<uint8_t> dst_r(V + 1, INF8);
 
+    parallel_vector<int> pdiff_nxt_que(V);
+
     for (int r = 0; r < V; ++r) {
-      if (usd[r]) continue;
+      if (usd[r] || adj[r].empty()) continue;
       index_t &idx_r = index_[inv[r]];
       const std::pair<std::vector<int>, std::vector<uint8_t> >
           &tmp_idx_r = tmp_idx[r];
-      for (size_t i = 0; i < tmp_idx_r.first.size(); ++i) {
+      for (size_t i = 0; i < tmp_idx_r.first.size() - 1; ++i) {
         dst_r[tmp_idx_r.first[i]] = tmp_idx_r.second[i];
       }
 
       int que_t0 = 0, que_t1 = 0, que_h = 0;
       que[que_h++] = r;
-      vis[r] = true;
+      //vis[r] = true;
+      vis[r / 8] |= 1 << (r % 8);
       que_t1 = que_h;
 
       for (int d = 0; que_t0 < que_h; ++d) {
@@ -349,6 +384,7 @@ bool PrunedLandmarkLabeling<kNumBitParallelRoots>
           int v = que[que_i];
           std::pair<std::vector<int>, std::vector<uint8_t> >
               &tmp_idx_v = tmp_idx[v];
+          assert(v < (int)inv.size());
           index_t &idx_v = index_[inv[v]];
 
           // Prefetch
@@ -370,7 +406,7 @@ bool PrunedLandmarkLabeling<kNumBitParallelRoots>
               if (td <= d) goto pruned;
             }
           }
-          for (size_t i = 0; i < tmp_idx_v.first.size(); ++i) {
+          for (size_t i = 0; i < tmp_idx_v.first.size() - 1; ++i) {
             int w = tmp_idx_v.first[i];
             int td = tmp_idx_v.second[i] + dst_r[w];
             if (td <= d) goto pruned;
@@ -379,34 +415,51 @@ bool PrunedLandmarkLabeling<kNumBitParallelRoots>
           // Traverse
           tmp_idx_v.first .back() = r;
           tmp_idx_v.second.back() = d;
-          tmp_idx_v.first .push_back(V);
+          tmp_idx_v.first .push_back(INF32);
           tmp_idx_v.second.push_back(INF8);
+
           for (size_t i = 0; i < adj[v].size(); ++i) {
             int w = adj[v][i];
-            if (!vis[w]) {
-              que[que_h++] = w;
-              vis[w] = true;
+            // if (!vis[w]) {
+            //   que[que_h++] = w;
+            //   vis[w] = true;
+            // }
+            for (;;) {
+              uint8_t m = vis[w / 8];
+              if (m & (1 << (w % 8))) break;
+              if (__sync_bool_compare_and_swap(&vis[w / 8], m, m | (1 << (w % 8)))) {
+                pdiff_nxt_que.push_back(w);
+                break;
+              }
             }
           }
        pruned:
           {}
         }
 
+        for (int i = 0; i < max_threads; ++i) {
+          for (int j = 0; j < (int)pdiff_nxt_que.n[i]; ++j) {
+            que[que_h++] = pdiff_nxt_que.v[i][j];
+          }
+        }
+
         que_t0 = que_t1;
         que_t1 = que_h;
+        pdiff_nxt_que.clear();
       }
 
-      for (int i = 0; i < que_h; ++i) vis[que[i]] = false;
-      for (size_t i = 0; i < tmp_idx_r.first.size(); ++i) {
+      for (int i = 0; i < que_h; ++i) vis[que[i] / 8] = 0;
+      for (size_t i = 0; i < tmp_idx_r.first.size() - 1; ++i) {
         dst_r[tmp_idx_r.first[i]] = INF8;
       }
       usd[r] = true;
     }
 
-    for (int v = 0; v < V; ++v) {
+    for (int v = 0; v < (int)inv.size(); ++v) {
       int k = tmp_idx[v].first.size();
       index_[inv[v]].spt_v = (uint32_t*)memalign(64, k * sizeof(uint32_t));
       index_[inv[v]].spt_d = (uint8_t *)memalign(64, k * sizeof(uint8_t ));
+      index_[inv[v]].spt_l = k;
       if (!index_[inv[v]].spt_v || !index_[inv[v]].spt_d) {
         Free();
         return false;
@@ -415,6 +468,13 @@ bool PrunedLandmarkLabeling<kNumBitParallelRoots>
       for (int i = 0; i < k; ++i) index_[inv[v]].spt_d[i] = tmp_idx[v].second[i];
       tmp_idx[v].first.clear();
       tmp_idx[v].second.clear();
+    }
+    for (int i = 0; i < V; ++i)
+      if (adj_[i].empty()) {
+      assert(index_[i].spt_v == NULL);
+      index_[i].spt_v = (uint32_t*)memalign(64, 1 * sizeof(uint32_t));
+      index_[i].spt_d = (uint8_t *)memalign(64, 1 * sizeof(uint8_t ));
+      index_[i].spt_v[0] = INF32;
     }
   }
 
