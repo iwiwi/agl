@@ -8,12 +8,15 @@ int main() {
   G g(es);
   pretty_print(g);
 
-  dynamic_pruned_landmark_labeling<> dpll;
-  dpll.construct(g);
-  cout << dpll.query_distance(g, 0, 5);
-  // UPDATE
-  dpll.add_edge(g, 0, 5);
-  cout << dpll.query_distance(g, 0, 5);
+  {
+    dynamic_pruned_landmark_labeling<> dpll;
+    dpll.construct(g);
+    cout << dpll.query_distance(g, 0, 5) << endl;
+    // UPDATE
+    dpll.add_edge(g, 0, 5);
+    es.emplace_back(0, 5);
+    cout << dpll.query_distance(g, 0, 5) << endl;
+  }
 
   return 0;
 }

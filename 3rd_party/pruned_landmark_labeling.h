@@ -97,6 +97,7 @@ class PrunedLandmarkLabeling {
     uint64_t bpspt_s[kNumBitParallelRoots][2];  // [0]: S^{-1}, [1]: S^{0}
     uint32_t *spt_v;
     uint8_t *spt_d;
+    
     uint32_t spt_l;
 
     void Expand() {
@@ -438,19 +439,18 @@ int PrunedLandmarkLabeling<kNumBitParallelRoots>
   for (int i = 0; i < kNumBitParallelRoots; ++i) {
     int td = idx_v.bpspt_d[i] + idx_w.bpspt_d[i];
     if (td - 2 <= d) {
-      td +=
-          (idx_v.bpspt_s[i][0] & idx_w.bpspt_s[i][0]) ? -2 :
-          ((idx_v.bpspt_s[i][0] & idx_w.bpspt_s[i][1]) | (idx_v.bpspt_s[i][1] & idx_w.bpspt_s[i][0]))
-          ? -1 : 0;
+      td += (idx_v.bpspt_s[i][0] & idx_w.bpspt_s[i][0])
+                ? -2
+                : ((idx_v.bpspt_s[i][0] & idx_w.bpspt_s[i][1]) | (idx_v.bpspt_s[i][1] & idx_w.bpspt_s[i][0])) ? -1 : 0;
 
       if (td < d) d = td;
     }
   }
   for (int i1 = 0, i2 = 0;;) {
-    int v1 = idx_v.spt_v[i1];
-    int v2 = idx_w.spt_v[i2];
+    uint32_t v1 = idx_v.spt_v[i1], v2 = idx_w.spt_v[i2];
     if (v1 == v2) {
       if (v1 == num_v_) break;  // Sentinel
+      // printf(" %d->%d->%d: %d+%d\n", v, ord_[v1], w, idx_v.spt_d[i1], idx_w.spt_d[i2]);
       int td = idx_v.spt_d[i1] + idx_w.spt_d[i2];
       if (td < d) d = td;
       ++i1;
