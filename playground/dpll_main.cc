@@ -16,15 +16,12 @@
 #include <limits>
 #include <omp.h>
 #include "agl.h"
-using namespace std;
 
 #ifndef NUM_BPSPT
 #define NUM_BPSPT 16
 #endif
 
 const int kNumBitParallelRoots = NUM_BPSPT;
-const int kNumBenchmarkQueries = 5;
-const int kNumBenchmarkBFSs = 1000;
 
 DEFINE_bool(verify_all, false, "Conduct exhautive verification");
 DEFINE_string(graph, "", "Input graph");
@@ -62,7 +59,7 @@ int get_thread_id() {
 
 template <typename T>
 struct parallel_vector {
-  parallel_vector(size_t size_limit) : v(max_threads, vector<T>(size_limit)), n(max_threads, 0) {}
+  parallel_vector(size_t size_limit) : v(max_threads, std::vector<T>(size_limit)), n(max_threads, 0) {}
 
   void push_back(const T &x) {
     int id = get_thread_id();
@@ -73,8 +70,8 @@ struct parallel_vector {
     for (int i = 0; i < max_threads; ++i) n[i] = 0;
   }
 
-  vector<vector<T> > v;
-  vector<size_t> n;
+  std::vector<std::vector<T> > v;
+  std::vector<size_t> n;
 };
 
 double GetCurrentTimeSec() {
@@ -123,7 +120,7 @@ class PrunedLandmarkLabeling {
     uint32_t spt_l;
 
     void Expand() {
-      int new_spt_l = max(kInitialLabelCapacity, int((spt_l + 1) * 1.5));
+      int new_spt_l = std::max(kInitialLabelCapacity, int((spt_l + 1) * 1.5));
       uint32_t *new_spt_v = (uint32_t *)memalign(64, new_spt_l * sizeof(uint32_t));
       uint8_t *new_spt_d = (uint8_t *)memalign(64, new_spt_l * sizeof(uint8_t));
       assert(new_spt_v && new_spt_d);
@@ -156,7 +153,7 @@ template <int kNumBitParallelRoots>
 const uint8_t PrunedLandmarkLabeling<kNumBitParallelRoots>::INF8 = 100;  // We require |INF8 + INF8| fits in |uint8_t|
 template <int kNumBitParallelRoots>
 const uint32_t PrunedLandmarkLabeling<kNumBitParallelRoots>::INF32 =
-    numeric_limits<int32_t>::max();  // signed for safety
+    std::numeric_limits<int32_t>::max();  // signed for safety
 template <int kNumBitParallelRoots>
 const int PrunedLandmarkLabeling<kNumBitParallelRoots>::kInitialLabelCapacity = 8;
 
@@ -215,7 +212,7 @@ bool PrunedLandmarkLabeling<kNumBitParallelRoots>::ConstructIndex(const std::vec
   //
   time_indexing_ = -GetCurrentTimeSec();
   std::vector<int> &inv = ord_;      // new label -> old label
-  std::vector<vector<int> > adj(V);  // Do not confuse with |adj_| (TODO: fix)
+  std::vector<std::vector<int> > adj(V);  // Do not confuse with |adj_| (TODO: fix)
   {
     // Order
     std::vector<std::pair<float, int> > deg(V);
@@ -351,7 +348,7 @@ bool PrunedLandmarkLabeling<kNumBitParallelRoots>::ConstructIndex(const std::vec
         V, make_pair(std::vector<int>(1, INF32), std::vector<uint8_t>(1, INF8)));
 
     // std::vector<bool> vis(V);
-    vector<uint8_t> vis(V / 8 + 1);
+    std::vector<uint8_t> vis(V / 8 + 1);
     std::vector<int> que(V);
     std::vector<uint8_t> dst_r(V + 1, INF8);
 
@@ -544,8 +541,8 @@ template <int kNumBitParallelRoots>
 void PrunedLandmarkLabeling<kNumBitParallelRoots>::PartialBPBFS(int r, int u, int v) {
   ++num_update_bp_bfs;
 
-  static vector<int> que0, que1;
-  static vector<bool> queued;
+  static std::vector<int> que0, que1;
+  static std::vector<bool> queued;
   if ((int)queued.size() < num_v_) {
     que0.resize(num_v_ * 2);
     que1.resize(num_v_ * 2);
@@ -553,7 +550,7 @@ void PrunedLandmarkLabeling<kNumBitParallelRoots>::PartialBPBFS(int r, int u, in
   }
 
   int h0 = 0, h1 = 0;
-  int base_d = min(index_[u].bpspt_d[r], index_[v].bpspt_d[r]);
+  int base_d = std::min(index_[u].bpspt_d[r], index_[v].bpspt_d[r]);
   if (base_d == INF8) return;
   if (index_[u].bpspt_d[r] == base_d) queued[que0[h0++] = u] = true;
   if (index_[v].bpspt_d[r] == base_d) queued[que0[h0++] = v] = true;
@@ -614,9 +611,9 @@ template <int kNumBitParallelRoots>
 void PrunedLandmarkLabeling<kNumBitParallelRoots>::PartialBFS(uint32_t bfs_i, int sv, int sd) {
   ++num_update_normal_bfs;
 
-  static vector<pair<int, int> > que;
-  static vector<bool> vis;
-  static vector<int> root_label;
+  static std::vector<std::pair<int, int> > que;
+  static std::vector<bool> vis;
+  static std::vector<int> root_label;
   if ((int)que.size() < num_v_) {
     que.resize(num_v_ * 2);
     vis.resize(num_v_ * 2);
@@ -708,9 +705,9 @@ void PrunedLandmarkLabeling<kNumBitParallelRoots>::PartialBFS(uint32_t bfs_i, in
 
 template <int kNumBitParallelRoots>
 bool PrunedLandmarkLabeling<kNumBitParallelRoots>::InsertEdge(int u, int v) {
-  int new_num_v = max(num_v_, max(u, v) + 1);
+  int new_num_v = std::max(num_v_, std::max(u, v) + 1);
   if (new_num_v > index_l_) {
-    int new_index_l = max(new_num_v, index_l_ * 2);
+    int new_index_l = std::max(new_num_v, index_l_ * 2);
     index_t *new_index = (index_t *)memalign(64, new_index_l * sizeof(index_t));
     if (new_index == NULL) return false;
     memcpy(new_index, index_, index_l_ * sizeof(index_t));
@@ -788,29 +785,29 @@ bool PrunedLandmarkLabeling<kNumBitParallelRoots>::InsertEdge(int u, int v) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 int V, E1, E0;
-vector<vector<int> > adj;
+std::vector<std::vector<int> > adj;
 PrunedLandmarkLabeling<> pll;
 
-int load_edge_list(ifstream &in, vector<std::pair<int, int> > &es) {
+int load_edge_list(std::ifstream &in, std::vector<std::pair<int, int> > &es) {
   int num_v = 0;
   es.clear();
 
-  string t;
+  std::string t;
   for (int u, v; in >> t >> u >> v;) {
     es.push_back(std::make_pair(u, v));
-    num_v = max(num_v, max(u, v) + 1);
+    num_v = std::max(num_v, std::max(u, v) + 1);
   }
   return num_v;
 }
 
-int load_edge_list(const char *file, vector<pair<int, int> > &es) {
-  ifstream ifs(file);
+int load_edge_list(const char *file, std::vector<std::pair<int, int> > &es) {
+  std::ifstream ifs(file);
   assert(ifs);
   return load_edge_list(ifs, es);
 }
 
-void bfs_all(int s, vector<int> &res) {
-  queue<int> que;
+void bfs_all(int s, std::vector<int> &res) {
+  std::queue<int> que;
   res.clear();
   res.resize(V, INT_MAX);
 
@@ -830,8 +827,8 @@ void bfs_all(int s, vector<int> &res) {
 }
 
 int bfs_st(int s, int t) {
-  queue<int> que;
-  vector<int> res(V, INT_MAX);
+  std::queue<int> que;
+  std::vector<int> res(V, INT_MAX);
 
   que.push(s);
   res[s] = 0;
@@ -852,7 +849,7 @@ int bfs_st(int s, int t) {
 
 void verify_all() {
   for (int v = 0; v < V; ++v) {
-    vector<int> ds;
+    std::vector<int> ds;
     bfs_all(v, ds);
     for (int w = 0; w < V; ++w) {
     }
@@ -862,7 +859,7 @@ void verify_all() {
 
 int main(int argc, char **argv) {
   google::ParseCommandLineFlags(&argc, &argv, true);
-  vector<pair<int, int> > es = agl::generate_grid(3, 3);
+  std::vector<std::pair<int, int> > es = agl::generate_grid(3, 3);
   V = 9;
   E1 = es.size();
 
@@ -881,7 +878,7 @@ int main(int argc, char **argv) {
   //
   // Query before update
   //
-  { cout << pll.QueryDistance(0, 2) << endl; }
+  { std::cout << pll.QueryDistance(0, 2) << std::endl; }
 
   //
   // Online update!!!
@@ -912,7 +909,7 @@ int main(int argc, char **argv) {
   //
   // Query after update
   //
-  { cout << pll.QueryDistance(0, 2) << endl; }
+  { std::cout << pll.QueryDistance(0, 2) << std::endl; }
 
   return 0;
 }
