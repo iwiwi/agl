@@ -31,6 +31,7 @@
 #define PRUNED_LANDMARK_LABELING_H_
 
 #include <malloc.h>
+#include <assert.h>
 #include <stdint.h>
 #include <xmmintrin.h>
 #include <sys/time.h>
@@ -108,6 +109,10 @@ class PrunedLandmarkLabeling {
     gettimeofday(&tv, NULL);
     return tv.tv_sec + tv.tv_usec * 1e-6;
   }
+
+
+  void PartialBFS(uint32_t r, int sv, int sd);
+  void PartialBPBFS(int k, int v, int w);
 
   // Statistics
   double time_load_, time_indexing_;
@@ -557,6 +562,163 @@ void PrunedLandmarkLabeling<kNumBitParallelRoots>
   num_v_ = 0;
 }
 
+template<int kNumBitParallelRoots>
+void PrunedLandmarkLabeling<kNumBitParallelRoots>
+::PartialBPBFS(int r, int u, int v) {
+
+  static std::vector<int> que0, que1;
+  static std::vector<bool> queued;
+  if ((int)queued.size() < num_v_) {
+    que0.resize(num_v_ * 2);
+    que1.resize(num_v_ * 2);
+    queued.resize(num_v_ * 2);
+  }
+
+  int h0 = 0, h1 = 0;
+  int base_d = min(index_[u].bpspt_d[r], index_[v].bpspt_d[r]);
+  if (base_d == INF8) return;
+  if (index_[u].bpspt_d[r] == base_d) queued[que0[h0++] = u] = true;
+  if (index_[v].bpspt_d[r] == base_d) queued[que0[h0++] = v] = true;
+
+  for (int d = base_d; h0 > 0; ++d) {
+    for (int i0 = 0; i0 < h0; ++i0) {
+      int v = que0[i0];
+      // printf(" %d: %d\n", d, v);
+
+      for (int i = 0; i < adj_[v].size(); ++i) {
+        int tv = adj_[v][i], td = d + 1;
+        if (d == index_[tv].bpspt_d[r]) {
+          // Set propagation (1)
+          uint64_t ts = index_[tv].bpspt_s[r][1] | index_[v].bpspt_s[r][0];
+          if (ts != index_[tv].bpspt_s[r][1]) {
+            index_[tv].bpspt_s[r][1] = ts;
+            // if (!queued[tv]) queued[que0[h0++] = tv] = true;  // Update -> Enque
+          }
+        }
+        if (td < index_[tv].bpspt_d[r]) {
+          index_[tv].bpspt_s[r][1] = (index_[tv].bpspt_d[r] == td + 1 ? index_[tv].bpspt_s[r][0] : 0);
+          index_[tv].bpspt_s[r][0] = 0;
+          index_[tv].bpspt_d[r] = td;
+          assert(!queued[tv]);
+          queued[que1[h1++] = tv] = true;
+        }
+      }
+    }
+    for (int i0 = 0; i0 < h0; ++i0) {
+      int v = que0[i0];
+      for (int i = 0; i < adj_[v].size(); ++i) {
+        int tv = adj_[v][i];
+        if (index_[tv].bpspt_d[r] == d + 1) {
+          // Set propagation (2)
+          uint64_t ts0 = index_[tv].bpspt_s[r][0] | index_[v].bpspt_s[r][0];
+          uint64_t ts1 = index_[tv].bpspt_s[r][1] | index_[v].bpspt_s[r][1];
+          if (ts0 != index_[tv].bpspt_s[r][0] || ts1 != index_[tv].bpspt_s[r][1]) {
+            index_[tv].bpspt_s[r][0] = ts0;
+            index_[tv].bpspt_s[r][1] = ts1;
+            // if (!queued[tv]) queued[que1[h1++] = tv] = true;  // Update -> Enque
+          }
+        }
+      }
+    }
+
+    for (int i0 = 0; i0 < h0; ++i0) queued[que0[i0]] = false;
+    que0.swap(que1);
+    h0 = h1;
+    que1.clear();
+    h1 = 0;
+  }
+}
+
+
+
+template<int kNumBitParallelRoots>
+void PrunedLandmarkLabeling<kNumBitParallelRoots>
+::PartialBFS(uint32_t bfs_i, int sv, int sd) {
+  static std::vector<std::pair<int, int> > que;
+  static std::vector<bool> vis;
+  static std::vector<int> root_label;
+  if ((int)que.size() < num_v_) {
+    que.resize(num_v_ * 2);
+    vis.resize(num_v_ * 2);
+    root_label.resize(num_v_ * 2);
+  }
+
+  int r = ord_[bfs_i];
+  index_t &idx_r = index_[r];
+  for (int i = 0; idx_r.spt_v[i] != INF32; ++i) {
+    root_label[idx_r.spt_v[i]] = idx_r.spt_d[i];
+  }
+
+  int que_h = 0, que_t = 0;
+  // queue<pair<int, int> > que;
+  que[que_t++] = std::make_pair(sv, sd);
+  vis[sv] = true;
+
+  while (que_h < que_t) {
+    int v = que[que_h].first;
+    int d = que[que_h].second;
+    ++que_h;
+
+    // Puruning test & new label
+    {
+      index_t &idx_v = index_[v];
+
+      for (int i = 0; i < kNumBitParallelRoots; ++i) {
+        int td = idx_r.bpspt_d[i] + idx_v.bpspt_d[i];
+        if (td - 2 <= d) {
+          td +=
+              (idx_r.bpspt_s[i][0] & idx_v.bpspt_s[i][0]) ? -2 :
+              ((idx_r.bpspt_s[i][0] & idx_v.bpspt_s[i][1]) |
+               (idx_r.bpspt_s[i][1] & idx_v.bpspt_s[i][0]))
+              ? -1 : 0;
+          if (td <= d) goto prune;
+        }
+      }
+
+      // Case 1: |bfs_i| is already in |label[v]|
+      int i = 0;
+      for (; idx_v.spt_v[i] <= bfs_i; ++i) {
+        uint32_t li = idx_v.spt_v[i];
+        int ld = idx_v.spt_d[i];
+
+        if (li == bfs_i) {
+          if (ld <= d) goto prune;
+          else {
+            idx_v.spt_d[i] = d;
+            goto traverse;
+          }
+        }
+        if (root_label[li] != -1 && root_label[li] + ld <= d) goto prune;
+      }
+
+      // Case 2: |bfs_i| is not present in |label[v]|
+      if (idx_v.spt_v[idx_v.spt_l - 1] == INF32) idx_v.Expand();
+      int j;
+      for (j = i; idx_v.spt_v[j] != INF32; ++j);
+      for (; j >= i; --j) {
+        idx_v.spt_v[j + 1] = idx_v.spt_v[j];
+        idx_v.spt_d[j + 1] = idx_v.spt_d[j];
+      }
+      idx_v.spt_v[i] = bfs_i;
+      idx_v.spt_d[i] = d;
+    }
+
+ traverse:;
+   for (int i = 0; i < adj_[v].size(); ++i) {
+      int w = adj_[v][i];
+      if (!vis[w]) {
+        que[que_t++] = std::make_pair(w, d + 1);
+        vis[w] = true;
+      }
+    }
+
+ prune:;
+  }
+  for (int i = 0; i < que_t; ++i) vis[que[i].first] = false;
+  for (int i = 0; index_[r].spt_v[i] != INF32; ++i) {
+    root_label[index_[r].spt_v[i]] = -1;
+  }
+}
 template<int kNumBitParallelRoots>
 bool PrunedLandmarkLabeling<kNumBitParallelRoots>
 ::InsertEdge(int u, int v) {
