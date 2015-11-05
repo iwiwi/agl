@@ -1,4 +1,3 @@
-#include "pruned_landmark_labeling.h"
 #include "shortest_path/dynamic_pruned_landmark_labeling.h"
 using namespace std;
 using namespace agl;
@@ -11,8 +10,6 @@ int main() {
     dynamic_pruned_landmark_labeling<> dpll;
     dpll.construct(g);
     cout << dpll.query_distance(g, 0, 5) << endl;
-  pretty_print(g);
-    // UPDATE
     dpll.add_edge(g, 0, 5);
     cout << dpll.query_distance(g, 0, 5) << endl;
   }
