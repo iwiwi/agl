@@ -90,7 +90,7 @@ class PrunedLandmarkLabeling {
  private:
   static const uint8_t INF8;    // For unreachable pairs
   static const uint32_t INF32;  // For sentinel
-  static const int kInitialLabelCapacity = 8;
+  static const int kInitialLabelCapacity;
 
   struct index_t {
     uint8_t bpspt_d[kNumBitParallelRoots];
@@ -140,6 +140,8 @@ const uint8_t PrunedLandmarkLabeling<kNumBitParallelRoots>::INF8 = 100;
 template <int kNumBitParallelRoots>
 const uint32_t PrunedLandmarkLabeling<kNumBitParallelRoots>::INF32 =
     std::numeric_limits<int32_t>::max();  // signed for safety
+template <int kNumBitParallelRoots>
+const int PrunedLandmarkLabeling<kNumBitParallelRoots>::kInitialLabelCapacity = 8;
 
 template<int kNumBitParallelRoots>
 bool PrunedLandmarkLabeling<kNumBitParallelRoots>
@@ -444,8 +446,9 @@ int PrunedLandmarkLabeling<kNumBitParallelRoots>
       if (td < d) d = td;
     }
   }
-  for (int i1 = 0, i2 = 0; ; ) {
-    int v1 = idx_v.spt_v[i1], v2 = idx_w.spt_v[i2];
+  for (int i1 = 0, i2 = 0;;) {
+    int v1 = idx_v.spt_v[i1];
+    int v2 = idx_w.spt_v[i2];
     if (v1 == v2) {
       if (v1 == num_v_) break;  // Sentinel
       int td = idx_v.spt_d[i1] + idx_w.spt_d[i2];

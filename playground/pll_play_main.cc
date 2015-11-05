@@ -4,28 +4,16 @@ using namespace std;
 using namespace agl;
 
 int main() {
-  V N = 5, M = 3;
-  unweighted_edge_list es = generate_ba(N, M);
-
-  size_t E1 = M * (M - 1) / 2;
-  size_t E0 = E1 - 1;
-
-  unweighted_edge_list initial_es(es.begin(), es.begin() + E0);
-  // Query
-  size_t Q = 10;
-  vector<pair<V, V>> query(Q);
-  for (int i = 0; i < Q; ++i) {
-    query[i] = make_pair(agl::random() % E0, agl::random() % E0);
-  }
+  unweighted_edge_list es = generate_grid(3, 3);
+  G g(es);
+  pretty_print(g);
 
   dynamic_pruned_landmark_labeling<> dpll;
-  G g(initial_es);
   dpll.construct(g);
-
+  cout << dpll.query_distance(g, 0, 5);
   // UPDATE
-  for (int e = E0; e < E1; ++e) {
-    dpll.add_edge(g, es[e].first, es[e].second);
-  }
+  dpll.add_edge(g, 0, 5);
+  cout << dpll.query_distance(g, 0, 5);
 
   return 0;
 }
