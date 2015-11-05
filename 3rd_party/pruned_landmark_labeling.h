@@ -97,7 +97,7 @@ class PrunedLandmarkLabeling {
     uint64_t bpspt_s[kNumBitParallelRoots][2];  // [0]: S^{-1}, [1]: S^{0}
     uint32_t *spt_v;
     uint8_t *spt_d;
-    
+
     uint32_t spt_l;
 
     void Expand() {
@@ -741,32 +741,35 @@ void PrunedLandmarkLabeling<kNumBitParallelRoots>
 template<int kNumBitParallelRoots>
 bool PrunedLandmarkLabeling<kNumBitParallelRoots>
 ::InsertEdge(int u, int v) {
-  int new_num_v = std::max(num_v_, std::max(u, v) + 1);
-  if (new_num_v > index_l_) {
-    int new_index_l = std::max(new_num_v, index_l_ * 2);
-    index_t *new_index = (index_t *)memalign(64, new_index_l * sizeof(index_t));
-    if (new_index == NULL) return false;
-    memcpy(new_index, index_, index_l_ * sizeof(index_t));
-    free(index_);
-    index_ = new_index;
-    // printf("EXPANDER: %d -> %d\n", index_l_, new_index_l);
-    index_l_ = new_index_l;
-  }
-  for (int i = num_v_; i < new_num_v; ++i) {
-    index_t &idx = index_[i];
-    for (int k = 0; k < kNumBitParallelRoots; ++k) {
-      idx.bpspt_d[k] = INF8;
-      idx.bpspt_s[k][0] = idx.bpspt_s[k][1] = 0;
-    }
-    idx.spt_v = (uint32_t *)memalign(64, kInitialLabelCapacity * sizeof(uint32_t));  // crashed
-    idx.spt_d = (uint8_t *)memalign(64, kInitialLabelCapacity * sizeof(uint8_t));    // crashed
-    if (!idx.spt_v || !idx.spt_d) return false;
-    idx.spt_l = kInitialLabelCapacity;
-    memset(idx.spt_v, 0, kInitialLabelCapacity * sizeof(uint32_t));
-    idx.spt_v[0] = INF32;
-  }
-  num_v_ = new_num_v;
-  adj_.resize(num_v_);
+  // int new_num_v = std::max(num_v_, std::max(u, v) + 1);
+  // if (new_num_v > index_l_) {
+  //   int new_index_l = std::max(new_num_v, index_l_ * 2);
+  //   index_t *new_index = (index_t *)memalign(64, new_index_l * sizeof(index_t));
+  //   if (new_index == NULL) return false;
+  //   memcpy(new_index, index_, index_l_ * sizeof(index_t));
+  //   free(index_);
+  //   index_ = new_index;
+  //   // printf("EXPANDER: %d -> %d\n", index_l_, new_index_l);
+  //   index_l_ = new_index_l;
+  // }
+  // for (int i = num_v_; i < new_num_v; ++i) {
+  //   index_t &idx = index_[i];
+  //   for (int k = 0; k < kNumBitParallelRoots; ++k) {
+  //     idx.bpspt_d[k] = INF8;
+  //     idx.bpspt_s[k][0] = idx.bpspt_s[k][1] = 0;
+  //   }
+  //   idx.spt_v = (uint32_t *)memalign(64, kInitialLabelCapacity * sizeof(uint32_t));  // crashed
+  //   idx.spt_d = (uint8_t *)memalign(64, kInitialLabelCapacity * sizeof(uint8_t));    // crashed
+  //   if (!idx.spt_v || !idx.spt_d) return false;
+  //   idx.spt_l = kInitialLabelCapacity;
+  //   memset(idx.spt_v, 0, kInitialLabelCapacity * sizeof(uint32_t));
+  //   idx.spt_v[0] = INF32;
+  // }
+  // num_v_ = new_num_v;
+  // adj_.resize(num_v_);
+  printf("%d\n", sizeof(adj_));
+  printf("%d\n", u);
+  printf("%d\n", v);
   adj_[u].push_back(v);
   adj_[v].push_back(u);
   for (int i = 0; i < 2; ++i) {
