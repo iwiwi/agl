@@ -33,6 +33,7 @@
 #include <malloc.h>
 #include <assert.h>
 #include <stdint.h>
+#include <string.h>
 #include <xmmintrin.h>
 #include <sys/time.h>
 #include <climits>
@@ -87,7 +88,7 @@ class PrunedLandmarkLabeling {
   }
 
  private:
-  static const uint8_t INF8;  // For unreachable pairs
+  static const uint8_t INF8;    // For unreachable pairs
   static const uint32_t INF32;  // For sentinel
   static const int kInitialLabelCapacity;
 
@@ -96,23 +97,39 @@ class PrunedLandmarkLabeling {
     uint64_t bpspt_s[kNumBitParallelRoots][2];  // [0]: S^{-1}, [1]: S^{0}
     uint32_t *spt_v;
     uint8_t *spt_d;
+    uint32_t spt_l;
+
+    void Expand() {
+      int new_spt_l = std::max(kInitialLabelCapacity, int((spt_l + 1) * 1.5));
+      uint32_t *new_spt_v = (uint32_t*)memalign(64, new_spt_l * sizeof(uint32_t));
+      uint8_t  *new_spt_d = (uint8_t *)memalign(64, new_spt_l * sizeof(uint8_t ));
+      assert(new_spt_v && new_spt_d);
+      memcpy(new_spt_v, spt_v, spt_l * sizeof(int32_t));
+      memcpy(new_spt_d, spt_d, spt_l * sizeof(int8_t ));
+      memset(new_spt_v + spt_l, 0, (new_spt_l - spt_l) * sizeof(int32_t));
+      free(spt_v);
+      free(spt_d);
+      spt_v = new_spt_v;
+      spt_d = new_spt_d;
+      // printf(" EXPAND: %d -> %d\n", spt_l, new_spt_l);
+      spt_l = new_spt_l;
+    }
   } __attribute__((aligned(64)));  // Aligned for cache lines
 
   int num_v_;
   std::vector<std::vector<int> > adj_;
+  index_t *index_;
   int index_l_;  // We don't need to use |size_t|
   std::vector<int> ord_;  // ord_[i] = v (e.g., ord[spt_v[0]] = the vertex with the highest degree)
-  index_t *index_;
+
+  void PartialBFS(uint32_t r, int sv, int sd);
+  void PartialBPBFS(int k, int v, int w);
 
   double GetCurrentTimeSec() {
     struct timeval tv;
     gettimeofday(&tv, NULL);
     return tv.tv_sec + tv.tv_usec * 1e-6;
   }
-
-
-  void PartialBFS(uint32_t r, int sv, int sd);
-  void PartialBPBFS(int k, int v, int w);
 
   // Statistics
   double time_load_, time_indexing_;
@@ -575,7 +592,7 @@ void PrunedLandmarkLabeling<kNumBitParallelRoots>
   }
 
   int h0 = 0, h1 = 0;
-  int base_d = min(index_[u].bpspt_d[r], index_[v].bpspt_d[r]);
+  int base_d = std::min(index_[u].bpspt_d[r], index_[v].bpspt_d[r]);
   if (base_d == INF8) return;
   if (index_[u].bpspt_d[r] == base_d) queued[que0[h0++] = u] = true;
   if (index_[v].bpspt_d[r] == base_d) queued[que0[h0++] = v] = true;
