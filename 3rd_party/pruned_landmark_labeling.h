@@ -90,7 +90,7 @@ class PrunedLandmarkLabeling {
  private:
   static const uint8_t INF8;    // For unreachable pairs
   static const uint32_t INF32;  // For sentinel
-  static const int kInitialLabelCapacity;
+  static const int kInitialLabelCapacity = 8;
 
   struct index_t {
     uint8_t bpspt_d[kNumBitParallelRoots];
@@ -140,8 +140,6 @@ const uint8_t PrunedLandmarkLabeling<kNumBitParallelRoots>::INF8 = 100;
 template <int kNumBitParallelRoots>
 const uint32_t PrunedLandmarkLabeling<kNumBitParallelRoots>::INF32 =
     std::numeric_limits<int32_t>::max();  // signed for safety
-template <int kNumBitParallelRoots>
-const int PrunedLandmarkLabeling<kNumBitParallelRoots>::kInitialLabelCapacity = 8;
 
 template<int kNumBitParallelRoots>
 bool PrunedLandmarkLabeling<kNumBitParallelRoots>
@@ -736,17 +734,18 @@ void PrunedLandmarkLabeling<kNumBitParallelRoots>
     root_label[index_[r].spt_v[i]] = -1;
   }
 }
+
 template<int kNumBitParallelRoots>
 bool PrunedLandmarkLabeling<kNumBitParallelRoots>
 ::InsertEdge(int u, int v) {
   int new_num_v = std::max(num_v_, std::max(u, v) + 1);
   if (new_num_v > index_l_) {
     int new_index_l = std::max(new_num_v, index_l_ * 2);
-    index_t *new_index   = (index_t*)memalign(64, new_index_l * sizeof(index_t));
+    index_t *new_index = (index_t *)memalign(64, new_index_l * sizeof(index_t));
     if (new_index == NULL) return false;
     memcpy(new_index, index_, index_l_ * sizeof(index_t));
     free(index_);
-    index_   = new_index;
+    index_ = new_index;
     // printf("EXPANDER: %d -> %d\n", index_l_, new_index_l);
     index_l_ = new_index_l;
   }
@@ -756,8 +755,8 @@ bool PrunedLandmarkLabeling<kNumBitParallelRoots>
       idx.bpspt_d[k] = INF8;
       idx.bpspt_s[k][0] = idx.bpspt_s[k][1] = 0;
     }
-    idx.spt_v = (uint32_t *)memalign(64, kInitialLabelCapacity * sizeof(uint32_t));
-    idx.spt_d = (uint8_t *)memalign(64, kInitialLabelCapacity * sizeof(uint8_t));
+    idx.spt_v = (uint32_t *)memalign(64, kInitialLabelCapacity * sizeof(uint32_t));  // crashed
+    idx.spt_d = (uint8_t *)memalign(64, kInitialLabelCapacity * sizeof(uint8_t));    // crashed
     if (!idx.spt_v || !idx.spt_d) return false;
     idx.spt_l = kInitialLabelCapacity;
     memset(idx.spt_v, 0, kInitialLabelCapacity * sizeof(uint32_t));
@@ -784,7 +783,7 @@ bool PrunedLandmarkLabeling<kNumBitParallelRoots>
   // Update bit-parallel labels
   // puts("BIT PARALLEL");
   for (int k = 0; k < kNumBitParallelRoots; ++k) {
-    PartialBPBFS(k, u, v);
+    // PartialBPBFS(k, u, v);
   }
 
   // Update normal labels
@@ -793,7 +792,7 @@ bool PrunedLandmarkLabeling<kNumBitParallelRoots>
   int iu = 0, iv = 0;
   for (;;) {
     uint32_t vu = idx_u.spt_v[iu], vv = idx_v.spt_v[iv];
-    int      du = idx_u.spt_d[iu], dv = idx_v.spt_d[iv];
+    int du = idx_u.spt_d[iu], dv = idx_v.spt_d[iv];
 
     if (vu < vv) {  // u -> v
       PartialBFS(vu, v, du + 1);
