@@ -23,10 +23,10 @@ def configure(conf):
   if conf.options.build_debug:
     conf.env.CXXFLAGS += ['-O0', '-D_GLIBCXX_DEBUG']
   elif conf.options.build_profile:
-    conf.env.CXXFLAGS += ['-O3', '-fno-inline']
+    conf.env.CXXFLAGS += ['-O0', '-fno-inline']
     conf.env.LINKFLAGS += ['-Wl,--no-as-needed', '-lprofiler', '-Wl,--as-needed']
   else:
-    conf.env.CXXFLAGS += ['-O3']
+    conf.env.CXXFLAGS += ['-O0']
 
 def build(bld):
   bld.recurse('3rd_party')
