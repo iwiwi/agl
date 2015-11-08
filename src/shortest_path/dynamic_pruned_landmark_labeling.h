@@ -62,6 +62,7 @@ class dynamic_pruned_landmark_labeling
   std::vector<std::vector<V>> adj_[2];
   std::vector<index_t> idx_[2];
   std::vector<V> ord_;
+
   void free_all() {
     for (int i = 0; i < 2; ++i) {
       for (V v = 0; v < num_v_; ++v) {
@@ -72,6 +73,8 @@ class dynamic_pruned_landmark_labeling
     }
     num_v_ = 0;
   }
+
+  void partial_bfs(uint32_t r, int sv, int sd);
 };
 
 template <size_t kNumBitParallelRoots>
@@ -142,7 +145,7 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::construct(
   //
   int max_threads = 1;
   for (int x = 0; x < 2; ++x) {
-    const auto &adj = adj_[x];
+    const auto &adj = relabelled_adj[x];
     auto &idx = idx_[x];
 
     std::vector<bool> tmp_usd(num_v, false);
@@ -251,7 +254,7 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::construct(
       tmp_idx[v].second.clear();
     }
     for (V i = 0; i < num_v; ++i)
-      if (adj_[i].empty()) {
+      if (adj_[0][i].empty() && adj_[1][i].empty()) {
         assert(idx[i].spt_v == NULL);
         idx[i].spt_v = (uint32_t *)memalign(64, 1 * sizeof(uint32_t));
         idx[i].spt_d = (uint8_t *)memalign(64, 1 * sizeof(uint8_t));
@@ -266,8 +269,8 @@ W dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::query_distance(
   if (v_from == v_to) return 0;
   if (v_from >= num_v_ || v_to >= num_v_) return kInfW;
 
-  const index_t &idx_from = idx_[0][v_from];
-  const index_t &idx_to = idx_[1][v_to];
+  const index_t &idx_from = idx_[1][v_from];
+  const index_t &idx_to = idx_[0][v_to];
   W dist = INF8;
 
   // TODO: Bit-parallel
@@ -293,6 +296,35 @@ W dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::query_distance(
 template <size_t kNumBitParallelRoots>
 void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::add_edge(
     const G &g, V v_from, const E &e) {
-  assert(false);
+  V v_to = to(e);
+  V new_num_v = g.num_vertices();
+  for (V v = num_v_; v < new_num_v; ++v) {
+    // Now we cannot add new vertex.
+    puts("sorry");
+    assert(false);
+  }
+  num_v_ = new_num_v;
+
+  adj_[0].resize(num_v_);
+  adj_[1].resize(num_v_);
+  adj_[0][v_from].push_back(v_to);
+  adj_[1][v_to].push_back(v_from);
+
+  for (int i = 0; i < 2; ++i) {
+    V x = i == 0 ? v_from : v_to;
+    if (adj_[0][x].size() + adj_[1][x].size() == 1) {
+      // New comer
+      // Now we cannot add new vertex.
+      puts("sorry");
+      assert(false);
+    }
+  }
+
+  // TODO: Update bit-parallel labels
+  for (int k = 0; k < kNumBitParallelRoots; ++k) {
+    // PartialBPBFS(k, v_from, v_to);
+  }
+
+  const index_t &idx_from = idx_[0][v_from], &idx_to = idx_[1][v_to];
 }
 }  // namespace agl
