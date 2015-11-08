@@ -1,4 +1,4 @@
-#include "pruned_landmark_labeling.h"
+#include "shortest_path/dynamic_pruned_landmark_labeling.h"
 using namespace std;
 using namespace agl;
 
@@ -7,12 +7,13 @@ int main() {
   G g(es);
 
   {
-    PrunedLandmarkLabeling<0> pll;
-    pll.ConstructIndex(es);
-    for (int i = 0; i < 9; ++i) {
-      for (int j = 0; j < 9; ++j) {
+    dynamic_pruned_landmark_labeling<0> dpll;
+    dpll.construct(g);
+
+    for (V i = 0; i < 9; ++i) {
+      for (V j = 0; j < 9; ++j) {
         cout << i << "->" << j << endl;
-        cout << pll.QueryDistance(i, j) << endl;
+        cout << dpll.query_distance(g, i, j) << endl;
       }
     }
   }

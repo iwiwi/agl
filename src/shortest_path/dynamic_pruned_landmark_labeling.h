@@ -4,12 +4,33 @@
 #include <malloc.h>
 
 namespace agl {
+
+template <typename T>
+struct parallel_vector {
+  parallel_vector(int max_threads, size_t size_limit)
+      : v(max_threads, std::vector<T>(size_limit)), n(max_threads, 0) {}
+
+  void push_back(const T &x) {
+    // int id = get_thread_id();
+    int id = 0;
+    v[id][n[id]++] = x;
+  }
+
+  void clear() {
+    for (int i = 0; i < n.size(); ++i) n[i] = 0;
+  }
+
+  std::vector<std::vector<T>> v;
+  std::vector<size_t> n;
+};
+
 template <size_t kNumBitParallelRoots = 16>
 class dynamic_pruned_landmark_labeling
     : public dynamic_graph_index_interface<G>,
       public distance_query_interface<G> {
  public:
-  virtual ~dynamic_pruned_landmark_labeling() {}
+  dynamic_pruned_landmark_labeling() : num_v_(0) {}
+  virtual ~dynamic_pruned_landmark_labeling() { free_all(); }
   virtual void construct(const G &g) override;
   virtual W query_distance(const G &g, V v_from, V v_to) override;
 
@@ -32,67 +53,210 @@ class dynamic_pruned_landmark_labeling
   const uint32_t INF32 = std::numeric_limits<int32_t>::max();  // For sentinel
 
   struct index_t {
-    uint32_t *spt_vertex;
-    uint8_t *spt_dist;
+    uint32_t *spt_v;
+    uint8_t *spt_d;
     uint32_t spt_l;
-  } __attribute__((aligned(64)));  // Aligned for cache lines
+  };
 
-  index_t *index_, *index_inv_;
-  std::vector<std::vector<V>> adj_, adj_inv_;
-  V num_vertices_;
-  E num_edges_;
+  V num_v_;
+  std::vector<std::vector<V>> adj_[2];
+  std::vector<index_t> idx_[2];
+  std::vector<V> ord_;
+  void free_all() {
+    for (int i = 0; i < 2; ++i) {
+      for (V v = 0; v < num_v_; ++v) {
+        free(idx_[i][v].spt_v);
+        free(idx_[i][v].spt_d);
+      }
+      idx_[i].clear();
+    }
+    num_v_ = 0;
+  }
 };
 
 template <size_t kNumBitParallelRoots>
 void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::construct(
     const G &g) {
-  E &num_e = num_edges_;
-  V &num_v = num_vertices_;
-  num_e = g.num_edges();
+  free_all();
+  V &num_v = num_v_;
   num_v = g.num_vertices();
-  unweighted_edge_list es = g.edge_list();
-
-  adj_.resize(num_v);
-  adj_inv_.resize(num_v);
-  for (size_t i = 0; i < num_v; ++i) {
-    V from = es[i].first, to = es[i].second;
-    adj_[from].push_back(to);
-    adj_inv_[to].push_back(from);
+  const std::vector<std::pair<V, E>> &es = g.edge_list();
+  adj_[0].resize(num_v), adj_[1].resize(num_v);
+  for (int i = 0; i < es.size(); ++i) {
+    V v = es[i].first, u = to(es[i].second);
+    adj_[0][v].push_back(u);
+    adj_[1][u].push_back(v);
   }
 
-  // Initialize Index
-
-  index_ = (index_t *)memalign(64, num_v * sizeof(index_t));
-  index_inv_ = (index_t *)memalign(64, num_v * sizeof(index_t));
-  if (index_ == NULL || index_inv_ == NULL) {
-    num_v = 0;
-    return;
-  }
-  for (V v = 0; v < num_v; ++v) {
-    index_[v].spt_vertex = NULL;
-    index_[v].spt_dist = NULL;
-    index_[v].spt_l = 0;
-    index_inv_[v].spt_vertex = NULL;
-    index_inv_[v].spt_dist = NULL;
-    index_inv_[v].spt_l = 0;
+  for (int i = 0; i < 2; ++i) {
+    for (int v = 0; v < num_v; ++v) {
+      index_t tmp;
+      tmp.spt_v = NULL;
+      tmp.spt_d = NULL;
+      tmp.spt_l = 0;
+      idx_[i].push_back(tmp);
+    }
   }
 
-  // Pruned bfs
+  //
+  // Order vertices by decreasing order of degree
+  //
+  std::vector<V> &inv = ord_;
+  std::vector<std::vector<V>> relabelled_adj[2];
   {
-    std::vector<W> tmp_dist(num_v);
-    std::vector<V> queue(num_v);
+    // Order
+    std::vector<std::pair<float, V>> deg(num_v);
     for (V v = 0; v < num_v; ++v) {
-      int queue_tail = 0, queue_head = 0;
-      queue[queue_tail++] = v;
-
-      fill(tmp_dist.begin(), tmp_dist.end(), INF8);
-      tmp_dist[v] = 0;
-      // L<-L
-      while (queue_head < queue_tail) {
-        V u = queue[queue_head++];
-        
+      // We add a random value here to diffuse nearby vertices
+      deg[v] = std::make_pair(
+          adj_[0][v].size() + adj_[1][v].size() + float(rand()) / RAND_MAX, v);
+    }
+    std::sort(deg.rbegin(), deg.rend());
+    for (int i = 0; i < num_v; ++i) {
+      V v = deg[i].second;
+      if (!adj_[v].empty() || !adj_[1][v].empty()) {
+        // We ignore isolated vertices here (to decide the ordering later)
+        inv.push_back(v);
       }
     }
+
+    // Relabel the vertex IDs
+    relabelled_adj[0].resize(num_v), relabelled_adj[1].resize(num_v);
+    std::vector<V> rank(num_v);
+    for (int i = 0; i < num_v; ++i) rank[deg[i].second] = i;
+    for (V from = 0; from < num_v; ++from) {
+      for (size_t i = 0; i < adj_[0][from].size(); ++i) {
+        V to_v = adj_[0][from][i];
+        relabelled_adj[0][rank[from]].push_back(rank[to_v]);
+        relabelled_adj[1][rank[to_v]].push_back(rank[from]);
+      }
+    }
+  }
+
+  //
+  // TODO: Bit-parallel labeling
+  //
+
+  //
+  // Pruned labeling
+  //
+  int max_threads = 1;
+  for (int x = 0; x < 2; ++x) {
+    const auto &adj = adj_[x];
+    auto &idx = idx_[x];
+
+    std::vector<bool> tmp_usd(num_v, false);
+
+    // Sentinel (num_v, INF8) is added to all the vertices
+    std::vector<std::pair<std::vector<V>, std::vector<W>>> tmp_idx(
+        num_v,
+        std::make_pair(std::vector<V>(1, INF32), std::vector<W>(1, INF8)));
+
+    // std::vector<bool> vis(num_v);
+    std::vector<uint8_t> vis(num_v / 8 + 1);
+    std::vector<V> que(num_v);
+    std::vector<W> dst_r(num_v + 1, INF8);
+
+    parallel_vector<int> pdiff_nxt_que(max_threads, num_v);
+
+    // Pruned BFS
+    for (V r = 0; r < num_v; ++r) {
+      if (tmp_usd[r] || adj[r].empty()) continue;
+      // index_t &idx_r = index_[inv[r]];
+      const auto &tmp_idx_r = tmp_idx[r];
+      for (size_t i = 0; i < tmp_idx_r.first.size() - 1; ++i) {
+        dst_r[tmp_idx_r.first[i]] = tmp_idx_r.second[i];
+      }
+
+      int que_t0 = 0, que_t1 = 0, que_h = 0;
+      que[que_h++] = r;
+      // vis[r] = true;
+      vis[r / 8] |= 1 << (r % 8);
+      que_t1 = que_h;
+
+      for (W dist = 0; que_t0 < que_h; ++dist) {
+        for (int que_i = que_t0; que_i < que_t1; ++que_i) {
+          V v = que[que_i];
+          auto &tmp_idx_v = tmp_idx[v];
+          assert(v < (V)inv.size());
+
+          // TODO: Prefetch
+
+          // Prune?
+          if (tmp_usd[v]) continue;
+
+          // TODO: Bit-parallel
+
+          for (size_t i = 0; i < tmp_idx_v.first.size() - 1; ++i) {
+            int w = tmp_idx_v.first[i];
+            W tmp_dist = tmp_idx_v.second[i] + dst_r[w];
+            if (tmp_dist <= dist) goto pruned;
+          }
+
+          // Traverse
+          tmp_idx_v.first.back() = r;
+          tmp_idx_v.second.back() = dist;
+          tmp_idx_v.first.push_back(INF32);
+          tmp_idx_v.second.push_back(INF8);
+
+          for (size_t i = 0; i < adj[v].size(); ++i) {
+            int w = adj[v][i];
+            // if (!vis[w]) {
+            //   que[que_h++] = w;
+            //   vis[w] = true;
+            // }
+            for (;;) {
+              uint8_t m = vis[w / 8];
+              if (m & (1 << (w % 8))) break;
+              if (__sync_bool_compare_and_swap(&vis[w / 8], m,
+                                               m | (1 << (w % 8)))) {
+                pdiff_nxt_que.push_back(w);
+                break;
+              }
+            }
+          }
+        pruned : {}
+        }
+
+        for (int i = 0; i < max_threads; ++i) {
+          for (int j = 0; j < (int)pdiff_nxt_que.n[i]; ++j) {
+            que[que_h++] = pdiff_nxt_que.v[i][j];
+          }
+        }
+
+        que_t0 = que_t1;
+        que_t1 = que_h;
+        pdiff_nxt_que.clear();
+      }
+
+      for (int i = 0; i < que_h; ++i) vis[que[i] / 8] = 0;
+      for (size_t i = 0; i < tmp_idx_r.first.size() - 1; ++i) {
+        dst_r[tmp_idx_r.first[i]] = INF8;
+      }
+      tmp_usd[r] = true;
+    }
+
+    for (int v = 0; v < (int)inv.size(); ++v) {
+      int k = tmp_idx[v].first.size();
+      idx[inv[v]].spt_v = (uint32_t *)memalign(64, k * sizeof(uint32_t));
+      idx[inv[v]].spt_d = (uint8_t *)memalign(64, k * sizeof(uint8_t));
+      idx[inv[v]].spt_l = k;
+      if (!idx[inv[v]].spt_v || !idx[inv[v]].spt_d) {
+        free_all();
+        return;
+      }
+      for (int i = 0; i < k; ++i) idx[inv[v]].spt_v[i] = tmp_idx[v].first[i];
+      for (int i = 0; i < k; ++i) idx[inv[v]].spt_d[i] = tmp_idx[v].second[i];
+      tmp_idx[v].first.clear();
+      tmp_idx[v].second.clear();
+    }
+    for (V i = 0; i < num_v; ++i)
+      if (adj_[i].empty()) {
+        assert(idx[i].spt_v == NULL);
+        idx[i].spt_v = (uint32_t *)memalign(64, 1 * sizeof(uint32_t));
+        idx[i].spt_d = (uint8_t *)memalign(64, 1 * sizeof(uint8_t));
+        idx[i].spt_v[0] = INF32;
+      }
   }
 }
 
@@ -100,17 +264,19 @@ template <size_t kNumBitParallelRoots>
 W dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::query_distance(
     const G &g, V v_from, V v_to) {
   if (v_from == v_to) return 0;
-  if (v_from >= num_vertices_ || v_to >= num_vertices_) return kInfW;
+  if (v_from >= num_v_ || v_to >= num_v_) return kInfW;
 
-  const index_t &idx_from = index_[v_from];
-  const index_t &idx_to = index_inv_[v_to];
+  const index_t &idx_from = idx_[0][v_from];
+  const index_t &idx_to = idx_[1][v_to];
   W dist = INF8;
 
+  // TODO: Bit-parallel
+
   for (int i1 = 0, i2 = 0;;) {
-    V v1 = idx_from.spt_vertex[i1], v2 = idx_to.spt_vertex[i2];
+    V v1 = idx_from.spt_v[i1], v2 = idx_to.spt_v[i2];
     if (v1 == v2) {
       if (v1 == INF32) break;  // Sentinel
-      W tmp_dist = idx_from.spt_dist[i1] + idx_to.spt_dist[i2];
+      W tmp_dist = idx_from.spt_d[i1] + idx_to.spt_d[i2];
       if (tmp_dist < dist) dist = tmp_dist;
       ++i1;
       ++i2;
@@ -126,5 +292,7 @@ W dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::query_distance(
 
 template <size_t kNumBitParallelRoots>
 void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::add_edge(
-    const G &g, V v_from, const E &e) {}
+    const G &g, V v_from, const E &e) {
+  assert(false);
+}
 }  // namespace agl
