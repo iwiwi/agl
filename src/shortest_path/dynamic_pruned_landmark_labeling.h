@@ -49,13 +49,30 @@ class dynamic_pruned_landmark_labeling
   }
 
  private:
-  const uint8_t INF8 = 100;  // For unreachable pairs
-  const uint32_t INF32 = std::numeric_limits<int32_t>::max();  // For sentinel
+  static const uint8_t INF8 = 100;  // For unreachable pairs
+  static const uint32_t INF32 =
+      std::numeric_limits<int32_t>::max();  // For sentinel
 
   struct index_t {
     uint32_t *spt_v;
     uint8_t *spt_d;
     uint32_t spt_l;
+
+    void Expand() {
+      int new_spt_l = int((spt_l + 1) * 1.5);
+      uint32_t *new_spt_v =
+          (uint32_t *)memalign(64, new_spt_l * sizeof(uint32_t));
+      uint8_t *new_spt_d = (uint8_t *)memalign(64, new_spt_l * sizeof(uint8_t));
+      assert(new_spt_v && new_spt_d);
+      memcpy(new_spt_v, spt_v, spt_l * sizeof(int32_t));
+      memcpy(new_spt_d, spt_d, spt_l * sizeof(int8_t));
+      memset(new_spt_v + spt_l, 0, (new_spt_l - spt_l) * sizeof(int32_t));
+      free(spt_v);
+      free(spt_d);
+      spt_v = new_spt_v;
+      spt_d = new_spt_d;
+      spt_l = new_spt_l;
+    }
   };
 
   V num_v_;
@@ -74,7 +91,7 @@ class dynamic_pruned_landmark_labeling
     num_v_ = 0;
   }
 
-  void partial_bfs(uint32_t r, int sv, int sd);
+  void partial_bfs(V bfs_i, V sv, W sd, int x);
 };
 
 template <size_t kNumBitParallelRoots>
@@ -294,13 +311,101 @@ W dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::query_distance(
 }
 
 template <size_t kNumBitParallelRoots>
+void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::partial_bfs(
+    V bfs_i, V sv, W sd, int x) {
+  static std::vector<std::pair<int, int>> que;
+  static std::vector<bool> vis;
+  static std::vector<int> root_label;
+  if ((int)que.size() < num_v_) {
+    que.resize(num_v_ * 2);
+    vis.resize(num_v_ * 2);
+    root_label.resize(num_v_ * 2);
+  }
+
+  auto &index = idx_[x];
+  V root = ord_[bfs_i];
+  index_t &idx_r = index[root];
+  for (int i = 0; idx_r.spt_v[i] != INF32; ++i) {
+    root_label[idx_r.spt_v[i]] = idx_r.spt_d[i];
+  }
+
+  int que_h = 0, que_t = 0;
+  // queue<pair<int, int> > que;
+  que[que_t++] = std::make_pair(sv, sd);
+  vis[sv] = true;
+
+  while (que_h < que_t) {
+    V v = que[que_h].first;
+    W d = que[que_h].second;
+    ++que_h;
+
+    // Puruning test & new label
+    {
+      index_t &idx_v = index[v];
+
+      // TODO: bit-parallel
+
+      // Case 1: |bfs_i| is already in |label[v]|
+      int i = 0;
+      for (; idx_v.spt_v[i] <= bfs_i; ++i) {
+        uint32_t li = idx_v.spt_v[i];
+        int ld = idx_v.spt_d[i];
+
+        if (li == bfs_i) {
+          if (ld <= d) {
+            goto prune;
+          } else {
+            idx_v.spt_d[i] = d;
+            goto traverse;
+          }
+        }
+        if (root_label[li] != -1 && root_label[li] + ld <= d) goto prune;
+      }
+
+      // Case 2: |bfs_i| is not present in |label[v]|
+      {
+        if (idx_v.spt_v[idx_v.spt_l - 1] == INF32) idx_v.Expand();
+        int j;
+        for (j = i; idx_v.spt_v[j] != INF32; ++j)
+          ;
+        for (; j >= i; --j) {
+          idx_v.spt_v[j + 1] = idx_v.spt_v[j];
+          idx_v.spt_d[j + 1] = idx_v.spt_d[j];
+        }
+      }
+      idx_v.spt_v[i] = bfs_i;
+      idx_v.spt_d[i] = d;
+    }
+
+  traverse:
+    ;
+    for (int i = 0; i < adj_[(x + 1) % 2][v].size(); ++i) {
+      int w = adj_[(x + 1) % 2][v][i];
+      if (!vis[w]) {
+        que[que_t++] = std::make_pair(w, d + 1);
+        vis[w] = true;
+      }
+    }
+
+  prune:
+    ;
+  }
+
+  // Reset
+  for (int i = 0; i < que_t; ++i) vis[que[i].first] = false;
+  for (int i = 0; idx_r.spt_v[i] != INF32; ++i) {
+    root_label[idx_r.spt_v[i]] = -1;
+  }
+}
+
+template <size_t kNumBitParallelRoots>
 void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::add_edge(
     const G &g, V v_from, const E &e) {
   V v_to = to(e);
   V new_num_v = g.num_vertices();
   for (V v = num_v_; v < new_num_v; ++v) {
     // Now we cannot add new vertex.
-    puts("sorry");
+    puts("sorry (add_edge)");
     assert(false);
   }
   num_v_ = new_num_v;
@@ -315,7 +420,7 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::add_edge(
     if (adj_[0][x].size() + adj_[1][x].size() == 1) {
       // New comer
       // Now we cannot add new vertex.
-      puts("sorry");
+      puts("sorry (add_edge)");
       assert(false);
     }
   }
@@ -325,6 +430,32 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::add_edge(
     // PartialBPBFS(k, v_from, v_to);
   }
 
+  //
+  // Pruned BFS
+  //
   const index_t &idx_from = idx_[0][v_from], &idx_to = idx_[1][v_to];
+
+  for (int i1 = 0, i2 = 0;;) {
+    V v1 = idx_from.spt_v[i1], v2 = idx_to.spt_v[i2];
+    W d1 = idx_from.spt_d[i1], d2 = idx_to.spt_d[i2];
+    // std::cout << v_from << "->" << ord_[v1] << " " << d1 << std::endl;
+    // std::cout << v_to << "<-" << ord_[v2] << " " << d2 << std::endl;
+
+    if (v1 < v2) {
+      // v_from -> v_to
+      partial_bfs(v1, v_to, d1 + 1, 0);
+      ++i1;
+    } else if (v1 > v2) {
+      // v_to -> v_from
+      partial_bfs(v2, v_from, d2 + 1, 1);
+      ++i2;
+    } else {
+      if (v1 == INF32) break;  // Sentinel
+      if (d1 + 1 < d2) partial_bfs(v1, v_to, d1 + 1, 0);
+      if (d2 + 1 < d1) partial_bfs(v2, v_from, d2 + 1, 1);
+      ++i1;
+      ++i2;
+    }
+  }
 }
 }  // namespace agl
