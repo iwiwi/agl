@@ -311,11 +311,50 @@ W dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::query_distance(
 }
 
 template <size_t kNumBitParallelRoots>
+void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::add_edge(
+    const G &g, V v_from, const E &e) {
+  V v_to = to(e);
+  V new_num_v = g.num_vertices();
+  for (V v = num_v_; v < new_num_v; ++v) {
+    // Now we cannot add new vertex.
+    // TODO: Add index
+    puts("sorry (add_edge)");
+    assert(false);
+  }
+  num_v_ = new_num_v;
+
+  adj_[0].resize(num_v_);
+  adj_[1].resize(num_v_);
+  adj_[0][v_from].push_back(v_to);
+  adj_[1][v_to].push_back(v_from);
+
+  for (int i = 0; i < 2; ++i) {
+    V x = i == 0 ? v_from : v_to;
+    if (adj_[0][x].size() + adj_[1][x].size() == 1) {
+      // New comer
+      // Now we cannot add new vertex.
+      puts("sorry (add_edge)");
+      assert(false);
+    }
+  }
+
+  // TODO: Update bit-parallel labels
+  for (int k = 0; k < kNumBitParallelRoots; ++k) {
+    // PartialBPBFS(k, v_from, v_to);
+  }
+
+  //
+  // Pruned BFS
+  //
+  
+}
+
+template <size_t kNumBitParallelRoots>
 void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::partial_bfs(
     V bfs_i, V sv, W sd, int x) {
-  static std::vector<std::pair<int, int>> que;
+  static std::vector<std::pair<V, W>> que;
   static std::vector<bool> vis;
-  static std::vector<int> root_label;
+  static std::vector<W> root_label;
   if ((int)que.size() < num_v_) {
     que.resize(num_v_ * 2);
     vis.resize(num_v_ * 2);
@@ -348,18 +387,20 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::partial_bfs(
       // Case 1: |bfs_i| is already in |label[v]|
       int i = 0;
       for (; idx_v.spt_v[i] <= bfs_i; ++i) {
-        uint32_t li = idx_v.spt_v[i];
-        int ld = idx_v.spt_d[i];
+        V vi = idx_v.spt_v[i];
+        W di = idx_v.spt_d[i];
 
-        if (li == bfs_i) {
-          if (ld <= d) {
+        if (vi == bfs_i) {
+          if (di <= d) {
             goto prune;
           } else {
             idx_v.spt_d[i] = d;
+            std::cout << v << "->" << ord_[vi] << " " << d << std::endl;
             goto traverse;
           }
+        } else if (root_label[vi] != -1 && root_label[vi] + di <= d) {
+          goto prune;
         }
-        if (root_label[li] != -1 && root_label[li] + ld <= d) goto prune;
       }
 
       // Case 2: |bfs_i| is not present in |label[v]|
@@ -375,12 +416,13 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::partial_bfs(
       }
       idx_v.spt_v[i] = bfs_i;
       idx_v.spt_d[i] = d;
+      std::cout << v << "->" << root << " " << d << "n" << x << std::endl;
     }
 
   traverse:
     ;
-    for (int i = 0; i < adj_[(x + 1) % 2][v].size(); ++i) {
-      int w = adj_[(x + 1) % 2][v][i];
+    for (int i = 0; i < adj_[x][v].size(); ++i) {
+      int w = adj_[x][v][i];
       if (!vis[w]) {
         que[que_t++] = std::make_pair(w, d + 1);
         vis[w] = true;
@@ -395,67 +437,6 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::partial_bfs(
   for (int i = 0; i < que_t; ++i) vis[que[i].first] = false;
   for (int i = 0; idx_r.spt_v[i] != INF32; ++i) {
     root_label[idx_r.spt_v[i]] = -1;
-  }
-}
-
-template <size_t kNumBitParallelRoots>
-void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::add_edge(
-    const G &g, V v_from, const E &e) {
-  V v_to = to(e);
-  V new_num_v = g.num_vertices();
-  for (V v = num_v_; v < new_num_v; ++v) {
-    // Now we cannot add new vertex.
-    puts("sorry (add_edge)");
-    assert(false);
-  }
-  num_v_ = new_num_v;
-
-  adj_[0].resize(num_v_);
-  adj_[1].resize(num_v_);
-  adj_[0][v_from].push_back(v_to);
-  adj_[1][v_to].push_back(v_from);
-
-  for (int i = 0; i < 2; ++i) {
-    V x = i == 0 ? v_from : v_to;
-    if (adj_[0][x].size() + adj_[1][x].size() == 1) {
-      // New comer
-      // Now we cannot add new vertex.
-      puts("sorry (add_edge)");
-      assert(false);
-    }
-  }
-
-  // TODO: Update bit-parallel labels
-  for (int k = 0; k < kNumBitParallelRoots; ++k) {
-    // PartialBPBFS(k, v_from, v_to);
-  }
-
-  //
-  // Pruned BFS
-  //
-  const index_t &idx_from = idx_[0][v_from], &idx_to = idx_[1][v_to];
-
-  for (int i1 = 0, i2 = 0;;) {
-    V v1 = idx_from.spt_v[i1], v2 = idx_to.spt_v[i2];
-    W d1 = idx_from.spt_d[i1], d2 = idx_to.spt_d[i2];
-    // std::cout << v_from << "->" << ord_[v1] << " " << d1 << std::endl;
-    // std::cout << v_to << "<-" << ord_[v2] << " " << d2 << std::endl;
-
-    if (v1 < v2) {
-      // v_from -> v_to
-      partial_bfs(v1, v_to, d1 + 1, 0);
-      ++i1;
-    } else if (v1 > v2) {
-      // v_to -> v_from
-      partial_bfs(v2, v_from, d2 + 1, 1);
-      ++i2;
-    } else {
-      if (v1 == INF32) break;  // Sentinel
-      if (d1 + 1 < d2) partial_bfs(v1, v_to, d1 + 1, 0);
-      if (d2 + 1 < d1) partial_bfs(v2, v_from, d2 + 1, 1);
-      ++i1;
-      ++i2;
-    }
   }
 }
 }  // namespace agl
