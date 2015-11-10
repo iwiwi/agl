@@ -183,7 +183,6 @@ TYPED_TEST(dpll_test, grid) {
   const int N = 10;
   unweighted_edge_list es = generate_grid(N, N);
   G g(es);
-  pretty_print(g);
   bool check = true;
   Test<TypeParam>(es, check);
   ASSERT_TRUE(check);
@@ -195,53 +194,33 @@ TYPED_TEST(dpll_test, small_ba) {
   for (int trial = 0; trial < 1000; ++trial) {
     unweighted_edge_list es = generate_ba(N, M);
     G g(es);
-    pretty_print(g);
     bool check = true;
     Test<TypeParam>(es, check);
     ASSERT_TRUE(check);
   }
 }
 
-TYPED_TEST(dpll_test, kanashimi) {
-  unweighted_edge_list es = {{0, 1},
-                             {0, 2},
-                             {0, 3},
-                             {0, 4},
-                             {0, 8},
-                             {0, 9},
-                             {0, 11},
-                             {1, 2},
-                             {1, 3},
-                             {1, 4},
-                             {1, 6},
-                             {1, 11},
-                             {1, 13},
-                             {2, 3},
-                             {2, 4},
-                             {2, 5},
-                             {2, 8},
-                             {2, 12},
-                             {2, 13},
-                             {3, 5},
-                             {3, 8},
-                             {3, 10},
-                             {3, 12},
-                             {4, 5},
-                             {4, 6},
-                             {4, 7},
-                             {4, 10},
-                             {4, 12},
-                             {5, 6},
-                             {5, 7},
-                             {5, 9},
-                             {6, 7},
-                             {6, 11},
-                             {7, 9},
-                             {7, 10},
-                             {8, 13}};
-  G g(es);
-  pretty_print(g);
-  bool check = true;
-  Test<TypeParam>(es, check);
-  ASSERT_TRUE(check);
+TYPED_TEST(dpll_test, random_ba) {
+  for (int trial = 0; trial < 1000; ++trial) {
+    V M = 3 + agl::random(10);
+    V N = agl::random(10) + M;
+    unweighted_edge_list es = generate_ba(N, M);
+    G g(es);
+    bool check = true;
+    Test<TypeParam>(es, check);
+    ASSERT_TRUE(check);
+  }
+}
+
+TYPED_TEST(dpll_test, random_hk) {
+  for (int trial = 0; trial < 1000; ++trial) {
+    V M = 3 + agl::random(10);
+    V N = agl::random(10) + M + 1;
+    double P = agl::random(1000) / 1000.0;
+    unweighted_edge_list es = generate_hk(N, M, P);
+    G g(es);
+    bool check = true;
+    Test<TypeParam>(es, check);
+    ASSERT_TRUE(check);
+  }
 }
