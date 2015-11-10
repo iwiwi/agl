@@ -189,7 +189,7 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::construct(
 
     // Pruned BFS
     for (V ordered_root = 0; ordered_root < num_v; ++ordered_root) {
-      if (root_used[ordered_root] || relabelled_adj[x][ordered_root].empty())
+      if (root_used[ordered_root])
         continue;
 
       int que_t0 = 0, que_t1 = 0, que_h = 0;

@@ -70,6 +70,7 @@ TYPED_TEST_CASE(dpll_test, dpll_types);
 
 template <typename TypeParam>
 void Test(const unweighted_edge_list &es, bool &check) {
+  // CONSTRUCTION
   G g(es);
   TypeParam dpll;
   dpll.construct(g);
@@ -94,13 +95,13 @@ void Test(const unweighted_edge_list &es, bool &check) {
             }
           }
         }
-
         check = false;
         return;
       }
     }
   }
 
+  // ONLINE UPDATE
   for (int q = 0; q < 20; ++q) {
     V q_from = -1, q_to = -1;
     int cnt = 0;
@@ -146,9 +147,12 @@ TYPED_TEST(dpll_test, three_vertices) {
   unweighted_edge_list es;
   es.emplace_back(0, 1);
   es.emplace_back(1, 2);
-  bool check = true;
-  Test<TypeParam>(es, check);
-  ASSERT_TRUE(check);
+  G g(es);
+  TypeParam dpll;
+  dpll.construct(g);
+  ASSERT_EQ(dpll.query_distance(g, 0, 2), 2);
+  dpll.add_edge(g, 2, 0);
+  ASSERT_EQ(dpll.query_distance(g, 2, 0), 1);
 }
 
 TYPED_TEST(dpll_test, path) {
