@@ -5,7 +5,7 @@
 
 namespace agl {
 
-template <typename T>
+template<typename T>
 struct parallel_vector {
   parallel_vector(int max_threads, size_t size_limit)
       : v(max_threads, std::vector<T>(size_limit)), n(max_threads, 0) {}
@@ -24,7 +24,7 @@ struct parallel_vector {
   std::vector<size_t> n;
 };
 
-template <size_t kNumBitParallelRoots = 16>
+template<size_t kNumBitParallelRoots = 16>
 class dynamic_pruned_landmark_labeling
     : public dynamic_graph_index_interface<G>,
       public distance_query_interface<G> {
@@ -94,9 +94,9 @@ class dynamic_pruned_landmark_labeling
   void partial_bfs(V bfs_i, V sv, W sd, int x);
 };
 
-template <size_t kNumBitParallelRoots>
-void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::construct(
-    const G &g) {
+template<size_t kNumBitParallelRoots>
+void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>
+::construct(const G &g) {
   free_all();
   V &num_v = num_v_;
   num_v = g.num_vertices();
@@ -280,9 +280,9 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::construct(
   }
 }
 
-template <size_t kNumBitParallelRoots>
-W dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::query_distance(
-    const G &g, V v_from, V v_to) {
+template<size_t kNumBitParallelRoots>
+W dynamic_pruned_landmark_labeling<kNumBitParallelRoots>
+::query_distance(const G &g, V v_from, V v_to) {
   if (v_from == v_to) return 0;
   if (v_from >= num_v_ || v_to >= num_v_) return kInfW;
 
@@ -310,9 +310,9 @@ W dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::query_distance(
   return dist;
 }
 
-template <size_t kNumBitParallelRoots>
-void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::add_edge(
-    const G &g, V v_from, const E &e) {
+template<size_t kNumBitParallelRoots>
+void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>
+::add_edge(const G &g, V v_from, const E &e) {
   V v_to = to(e);
   V new_num_v = g.num_vertices();
   for (V v = num_v_; v < new_num_v; ++v) {
@@ -365,9 +365,9 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::add_edge(
   }
 }
 
-template <size_t kNumBitParallelRoots>
-void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::partial_bfs(
-    V bfs_i, V sv, W sd, int x) {
+template<size_t kNumBitParallelRoots>
+void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>
+::partial_bfs(V bfs_i, V sv, W sd, int x) {
   static std::vector<std::pair<V, W>> que;
   static std::vector<bool> vis;
   // static std::vector<W> root_label;
