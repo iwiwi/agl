@@ -135,7 +135,7 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>
     std::sort(deg.rbegin(), deg.rend());
     for (int i = 0; i < num_v; ++i) {
       V v = deg[i].second;
-      if (!adj_[v].empty() || !adj_[1][v].empty()) {
+      if (!adj_[0][v].empty() || !adj_[1][v].empty()) {
         // We ignore isolated vertices here (to decide the ordering later)
         inv.push_back(v);
       }
@@ -295,13 +295,20 @@ W dynamic_pruned_landmark_labeling<kNumBitParallelRoots>
 
   for (int i1 = 0, i2 = 0;;) {
     V v1 = idx_from.spt_v[i1], v2 = idx_to.spt_v[i2];
+    W d1 = idx_from.spt_d[i1], d2 = idx_to.spt_d[i2];
     if (v1 == v2) {
       if (v1 == INF32) break;  // Sentinel
-      W tmp_dist = idx_from.spt_d[i1] + idx_to.spt_d[i2];
+      W tmp_dist = d1 + d2;
       if (tmp_dist < dist) dist = tmp_dist;
       ++i1;
       ++i2;
     } else {
+      if (v1 < INF32 && ord_[v1] == v_to && d1 < dist) {
+        dist = d1;
+      }
+      if (v2 < INF32 && ord_[v2] == v_from && d2 < dist) {
+        dist = d2;
+      }
       i1 += v1 < v2 ? 1 : 0;
       i2 += v1 > v2 ? 1 : 0;
     }
