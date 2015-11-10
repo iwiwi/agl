@@ -11,17 +11,11 @@ using namespace std;
 using namespace agl;
 using testing::Types;
 
-typedef Types<dynamic_pruned_landmark_labeling<0>> dpll_types;
-
-template <typename T>
-class dpll_test : public testing::Test {};
-TYPED_TEST_CASE(dpll_test, dpll_types);
-
 vector<vector<W>> warshall_floyd(const G &g, W INF) {
   V n = g.num_vertices();
   const auto es = g.edge_list();
   vector<vector<W>> dist(n, vector<W>(n, INF));
-  for (int i = 0; i < es.size(); ++i) {
+  for (int i = 0; i < (int)es.size(); ++i) {
     V v_from = es[i].first;
     V v_to = es[i].second;
     dist[v_from][v_to] = 1;
@@ -48,12 +42,38 @@ void update_warshall_floyd(vector<vector<W>> &dist, V v_from, V v_to) {
   }
 }
 
+TEST(dpll_static, query_ba) {
+  for (int trial = 0; trial < 1000; ++trial) {
+    V M = 3 + agl::random(10);
+    V N = agl::random(10) + M;
+    unweighted_edge_list es = generate_ba(N, M);
+    dynamic_pruned_landmark_labeling<0> dpll;
+    G g(es);
+    dpll.construct(g);
+
+    vector<vector<W>> dist = warshall_floyd(g, 100);
+    V n = g.num_vertices();
+    for (int i = 0; i < n; ++i) {
+      for (int j = 0; j < n; ++j) {
+        W dd = dpll.query_distance(g, i, j);
+        ASSERT_EQ(dist[i][j], dd) << i << " " << j;
+      }
+    }
+  }
+}
+
+typedef Types<dynamic_pruned_landmark_labeling<0>> dpll_types;
+
+template <typename T>
+class dpll_test : public testing::Test {};
+TYPED_TEST_CASE(dpll_test, dpll_types);
+
 template <typename TypeParam>
 void Test(const unweighted_edge_list &es, bool &check) {
   G g(es);
   TypeParam dpll;
   dpll.construct(g);
-  vector<vector<W>> dist = warshall_floyd(g, dpll.INF8);
+  vector<vector<W>> dist = warshall_floyd(g, 100);
   V n = g.num_vertices();
   for (V i = 0; i < n; ++i) {
     for (V j = 0; j < n; ++j) {
@@ -67,11 +87,12 @@ void Test(const unweighted_edge_list &es, bool &check) {
 
         for (int ti = 0; ti < n; ++ti) {
           for (int tj = 0; tj < n; ++tj) {
-            cerr << ti << "->" << tj << endl;
-            cerr << "dpll:	" << dpll.query_distance(g, ti, tj) << endl;
-            cerr << "WF:	" << dist[ti][tj] << endl;
+            if (dist[ti][tj] != dpll.query_distance(g, ti, tj)) {
+              cerr << ti << "->" << tj << endl;
+              cerr << "dpll:	" << dpll.query_distance(g, ti, tj) << endl;
+              cerr << "WF:	" << dist[ti][tj] << endl;
+            }
           }
-          cerr << endl;
         }
 
         check = false;
@@ -93,7 +114,7 @@ void Test(const unweighted_edge_list &es, bool &check) {
       }
     }
 
-    cout << q_from << "->" << q_to << endl;
+    W before = dpll.query_distance(g, q_from, q_to);
     dpll.add_edge(g, q_from, q_to);
     update_warshall_floyd(dist, q_from, q_to);
 
@@ -101,8 +122,20 @@ void Test(const unweighted_edge_list &es, bool &check) {
       for (V j = 0; j < n; ++j) {
         W qd = dpll.query_distance(g, i, j);
         W wd = dist[i][j];
-        check = false;
-        ASSERT_EQ(wd, qd) << i << " " << j;
+        if (wd != qd) {
+          auto ess = g.edge_list();
+          for (auto e : ess) {
+            cerr << "{" << e.first << "," << e.second << "}," << endl;
+          }
+
+          cerr << i << "->" << j << endl;
+          cerr << "Add:	" << q_from << "->" << q_to << endl;
+          cerr << "before:	" << before << endl;
+          cerr << "dpll:	" << qd << endl;
+          cerr << "WF:	" << wd << endl;
+          check = false;
+          return;
+        }
       }
     }
   }
@@ -158,9 +191,9 @@ TYPED_TEST(dpll_test, small_ba) {
   for (int trial = 0; trial < 1000; ++trial) {
     unweighted_edge_list es = generate_ba(N, M);
     G g(es);
+    pretty_print(g);
     bool check = true;
     Test<TypeParam>(es, check);
-    pretty_print(g);
     ASSERT_TRUE(check);
   }
 }
@@ -178,24 +211,30 @@ TYPED_TEST(dpll_test, kanashimi) {
                              {1, 4},
                              {1, 6},
                              {1, 11},
+                             {1, 13},
                              {2, 3},
                              {2, 4},
                              {2, 5},
                              {2, 8},
+                             {2, 12},
+                             {2, 13},
                              {3, 5},
                              {3, 8},
                              {3, 10},
+                             {3, 12},
                              {4, 5},
                              {4, 6},
                              {4, 7},
                              {4, 10},
+                             {4, 12},
                              {5, 6},
                              {5, 7},
                              {5, 9},
                              {6, 7},
                              {6, 11},
                              {7, 9},
-                             {7, 10}};
+                             {7, 10},
+                             {8, 13}};
   G g(es);
   pretty_print(g);
   bool check = true;
