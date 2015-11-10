@@ -75,8 +75,8 @@ void Test(const unweighted_edge_list &es, bool &check) {
         }
 
         check = false;
+        return;
       }
-      return;
     }
   }
 
