@@ -224,3 +224,16 @@ TYPED_TEST(dpll_test, random_hk) {
     ASSERT_TRUE(check);
   }
 }
+
+TYPED_TEST(dpll_test, random_grid) {
+  for (int trial = 0; trial < 20; ++trial) {
+    V M = 3 + agl::random(10);
+    V N = 3 + agl::random(10);
+    unweighted_edge_list es = generate_grid(N, M);
+    G g(es);
+    bool check = true;
+    Test<TypeParam>(es, check);
+    ASSERT_TRUE(check);
+  }
+}
+
