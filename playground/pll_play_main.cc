@@ -11,9 +11,9 @@ int main() {
     dynamic_pruned_landmark_labeling<0> dpll;
     dpll.construct(g);
 
-    cout << dpll.query_distance(g, 0, 15) << endl;
-    dpll.add_edge(g, 5, 10);
-    cout << dpll.query_distance(g, 0, 15) << endl;
+    cout << dpll.query_distance(g, 5, 0) << endl;
+    dpll.add_edge(g, 5, 0);
+    cout << dpll.query_distance(g, 5, 0) << endl;
 
     
   }

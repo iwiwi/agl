@@ -350,40 +350,39 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::add_edge(
     // v_fromに来る頂点を列挙する
     const index_t &index_from = idx_[0][v_from];
     for (int i = 0; index_from.spt_v[i] != INF32; ++i) {
-      V v = index_from.spt_v[i];
-      W d = index_from.spt_d[i];
-      std::cout << v_from << "<-" << ord_[v] << " " << d << std::endl;
-      partial_bfs(v, v_to, d + 1, 0);
+      V vi = index_from.spt_v[i];
+      W di = index_from.spt_d[i];
+      partial_bfs(vi, v_to, di + 1, 0);
     }
   }
   {
     const index_t &index_to = idx_[1][v_to];
     for (int i = 0; index_to.spt_v[i] != INF32; ++i) {
-      V v = index_to.spt_v[i];
-      W d = index_to.spt_d[i];
-      std::cout << v_to << " " << ord_[v] << " " << d << std::endl;
+      V vi = index_to.spt_v[i];
+      W di = index_to.spt_d[i];
+      partial_bfs(vi, v_from, di + 1, 1);
     }
   }
 }
 
 template <size_t kNumBitParallelRoots>
-void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>
-::partial_bfs(V bfs_i, V sv, W sd, int x) {
+void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::partial_bfs(
+    V bfs_i, V sv, W sd, int x) {
   static std::vector<std::pair<V, W>> que;
   static std::vector<bool> vis;
-  static std::vector<W> root_label;
+  // static std::vector<W> root_label;
   if ((int)que.size() < num_v_) {
     que.resize(num_v_ * 2);
     vis.resize(num_v_ * 2);
-    root_label.resize(num_v_ * 2);
+    // root_label.resize(num_v_ * 2);
   }
 
-  auto &index = idx_[x ^ 1];
-  V root = ord_[bfs_i];
-  index_t &idx_r = index[root];
-  for (int i = 0; idx_r.spt_v[i] != INF32; ++i) {
-    root_label[idx_r.spt_v[i]] = idx_r.spt_d[i];
-  }
+  // auto &index = idx_[x ^ 1];
+  // V root = ord_[bfs_i];
+  // index_t &idx_r = index[root];
+  // for (int i = 0; idx_r.spt_v[i] != INF32; ++i) {
+  //   root_label[idx_r.spt_v[i]] = idx_r.spt_d[i];
+  // }
 
   int que_h = 0, que_t = 0;
   // queue<pair<int, int> > que;
@@ -397,7 +396,7 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>
 
     // Puruning test & new label
     {
-      index_t &idx_v = index[v];
+      index_t &idx_v = idx_[x][v];
 
       // TODO: bit-parallel
 
@@ -412,16 +411,17 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>
             goto prune;
           } else {
             idx_v.spt_d[i] = d;
-            std::cout << v << "->" << ord_[vi] << " " << d << std::endl;
             goto traverse;
           }
-        } else if (root_label[vi] != -1 && root_label[vi] + di <= d) {
-          goto prune;
         }
+        // else if (root_label[vi] != -1 && root_label[vi] + di <= d) {
+        //   goto prune;
+        // }
       }
 
       // Case 2: |bfs_i| is not present in |label[v]|
       {
+        // Expand label
         if (idx_v.spt_v[idx_v.spt_l - 1] == INF32) idx_v.Expand();
         int j;
         for (j = i; idx_v.spt_v[j] != INF32; ++j)
@@ -433,7 +433,6 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>
       }
       idx_v.spt_v[i] = bfs_i;
       idx_v.spt_d[i] = d;
-      std::cout << v << "->" << root << " " << d << "n" << x << std::endl;
     }
 
   traverse:
@@ -452,8 +451,8 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>
 
   // Reset
   for (int i = 0; i < que_t; ++i) vis[que[i].first] = false;
-  for (int i = 0; idx_r.spt_v[i] != INF32; ++i) {
-    root_label[idx_r.spt_v[i]] = -1;
-  }
+  // for (int i = 0; idx_r.spt_v[i] != INF32; ++i) {
+  //   root_label[idx_r.spt_v[i]] = -1;
+  // }
 }
 }  // namespace agl
