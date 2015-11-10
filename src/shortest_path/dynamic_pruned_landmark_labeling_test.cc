@@ -49,7 +49,7 @@ void update_warshall_floyd(vector<vector<W>> &dist, V v_from, V v_to) {
 }
 
 template <typename TypeParam>
-void Test(const unweighted_edge_list &es) {
+void Test(const unweighted_edge_list &es, bool &check) {
   G g(es);
   TypeParam dpll;
   dpll.construct(g);
@@ -61,45 +61,61 @@ void Test(const unweighted_edge_list &es) {
       W wd = dist[i][j];
       if (qd != wd) {
         auto ess = g.edge_list();
-        for (auto e : ess)
+        for (auto e : ess) {
           cerr << "{" << e.first << "," << e.second << "}," << endl;
+        }
+
+        for (int ti = 0; ti < n; ++ti) {
+          for (int tj = 0; tj < n; ++tj) {
+            cerr << ti << "->" << tj << endl;
+            cerr << "dpll:	" << dpll.query_distance(g, ti, tj) << endl;
+            cerr << "WF:	" << dist[ti][tj] << endl;
+          }
+          cerr << endl;
+        }
+
+        check = false;
       }
-      ASSERT_EQ(wd, qd) << i << " " << j;
+      return;
     }
   }
 
-  // for (int q = 0; q < 20; ++q) {
-  //   V q_from = -1, q_to = -1;
-  //   int cnt = 0;
-  //   while (q_from == q_to || dpll.query_distance(g, q_from, q_to) == 1) {
-  //     q_from = agl::random(n);
-  //     q_to = agl::random(n);
+  for (int q = 0; q < 20; ++q) {
+    V q_from = -1, q_to = -1;
+    int cnt = 0;
+    while (q_from == q_to || dpll.query_distance(g, q_from, q_to) == 1) {
+      q_from = agl::random(n);
+      q_to = agl::random(n);
 
-  //     cnt++;
-  //     if (cnt == 100) {
-  //       return;
-  //     }
-  //   }
+      cnt++;
+      if (cnt == 100) {
+        return;
+      }
+    }
 
-  //   cout << q_from << "->" << q_to << endl;
-  //   dpll.add_edge(g, q_from, q_to);
-  //   update_warshall_floyd(dist, q_from, q_to);
+    cout << q_from << "->" << q_to << endl;
+    dpll.add_edge(g, q_from, q_to);
+    update_warshall_floyd(dist, q_from, q_to);
 
-  //   for (V i = 0; i < n; ++i) {
-  //     for (V j = 0; j < n; ++j) {
-  //       W qd = dpll.query_distance(g, i, j);
-  //       W wd = dist[i][j];
-  //       ASSERT_EQ(wd, qd) << i << " " << j;
-  //     }
-  //   }
-  // }
+    for (V i = 0; i < n; ++i) {
+      for (V j = 0; j < n; ++j) {
+        W qd = dpll.query_distance(g, i, j);
+        W wd = dist[i][j];
+        check = false;
+        ASSERT_EQ(wd, qd) << i << " " << j;
+      }
+    }
+  }
+  check = true;
 }
 
 TYPED_TEST(dpll_test, three_vertices) {
   unweighted_edge_list es;
   es.emplace_back(0, 1);
   es.emplace_back(1, 2);
-  Test<TypeParam>(es);
+  bool check = true;
+  Test<TypeParam>(es, check);
+  ASSERT_TRUE(check);
 }
 
 TYPED_TEST(dpll_test, path) {
@@ -109,7 +125,9 @@ TYPED_TEST(dpll_test, path) {
     for (V i = 0; i + 1 < n; ++i) {
       es.emplace_back(i, i + 1);
     }
-    Test<TypeParam>(es);
+    bool check = true;
+    Test<TypeParam>(es, check);
+    ASSERT_TRUE(check);
   }
 }
 
@@ -118,7 +136,9 @@ TYPED_TEST(dpll_test, cycle) {
   for (int trial = 0; trial < 10; ++trial) {
     V n = agl::random(50) + 5;
     unweighted_edge_list es = generate_cycle(n);
-    Test<TypeParam>(es);
+    bool check = true;
+    Test<TypeParam>(es, check);
+    ASSERT_TRUE(check);
   }
 }
 
@@ -127,15 +147,22 @@ TYPED_TEST(dpll_test, grid) {
   unweighted_edge_list es = generate_grid(N, N);
   G g(es);
   pretty_print(g);
-  Test<TypeParam>(es);
+  bool check = true;
+  Test<TypeParam>(es, check);
+  ASSERT_TRUE(check);
 }
 
 TYPED_TEST(dpll_test, small_ba) {
-  V N = 5;
+  V N = 14;
   V M = 3;
-  unweighted_edge_list es = generate_ba(N, M);
-  G g(es);
-  Test<TypeParam>(es);
+  for (int trial = 0; trial < 1000; ++trial) {
+    unweighted_edge_list es = generate_ba(N, M);
+    G g(es);
+    bool check = true;
+    Test<TypeParam>(es, check);
+    pretty_print(g);
+    ASSERT_TRUE(check);
+  }
 }
 
 TYPED_TEST(dpll_test, kanashimi) {
@@ -151,34 +178,27 @@ TYPED_TEST(dpll_test, kanashimi) {
                              {1, 4},
                              {1, 6},
                              {1, 11},
-                             {1, 13},
                              {2, 3},
                              {2, 4},
                              {2, 5},
                              {2, 8},
-                             {2, 12},
-                             {2, 13},
                              {3, 5},
                              {3, 8},
                              {3, 10},
-                             {3, 12},
-                             {3, 14},
                              {4, 5},
                              {4, 6},
                              {4, 7},
                              {4, 10},
-                             {4, 12},
                              {5, 6},
                              {5, 7},
                              {5, 9},
-                             {5, 14},
                              {6, 7},
                              {6, 11},
                              {7, 9},
-                             {7, 10},
-                             {7, 14},
-                             {8, 13}};
+                             {7, 10}};
   G g(es);
   pretty_print(g);
-  Test<TypeParam>(es);
+  bool check = true;
+  Test<TypeParam>(es, check);
+  ASSERT_TRUE(check);
 }

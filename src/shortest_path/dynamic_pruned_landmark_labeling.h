@@ -173,8 +173,7 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>
         num_v,
         std::make_pair(std::vector<V>(1, INF32), std::vector<W>(1, INF8)));
 
-    // std::vector<bool> vis(num_v);
-    std::vector<uint8_t> vis(num_v / 8 + 1);
+    std::vector<bool> vis(num_v, false);
     std::vector<V> que(num_v);
     std::vector<W> dst_r(num_v + 1, INF8);
 
@@ -191,8 +190,7 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>
 
       int que_t0 = 0, que_t1 = 0, que_h = 0;
       que[que_h++] = r;
-      // vis[r] = true;
-      vis[r / 8] |= 1 << (r % 8);
+      vis[r] = true;
       que_t1 = que_h;
 
       for (W dist = 0; que_t0 < que_h; ++dist) {
@@ -221,36 +219,22 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>
           tmp_idx_v.second.push_back(INF8);
 
           for (size_t i = 0; i < adj[v].size(); ++i) {
-            int w = adj[v][i];
-            // if (!vis[w]) {
-            //   que[que_h++] = w;
-            //   vis[w] = true;
-            // }
-            for (;;) {
-              uint8_t m = vis[w / 8];
-              if (m & (1 << (w % 8))) break;
-              if (__sync_bool_compare_and_swap(&vis[w / 8], m,
-                                               m | (1 << (w % 8)))) {
-                pdiff_nxt_que.push_back(w);
-                break;
-              }
+            const int w = adj[v][i];
+            if (!vis[w]) {
+              que[que_h++] = w;
+              vis[w] = true;
             }
           }
         pruned : {}
         }
 
-        for (int i = 0; i < max_threads; ++i) {
-          for (int j = 0; j < (int)pdiff_nxt_que.n[i]; ++j) {
-            que[que_h++] = pdiff_nxt_que.v[i][j];
-          }
-        }
 
         que_t0 = que_t1;
         que_t1 = que_h;
         pdiff_nxt_que.clear();
       }
 
-      for (int i = 0; i < que_h; ++i) vis[que[i] / 8] = 0;
+      for (int i = 0; i < vis.size(); ++i) vis[i] = false;
       for (size_t i = 0; i < tmp_idx_r.first.size() - 1; ++i) {
         dst_r[tmp_idx_r.first[i]] = INF8;
       }
