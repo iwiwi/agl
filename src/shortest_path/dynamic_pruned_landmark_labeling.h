@@ -48,7 +48,7 @@ class dynamic_pruned_landmark_labeling
     assert(false);
   }
 
- private:
+ // private:
   static const uint8_t INF8 = 100;  // For unreachable pairs
   static const uint32_t INF32 =
       std::numeric_limits<int32_t>::max();  // For sentinel
@@ -100,6 +100,7 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>
   free_all();
   V &num_v = num_v_;
   num_v = g.num_vertices();
+  assert(num_v >= 3);
   const std::vector<std::pair<V, E>> &es = g.edge_list();
   adj_[0].resize(num_v), adj_[1].resize(num_v);
   for (int i = 0; i < es.size(); ++i) {
@@ -284,7 +285,7 @@ template<size_t kNumBitParallelRoots>
 W dynamic_pruned_landmark_labeling<kNumBitParallelRoots>
 ::query_distance(const G &g, V v_from, V v_to) {
   if (v_from == v_to) return 0;
-  if (v_from >= num_v_ || v_to >= num_v_) return kInfW;
+  if (v_from >= num_v_ || v_to >= num_v_) return INF8;
 
   const index_t &idx_from = idx_[1][v_from];
   const index_t &idx_to = idx_[0][v_to];
@@ -306,7 +307,7 @@ W dynamic_pruned_landmark_labeling<kNumBitParallelRoots>
     }
   }
 
-  if (dist >= INF8 - 2) dist = kInfW;
+  if (dist >= INF8 - 2) dist = INF8;
   return dist;
 }
 
