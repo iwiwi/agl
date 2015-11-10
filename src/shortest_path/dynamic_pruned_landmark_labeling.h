@@ -346,12 +346,29 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::add_edge(
   //
   // Pruned BFS
   //
-  
+  {
+    // v_fromに来る頂点を列挙する
+    const index_t &index_from = idx_[0][v_from];
+    for (int i = 0; index_from.spt_v[i] != INF32; ++i) {
+      V v = index_from.spt_v[i];
+      W d = index_from.spt_d[i];
+      std::cout << v_from << "<-" << ord_[v] << " " << d << std::endl;
+      partial_bfs(v, v_to, d + 1, 0);
+    }
+  }
+  {
+    const index_t &index_to = idx_[1][v_to];
+    for (int i = 0; index_to.spt_v[i] != INF32; ++i) {
+      V v = index_to.spt_v[i];
+      W d = index_to.spt_d[i];
+      std::cout << v_to << " " << ord_[v] << " " << d << std::endl;
+    }
+  }
 }
 
 template <size_t kNumBitParallelRoots>
-void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::partial_bfs(
-    V bfs_i, V sv, W sd, int x) {
+void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>
+::partial_bfs(V bfs_i, V sv, W sd, int x) {
   static std::vector<std::pair<V, W>> que;
   static std::vector<bool> vis;
   static std::vector<W> root_label;
@@ -361,7 +378,7 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::partial_bfs(
     root_label.resize(num_v_ * 2);
   }
 
-  auto &index = idx_[x];
+  auto &index = idx_[x ^ 1];
   V root = ord_[bfs_i];
   index_t &idx_r = index[root];
   for (int i = 0; idx_r.spt_v[i] != INF32; ++i) {
