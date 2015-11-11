@@ -29,10 +29,12 @@ class dynamic_pruned_landmark_labeling
   }
 
  private:
-  const uint8_t INF8 = 100;  // For unreachable pairs
+  const W INF8 = 100;  // For unreachable pairs
   const uint32_t INF32 = std::numeric_limits<int32_t>::max();  // For sentinel
 
   struct index_t {
+    W bpspt_d[kNumBitParallelRoots];
+    uint64_t bpspt_s[kNumBitParallelRoots][2];
     uint32_t *spt_v;
     uint8_t *spt_d;
     uint32_t spt_l;
@@ -52,7 +54,7 @@ class dynamic_pruned_landmark_labeling
       spt_d = new_spt_d;
       spt_l = new_spt_l;
     }
-  };
+  } __attribute__((aligned(64)));  // Aligned for cache lines
 
   V num_v_;
   std::vector<std::vector<V>> adj_[2];
@@ -74,7 +76,7 @@ class dynamic_pruned_landmark_labeling
 
   void print_index() {
     for (int x = 0; x < 2; ++x) {
-      std::cerr << x << std::endl;
+      std::cerr << "Index No. " << x << std::endl;
       for (V v = 0; v < num_v_; ++v) {
         const index_t &idx = idx_[x][v];
         for (int i = 0; idx.spt_v[i] != INF32; ++i) {
@@ -142,17 +144,113 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>
     std::vector<V> rank(num_v);
     for (int i = 0; i < num_v; ++i) rank[deg[i].second] = i;
     for (V from = 0; from < num_v; ++from) {
-      for (size_t i = 0; i < adj_[0][from].size(); ++i) {
-        V to_v = adj_[0][from][i];
-        relabelled_adj[0][rank[from]].push_back(rank[to_v]);
-        relabelled_adj[1][rank[to_v]].push_back(rank[from]);
+      for (V v_to : adj_[0][from]) {
+        relabelled_adj[0][rank[from]].push_back(rank[v_to]);
+        relabelled_adj[1][rank[v_to]].push_back(rank[from]);
       }
     }
   }
 
   //
-  // TODO: Bit-parallel labeling
+  // Bit-parallel labeling
   //
+  for (int x = 0; x < 0; ++x) {
+    std::vector<std::vector<V>> &adj = relabelled_adj[x];
+    std::vector<index_t> &index = idx_[x];
+
+    size_t num_e = g.num_edges();
+    std::vector<bool> used(num_v ,false);
+    std::vector<W> tmp_d(num_v);  // Distance from root
+    std::vector<std::pair<uint64_t, uint64_t>> tmp_s(num_v);
+    std::vector<V> que(num_v);
+    std::vector<std::pair<V, V>> sibling_es(num_e);
+    std::vector<std::pair<V, V>> child_es(num_e);
+
+    V root = 0;
+    for (int i_bpspt = 0; i_bpspt < kNumBitParallelRoots; ++i_bpspt) {
+      while (root < num_v && used[root]) ++root;
+      if (root == num_v) {
+        for (V v = 0; v < num_v; ++v) index[v].bpspt_d[i_bpspt] = INF8;
+        continue;
+      }
+      used[root] = true;
+
+      fill(tmp_d.begin(), tmp_d.end(), INF8);
+      fill(tmp_s.begin(), tmp_s.end(), std::make_pair(0, 0));
+
+      int que_t0 = 0, que_t1 = 0, que_h = 0;
+      que[que_h++] = root;
+      tmp_d[root] = 0;
+      que_t1 = que_h;
+
+      // Start from root
+      int bit_pos = 0;
+      sort(adj[root].begin(), adj[root].end());
+      for (V v:adj[root]) {
+        if (!used[v]) {
+          used[v] = true;
+          que[que_h++] = v;
+          tmp_d[v] = 1;
+          tmp_s[v].first = 1ULL << bit_pos;
+          if (++bit_pos == 64) break;
+        }
+      }
+
+      for (W dist = 0; que_t0 < que_h; ++dist) {
+        int num_sibling_es = 0, num_child_es = 0;
+
+        for (int que_i = que_t0; que_i < que_t1; ++que_i) {
+          V v = que[que_i];
+
+          for (V tv : adj[v]) {
+            if (dist == tmp_d[tv]) {
+              if (v < tv) {  // to prevent duplicate pair(v,tv)
+                // dist(root, v) = dist(root, tv)
+                sibling_es[num_sibling_es].first = v;
+                sibling_es[num_sibling_es].second = tv;
+                ++num_sibling_es;
+              }
+            } else if (dist < tmp_d[tv]) {
+              if (tmp_d[tv] == INF8) {
+                que[que_h++] = tv;
+                tmp_d[tv] = dist + 1;
+              }
+              // dist(root, v) + 1 = dist(root, tv)
+              child_es[num_child_es].first = v;
+              child_es[num_child_es].second = tv;
+              ++num_child_es;
+            }
+          }
+        }
+
+        for (int i = 0; i < num_sibling_es; ++i) {
+          V v = sibling_es[i].first, w = sibling_es[i].second;
+          tmp_s[v].second |= tmp_s[w].first;
+          tmp_s[w].second |= tmp_s[v].first;
+        }
+        for (int i = 0; i < num_child_es; ++i) {
+          V parent = child_es[i].first, child = child_es[i].second;
+          tmp_s[child].first |= tmp_s[parent].first;
+          tmp_s[child].second |= tmp_s[parent].second;
+        }
+
+        que_t0 = que_t1;
+        que_t1 = que_h;
+      }
+
+      for (V v = 0; v < (V)inv.size(); ++v) {
+        index[inv[v]].bpspt_d[i_bpspt] = tmp_d[v];
+        index[inv[v]].bpspt_s[i_bpspt][0] = tmp_s[v].first;
+        index[inv[v]].bpspt_s[i_bpspt][1] = tmp_s[v].second & ~tmp_s[v].first;
+      }
+      for (V v = 0; v < num_v; ++v) {
+        if (adj_[v].empty() || true || true) {
+          index[v].bpspt_d[i_bpspt] = INF8;
+          index[v].bpspt_s[i_bpspt][0] = index[v].bpspt_s[i_bpspt][1] = 0;
+        }
+      }
+    }
+  }
 
   //
   // Pruned labeling
@@ -183,8 +281,6 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>
           V v = que[que_i];
           auto &tmp_idx_v = tmp_idx[v];
           assert(v < (V)inv.size());
-
-          // TODO: Prefetch
 
           // TODO: Bit-parallel
 

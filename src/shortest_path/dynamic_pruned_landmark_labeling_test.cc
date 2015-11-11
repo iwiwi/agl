@@ -249,8 +249,10 @@ TYPED_TEST(dpll_test, time_large) {
   }
   for (int i = 0; i < 200; ++i) {
     V v_from = agl::random(N), v_to = agl::random(N);
-    cerr << v_from << " " << v_to << endl;
     dpll.add_edge(g, v_from, v_to);
+    if ((i + 1) % 50 == 0) {
+      cerr << (i + 1) << endl;
+    }
   }
 }
 
