@@ -1,15 +1,16 @@
-// typed test を使って複数のテンプレートパラメータでテストして下さい
-// 参考：https://github.com/iwiwi/pruned-landmark-labeling/blob/master/src/pruned_landmark_labeling_test.cc
-
-// 更新のワークロード生成は |tutorial/07_dynamic_update_benchmark_main.cc|
-// を参考に
-
 #include <gtest/gtest.h>
 #include "dynamic_pruned_landmark_labeling.h"
+#include <pruned_landmark_labeling.h>
 
 using namespace std;
 using namespace agl;
 using testing::Types;
+
+typedef Types<dynamic_pruned_landmark_labeling<0>> dpll_types;
+
+template <typename T>
+class dpll_test : public testing::Test {};
+TYPED_TEST_CASE(dpll_test, dpll_types);
 
 vector<vector<W>> warshall_floyd(const G &g, W INF) {
   V n = g.num_vertices();
@@ -62,12 +63,6 @@ TEST(dpll_static, query_ba) {
   }
 }
 
-typedef Types<dynamic_pruned_landmark_labeling<0>> dpll_types;
-
-template <typename T>
-class dpll_test : public testing::Test {};
-TYPED_TEST_CASE(dpll_test, dpll_types);
-
 template <typename TypeParam>
 void Test(const unweighted_edge_list &es, bool &check) {
   // CONSTRUCTION
@@ -90,8 +85,8 @@ void Test(const unweighted_edge_list &es, bool &check) {
           for (int tj = 0; tj < n; ++tj) {
             if (dist[ti][tj] != dpll.query_distance(g, ti, tj)) {
               cerr << ti << "->" << tj << endl;
-              cerr << "dpll:	" << dpll.query_distance(g, ti, tj) << endl;
-              cerr << "WF:	" << dist[ti][tj] << endl;
+              cerr << "dpll:  " << dpll.query_distance(g, ti, tj) << endl;
+              cerr << "WF:  " << dist[ti][tj] << endl;
             }
           }
         }
@@ -130,10 +125,10 @@ void Test(const unweighted_edge_list &es, bool &check) {
           }
 
           cerr << i << "->" << j << endl;
-          cerr << "Add:	" << q_from << "->" << q_to << endl;
-          cerr << "before:	" << before << endl;
-          cerr << "dpll:	" << qd << endl;
-          cerr << "WF:	" << wd << endl;
+          cerr << "Add: " << q_from << "->" << q_to << endl;
+          cerr << "before:  " << before << endl;
+          cerr << "dpll:  " << qd << endl;
+          cerr << "WF:  " << wd << endl;
           check = false;
           return;
         }
@@ -201,9 +196,9 @@ TYPED_TEST(dpll_test, small_ba) {
 }
 
 TYPED_TEST(dpll_test, random_ba) {
-  for (int trial = 0; trial < 1000; ++trial) {
-    V M = 3 + agl::random(10);
-    V N = agl::random(10) + M;
+  for (int trial = 0; trial < 10; ++trial) {
+    V M = 3 + agl::random(100);
+    V N = agl::random(100) + M;
     unweighted_edge_list es = generate_ba(N, M);
     G g(es);
     bool check = true;
@@ -213,9 +208,9 @@ TYPED_TEST(dpll_test, random_ba) {
 }
 
 TYPED_TEST(dpll_test, random_hk) {
-  for (int trial = 0; trial < 1000; ++trial) {
-    V M = 3 + agl::random(10);
-    V N = agl::random(10) + M + 1;
+  for (int trial = 0; trial < 10; ++trial) {
+    V M = 3 + agl::random(100);
+    V N = agl::random(100) + M + 1;
     double P = agl::random(1000) / 1000.0;
     unweighted_edge_list es = generate_hk(N, M, P);
     G g(es);
@@ -234,6 +229,28 @@ TYPED_TEST(dpll_test, random_grid) {
     bool check = true;
     Test<TypeParam>(es, check);
     ASSERT_TRUE(check);
+  }
+}
+
+TYPED_TEST(dpll_test, time_large) {
+  V M = 3 + agl::random(5);
+  V N = M + agl::random(10000);
+  unweighted_edge_list es = generate_ba(N, M);
+  G g(es);
+  dynamic_pruned_landmark_labeling<> dpll;
+
+  dpll.construct(g);
+  pretty_print(g);
+  cerr << "PLL constructed" << endl;
+  for (int i = 0; i < 10000; ++i) {
+    V v_from = agl::random(N);
+    V v_to = agl::random(N);
+    dpll.query_distance(g, v_from, v_to);
+  }
+  for (int i = 0; i < 200; ++i) {
+    V v_from = agl::random(N), v_to = agl::random(N);
+    cerr << v_from << " " << v_to << endl;
+    dpll.add_edge(g, v_from, v_to);
   }
 }
 
