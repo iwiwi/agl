@@ -156,6 +156,7 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>
   //
   for (int x = 0; x < 0; ++x) {
     std::vector<std::vector<V>> &adj = relabelled_adj[x];
+    std::vector<std::vector<V>> &adj_inv = relabelled_adj[x ^ 1];
     std::vector<index_t> &index = idx_[x];
 
     size_t num_e = g.num_edges();
@@ -186,7 +187,7 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>
       // Start from root
       int bit_pos = 0;
       sort(adj[root].begin(), adj[root].end());
-      for (V v:adj[root]) {
+      for (V v : adj[root]) {
         if (!used[v]) {
           used[v] = true;
           que[que_h++] = v;
@@ -204,8 +205,8 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>
 
           for (V tv : adj[v]) {
             if (dist == tmp_d[tv]) {
-              if (v < tv) {  // to prevent duplicate pair(v,tv)
-                // dist(root, v) = dist(root, tv)
+              if (v < tv) {  // to avoid duplicate pair(v,tv)
+                // dist(root->v) = dist(root->tv)
                 sibling_es[num_sibling_es].first = v;
                 sibling_es[num_sibling_es].second = tv;
                 ++num_sibling_es;
@@ -215,7 +216,8 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>
                 que[que_h++] = tv;
                 tmp_d[tv] = dist + 1;
               }
-              // dist(root, v) + 1 = dist(root, tv)
+              // dist(root->v) + 1 = dist(root->tv)
+              // and root->v->tv
               child_es[num_child_es].first = v;
               child_es[num_child_es].second = tv;
               ++num_child_es;
@@ -229,7 +231,8 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>
           tmp_s[w].second |= tmp_s[v].first;
         }
         for (int i = 0; i < num_child_es; ++i) {
-          V parent = child_es[i].first, child = child_es[i].second;
+          V parent = child_es[i].first;
+          V child = child_es[i].second;
           tmp_s[child].first |= tmp_s[parent].first;
           tmp_s[child].second |= tmp_s[parent].second;
         }
@@ -241,7 +244,7 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>
       for (V v = 0; v < (V)inv.size(); ++v) {
         index[inv[v]].bpspt_d[i_bpspt] = tmp_d[v];
 
-        // inv[v]と, inv[v]よりrootに近い頂点のbit
+        // inv[v]と, inv[v]よりrootに近い頂点のbit (rootは除く)
         index[inv[v]].bpspt_s[i_bpspt][0] = tmp_s[v].first;
 
         // inv[v]とrootから等距離にある点のbit(inv[v]以外)
@@ -272,8 +275,7 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>
 
     // Pruned BFS
     for (V ordered_root = 0; ordered_root < num_v; ++ordered_root) {
-      if (root_used[ordered_root])
-        continue;
+      if (root_used[ordered_root]) continue;
 
       int que_t0 = 0, que_t1 = 0, que_h = 0;
       que[que_h++] = ordered_root;
@@ -286,8 +288,6 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>
           auto &tmp_idx_v = tmp_idx[v];
           assert(v < (V)inv.size());
 
-          // TODO: Bit-parallel
-
           // Traverse
           tmp_idx_v.back().first = ordered_root;
           tmp_idx_v.back().second = dist;
@@ -296,17 +296,24 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>
           // Prune?
           if (root_used[v]) continue;
 
-          // for (int i = 0; i < kNumBitParallelRoots; ++i) {
-          //   int td = idx_r.bpspt_d[i] + idx_v.bpspt_d[i];
-          //   if (td - 2 <= d) {
-          //     td +=
-          //         (idx_r.bpspt_s[i][0] & idx_v.bpspt_s[i][0]) ? -2 :
-          //         ((idx_r.bpspt_s[i][0] & idx_v.bpspt_s[i][1]) |
-          //          (idx_r.bpspt_s[i][1] & idx_v.bpspt_s[i][0]))
-          //         ? -1 : 0;
-          //     if (td <= d) goto pruned;
-          //   }
-          // }
+          //
+          // Bit-parallel Prune
+          //
+          for (int i_bpspt = 0; i_bpspt < kNumBitParallelRoots; ++i_bpspt) {
+            index_t &idx_r = idx_[x][inv[ordered_root]];
+            index_t &idx_v = idx_[x][inv[v]];
+            W td = idx_r.bpspt_d[i_bpspt] + idx_v.bpspt_d[i_bpspt];
+            if (td - 2 > dist) continue;
+            if (idx_r.bpspt_s[i_bpspt][0] & idx_v.bpspt_s[i_bpspt][0]) {
+              td -= 2;
+            } else if ((idx_r.bpspt_s[i_bpspt][0] & idx_v.bpspt_s[i_bpspt][1]) |
+                       (idx_r.bpspt_s[i_bpspt][1] &
+                        idx_v.bpspt_s[i_bpspt][0])) {
+              td--;
+            }
+            if (td <= dist) goto pruned;
+          }
+
           // for (size_t i = 0; i < tmp_idx_v.first.size() - 1; ++i) {
           //   int w = tmp_idx_v.first[i];
           //   int td = tmp_idx_v.second[i] + dst_r[w];
