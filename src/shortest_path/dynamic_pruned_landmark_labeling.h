@@ -240,16 +240,20 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>
 
       for (V v = 0; v < (V)inv.size(); ++v) {
         index[inv[v]].bpspt_d[i_bpspt] = tmp_d[v];
+
+        // inv[v]と, inv[v]よりrootに近い頂点のbit
         index[inv[v]].bpspt_s[i_bpspt][0] = tmp_s[v].first;
+
+        // inv[v]とrootから等距離にある点のbit(inv[v]以外)
         index[inv[v]].bpspt_s[i_bpspt][1] = tmp_s[v].second & ~tmp_s[v].first;
       }
       for (V v = 0; v < num_v; ++v) {
-        if (adj_[v].empty() || true || true) {
+        if (adj_[x][v].empty()) {
           index[v].bpspt_d[i_bpspt] = INF8;
           index[v].bpspt_s[i_bpspt][0] = index[v].bpspt_s[i_bpspt][1] = 0;
         }
       }
-    }
+    }  // finish on a root
   }
 
   //
@@ -292,13 +296,31 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>
           // Prune?
           if (root_used[v]) continue;
 
-          for (size_t i = 0; i < relabelled_adj[x][v].size(); ++i) {
-            V w = relabelled_adj[x][v][i];
+          // for (int i = 0; i < kNumBitParallelRoots; ++i) {
+          //   int td = idx_r.bpspt_d[i] + idx_v.bpspt_d[i];
+          //   if (td - 2 <= d) {
+          //     td +=
+          //         (idx_r.bpspt_s[i][0] & idx_v.bpspt_s[i][0]) ? -2 :
+          //         ((idx_r.bpspt_s[i][0] & idx_v.bpspt_s[i][1]) |
+          //          (idx_r.bpspt_s[i][1] & idx_v.bpspt_s[i][0]))
+          //         ? -1 : 0;
+          //     if (td <= d) goto pruned;
+          //   }
+          // }
+          // for (size_t i = 0; i < tmp_idx_v.first.size() - 1; ++i) {
+          //   int w = tmp_idx_v.first[i];
+          //   int td = tmp_idx_v.second[i] + dst_r[w];
+          //   if (td <= dist) goto pruned;
+          // }
+
+          for (V w: relabelled_adj[x][v]) {
             if (!vis[w]) {
               que[que_h++] = w;
               vis[w] = true;
             }
           }
+       pruned:
+          {}
         }
 
         que_t0 = que_t1;
