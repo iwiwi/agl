@@ -2,6 +2,7 @@
 #include "graph/graph.h"
 #include "graph/graph_index_interface.h"
 #include <malloc.h>
+#include <bitset>
 
 namespace agl {
 template <size_t kNumBitParallelRoots = 16>
@@ -201,6 +202,10 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>
           que[que_h++] = v;
           tmp_d[v] = 1;
           tmp_s[v].first = 1ULL << bit_pos;
+          if (inv[root] == 9) {
+            std::cerr << "bitpos:" << bit_pos << " v:" << inv[v] << " x:" << x
+                      << std::endl;
+          }
           if (++bit_pos == 64) break;
         }
       }
@@ -254,9 +259,17 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>
 
         // inv[v]と, inv[v]よりrootに近い頂点のbit (rootは除く)
         index[inv[v]].bpspt_s[i_bpspt][0] = tmp_s[v].first;
-
         // inv[v]とrootから等距離にある点のbit(inv[v]以外)
         index[inv[v]].bpspt_s[i_bpspt][1] = tmp_s[v].second & ~tmp_s[v].first;
+        // std::cerr << static_cast<std::bitset<64>>(tmp_s[v].second) << std::endl;
+        if (inv[root] == 9) {
+          std::cerr << " x:" << x <<" v:"<< inv[v]<< std::endl;
+          std::cerr << static_cast<std::bitset<64>>(tmp_s[v].first)
+                    << std::endl;
+            std::cerr << static_cast<std::bitset<64>>(tmp_s[v].second & ~tmp_s[v].first)
+                      << std::endl;
+          }
+
       }
       for (V v = 0; v < num_v; ++v) {
         if (adj_[x][v].empty()) {
@@ -313,37 +326,37 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>
           //
           // Bit-parallel Prune
 
-          for (size_t i = 0, j = 0;
-               i < bp_inv_[x].size() && j < bp_inv_[x ^ 1].size();) {
-            V vi = bp_inv_[x][i].first;
-            V vj = bp_inv_[x ^ 1][j].first;
-            if (vi == vj) {
-              if (vi == num_v) break;
-              size_t i_bpspt = bp_inv_[x][i].second;
-              size_t j_bpspt = bp_inv_[x ^ 1][j].second;
+          // for (size_t i = 0, j = 0;
+          //      i < bp_inv_[x].size() && j < bp_inv_[x ^ 1].size();) {
+          //   V vi = bp_inv_[x][i].first;
+          //   V vj = bp_inv_[x ^ 1][j].first;
+          //   if (vi == vj) {
+          //     if (vi == num_v) break;
+          //     size_t i_bpspt = bp_inv_[x][i].second;
+          //     size_t j_bpspt = bp_inv_[x ^ 1][j].second;
 
-              index_t &idx_r = idx_[x ^ 1][inv[ordered_root]];
-              index_t &idx_v = idx_[x][inv[v]];
-              W tmp_dist = idx_r.bpspt_d[j_bpspt] + idx_v.bpspt_d[i_bpspt];
-              if (tmp_dist - 2 <= dist) {
-                if (idx_r.bpspt_s[j_bpspt][0] & idx_v.bpspt_s[i_bpspt][0]) {
-                  tmp_dist -= 2;
-                } else if ((idx_r.bpspt_s[j_bpspt][0] &
-                            idx_v.bpspt_s[i_bpspt][1]) |
-                           (idx_r.bpspt_s[j_bpspt][1] &
-                            idx_v.bpspt_s[i_bpspt][0])) {
-                  tmp_dist--;
-                }
-                if (tmp_dist <= dist) goto pruned;
-              }
-              i++;
-              j++;
-            } else if (vi > vj) {
-              j++;
-            } else {
-              i++;
-            }
-          }
+          //     index_t &idx_r = idx_[x ^ 1][inv[ordered_root]];
+          //     index_t &idx_v = idx_[x][inv[v]];
+          //     W tmp_dist = idx_r.bpspt_d[j_bpspt] + idx_v.bpspt_d[i_bpspt];
+          //     if (tmp_dist - 2 <= dist) {
+          //       if (idx_r.bpspt_s[j_bpspt][0] & idx_v.bpspt_s[i_bpspt][0]) {
+          //         tmp_dist -= 2;
+          //       } else if ((idx_r.bpspt_s[j_bpspt][0] &
+          //                   idx_v.bpspt_s[i_bpspt][1]) |
+          //                  (idx_r.bpspt_s[j_bpspt][1] &
+          //                   idx_v.bpspt_s[i_bpspt][0])) {
+          //         tmp_dist--;
+          //       }
+          //       if (tmp_dist <= dist) goto pruned;
+          //     }
+          //     i++;
+          //     j++;
+          //   } else if (vi > vj) {
+          //     j++;
+          //   } else {
+          //     i++;
+          //   }
+          // }
 
 
           // for (size_t i = 0; i < tmp_idx_v.first.size() - 1; ++i) {
@@ -407,7 +420,43 @@ W dynamic_pruned_landmark_labeling<kNumBitParallelRoots>
   const index_t &idx_to = idx_[0][v_to];
   W dist = INF8;
 
-  // TODO: Bit-parallel
+  for (size_t i = 0, j = 0; i < bp_inv_[0].size() && j < bp_inv_[1].size();) {
+    V vi = bp_inv_[0][i].first;
+    V vj = bp_inv_[1][j].first;
+    if (vi == vj) {
+      if (vi == num_v_) break;
+      size_t i_bpspt = bp_inv_[0][i].second;
+      size_t j_bpspt = bp_inv_[1][j].second;
+
+      W tmp_dist = idx_from.bpspt_d[j_bpspt] + idx_to.bpspt_d[i_bpspt];
+      if (tmp_dist - 2 < dist) {
+        if (idx_from.bpspt_s[j_bpspt][0] & idx_to.bpspt_s[i_bpspt][0]) {
+          if (ord_[vi] == 9) {
+          std::cerr << "bit compare: "<< std::endl;
+            std::cerr << static_cast<std::bitset<64>>(
+                             idx_from.bpspt_s[j_bpspt][0]) << std::endl;
+            std::cerr << static_cast<std::bitset<64>>(
+                             idx_to.bpspt_s[i_bpspt][0]) << std::endl;
+          }
+          tmp_dist -= 2;
+        } else if ((idx_from.bpspt_s[j_bpspt][0] & idx_to.bpspt_s[i_bpspt][1]) |
+                   (idx_from.bpspt_s[j_bpspt][1] &
+                    idx_to.bpspt_s[i_bpspt][0])) {
+          tmp_dist--;
+        }
+        if (tmp_dist < dist) {
+          std::cerr << "root: "<<ord_[vi] << std::endl;
+          dist = tmp_dist;
+        }
+      }
+      i++;
+      j++;
+    } else if (vi > vj) {
+      j++;
+    } else {
+      i++;
+    }
+  }
 
   for (int i1 = 0, i2 = 0;;) {
     V v1 = idx_from.spt_v[i1], v2 = idx_to.spt_v[i2];

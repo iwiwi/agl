@@ -179,6 +179,16 @@ TYPED_TEST(dpll_test, cycle) {
   }
 }
 
+TYPED_TEST(dpll_test, small_grid) {
+  const int N = 4;
+  unweighted_edge_list es = generate_grid(N, N);
+  G g(es);
+  pretty_print(g);
+  bool check = true;
+  Test<TypeParam>(es, check);
+  ASSERT_TRUE(check);
+}
+
 TYPED_TEST(dpll_test, grid) {
   const int N = 10;
   unweighted_edge_list es = generate_grid(N, N);
