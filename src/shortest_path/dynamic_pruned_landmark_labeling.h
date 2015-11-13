@@ -60,6 +60,8 @@ class dynamic_pruned_landmark_labeling
   std::vector<std::vector<V>> adj_[2];
   std::vector<index_t> idx_[2];
   std::vector<V> ord_;
+  // bp_inv_[x][i].first=ordered_root => second=i_bpspt
+  std::vector<std::pair<V, size_t>> bp_inv_[2];
 
   void free_all() {
     for (int i = 0; i < 2; ++i) {
@@ -154,10 +156,11 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>
   //
   // Bit-parallel labeling
   //
-  for (int x = 0; x < 0; ++x) {
+  for (int x = 0; x < 2; ++x) {
+
     std::vector<std::vector<V>> &adj = relabelled_adj[x];
-    std::vector<std::vector<V>> &adj_inv = relabelled_adj[x ^ 1];
     std::vector<index_t> &index = idx_[x];
+    std::vector<std::pair<V, size_t>> &bp_inv = bp_inv_[x];
 
     size_t num_e = g.num_edges();
     std::vector<bool> used(num_v ,false);
@@ -168,12 +171,17 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>
     std::vector<std::pair<V, V>> child_es(num_e);
 
     V root = 0;
-    for (int i_bpspt = 0; i_bpspt < kNumBitParallelRoots; ++i_bpspt) {
-      while (root < num_v && used[root]) ++root;
+    for (size_t i_bpspt = 0; i_bpspt < kNumBitParallelRoots; ++i_bpspt) {
+      while (root < num_v && used[root]) {
+        ++root;
+      }
       if (root == num_v) {
         for (V v = 0; v < num_v; ++v) index[v].bpspt_d[i_bpspt] = INF8;
         continue;
       }
+      bp_inv.push_back(std::make_pair(root, i_bpspt));
+      std::cerr << root << "-" << i_bpspt << std::endl;
+
       used[root] = true;
 
       fill(tmp_d.begin(), tmp_d.end(), INF8);
@@ -257,7 +265,13 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>
         }
       }
     }  // finish on a root
+
+    std::sort(bp_inv.begin(), bp_inv.end());
   }
+
+  for (std::pair<V, size_t> vee : bp_inv_[0]) {
+    std::cerr << vee.first << " " << vee.second << std::endl;
+}
 
   //
   // Pruned labeling
@@ -298,21 +312,39 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>
 
           //
           // Bit-parallel Prune
-          //
-          for (int i_bpspt = 0; i_bpspt < kNumBitParallelRoots; ++i_bpspt) {
-            index_t &idx_r = idx_[x][inv[ordered_root]];
-            index_t &idx_v = idx_[x][inv[v]];
-            W td = idx_r.bpspt_d[i_bpspt] + idx_v.bpspt_d[i_bpspt];
-            if (td - 2 > dist) continue;
-            if (idx_r.bpspt_s[i_bpspt][0] & idx_v.bpspt_s[i_bpspt][0]) {
-              td -= 2;
-            } else if ((idx_r.bpspt_s[i_bpspt][0] & idx_v.bpspt_s[i_bpspt][1]) |
-                       (idx_r.bpspt_s[i_bpspt][1] &
-                        idx_v.bpspt_s[i_bpspt][0])) {
-              td--;
+
+          for (size_t i = 0, j = 0;
+               i < bp_inv_[x].size() && j < bp_inv_[x ^ 1].size();) {
+            V vi = bp_inv_[x][i].first;
+            V vj = bp_inv_[x ^ 1][j].first;
+            if (vi == vj) {
+              if (vi == num_v) break;
+              size_t i_bpspt = bp_inv_[x][i].second;
+              size_t j_bpspt = bp_inv_[x ^ 1][j].second;
+
+              index_t &idx_r = idx_[x ^ 1][inv[ordered_root]];
+              index_t &idx_v = idx_[x][inv[v]];
+              W tmp_dist = idx_r.bpspt_d[j_bpspt] + idx_v.bpspt_d[i_bpspt];
+              if (tmp_dist - 2 <= dist) {
+                if (idx_r.bpspt_s[j_bpspt][0] & idx_v.bpspt_s[i_bpspt][0]) {
+                  tmp_dist -= 2;
+                } else if ((idx_r.bpspt_s[j_bpspt][0] &
+                            idx_v.bpspt_s[i_bpspt][1]) |
+                           (idx_r.bpspt_s[j_bpspt][1] &
+                            idx_v.bpspt_s[i_bpspt][0])) {
+                  tmp_dist--;
+                }
+                if (tmp_dist <= dist) goto pruned;
+              }
+              i++;
+              j++;
+            } else if (vi > vj) {
+              j++;
+            } else {
+              i++;
             }
-            if (td <= dist) goto pruned;
           }
+
 
           // for (size_t i = 0; i < tmp_idx_v.first.size() - 1; ++i) {
           //   int w = tmp_idx_v.first[i];
