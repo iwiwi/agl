@@ -64,6 +64,10 @@ class dynamic_pruned_landmark_labeling
   // bp_inv_[x][i].first=ordered_root => second=i_bpspt
   std::vector<std::pair<V, size_t>> bp_inv_[2];
 
+  // ord_negighbors_[v].first:= vに隣接する頂点,
+  // ord_negighbors_[v].second:=v->firstならtrue
+  std::vector<std::vector<std::pair<V, bool>>> ord_negighbors_;
+
   void free_all() {
     for (int i = 0; i < 2; ++i) {
       for (V v = 0; v < num_v_; ++v) {
@@ -96,14 +100,15 @@ class dynamic_pruned_landmark_labeling
 };
 
 template <size_t kNumBitParallelRoots>
-void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>
-::construct(const G &g) {
+void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::construct(
+    const G &g) {
   free_all();
   V &num_v = num_v_;
   num_v = g.num_vertices();
   assert(num_v >= 3);
   const std::vector<std::pair<V, E>> &es = g.edge_list();
   adj_[0].resize(num_v), adj_[1].resize(num_v);
+  ord_negighbors_.resize(num_v);
   for (int i = 0; i < es.size(); ++i) {
     V v = es[i].first, u = to(es[i].second);
     adj_[0][v].push_back(u);
@@ -150,6 +155,9 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>
       for (V v_to : adj_[0][from]) {
         relabelled_adj[0][rank[from]].push_back(rank[v_to]);
         relabelled_adj[1][rank[v_to]].push_back(rank[from]);
+        ord_negighbors_[rank[from]].push_back(std::make_pair(rank[v_to], true));
+        ord_negighbors_[rank[v_to]].push_back(
+            std::make_pair(rank[from], false));
       }
     }
   }
@@ -158,13 +166,12 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>
   // Bit-parallel labeling
   //
   for (int x = 0; x < 2; ++x) {
-
     std::vector<std::vector<V>> &adj = relabelled_adj[x];
     std::vector<index_t> &index = idx_[x];
     std::vector<std::pair<V, size_t>> &bp_inv = bp_inv_[x];
 
     size_t num_e = g.num_edges();
-    std::vector<bool> used(num_v ,false);
+    std::vector<bool> used(num_v, false);
     std::vector<W> tmp_d(num_v);  // Distance from root
     std::vector<std::pair<uint64_t, uint64_t>> tmp_s(num_v);
     std::vector<V> que(num_v);
@@ -181,7 +188,6 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>
         continue;
       }
       bp_inv.push_back(std::make_pair(root, i_bpspt));
-      std::cerr << root << "-" << i_bpspt << std::endl;
 
       used[root] = true;
 
@@ -195,19 +201,20 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>
 
       // Start from root
       int bit_pos = 0;
-      sort(adj[root].begin(), adj[root].end());
-      for (V v : adj[root]) {
-        if (!used[v]) {
-          used[v] = true;
-          que[que_h++] = v;
-          tmp_d[v] = 1;
-          tmp_s[v].first = 1ULL << bit_pos;
-          if (inv[root] == 9) {
-            std::cerr << "bitpos:" << bit_pos << " v:" << inv[v] << " x:" << x
-                      << std::endl;
+      sort(ord_negighbors_[root].begin(), ord_negighbors_[root].end());
+      for (std::pair<V, bool> neighbor_pair : ord_negighbors_[root]) {
+        V v = neighbor_pair.first;
+        if ((x == 0 && neighbor_pair.second) ||
+            (x == 1 && !neighbor_pair.second)) {
+          // root->v
+          if (!used[v]) {
+            tmp_d[v] = 1;
+            tmp_s[v].first = 1ULL << bit_pos;
+            used[v] = true;
+            que[que_h++] = v;
           }
-          if (++bit_pos == 64) break;
         }
+        if (++bit_pos == 64) break;
       }
 
       for (W dist = 0; que_t0 < que_h; ++dist) {
@@ -261,15 +268,6 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>
         index[inv[v]].bpspt_s[i_bpspt][0] = tmp_s[v].first;
         // inv[v]とrootから等距離にある点のbit(inv[v]以外)
         index[inv[v]].bpspt_s[i_bpspt][1] = tmp_s[v].second & ~tmp_s[v].first;
-        // std::cerr << static_cast<std::bitset<64>>(tmp_s[v].second) << std::endl;
-        if (inv[root] == 9) {
-          std::cerr << " x:" << x <<" v:"<< inv[v]<< std::endl;
-          std::cerr << static_cast<std::bitset<64>>(tmp_s[v].first)
-                    << std::endl;
-            std::cerr << static_cast<std::bitset<64>>(tmp_s[v].second & ~tmp_s[v].first)
-                      << std::endl;
-          }
-
       }
       for (V v = 0; v < num_v; ++v) {
         if (adj_[x][v].empty()) {
@@ -281,10 +279,6 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>
 
     std::sort(bp_inv.begin(), bp_inv.end());
   }
-
-  for (std::pair<V, size_t> vee : bp_inv_[0]) {
-    std::cerr << vee.first << " " << vee.second << std::endl;
-}
 
   //
   // Pruned labeling
@@ -358,21 +352,19 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>
           //   }
           // }
 
-
           // for (size_t i = 0; i < tmp_idx_v.first.size() - 1; ++i) {
           //   int w = tmp_idx_v.first[i];
           //   int td = tmp_idx_v.second[i] + dst_r[w];
           //   if (td <= dist) goto pruned;
           // }
 
-          for (V w: relabelled_adj[x][v]) {
+          for (V w : relabelled_adj[x][v]) {
             if (!vis[w]) {
               que[que_h++] = w;
               vis[w] = true;
             }
           }
-       pruned:
-          {}
+        pruned : {}
         }
 
         que_t0 = que_t1;
@@ -431,13 +423,6 @@ W dynamic_pruned_landmark_labeling<kNumBitParallelRoots>
       W tmp_dist = idx_from.bpspt_d[j_bpspt] + idx_to.bpspt_d[i_bpspt];
       if (tmp_dist - 2 < dist) {
         if (idx_from.bpspt_s[j_bpspt][0] & idx_to.bpspt_s[i_bpspt][0]) {
-          if (ord_[vi] == 9) {
-          std::cerr << "bit compare: "<< std::endl;
-            std::cerr << static_cast<std::bitset<64>>(
-                             idx_from.bpspt_s[j_bpspt][0]) << std::endl;
-            std::cerr << static_cast<std::bitset<64>>(
-                             idx_to.bpspt_s[i_bpspt][0]) << std::endl;
-          }
           tmp_dist -= 2;
         } else if ((idx_from.bpspt_s[j_bpspt][0] & idx_to.bpspt_s[i_bpspt][1]) |
                    (idx_from.bpspt_s[j_bpspt][1] &
@@ -445,7 +430,6 @@ W dynamic_pruned_landmark_labeling<kNumBitParallelRoots>
           tmp_dist--;
         }
         if (tmp_dist < dist) {
-          std::cerr << "root: "<<ord_[vi] << std::endl;
           dist = tmp_dist;
         }
       }
