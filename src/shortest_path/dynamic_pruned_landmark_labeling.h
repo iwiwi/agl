@@ -319,38 +319,47 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::construct(
 
           //
           // Bit-parallel Prune
+          //
+          {
+            V v_from = inv[ordered_root];
+            V v_to = inv[v];
+            const index_t &idx_from = idx_[x ^ 1][v_from];
+            const index_t &idx_to = idx_[x][v_to];
 
-          // for (size_t i = 0, j = 0;
-          //      i < bp_inv_[x].size() && j < bp_inv_[x ^ 1].size();) {
-          //   V vi = bp_inv_[x][i].first;
-          //   V vj = bp_inv_[x ^ 1][j].first;
-          //   if (vi == vj) {
-          //     if (vi == num_v) break;
-          //     size_t i_bpspt = bp_inv_[x][i].second;
-          //     size_t j_bpspt = bp_inv_[x ^ 1][j].second;
+            for (size_t i = 0, j = 0;
+                 i < bp_inv_[x].size() && j < bp_inv_[x ^ 1].size();) {
+              V vi = bp_inv_[x][i].first;
+              V vj = bp_inv_[x ^ 1][j].first;
+              if (vi == vj) {
+                if (vi == num_v_) break;
+                size_t i_bpspt = bp_inv_[x][i].second;
+                size_t j_bpspt = bp_inv_[x ^ 1][j].second;
 
-          //     index_t &idx_r = idx_[x ^ 1][inv[ordered_root]];
-          //     index_t &idx_v = idx_[x][inv[v]];
-          //     W tmp_dist = idx_r.bpspt_d[j_bpspt] + idx_v.bpspt_d[i_bpspt];
-          //     if (tmp_dist - 2 <= dist) {
-          //       if (idx_r.bpspt_s[j_bpspt][0] & idx_v.bpspt_s[i_bpspt][0]) {
-          //         tmp_dist -= 2;
-          //       } else if ((idx_r.bpspt_s[j_bpspt][0] &
-          //                   idx_v.bpspt_s[i_bpspt][1]) |
-          //                  (idx_r.bpspt_s[j_bpspt][1] &
-          //                   idx_v.bpspt_s[i_bpspt][0])) {
-          //         tmp_dist--;
-          //       }
-          //       if (tmp_dist <= dist) goto pruned;
-          //     }
-          //     i++;
-          //     j++;
-          //   } else if (vi > vj) {
-          //     j++;
-          //   } else {
-          //     i++;
-          //   }
-          // }
+                W tmp_dist =
+                    idx_from.bpspt_d[j_bpspt] + idx_to.bpspt_d[i_bpspt];
+                if (tmp_dist - 2 < dist) {
+                  if (idx_from.bpspt_s[j_bpspt][x] &
+                      idx_to.bpspt_s[i_bpspt][x]) {
+                    tmp_dist -= 2;
+                  } else if ((idx_from.bpspt_s[j_bpspt][x] &
+                              idx_to.bpspt_s[i_bpspt][x ^ 1]) |
+                             (idx_from.bpspt_s[j_bpspt][x ^ 1] &
+                              idx_to.bpspt_s[i_bpspt][x])) {
+                    tmp_dist--;
+                  }
+                  if (tmp_dist < dist) {
+                    goto pruned;
+                  }
+                }
+                i++;
+                j++;
+              } else if (vi > vj) {
+                j++;
+              } else {
+                i++;
+              }
+            }
+          }
 
           // for (size_t i = 0; i < tmp_idx_v.first.size() - 1; ++i) {
           //   int w = tmp_idx_v.first[i];
