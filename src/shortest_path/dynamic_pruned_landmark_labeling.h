@@ -471,9 +471,8 @@ W dynamic_pruned_landmark_labeling<kNumBitParallelRoots>
 }
 
 template <size_t kNumBitParallelRoots>
-void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>
-::add_edge(const G &g, V v_from, const E &e) {
-
+void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::add_edge(
+    const G &g, V v_from, const E &e) {
   V v_to = to(e);
   V new_num_v = g.num_vertices();
   for (V v = num_v_; v < new_num_v; ++v) {
@@ -502,28 +501,82 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>
 
   // bit-parallel partial BFS
   {
-    index_t &idx_from = idx_[1][v_from];
-    index_t &idx_to = idx_[0][v_to];
+    const index_t &idx_from = idx_[1][v_from];
+    const index_t &idx_to = idx_[0][v_to];
+
     for (size_t i = 0, j = 0; i < bp_inv_[0].size() && j < bp_inv_[1].size();) {
       V vi = bp_inv_[0][i].first;
       V vj = bp_inv_[1][j].first;
       if (vi == vj) {
         if (vi == num_v_) break;
         size_t i_bpspt = bp_inv_[0][i].second;
-        size_t j_bpspt = bp_inv_[1][j].second;
 
-        
+        W base_dist = idx_to.bpspt_d[i_bpspt];  // vi=vj -> v_to
 
+        static std::vector<V> que0, que1;
+        static std::vector<bool> queued;
+        if ((V)queued.size() < num_v_) {
+          que0.resize(num_v_ * 2);
+          que1.resize(num_v_ * 2);
+          queued.resize(num_v_ * 2);
+        }
 
+        int que_h0 = 0, que_h1 = 0;
+        queued[que0[que_h0++] = v_to] = true;
+
+        for (W dist = base_dist; que_h0 > 0; ++dist) {
+          for (int i0 = 0; i0 < que_h0; ++i0) {
+            V v = que0[i0];
+            W td = dist + 1;
+            index_t &idx_v = idx_[0][v];
+            for (V tv : adj_[0][v]) {
+              index_t &idx_tv = idx_[0][tv];
+              if (dist == idx_tv.bpspt_d[i_bpspt]) {
+                idx_tv.bpspt_s[i_bpspt][1] |= idx_v.bpspt_s[i_bpspt][0];
+              }
+              if (td < idx_tv.bpspt_d[i_bpspt]) {
+                if (idx_tv.bpspt_d[i_bpspt] == dist + 1 + 1) {
+                  idx_tv.bpspt_s[i_bpspt][1] = idx_tv.bpspt_s[i_bpspt][0];
+                } else {
+                  idx_tv.bpspt_s[i_bpspt][1] = 0;
+                }
+
+                idx_tv.bpspt_s[i_bpspt][0] = 0;
+                idx_tv.bpspt_d[i_bpspt] = dist + 1;
+                assert(!queued[tv]);
+                queued[que1[que_h1++] = tv] = true;
+              }
+            }
+          }
+
+          for (int i0 = 0; i0 < que_h0; ++i0) {
+            V v = que0[i0];
+            for (V tv : adj_[0][v]) {
+              if (idx_[0][tv].bpspt_d[i_bpspt] == dist + 1) {
+                // Set propagation (2)
+                idx_[0][tv].bpspt_s[i_bpspt][0] |=
+                    idx_[0][v].bpspt_s[i_bpspt][0];
+                idx_[0][tv].bpspt_s[i_bpspt][1] |=
+                    idx_[0][v].bpspt_s[i_bpspt][1];
+              }
+            }
+          }
+
+          for (int i0 = 0; i0 < que_h0; ++i0) queued[que0[i0]] = false;
+          que0.swap(que1);
+          que_h0 = que_h1;
+          que1.clear();
+          que_h1 = 0;
+        }
 
         i++;
         j++;
       } else if (vi > vj) {
-      j++;
-    } else {
-      i++;
+        j++;
+      } else {
+        i++;
+      }
     }
-  }
   }
 
   //
@@ -571,7 +624,41 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>
       index_t &idx_v = idx_[x][v];
 
       // TODO: bit-parallel
+      {
+        const index_t &idx_from = idx_[x ^ 1][ord_[bfs_i]];
 
+        for (size_t i = 0, j = 0;
+             i < bp_inv_[x].size() && j < bp_inv_[x ^ 1].size();) {
+          V vi = bp_inv_[x][i].first;
+          V vj = bp_inv_[x ^ 1][j].first;
+          if (vi == vj) {
+            if (vi == num_v_) break;
+            size_t i_bpspt = bp_inv_[x][i].second;
+            size_t j_bpspt = bp_inv_[x ^ 1][j].second;
+
+            W tmp_dist = idx_from.bpspt_d[j_bpspt] + idx_v.bpspt_d[i_bpspt];
+            if (tmp_dist - 2 < d) {
+              if (idx_from.bpspt_s[j_bpspt][x] & idx_v.bpspt_s[i_bpspt][x]) {
+                tmp_dist -= 2;
+              } else if ((idx_from.bpspt_s[j_bpspt][x] &
+                          idx_v.bpspt_s[i_bpspt][x ^ 1]) |
+                         (idx_from.bpspt_s[j_bpspt][x ^ 1] &
+                          idx_v.bpspt_s[i_bpspt][x])) {
+                tmp_dist--;
+              }
+              if (tmp_dist < d) {
+                goto prune;
+              }
+            }
+            i++;
+            j++;
+          } else if (vi > vj) {
+            j++;
+          } else {
+            i++;
+          }
+        }
+      }
       // Case 1: |bfs_i| is already in |label[v]|
       int i = 0;
       for (; idx_v.spt_v[i] <= bfs_i; ++i) {
