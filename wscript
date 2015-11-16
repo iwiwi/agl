@@ -21,7 +21,7 @@ def configure(conf):
   conf.env.LINKFLAGS += ['-pthread']
 
   if conf.options.build_debug:
-    conf.env.CXXFLAGS += ['-O3', '-D_GLIBCXX_DEBUG']
+    conf.env.CXXFLAGS += ['-O0', '-D_GLIBCXX_DEBUG']
   elif conf.options.build_profile:
     conf.env.CXXFLAGS += ['-O3', '-fno-inline']
     conf.env.LINKFLAGS += ['-Wl,--no-as-needed', '-lprofiler', '-Wl,--as-needed']
