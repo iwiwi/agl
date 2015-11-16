@@ -197,6 +197,14 @@ TYPED_TEST(dpll_test, grid) {
   ASSERT_TRUE(check);
 }
 
+TYPED_TEST(dpll_test, almost_empty) {
+  unweighted_edge_list es = {{0, 3}, {3, 6}, {6, 9}};
+  G g(es);
+  bool check = true;
+  Test<TypeParam>(es, check);
+  ASSERT_TRUE(check);
+}
+
 TYPED_TEST(dpll_test, small_ba) {
   V N = 14;
   V M = 3;

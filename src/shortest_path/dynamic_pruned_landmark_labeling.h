@@ -139,10 +139,8 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>
     std::sort(deg.rbegin(), deg.rend());
     for (int i = 0; i < num_v; ++i) {
       V v = deg[i].second;
-      if (!adj_[0][v].empty() || !adj_[1][v].empty()) {
-        // We ignore isolated vertices here (to decide the ordering later)
+
         inv.push_back(v);
-      }
     }
 
     // Relabel the vertex IDs
@@ -360,12 +358,6 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>
             }
           }
 
-          // for (size_t i = 0; i < tmp_idx_v.first.size() - 1; ++i) {
-          //   int w = tmp_idx_v.first[i];
-          //   int td = tmp_idx_v.second[i] + dst_r[w];
-          //   if (td <= dist) goto pruned;
-          // }
-
           for (V w : relabelled_adj[x][v]) {
             if (!vis[w]) {
               que[que_h++] = w;
@@ -385,7 +377,7 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>
     }  // Pruned BFS
 
     auto &idx = idx_[x];
-    for (V v = 0; v < (V)inv.size(); ++v) {
+    for (V v = 0; v < num_v; ++v) {
       int k = tmp_idx[v].size();
       idx[inv[v]].spt_v = (uint32_t *)memalign(64, k * sizeof(uint32_t));
       idx[inv[v]].spt_d = (uint8_t *)memalign(64, k * sizeof(uint8_t));
@@ -398,15 +390,6 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>
       for (int i = 0; i < k; ++i) idx[inv[v]].spt_d[i] = tmp_idx[v][i].second;
       tmp_idx[v].clear();
     }
-
-    // Allocate for isolated vertices
-    for (V i = 0; i < num_v; ++i)
-      if (adj_[0][i].empty() && adj_[1][i].empty()) {
-        assert(idx[i].spt_v == NULL);
-        idx[i].spt_v = (uint32_t *)memalign(64, 1 * sizeof(uint32_t));
-        idx[i].spt_d = (uint8_t *)memalign(64, 1 * sizeof(uint8_t));
-        idx[i].spt_v[0] = INF32;
-      }
   }
 }
 
@@ -473,30 +456,13 @@ template<size_t kNumBitParallelRoots>
 void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>
 ::add_edge(const G &g, V v_from, const E &e) {
   V v_to = to(e);
-  V new_num_v = g.num_vertices();
-  for (V v = num_v_; v < new_num_v; ++v) {
-    // Now we cannot add new vertex.
-    // TODO: Add index
-    puts("sorry (add_edge)");
-    assert(false);
-  }
-  num_v_ = new_num_v;
+  assert(num_v_ == g.num_vertices());
   assert(v_from >= 0 && v_to >= 0 && v_from < num_v_ && v_to < num_v_);
 
   adj_[0].resize(num_v_);
   adj_[1].resize(num_v_);
   adj_[0][v_from].push_back(v_to);
   adj_[1][v_to].push_back(v_from);
-
-  for (int i = 0; i < 2; ++i) {
-    V x = i == 0 ? v_from : v_to;
-    if (adj_[0][x].size() + adj_[1][x].size() == 1) {
-      // New comer
-      // Now we cannot add new vertex.
-      puts("sorry (add_edge)");
-      assert(false);
-    }
-  }
 
   // bit-parallel partial BFS
   {
