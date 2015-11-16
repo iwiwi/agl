@@ -5,7 +5,7 @@
 #include <bitset>
 
 namespace agl {
-template <size_t kNumBitParallelRoots = 16>
+template<size_t kNumBitParallelRoots = 16>
 class dynamic_pruned_landmark_labeling
     : public dynamic_graph_index_interface<G>,
       public distance_query_interface<G> {
@@ -95,13 +95,12 @@ class dynamic_pruned_landmark_labeling
       }
     }
   }
-
   void partial_bfs(V bfs_i, V sv, W sd, int x);
 };
 
-template <size_t kNumBitParallelRoots>
-void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::construct(
-    const G &g) {
+template<size_t kNumBitParallelRoots>
+void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>
+::construct(const G &g) {
   free_all();
   V &num_v = num_v_;
   num_v = g.num_vertices();
@@ -114,7 +113,6 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::construct(
     adj_[0][v].push_back(u);
     adj_[1][u].push_back(v);
   }
-
   for (int i = 0; i < 2; ++i) {
     for (int v = 0; v < num_v; ++v) {
       index_t tmp;
@@ -165,6 +163,7 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::construct(
   //
   // Bit-parallel labeling
   //
+
   for (int x = 0; x < 2; ++x) {
     std::vector<std::vector<V>> &adj = relabelled_adj[x];
     std::vector<index_t> &index = idx_[x];
@@ -284,7 +283,7 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::construct(
   // Pruned labeling
   //
   for (int x = 0; x < 2; ++x) {
-    std::vector<bool> root_used(num_v, false);
+    std::vector<bool> used(num_v, false);
 
     // tmp_idx[v][i].second:= Distance from |tmp_idx[v][i].first| to |v|.
     // Sentinel (num_v, INF8) is added to all the vertices
@@ -296,7 +295,7 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::construct(
 
     // Pruned BFS
     for (V ordered_root = 0; ordered_root < num_v; ++ordered_root) {
-      if (root_used[ordered_root]) continue;
+      if (used[ordered_root]) continue;
 
       int que_t0 = 0, que_t1 = 0, que_h = 0;
       que[que_h++] = ordered_root;
@@ -315,7 +314,7 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::construct(
           tmp_idx_v.push_back(std::make_pair(INF32, INF8));
 
           // Prune?
-          if (root_used[v]) continue;
+          if (used[v]) continue;
 
           //
           // Bit-parallel Prune
@@ -382,7 +381,7 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::construct(
 
       // Reset for next BFS
       for (int i = 0; i < vis.size(); ++i) vis[i] = false;
-      root_used[ordered_root] = true;
+      used[ordered_root] = true;
     }  // Pruned BFS
 
     auto &idx = idx_[x];
@@ -411,7 +410,7 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::construct(
   }
 }
 
-template <size_t kNumBitParallelRoots>
+template<size_t kNumBitParallelRoots>
 W dynamic_pruned_landmark_labeling<kNumBitParallelRoots>
 ::query_distance(const G &g, V v_from, V v_to) {
   if (v_from == v_to) return 0;
@@ -470,9 +469,9 @@ W dynamic_pruned_landmark_labeling<kNumBitParallelRoots>
   return dist;
 }
 
-template <size_t kNumBitParallelRoots>
-void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::add_edge(
-    const G &g, V v_from, const E &e) {
+template<size_t kNumBitParallelRoots>
+void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>
+::add_edge(const G &g, V v_from, const E &e) {
   V v_to = to(e);
   V new_num_v = g.num_vertices();
   for (V v = num_v_; v < new_num_v; ++v) {
@@ -600,7 +599,7 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::add_edge(
   }
 }
 
-template <size_t kNumBitParallelRoots>
+template<size_t kNumBitParallelRoots>
 void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>
 ::partial_bfs(V bfs_i, V sv, W sd, int x) {
   static std::vector<std::pair<V, W>> que;
