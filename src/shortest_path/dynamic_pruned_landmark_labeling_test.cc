@@ -1,6 +1,5 @@
 #include <gtest/gtest.h>
 #include "dynamic_pruned_landmark_labeling.h"
-#include <pruned_landmark_labeling.h>
 
 using namespace std;
 using namespace agl;
