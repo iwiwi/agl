@@ -6,12 +6,12 @@ using namespace std;
 using namespace agl;
 using testing::Types;
 
-typedef Types<dynamic_pruned_landmark_labeling<0>,
-              dynamic_pruned_landmark_labeling<1>,
-              dynamic_pruned_landmark_labeling<2>,
-              dynamic_pruned_landmark_labeling<4>,
-              dynamic_pruned_landmark_labeling<8>, 
-              dynamic_pruned_landmark_labeling<16>> dpll_types;
+typedef Types<
+    dynamic_pruned_landmark_labeling<0>, dynamic_pruned_landmark_labeling<1>,
+    dynamic_pruned_landmark_labeling<2>, dynamic_pruned_landmark_labeling<4>,
+    dynamic_pruned_landmark_labeling<8>, dynamic_pruned_landmark_labeling<16>,
+    dynamic_pruned_landmark_labeling<32>, dynamic_pruned_landmark_labeling<64>,
+    dynamic_pruned_landmark_labeling<128>> dpll_types;
 
 template <typename T>
 class dpll_test : public testing::Test {};
@@ -270,4 +270,3 @@ TYPED_TEST(dpll_test, time_large) {
     }
   }
 }
-

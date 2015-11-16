@@ -522,8 +522,8 @@ double PrunedLandmarkLabeling<kNumBitParallelRoots>::GetAverageLabelSize() {
 }
 
 template <int kNumBitParallelRoots>
-void PrunedLandmarkLabeling<kNumBitParallelRoots>::PartialBPBFS(int r, int u, int v) {
-
+void PrunedLandmarkLabeling<kNumBitParallelRoots>
+::PartialBPBFS(int r, int u, int v) {
   static std::vector<int> que0, que1;
   static std::vector<bool> queued;
   if ((int)queued.size() < num_v_) {
@@ -550,11 +550,13 @@ void PrunedLandmarkLabeling<kNumBitParallelRoots>::PartialBPBFS(int r, int u, in
           uint64_t ts = index_[tv].bpspt_s[r][1] | index_[v].bpspt_s[r][0];
           if (ts != index_[tv].bpspt_s[r][1]) {
             index_[tv].bpspt_s[r][1] = ts;
-            // if (!queued[tv]) queued[que0[h0++] = tv] = true;  // Update -> Enque
+            // if (!queued[tv]) queued[que0[h0++] = tv] = true;  // Update ->
+            // Enque
           }
         }
         if (td < index_[tv].bpspt_d[r]) {
-          index_[tv].bpspt_s[r][1] = (index_[tv].bpspt_d[r] == td + 1 ? index_[tv].bpspt_s[r][0] : 0);
+          index_[tv].bpspt_s[r][1] =
+              (index_[tv].bpspt_d[r] == td + 1 ? index_[tv].bpspt_s[r][0] : 0);
           index_[tv].bpspt_s[r][0] = 0;
           index_[tv].bpspt_d[r] = td;
           assert(!queued[tv]);
@@ -571,10 +573,12 @@ void PrunedLandmarkLabeling<kNumBitParallelRoots>::PartialBPBFS(int r, int u, in
           // Set propagation (2)
           uint64_t ts0 = index_[tv].bpspt_s[r][0] | index_[v].bpspt_s[r][0];
           uint64_t ts1 = index_[tv].bpspt_s[r][1] | index_[v].bpspt_s[r][1];
-          if (ts0 != index_[tv].bpspt_s[r][0] || ts1 != index_[tv].bpspt_s[r][1]) {
+          if (ts0 != index_[tv].bpspt_s[r][0] ||
+              ts1 != index_[tv].bpspt_s[r][1]) {
             index_[tv].bpspt_s[r][0] = ts0;
             index_[tv].bpspt_s[r][1] = ts1;
-            // if (!queued[tv]) queued[que1[h1++] = tv] = true;  // Update -> Enque
+            // if (!queued[tv]) queued[que1[h1++] = tv] = true;  // Update ->
+            // Enque
           }
         }
       }

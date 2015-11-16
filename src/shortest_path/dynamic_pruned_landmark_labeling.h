@@ -500,9 +500,30 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>
     }
   }
 
-  // TODO: Update bit-parallel labels
-  for (int k = 0; k < kNumBitParallelRoots; ++k) {
-    // PartialBPBFS(k, v_from, v_to);
+  // bit-parallel partial BFS
+  {
+    index_t &idx_from = idx_[1][v_from];
+    index_t &idx_to = idx_[0][v_to];
+    for (size_t i = 0, j = 0; i < bp_inv_[0].size() && j < bp_inv_[1].size();) {
+      V vi = bp_inv_[0][i].first;
+      V vj = bp_inv_[1][j].first;
+      if (vi == vj) {
+        if (vi == num_v_) break;
+        size_t i_bpspt = bp_inv_[0][i].second;
+        size_t j_bpspt = bp_inv_[1][j].second;
+
+        
+
+
+
+        i++;
+        j++;
+      } else if (vi > vj) {
+      j++;
+    } else {
+      i++;
+    }
+  }
   }
 
   //
@@ -609,4 +630,5 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>
   // Reset
   for (int i = 0; i < que_t; ++i) vis[que[i].first] = false;
 }
+
 }  // namespace agl
