@@ -1,15 +1,23 @@
-import numpy as np
 import pandas as pd
 import seaborn as sns
+import matplotlib.pyplot as plt
 import json
 import sys
 
 if __name__ == '__main__':
-    f = open(sys.argv[1], 'r')
-    jsonData = json.load(f)
-    f.close()
-    boxSize = jsonData['algorithms'][0]['size']
-    df = pd.DataFrame({'Rad': range(len(boxSize)), 'Size': boxSize})
-    sns_plot = sns.jointplot(x="Rad", y="Size", data=df)
-    # sns.plot(boxSize)
-    sns_plot.savefig(sys.argv[2])
+    log = open(sys.argv[1], 'r')
+    jsonData = json.load(log)
+    log.close()
+    # boxSize = jsonData['algorithms'][0]['size']
+    boxSize = [47719, 47479, 46332, 47065, 42065, 9916, 107, 1, 1, 1]
+    x = []
+    for i in range(0, len(boxSize)):
+        x.append(2 * i + 1)
+    df = pd.DataFrame({'2*radius+1': x, 'Box Size': boxSize})
+    f, ax = plt.subplots(figsize=(7, 7))
+    ax.set(yscale="log")
+    # ax.set(xscale="log", yscale="log")
+    sns_plot = sns.pointplot(x="2*radius+1", y="Box Size",
+                             data=df, ax=ax, linestyles=['  '])
+    fig = sns_plot.get_figure()
+    fig.savefig(sys.argv[2])
