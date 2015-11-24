@@ -36,12 +36,10 @@ vector<V> box_cover_memb(const G &g, W radius) {
     excluded_mass_of_non_centers[p.first].insert(p.second);
   }
 
-  vector<V> node_box_id(num_v, num_v);
-  map<V, vector<V>> boxes;
   set<V> covered_nodes;
   set<V> center_nodes;
   vector<W> central_distance_of_node(num_v, num_v);
-  while (covered_nodes.size() < num_v) {
+  while (covered_nodes.size() < (size_t)num_v) {
     V center_node_found;
     while (true) {
       V node, maximum_key;
@@ -79,8 +77,6 @@ vector<V> box_cover_memb(const G &g, W radius) {
         excluded_mass_of_non_centers[excluded_mass_of_node].insert(node);
       }
     }
-    boxes[center_node_found].push_back(center_node_found);
-    node_box_id[center_node_found] = center_node_found;
     center_nodes.insert(center_node_found);
     for (pair<V, W> p : node_lists[center_node_found]) {
       V i = p.first;
@@ -93,7 +89,6 @@ vector<V> box_cover_memb(const G &g, W radius) {
   }
 
   vector<int> ret(center_nodes.begin(), center_nodes.end());
-
   return ret;
 }
 
