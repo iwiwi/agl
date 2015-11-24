@@ -8,14 +8,13 @@ if __name__ == '__main__':
     log = open(sys.argv[1], 'r')
     jsonData = json.load(log)
     log.close()
-    # boxSize = jsonData['algorithms'][0]['size']
-    boxSize = [47719, 47479, 46332, 47065, 42065, 9916, 107, 1, 1, 1]
+    boxSize = jsonData['algorithms'][0]['size']
     x = []
     for i in range(0, len(boxSize)):
         x.append(2 * i + 1)
     df = pd.DataFrame({'2*radius+1': x, 'Box Size': boxSize})
     f, ax = plt.subplots(figsize=(7, 7))
-    ax.set(yscale="log")
+    ax.set(yscale="log", xscale="log")
     # ax.set(xscale="log", yscale="log")
     sns_plot = sns.pointplot(x="2*radius+1", y="Box Size",
                              data=df, ax=ax, linestyles=['  '])
