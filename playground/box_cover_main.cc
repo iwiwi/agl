@@ -23,7 +23,7 @@ int main(int argc, char **argv) {
     CHECK_MSG(FLAGS_force_undirected, "undirected only!!!");
 
     V num_v = g_pre.num_vertices();
-    V max_num_v = 0;
+    size_t max_num_v = 0;
     int max_g = 0;
     vector<bool> vis(num_v, false);
     vector<vector<V>> connected_sets;
