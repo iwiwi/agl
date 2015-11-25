@@ -1,6 +1,7 @@
 import pandas as pd
-import seaborn as sns
+import numpy as np
 import matplotlib.pyplot as plt
+import seaborn as sns
 import json
 import sys
 
@@ -10,13 +11,15 @@ if __name__ == '__main__':
     log.close()
     boxSize = jsonData['algorithms'][0]['size']
     x = []
+    y = []
     for i in range(0, len(boxSize)):
         x.append(2 * i + 1)
-    df = pd.DataFrame({'2*radius+1': x, 'Box Size': boxSize})
-    f, ax = plt.subplots(figsize=(7, 7))
-    ax.set(yscale="log", xscale="log")
-    # ax.set(xscale="log", yscale="log")
-    sns_plot = sns.pointplot(x="2*radius+1", y="Box Size",
-                             data=df, ax=ax, linestyles=['  '])
-    fig = sns_plot.get_figure()
-    fig.savefig(sys.argv[2])
+        y.append(boxSize[i])
+        if boxSize[i] == 1:
+            break
+    plt.xscale("log")
+    plt.yscale("log")
+    plt.xlim(xmin=0.5)
+    plt.xlim(xmax=25)
+    plt.scatter(x, y)
+    plt.savefig(sys.argv[2])
