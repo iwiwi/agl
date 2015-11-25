@@ -1,5 +1,9 @@
 #include "easy_cui.h"
 #include "box_cover.h"
+using namespace std;
+
+DEFINE_int32(rad_min, 0, "minimum radius");
+DEFINE_int32(rad_max, 10, "maximum radius");
 
 namespace {
 // What portion of the vertices are really covered by the set?
@@ -10,12 +14,68 @@ double coverage(const G &g, vector<V> s, W rad) {
 }
 
 int main(int argc, char **argv) {
-  G g = easy_cui_init(argc, argv);
-  CHECK_MSG(FLAGS_force_undirected, "undirected only!!!");
+  //
+  // Extract maximal connected subgraph & Compress coordinates
+  //
+  unweighted_edge_list es;
+  {
+    G g_pre = easy_cui_init(argc, argv);
+    CHECK_MSG(FLAGS_force_undirected, "undirected only!!!");
 
-  vector<pair<string, function<vector<V>(const G&, W)>>> algos{
-    {"MEMB", box_cover_memb},
-    {"Schneider", box_cover_burning},
+    V num_v = g_pre.num_vertices();
+    V max_num_v = 0;
+    int max_g = 0;
+    vector<bool> vis(num_v, false);
+    vector<vector<V>> connected_sets;
+    for (V v = 0; v < num_v; ++v) {
+      if (vis[v]) continue;
+      vector<V> connected_v;
+      queue<V> que;
+      que.push(v);
+      vis[v] = true;
+      connected_v.push_back(v);
+      while (!que.empty()) {
+        V u = que.front();
+        que.pop();
+        for (V x : g_pre.neighbors(u)) {
+          if (!vis[x]) {
+            vis[x] = true;
+            que.push(x);
+            connected_v.push_back(x);
+          }
+        }
+      }
+      if (max_num_v < connected_v.size()) {
+        max_num_v = connected_v.size();
+        max_g = connected_sets.size();
+        sort(connected_v.begin(), connected_v.end());
+        connected_sets.push_back(connected_v);
+      }
+    }
+
+    vector<V> &max_c = connected_sets[max_g];
+    vector<V> inv(num_v, -1);
+    for (V v : max_c) {
+      inv[v] = (upper_bound(max_c.begin(), max_c.end(), v) - max_c.begin());
+    }
+
+    for (pair<V, V> e : g_pre.edge_list()) {
+      V from = e.first;
+      V to = e.second;
+      if (inv[from] == -1) continue;
+      es.emplace_back(inv[from], inv[to]);
+    }
+  }
+  G g(es);
+  pretty_print(g);
+
+  JLOG_ADD_OPEN("graph_info") {
+    JLOG_PUT("Vertices", g.num_vertices());
+    JLOG_PUT("Edges", g.num_edges());
+  }
+
+  vector<pair<string, function<vector<V>(const G &, W)>>> algos{
+      {"MEMB", box_cover_memb}, {"Schneider", box_cover_burning},
   };
 
   for (auto a : algos) {
@@ -23,7 +83,7 @@ int main(int argc, char **argv) {
       JLOG_PUT("name", a.first);
       auto f = a.second;
 
-      for (W rad = 0; rad <= 10; ++rad) {
+      for (W rad = FLAGS_rad_min; rad <= FLAGS_rad_max; ++rad) {
         vector<V> res;
         JLOG_ADD_BENCHMARK("time") res = f(g, rad);
         JLOG_ADD("size", res.size());
