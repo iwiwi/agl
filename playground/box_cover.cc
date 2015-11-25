@@ -44,22 +44,19 @@ vector<V> box_cover_memb(const G &g, W radius) {
     while (true) {
       V node, maximum_key;
       while (true) {
-        map<size_t, set<V>>::iterator maximum_it =
-            max_element(excluded_mass_of_non_centers.begin(),
-                        excluded_mass_of_non_centers.end());
-        maximum_key = maximum_it->first;
-        set<V> &nodes = maximum_it->second;
+        maximum_key = excluded_mass_of_non_centers.rbegin()->first;
+        set<V> &nodes = excluded_mass_of_non_centers.rbegin()->second;
         auto it = nodes.begin();
         advance(it, agl::random(nodes.size()));
         node = *it;
         if (center_nodes.find(node) != center_nodes.end()) {
           nodes.erase(it);
-          if (nodes.empty()) excluded_mass_of_non_centers.erase(maximum_it);
+          if (nodes.empty()) excluded_mass_of_non_centers.erase(maximum_key);
         } else {
           break;
         }
       }
-      map<V, W> nodes_visit;
+      
       vector<pair<V, W>> &bfs = node_lists[node];
       V excluded_mass_of_node = 0;
       for (pair<V, W> p : bfs) {
