@@ -24,16 +24,10 @@ if __name__ == '__main__':
     x = np.array(x)
     y = np.array(y)
     nsample = x.size
-    lnx = []
-    lny = []
-    for i in range(0, x.size):
-        lnx.append(np.log10(x[i]))
-        lny.append(np.log10(y[i]))
+    lnx = np.log10(x)
+    lny = np.log10(y)
 
-    lnx = np.array(lnx)
-    lny = np.array(lny)
-
-    # おまじない (後で解説)
+    # おまじない
     X = np.column_stack((np.repeat(1, nsample), lnx))
     # 回帰実行
     model = sm.OLS(lny, X)
