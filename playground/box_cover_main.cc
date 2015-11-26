@@ -56,7 +56,7 @@ int main(int argc, char **argv) {
     vector<V> &max_c = connected_sets[max_g];
     vector<V> inv(num_v, -1);
     for (V v : max_c) {
-      inv[v] = (upper_bound(max_c.begin(), max_c.end(), v) - max_c.begin());
+      inv[v] = (lower_bound(max_c.begin(), max_c.end(), v) - max_c.begin());
     }
 
     for (pair<V, V> e : g_pre.edge_list()) {
