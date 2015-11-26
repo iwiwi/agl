@@ -70,8 +70,10 @@ int main(int argc, char **argv) {
   pretty_print(g);
 
   JLOG_ADD_OPEN("graph_info") {
-    JLOG_PUT("Vertices", g.num_vertices());
-    JLOG_PUT("Edges", g.num_edges());
+    JLOG_PUT("vertices", g.num_vertices());
+    JLOG_PUT("edges", g.num_edges());
+    JLOG_PUT("type", FLAGS_graph);
+    JLOG_PUT("graph", FLAGS_graph);
   }
 
   vector<pair<string, function<vector<V>(const G &, W)>>> algos{
