@@ -90,9 +90,9 @@ vector<V> box_cover_burning(const G &g, W radius) { return {}; }
 
 vector<V> box_cover_sketch(const G &g, W radius, const int k) {
   V num_v = g.num_vertices();
-  vector<V> inv(num_v);
   vector<V> rank(num_v);
   vector<map<V, V>> X(num_v);
+  vector<V> inv(num_v);
   vector<queue<V>> A(num_v);
   for (V i = 0; i < num_v; ++i) {
     inv[i] = i;
@@ -102,7 +102,6 @@ vector<V> box_cover_sketch(const G &g, W radius, const int k) {
   for (int i = 0; i < num_v; ++i) {
     rank[inv[i]] = i;
   }
-
   //
   // Build-Sketches
   //
@@ -120,11 +119,11 @@ vector<V> box_cover_sketch(const G &g, W radius, const int k) {
           // Merge & Purify
           V max_rank = X[w].rbegin()->first;
           V rv = rank[v];
-          if (X[w].size() > k && max_rank > rv && X[w].find(rv) == X[w].end()) {
+          if (X[w].size() >= k && max_rank > rv && X[w].find(rv) == X[w].end()) {
             X[w].erase(max_rank);
             X[w][rv] = v;
             A[v].push(w);
-          } else if (X[w].size() > k && X[w].find(rv) == X[w].end()) {
+          } else if (X[w].size() < k && X[w].find(rv) == X[w].end()) {
             X[w][rv] = v;
             A[v].push(w);
           }
@@ -134,11 +133,10 @@ vector<V> box_cover_sketch(const G &g, W radius, const int k) {
   }
 
   //
-  // Select-Greedy
+  // Select-Greedy O(n^2*k)
   //
   vector<V> centers;
   map<V, V> Xs;
-  
 
   return {};
 };
