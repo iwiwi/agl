@@ -66,6 +66,7 @@ int main(int argc, char **argv) {
       es.emplace_back(inv[from], inv[to]);
     }
   }
+
   G g(es);
   pretty_print(g);
 
@@ -77,7 +78,8 @@ int main(int argc, char **argv) {
   }
 
   vector<pair<string, function<vector<V>(const G &, W)>>> algos{
-      {"MEMB", box_cover_memb}, {"Schneider", box_cover_burning},
+      {"MEMB", box_cover_memb},
+      {"Schneider", box_cover_burning},
   };
 
   for (auto a : algos) {
