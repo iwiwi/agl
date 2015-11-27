@@ -1,5 +1,4 @@
 #include "box_cover.h"
-using namespace std;
 
 vector<V> box_cover_memb(const G &g, W radius) {
   V num_v = g.num_vertices();
@@ -88,3 +87,57 @@ vector<V> box_cover_memb(const G &g, W radius) {
 }
 
 vector<V> box_cover_burning(const G &g, W radius) { return {}; }
+
+vector<V> box_cover_sketch(const G &g, W radius, const int k) {
+  V num_v = g.num_vertices();
+  vector<V> inv(num_v);
+  vector<V> rank(num_v);
+  vector<map<V, V>> X(num_v);
+  vector<queue<V>> A(num_v);
+  for (V i = 0; i < num_v; ++i) {
+    inv[i] = i;
+    A[i].push(i);
+  }
+  random_shuffle(inv.begin(), inv.end());
+  for (int i = 0; i < num_v; ++i) {
+    rank[inv[i]] = i;
+  }
+
+  //
+  // Build-Sketches
+  //
+  for (V i = 0; i < num_v; ++i) {
+    X[i][rank[i]] = i;
+  }
+
+  for (W d = 0; d < radius; ++d) {
+    for (V v : inv) {
+      size_t size_A = A[v].size();
+      for (int q = 0; q < size_A; ++q) {
+        V a = A[v].front();
+        A[v].pop();
+        for (V w : g.neighbors(a)) {
+          // Merge & Purify
+          V max_rank = X[w].rbegin()->first;
+          V rv = rank[v];
+          if (X[w].size() > k && max_rank > rv && X[w].find(rv) == X[w].end()) {
+            X[w].erase(max_rank);
+            X[w][rv] = v;
+            A[v].push(w);
+          } else if (X[w].size() > k && X[w].find(rv) == X[w].end()) {
+            X[w][rv] = v;
+            A[v].push(w);
+          }
+        }
+      }
+    }
+  }
+
+  //
+  // Select-Greedy
+  //
+  vector<V> centers;
+  map<V, V> Xs;
+
+  return {};
+};
