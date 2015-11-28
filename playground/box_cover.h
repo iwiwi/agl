@@ -15,7 +15,7 @@ vector<V> box_cover_memb(const G &g, W radius);
 vector<V> box_cover_burning(const G &g, W radius);
 
 //! Akiba et al. 2015
-vector<V> box_cover_sketch(const G &g, W radius, const int k = 1000);
+vector<V> box_cover_sketch(const G &g, W radius);
 
 //
 // Diameter-based Methods:

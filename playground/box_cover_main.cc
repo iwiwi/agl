@@ -8,8 +8,30 @@ DEFINE_int32(rad_max, 10, "maximum radius");
 namespace {
 // What portion of the vertices are really covered by the set?
 double coverage(const G &g, vector<V> s, W rad) {
-  // TODO: implement me
-  return 0.0;
+  vector<V> covered;
+  vector<bool> vis(g.num_vertices());
+  queue<pair<V, W>> que;
+  for (V center : s) {
+    que.push(make_pair(center, 0));
+    covered.push_back(center);
+    vis[center] = true;
+  }
+  while (!que.empty()) {
+    V v = que.front().first;
+    W dist = que.front().second;
+    que.pop();
+    if (dist == rad) break;
+    for (V u : g.neighbors(v)) {
+      if (vis[u]) continue;
+      vis[u] = true;
+      que.push(make_pair(u, dist + 1));
+      covered.push_back(u);
+    }
+  }
+  assert(covered.size() <= (size_t)g.num_vertices());
+
+  double coverage = covered.size();
+  return coverage / g.num_vertices();
 }
 }
 
@@ -80,6 +102,7 @@ int main(int argc, char **argv) {
   vector<pair<string, function<vector<V>(const G &, W)>>> algos{
       {"MEMB", box_cover_memb},
       {"Schneider", box_cover_burning},
+      {"Sketch", box_cover_sketch},
   };
 
   for (auto a : algos) {

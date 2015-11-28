@@ -88,15 +88,16 @@ vector<V> box_cover_memb(const G &g, W radius) {
 
 vector<V> box_cover_burning(const G &g, W radius) { return {}; }
 
-vector<V> box_cover_sketch(const G &g, W radius, const int k) {
+vector<V> box_cover_sketch(const G &g, W radius) {
+  const int k = 100;
   V num_v = g.num_vertices();
   vector<V> rank(num_v);
   vector<map<V, V>> X(num_v);
   vector<V> inv(num_v);
-  vector<queue<V>> A(num_v);
+  vector<set<V>> A(num_v);
   for (V i = 0; i < num_v; ++i) {
     inv[i] = i;
-    A[i].push(i);
+    A[i].insert(i);
   }
   random_shuffle(inv.begin(), inv.end());
   for (int i = 0; i < num_v; ++i) {
@@ -111,24 +112,23 @@ vector<V> box_cover_sketch(const G &g, W radius, const int k) {
 
   for (W d = 0; d < radius; ++d) {
     for (V v : inv) {
-      size_t size_A = A[v].size();
-      for (int q = 0; q < size_A; ++q) {
-        V a = A[v].front();
-        A[v].pop();
+      set<V> next;
+      for (V a : A[v])
         for (V w : g.neighbors(a)) {
           // Merge & Purify
           V max_rank = X[w].rbegin()->first;
           V rv = rank[v];
-          if (X[w].size() >= k && max_rank > rv && X[w].find(rv) == X[w].end()) {
+          if (X[w].find(rv) != X[w].end()) continue;
+          if (X[w].size() >= k && max_rank > rv) {
             X[w].erase(max_rank);
             X[w][rv] = v;
-            A[v].push(w);
-          } else if (X[w].size() < k && X[w].find(rv) == X[w].end()) {
+            next.insert(w);
+          } else if (X[w].size() < k) {
             X[w][rv] = v;
-            A[v].push(w);
+            next.insert(w);
           }
         }
-      }
+      A[v].swap(next);
     }
   }
 
@@ -136,7 +136,43 @@ vector<V> box_cover_sketch(const G &g, W radius, const int k) {
   // Select-Greedy O(n^2*k)
   //
   vector<V> centers;
+  vector<bool> centered(num_v);
   map<V, V> Xs;
+  V ndV = min(k, num_v);
+  while (Xs.size() < (size_t)ndV) {
+    V selected_v = -1;
+    size_t argmax = 0;
+    for (V v : inv) {
+      if (centered[v]) continue;
+      set<V> tmp;
+      for (pair<V, V> p : Xs) tmp.insert(p.second);
+      for (pair<V, V> p : X[v]) tmp.insert(p.second);
+      if (argmax < tmp.size()) {
+        argmax = tmp.size();
+        selected_v = v;
+      }
+    }
+    assert(selected_v >= 0);
+    centers.push_back(selected_v);
+    centered[selected_v] = true;
+    if (Xs.size() == 0) {
+      for (pair<V, V> p : X[selected_v]) {
+        Xs[p.first] = p.second;
+        if (Xs.size() == k) goto purified;
+      }
+    }
+    // Merge-and-Purify!
+    for (pair<V, V> p : X[selected_v]) {
+      V max_rank = Xs.rbegin()->first;
+      if (Xs.size() > k && p.first > max_rank) break;
+      if (Xs.size() > k) {
+        Xs.erase(max_rank);
+      }
+      Xs[p.first] = p.second;
+    }
+  purified:
+    ;
+  }
 
-  return {};
+  return centers;
 };
