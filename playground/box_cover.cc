@@ -88,8 +88,23 @@ vector<V> box_cover_memb(const G &g, W radius) {
 
 vector<V> box_cover_burning(const G &g, W radius) { return {}; }
 
+double estimated_cardinality(const G &g, const map<V, V> X, const int k) {
+  if (X.size() < k) {
+    return (k - 1);
+  }
+  int cnt = 0;
+  for (pair<V, V> p : X) {
+    cnt++;
+    if (cnt == k) {
+      return (double)(k - 1) / p.first * g.num_vertices();
+    }
+  }
+  assert(false);
+  return (k - 1);
+}
+
 vector<V> box_cover_sketch(const G &g, W radius) {
-  const int k = 100;
+  const int k = 200;
   V num_v = g.num_vertices();
   vector<V> rank(num_v);
   vector<map<V, V>> X(num_v);
@@ -138,17 +153,26 @@ vector<V> box_cover_sketch(const G &g, W radius) {
   vector<V> centers;
   vector<bool> centered(num_v);
   map<V, V> Xs;
-  V ndV = min(k, num_v);
-  while (Xs.size() < (size_t)ndV) {
+
+  while (estimated_cardinality(g, Xs, k) < max(num_v, k - 1)) {
     V selected_v = -1;
-    size_t argmax = 0;
+    double argmax = 0.0;
     for (V v : inv) {
       if (centered[v]) continue;
-      set<V> tmp;
-      for (pair<V, V> p : Xs) tmp.insert(p.second);
-      for (pair<V, V> p : X[v]) tmp.insert(p.second);
-      if (argmax < tmp.size()) {
-        argmax = tmp.size();
+      map<V, V> tmp(Xs);
+      for (pair<V, V> p : X[v]) {
+        if (tmp.size() < k) {
+          tmp[p.first] = p.second;
+          continue;
+        }
+        V maximum_key = tmp.rbegin()->first;
+        if (p.first >= maximum_key) break;
+        tmp.erase(maximum_key);
+        tmp[p.first] = p.second;
+      }
+      double ec_tmp = estimated_cardinality(g, tmp, k);
+      if (argmax < ec_tmp) {
+        argmax = ec_tmp;
         selected_v = v;
       }
     }
@@ -175,4 +199,4 @@ vector<V> box_cover_sketch(const G &g, W radius) {
   }
 
   return centers;
-};
+}
