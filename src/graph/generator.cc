@@ -70,7 +70,7 @@ unweighted_edge_list generate_cycle(V num_vertices) {
  * \param final_num is a number of finally generated network.
  */
 unweighted_edge_list generate_ba(V final_num, V initial_num) {
-  assert(initial_num > 2);
+  CHECK(initial_num > 2);
   unweighted_edge_list es;
   for (int v = 0; v < initial_num; ++v) {
     for (int u = 0; u < v; ++u) {
@@ -101,7 +101,7 @@ unweighted_edge_list generate_ba(V final_num, V initial_num) {
  * \param K0 is a constant value and forms &gamma; = 3 - K0/initial_num .
  */
 unweighted_edge_list generate_dms(V final_num, V initial_num, V K0) {
-  assert(initial_num > K0);
+  CHECK(initial_num > K0);
   unweighted_edge_list es;
   vector<V> vs;
   for (int v = 0; v <= initial_num; ++v) {
@@ -143,7 +143,7 @@ unweighted_edge_list generate_dms(V final_num, V initial_num, V K0) {
  * \param P is the probability to perform a triangle formation step. 
  */
 unweighted_edge_list generate_hk(V final_num, V initial_num, double P) {
-  assert(initial_num > 2 && final_num > initial_num);
+  CHECK(initial_num > 2 && final_num > initial_num);
   unweighted_edge_list es;
   vector<vector<V>> adj(final_num);
   for (int v = 0; v <= initial_num; ++v) {
@@ -178,6 +178,61 @@ unweighted_edge_list generate_hk(V final_num, V initial_num, double P) {
 
   return es;
 }
+
+/**
+ * Generate a random small-world network by the Watts-Strogatz (WS) model.
+ * \param num_vertices is a number of nodes of the generated network.
+ * \param avg_deg is the average degree of the vertices, which must be even.
+ * \param P is the probability of reconnecting each edge.
+ */
+unweighted_edge_list generate_ws(V num_vertices, V avg_deg, double P) {
+  CHECK(num_vertices > 1);
+  CHECK(0 < avg_deg && avg_deg < num_vertices);
+  CHECK(avg_deg % 2 == 0);
+  CHECK(0.0 <= P && P <= 1.0);
+
+  unweighted_edge_list out;
+  set<pair<int, int> > es;
+
+  for (V i : make_irange(num_vertices)) {
+    for (int j = 1; j <= avg_deg / 2; j++) {
+      V u = i, v = (i + j) % num_vertices;
+      out.emplace_back(u, v);
+      es.insert({u, v});
+      es.insert({v, u});
+    }
+  }
+
+  std::uniform_real_distribution<> p_rng(0.0, 1.0);
+  std::uniform_int_distribution<V> v_rng(0, num_vertices - 1);
+
+  for (int i = 0; i < (int)out.size(); i++) {
+    V u = out[i].first, v = out[i].second;
+    if (p_rng(agl::random) > P) continue;
+
+    bool coin = p_rng(agl::random) < 0.5;
+    if (coin) {
+      swap(u, v);
+    }
+    es.erase({u, v});
+    es.erase({v, u});
+    do {
+      v = v_rng(agl::random);
+    } while (u == v || es.find({u, v}) != es.end());
+
+    if (coin) {
+      swap(u, v);
+    }
+    es.insert({u, v});
+    es.insert({v, u});
+
+    out[i].first = u;
+    out[i].second = v;
+  }
+
+  return out;
+}
+
 
 unweighted_edge_list generate_random_planar(V num_vertices, size_t num_edges) {
   using namespace agl::geometry2d;
