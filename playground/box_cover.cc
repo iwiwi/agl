@@ -160,34 +160,68 @@ vector<V> box_cover_sketch(const G &g, W radius) {
   vector<V> centers;
   vector<bool> centered(num_v);
   map<V, V> Xs;
-
   priority_queue<pair<double, V>> que;
   while (estimated_cardinality(g, Xs, k) < max(num_v, k - 1)) {
     V selected_v = -1;
+    double ec_before = estimated_cardinality(g, Xs, k);
     if (que.empty()) {
+      double max = -1.0;
       for (V v = 0; v < num_v; v++) {
-        double ec = estimated_cardinality(g, X[v], k);
-        que.push(make_pair(ec, v));
-      }
-      selected_v = que.top().second;
-      que.pop();
-    } else {
-      while (true) {
-        pair<double, V> candidate = que.top();
-        que.pop();
-        V v = candidate.second;
-
+        if (centered[v]) continue;
         map<V, V> tmp(Xs);
         tmp.insert(X[v].begin(), X[v].end());
-        double ec_tmp = estimated_cardinality(g, tmp, k);
-        if (ec_tmp >= que.top().first) {
+
+        double ec_delta = estimated_cardinality(g, tmp, k) - ec_before;
+        que.push(make_pair(ec_delta, -v));
+        if (max < ec_delta) {
+          max = ec_delta;
           selected_v = v;
-          break;
-        } else {
-          que.push(make_pair(ec_tmp, v));
         }
       }
+      if (max == 0.0) {
+        que = priority_queue<pair<double, V>>();
+        cerr << selected_v << endl;
+      }
     }
+
+    while (!que.empty()) {
+      pair<double, V> candidate = que.top();
+      que.pop();
+      V v = -candidate.second;
+      map<V, V> tmp(Xs);
+      tmp.insert(X[v].begin(), X[v].end());
+      double ec_delta = estimated_cardinality(g, tmp, k) - ec_before;
+      if (ec_delta >= que.top().first) {
+        selected_v = v;
+        cerr << "Lazy  " << selected_v << " " << (ec_delta + ec_before) << endl;
+        cerr << (que.top().first + ec_before) << endl;
+        if (selected_v == 131) {
+          map<V, V> tmp29(Xs);
+          tmp29.insert(X[29].begin(), X[29].end());
+          cerr << estimated_cardinality(g, tmp29, k) - ec_before << endl;
+          cerr << que.top().first << endl;
+        }
+        break;
+      } else {
+        que.push(make_pair(ec_delta, -v));
+      }
+    }
+
+    V s2 = -1;
+    double argmax = 0.0;
+    for (V v = 0; v < num_v; v++) {
+      if (centered[v]) continue;
+      map<V, V> tmp(Xs);
+      tmp.insert(X[v].begin(), X[v].end());
+
+      double ec_tmp = estimated_cardinality(g, tmp, k);
+      if (argmax < ec_tmp) {
+        argmax = ec_tmp;
+        s2 = v;
+      }
+    }
+    cerr << "Naive " << s2 << " " << argmax << endl;
+    assert(s2 == selected_v);
 
     assert(selected_v >= 0);
 
