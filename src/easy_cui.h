@@ -86,6 +86,13 @@ GraphType easy_cui_init(int argc, char **argv) {
       if (!(iss >> m)) m = 5;
       if (!(iss >> p)) p = 0.5;
       es = generate_hk(n, m, p);
+    } else if (family == "ws") {
+      V n, d;
+      double p;
+      if (!(iss >> n)) n = 10;
+      if (!(iss >> d)) d = 4;
+      if (!(iss >> p)) p = 0.5;
+      es = generate_ws(n, d, p);
     } else {
       FAIL_MSG("Unknown generator family: " + family);
     }

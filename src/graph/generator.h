@@ -12,6 +12,7 @@ unweighted_edge_list generate_cycle(V num_vertices);
 unweighted_edge_list generate_ba(V final_num, V initial_num);
 unweighted_edge_list generate_dms(V final_num, V initial_num, V K0);
 unweighted_edge_list generate_hk(V final_num, V initial_num, double P);
+unweighted_edge_list generate_ws(V num_vertices, V avg_deg, double P);
 
 unweighted_edge_list generate_random_spanning_tree(V num_vertices);
 
