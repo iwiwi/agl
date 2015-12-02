@@ -54,4 +54,24 @@ class union_find {
     return ~par_[x];
   }
 };
+
+template<class T>
+class fenwick_tree {
+  fenwick_tree(size_t n) : x(n, 0) {}
+
+  T sum(size_t l, size_t r) {
+    if (l == 0) {
+      T ans = 0;
+      for (r; r >= 0; r = (r & (r + 1)) - 1) ans += x[r];
+      return ans;
+    }
+    return sum(0, r) - sum(0, l - 1);
+  }
+  void add(size_t k, T a) {
+    for (; k < x.size(); k |= k + 1) x[k] += a;
+  }
+
+ private:
+  std::vector<T> x;
+};
 }  // namespace agl
