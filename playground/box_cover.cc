@@ -1,4 +1,5 @@
 #include "box_cover.h"
+#include <sys/time.h>
 
 vector<V> box_cover_memb(const G &g, W radius) {
   V num_v = g.num_vertices();
@@ -88,6 +89,12 @@ vector<V> box_cover_memb(const G &g, W radius) {
 
 vector<V> box_cover_burning(const G &g, W radius) { return {}; }
 
+double GetCurrentTimeSec() {
+  struct timeval tv;
+  gettimeofday(&tv, NULL);
+  return tv.tv_sec + tv.tv_usec * 1e-6;
+}
+
 double estimated_cardinality(const G &g, const map<V, V> X, const int k) {
   if (X.size() < k) {
     return (k - 1);
@@ -105,9 +112,9 @@ double estimated_cardinality(const G &g, const map<V, V> X, const int k) {
 
 vector<V> box_cover_sketch(const G &g, W radius) {
   const int k = 200;
-  V num_v = g.num_vertices();
-  vector<V> rank(num_v);
+  const V num_v = g.num_vertices();
   vector<map<V, V>> X(num_v);
+  vector<V> rank(num_v);
   vector<V> inv(num_v);
   vector<set<V>> A(num_v);
   for (V i = 0; i < num_v; ++i) {
@@ -118,13 +125,13 @@ vector<V> box_cover_sketch(const G &g, W radius) {
   for (int i = 0; i < num_v; ++i) {
     rank[inv[i]] = i;
   }
+
   //
-  // Build-Sketches
+  // Build-Sketches O((n+m)*rad)
   //
   for (V i = 0; i < num_v; ++i) {
     X[i][rank[i]] = i;
   }
-
   for (W d = 0; d < radius; ++d) {
     for (V v : inv) {
       set<V> next;
@@ -146,6 +153,10 @@ vector<V> box_cover_sketch(const G &g, W radius) {
       A[v].swap(next);
     }
   }
+  {
+    // Naive Build Sketch
+    
+  }
 
   //
   // Select-Greedy O(n^2*k)
@@ -154,29 +165,36 @@ vector<V> box_cover_sketch(const G &g, W radius) {
   vector<bool> centered(num_v);
   map<V, V> Xs;
 
+  priority_queue<pair<double, V>> que;
   while (estimated_cardinality(g, Xs, k) < max(num_v, k - 1)) {
     V selected_v = -1;
-    double argmax = 0.0;
-    for (V v : inv) {
-      if (centered[v]) continue;
-      map<V, V> tmp(Xs);
-      for (pair<V, V> p : X[v]) {
-        if (tmp.size() < k) {
-          tmp[p.first] = p.second;
-          continue;
-        }
-        V maximum_key = tmp.rbegin()->first;
-        if (p.first >= maximum_key) break;
-        tmp.erase(maximum_key);
-        tmp[p.first] = p.second;
+    if (que.empty()) {
+      for (V v = 0; v < num_v; v++) {
+        double ec = estimated_cardinality(g, X[v], k);
+        que.push(make_pair(ec, v));
       }
-      double ec_tmp = estimated_cardinality(g, tmp, k);
-      if (argmax < ec_tmp) {
-        argmax = ec_tmp;
-        selected_v = v;
+      selected_v = que.top().second;
+      que.pop();
+    } else {
+      while (true) {
+        pair<double, V> candidate = que.top();
+        que.pop();
+        V v = candidate.second;
+
+        map<V, V> tmp(Xs);
+        tmp.insert(X[v].begin(), X[v].end());
+        double ec_tmp = estimated_cardinality(g, tmp, k);
+        if (ec_tmp >= que.top().first) {
+          selected_v = v;
+          break;
+        } else {
+          que.push(make_pair(ec_tmp, v));
+        }
       }
     }
+
     assert(selected_v >= 0);
+
     centers.push_back(selected_v);
     centered[selected_v] = true;
     if (Xs.size() == 0) {
@@ -185,7 +203,7 @@ vector<V> box_cover_sketch(const G &g, W radius) {
         if (Xs.size() == k) goto purified;
       }
     }
-    // Merge-and-Purify!
+    // Merge-and-Purify
     for (pair<V, V> p : X[selected_v]) {
       V max_rank = Xs.rbegin()->first;
       if (Xs.size() > k && p.first > max_rank) break;
