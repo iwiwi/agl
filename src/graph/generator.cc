@@ -206,7 +206,7 @@ unweighted_edge_list generate_ws(V num_vertices, V avg_deg, double P) {
   std::uniform_real_distribution<> p_rng(0.0, 1.0);
   std::uniform_int_distribution<V> v_rng(0, num_vertices - 1);
 
-  for (int i = 0; i < (int)out.size(); i++) {
+  for (size_t i = 0; i < out.size(); i++) {
     V u = out[i].first, v = out[i].second;
     if (p_rng(agl::random) > P) continue;
 
