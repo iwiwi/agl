@@ -100,7 +100,7 @@ int main(int argc, char **argv) {
   }
 
   vector<pair<string, function<vector<V>(const G &, W)>>> algos{
-      {"MEMB", box_cover_memb},
+      // {"MEMB", box_cover_memb},
       {"Schneider", box_cover_burning},
       {"Sketch", box_cover_sketch},
   };

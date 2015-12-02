@@ -95,9 +95,44 @@ double GetCurrentTimeSec() {
   return tv.tv_sec + tv.tv_usec * 1e-6;
 }
 
+vector<map<V, V>> naive_build_sketch(const G &g, const W radius, const int k,
+                                     const vector<V> &rank) {
+  V num_v = g.num_vertices();
+  vector<map<V, V>> naive_X(num_v);
+  for (V i = 0; i < num_v; ++i) {
+    map<V, V> tmp;
+    vector<bool> vis(num_v, false);
+    queue<pair<V, W>> que;
+    que.push(make_pair(i, 0));
+    vis[i] = true;
+    tmp[rank[i]] = i;
+
+    while (!que.empty()) {
+      V v = que.front().first;
+      W dist = que.front().second;
+      que.pop();
+      if (dist == radius) break;
+      for (V u : g.neighbors(v)) {
+        if (vis[u]) continue;
+        que.push(make_pair(u, dist + 1));
+        vis[u] = true;
+        tmp[rank[u]] = u;
+      }
+    }
+    int cnt = 0;
+    for (pair<V, V> p : tmp) {
+      naive_X[i][p.first] = p.second;
+      cnt++;
+      if (cnt == k) break;
+    }
+  }
+
+  return naive_X;
+}
+
 double estimated_cardinality(const G &g, const map<V, V> X, const int k) {
   if (X.size() < k) {
-    return (k - 1);
+    return X.size();
   }
   int cnt = 0;
   for (pair<V, V> p : X) {
@@ -161,53 +196,12 @@ vector<V> box_cover_sketch(const G &g, W radius) {
   vector<bool> centered(num_v);
   map<V, V> Xs;
   priority_queue<pair<double, V>> que;
+
+  vector<double> debug_before(num_v, 0.0);
   while (estimated_cardinality(g, Xs, k) < max(num_v, k - 1)) {
     V selected_v = -1;
+
     double ec_before = estimated_cardinality(g, Xs, k);
-    if (que.empty()) {
-      double max = -1.0;
-      for (V v = 0; v < num_v; v++) {
-        if (centered[v]) continue;
-        map<V, V> tmp(Xs);
-        tmp.insert(X[v].begin(), X[v].end());
-
-        double ec_delta = estimated_cardinality(g, tmp, k) - ec_before;
-        que.push(make_pair(ec_delta, -v));
-        if (max < ec_delta) {
-          max = ec_delta;
-          selected_v = v;
-        }
-      }
-      if (max == 0.0) {
-        que = priority_queue<pair<double, V>>();
-        cerr << selected_v << endl;
-      }
-    }
-
-    while (!que.empty()) {
-      pair<double, V> candidate = que.top();
-      que.pop();
-      V v = -candidate.second;
-      map<V, V> tmp(Xs);
-      tmp.insert(X[v].begin(), X[v].end());
-      double ec_delta = estimated_cardinality(g, tmp, k) - ec_before;
-      if (ec_delta >= que.top().first) {
-        selected_v = v;
-        cerr << "Lazy  " << selected_v << " " << (ec_delta + ec_before) << endl;
-        cerr << (que.top().first + ec_before) << endl;
-        if (selected_v == 131) {
-          map<V, V> tmp29(Xs);
-          tmp29.insert(X[29].begin(), X[29].end());
-          cerr << estimated_cardinality(g, tmp29, k) - ec_before << endl;
-          cerr << que.top().first << endl;
-        }
-        break;
-      } else {
-        que.push(make_pair(ec_delta, -v));
-      }
-    }
-
-    V s2 = -1;
     double argmax = 0.0;
     for (V v = 0; v < num_v; v++) {
       if (centered[v]) continue;
@@ -217,11 +211,45 @@ vector<V> box_cover_sketch(const G &g, W radius) {
       double ec_tmp = estimated_cardinality(g, tmp, k);
       if (argmax < ec_tmp) {
         argmax = ec_tmp;
-        s2 = v;
+        selected_v = v;
+      }
+
+      double ec_delta = ec_tmp - ec_before;
+      if (debug_before[v] > 0.0 && debug_before[v] < ec_delta) {
+        cerr << v << endl;
+        cerr << debug_before[v] << " " << ec_delta << endl;
+        for (auto p : X[v]) {
+          cerr << "X " << p.first << " " << p.second << endl;
+        }
+        int d = 0;
+        V dd = 0;
+        for (auto p : Xs) {
+          d++;
+          if (d == k) dd = p.first;
+          cerr << "Xs" << p.first << " " << p.second << endl;
+        }
+        int c = 0;
+        V cc = 0;
+        for (auto p : tmp) {
+          c++;
+          if (c == k) cc = p.first;
+          cerr << "T " << p.first << " " << p.second << endl;
+        }
+        cerr << dd << " " << cc << endl;
+        assert(false);
+      }
+
+      debug_before[v] = ec_delta;
+      if (v == 11) {
+        for (auto p : Xs) {
+          cerr << "Xs " << p.first << " " << p.second << endl;
+        }
+        for (auto p : tmp) {
+          cerr << "tmp " << p.first << " " << p.second << endl;
+        }
       }
     }
-    cerr << "Naive " << s2 << " " << argmax << endl;
-    assert(s2 == selected_v);
+    cerr << "Naive " << selected_v << " " << argmax << endl;
 
     assert(selected_v >= 0);
 
