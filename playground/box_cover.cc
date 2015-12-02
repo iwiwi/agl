@@ -155,47 +155,6 @@ vector<V> box_cover_sketch(const G &g, W radius) {
   }
 
   //
-  // Debug Build Sketches
-  //
-  {
-    // Naive Build Sketch
-    vector<map<V, V>> naive_X(num_v);
-    for (V i = 0; i < num_v; ++i) {
-      map<V, V> tmp;
-      vector<bool> vis(num_v, false);
-      queue<pair<V, W>> que;
-      que.push(make_pair(i, 0));
-      vis[i] = true;
-      tmp[rank[i]] = i;
-
-      while (!que.empty()) {
-        V v = que.front().first;
-        W dist = que.front().second;
-        que.pop();
-        if (dist == radius) break;
-        for (V u : g.neighbors(v)) {
-          if (vis[u]) continue;
-          que.push(make_pair(u, dist + 1));
-          vis[u] = true;
-          tmp[rank[u]] = u;
-        }
-      }
-      int cnt = 0;
-      for (pair<V, V> p : tmp) {
-        naive_X[i][p.first] = p.second;
-        cnt++;
-        if (cnt == k) break;
-      }
-    }
-    for (V i = 0; i < num_v; ++i) {
-      assert(X[i].size() == naive_X[i].size());
-      for (pair<V, V> p : naive_X[i]) {
-        assert(X[i][p.first] == p.second);
-      }
-    }
-  }
-
-  //
   // Select-Greedy O(n^2*k)
   //
   vector<V> centers;
