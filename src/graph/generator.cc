@@ -192,7 +192,7 @@ unweighted_edge_list generate_ws(V num_vertices, V avg_deg, double P) {
   CHECK(0.0 <= P && P <= 1.0);
 
   unweighted_edge_list out;
-  set<pair<int, int> > es;
+  set<pair<V, V> > es;
 
   for (V i : make_irange(num_vertices)) {
     for (int j = 1; j <= avg_deg / 2; j++) {
@@ -233,6 +233,50 @@ unweighted_edge_list generate_ws(V num_vertices, V avg_deg, double P) {
   return out;
 }
 
+/**
+ * Generate a random network by the configuration model with a given degree sequence.
+ * This function discards self-loops and multi-edges although the configuration model
+ * generates a multi-graph in general.
+ * Therefore the original degree sequence may not be reproduced.
+ * \param num_vertices is a number of nodes of the generated network.
+ * \param deg_seq is a degree sequence. The degree of the i-th node will be deg_seq[i].
+ * Note that the sum of the sequence must be even.
+ */
+unweighted_edge_list generate_config(V num_vertices, const vector<size_t> &deg_seq) {
+  CHECK(num_vertices > 0);
+  CHECK(deg_seq.size() == (size_t)num_vertices);
+  
+  size_t deg_sum = 0;
+  for (V i : make_irange(num_vertices)) {
+    CHECK(deg_seq[i] < (size_t)num_vertices);
+    deg_sum += deg_seq[i];
+  }
+
+  CHECK(deg_sum % 2 == 0);
+
+  unweighted_edge_list out;
+  set<pair<V, V> > es;
+  vector<V> half_edges;
+  for (V i : make_irange(num_vertices)) {
+    for (size_t j : make_irange(deg_seq[i])) {
+      half_edges.push_back(i);
+    }
+  }
+
+  shuffle(half_edges.begin(), half_edges.end(), agl::random);
+  
+
+  for (size_t j : make_irange(deg_sum / 2)) {
+    V u = half_edges[j * 2], v = half_edges[j * 2 + 1];
+    if (u != v && es.find({u, v}) == es.end()) {
+      out.emplace_back(u, v);
+      es.insert({u, v});
+      es.insert({v, u});
+    }
+  }
+
+  return out;
+}
 
 unweighted_edge_list generate_random_planar(V num_vertices, size_t num_edges) {
   using namespace agl::geometry2d;
@@ -252,7 +296,7 @@ unweighted_edge_list generate_random_planar(V num_vertices, size_t num_edges) {
   set<pair<V, V>> es;
   for (const auto &t : es_sorted) {
     if (es.size() >= num_edges) break;
-    V u = get<1>(t);;
+    V u = get<1>(t);
     V v = get<2>(t);
     if (u == v) continue;
 
