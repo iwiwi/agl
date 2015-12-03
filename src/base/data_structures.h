@@ -75,6 +75,8 @@ public:
 
   /** Returns the index i of the first element such that sum(0, i) is
    *  not less than val. Returns the size of the tree if no such i exists.
+   *  Note that sum(0, i) must be non-decreasing, i.e., all the elements
+   *  in the tree must be non-negative.
    *  Time complexity: O(log n).
    */
   std::size_t lower_bound(T val) {
@@ -113,6 +115,8 @@ public:
 
   /** Returns the index i of the first element such that sum(0, i) is
    *  greater than val. Returns the size of the tree if no such i exists.
+   *  Note that sum(0, i) must be non-decreasing, i.e., all the elements
+   *  in the tree must be non-negative.
    *  Time complexity: O(log n).
    */
   std::size_t upper_bound(T val) {
