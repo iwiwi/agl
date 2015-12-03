@@ -1,7 +1,11 @@
 #include "generator.h"
 #include "connectivity/connectivity.h"
 #include "gtest/gtest.h"
+#include <vector>
+#include <random>
+
 using namespace agl;
+using namespace std;
 
 TEST(gen_radom_spanning_tree, connectivity) {
   for (int trial = 0; trial < 10; ++trial) {
@@ -173,6 +177,43 @@ TEST(gen_hk, small_case) {
     G ug(make_undirected(es));
     for (V v : ug.vertices()) {
       ASSERT_TRUE(ug.degree(v) >= (size_t)M);
+    }
+  }
+}
+
+TEST(gen_ws, random_trial) {
+  uniform_real_distribution<double> rng(1.0);
+  for (int trial = 0; trial < 10; ++trial) {
+    V N = agl::random(1000) + 10;
+    V avg_deg = agl::random(N / 2) + 2;
+    if (avg_deg % 2 == 1) avg_deg--;
+    double P = rng(agl::random);
+    
+    auto es = generate_ws(N, avg_deg, P);
+    G g(es);
+    pretty_print(g);
+  }
+}
+
+TEST(gen_config, random_trial) {
+  for (int trial = 0; trial < 10; ++trial) {
+    V N = agl::random(1000) + 10;
+    vector<size_t> deg_seq(N);
+    int d = (agl::random(N / 4) + 1) * 2;
+    for (int i = 0; i < d * N; ++i) {
+      V v;
+      do {
+	v = agl::random(N);
+      } while ((int)deg_seq[v] >= N);
+      deg_seq[v]++;
+    }
+
+    auto es = generate_config(N, deg_seq);
+    G g(es);
+    pretty_print(g);
+
+    for (V i = 0; i < N; ++i) {
+      ASSERT_TRUE(g.degree(i, kFwd) + g.degree(i, kBwd) <= deg_seq[i]);
     }
   }
 }
