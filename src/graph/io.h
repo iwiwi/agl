@@ -38,22 +38,29 @@ typename GraphType::edge_list_type read_edge_list_tsv(const char *filename) {
   }
 }
 
-
 template<typename GraphType = G>
 GraphType read_graph_tsv(std::istream &is = std::cin) {
-  return GraphType(read_edge_list_tsv(is));
+  return GraphType(read_edge_list_tsv<GraphType>(is));
 }
 
 template<typename GraphType = G>
 GraphType read_graph_tsv(const char *filename) {
-  return GraphType(read_edge_list_tsv(filename));
+  return GraphType(read_edge_list_tsv<GraphType>(filename));
 }
 
-template<typename GraphT = G>
-void write_graph_tsv(const GraphT &g, std::ostream &os = std::cout) {
+template<typename EdgeType>
+void write_graph_tsv_edge(const EdgeType& e, std::ostream &os){
+  os << to(e) << " " << weight(e);
+}
+template<> void write_graph_tsv_edge(const unweighted_edge& e,std::ostream &os);
+
+template<typename GraphType = G>
+void write_graph_tsv(const GraphType &g, std::ostream &os = std::cout) {
   for (auto v : g.vertices()) {
     for (auto e : g.edges(v)) {
-      os << e << std::endl;
+      os << v << " ";
+      write_graph_tsv_edge(e, os);
+      os << std::endl;
     }
   }
 }
