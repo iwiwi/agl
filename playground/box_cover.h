@@ -3,6 +3,14 @@ using namespace std;
 using namespace agl;
 
 //
+// Naive Functions for Tests
+//
+vector<map<V, V>> naive_build_sketch(const G &g, const W radius, const int k,
+                                     const vector<V> &rank);
+vector<map<V, V>> build_sketch(const G &g, const W radius, const int k,
+                               const vector<V> &rank, const vector<V> &inv);
+
+//
 // Radius-based Methods:
 //   Returns the set S of selected center nodes.
 //   For any vertex v, there is s \in S s.t. d(v, s) <= radius.

@@ -130,6 +130,45 @@ vector<map<V, V>> naive_build_sketch(const G &g, const W radius, const int k,
   return naive_X;
 }
 
+vector<map<V, V>> build_sketch(const G &g, const W radius, const int k,
+                               const vector<V> &rank, const vector<V> &inv) {
+  V num_v = g.num_vertices();
+  vector<map<V, V>> X(num_v);
+  vector<set<V>> previous_added(num_v);
+  for (V i = 0; i < num_v; ++i) {
+    previous_added[i].insert(i);
+  }
+  //
+  // Build-Sketches O((n+m)*rad)
+  //
+  for (V i = 0; i < num_v; ++i) {
+    X[i][rank[i]] = i;
+  }
+  for (W d = 0; d < radius; ++d) {
+    for (V v : inv) {
+      set<V> next;
+      for (V a : previous_added[v])
+        for (V neighbor : g.neighbors(a)) {
+          // Merge & Purify
+          V max_rank = X[neighbor].rbegin()->first;
+          V rv = rank[v];
+          if (X[neighbor].find(rv) != X[neighbor].end()) continue;
+          if (X[neighbor].size() >= k && max_rank > rv) {
+            X[neighbor].erase(max_rank);
+            X[neighbor][rv] = v;
+            next.insert(neighbor);
+          } else if (X[neighbor].size() < k) {
+            X[neighbor][rv] = v;
+            next.insert(neighbor);
+          }
+        }
+
+      previous_added[v].swap(next);
+    }
+  }
+  return X;
+}
+
 double estimated_cardinality(const G &g, const map<V, V> X, const int k) {
   if (X.size() < k) {
     return X.size();
@@ -148,13 +187,10 @@ double estimated_cardinality(const G &g, const map<V, V> X, const int k) {
 vector<V> box_cover_sketch(const G &g, W radius) {
   const int k = 200;
   const V num_v = g.num_vertices();
-  vector<map<V, V>> X(num_v);
   vector<V> rank(num_v);
   vector<V> inv(num_v);
-  vector<set<V>> A(num_v);
   for (V i = 0; i < num_v; ++i) {
     inv[i] = i;
-    A[i].insert(i);
   }
   random_shuffle(inv.begin(), inv.end());
   for (int i = 0; i < num_v; ++i) {
@@ -164,30 +200,7 @@ vector<V> box_cover_sketch(const G &g, W radius) {
   //
   // Build-Sketches O((n+m)*rad)
   //
-  for (V i = 0; i < num_v; ++i) {
-    X[i][rank[i]] = i;
-  }
-  for (W d = 0; d < radius; ++d) {
-    for (V v : inv) {
-      set<V> next;
-      for (V a : A[v])
-        for (V w : g.neighbors(a)) {
-          // Merge & Purify
-          V max_rank = X[w].rbegin()->first;
-          V rv = rank[v];
-          if (X[w].find(rv) != X[w].end()) continue;
-          if (X[w].size() >= k && max_rank > rv) {
-            X[w].erase(max_rank);
-            X[w][rv] = v;
-            next.insert(w);
-          } else if (X[w].size() < k) {
-            X[w][rv] = v;
-            next.insert(w);
-          }
-        }
-      A[v].swap(next);
-    }
-  }
+  vector<map<V, V>> X = build_sketch(g, radius, k, rank, inv);
 
   //
   // Select-Greedy O(n^2*k)
@@ -195,13 +208,11 @@ vector<V> box_cover_sketch(const G &g, W radius) {
   vector<V> centers;
   vector<bool> centered(num_v);
   map<V, V> Xs;
-  priority_queue<pair<double, V>> que;
 
   vector<double> debug_before(num_v, 0.0);
   while (estimated_cardinality(g, Xs, k) < max(num_v, k - 1)) {
     V selected_v = -1;
 
-    double ec_before = estimated_cardinality(g, Xs, k);
     double argmax = 0.0;
     for (V v = 0; v < num_v; v++) {
       if (centered[v]) continue;
@@ -213,43 +224,7 @@ vector<V> box_cover_sketch(const G &g, W radius) {
         argmax = ec_tmp;
         selected_v = v;
       }
-
-      double ec_delta = ec_tmp - ec_before;
-      if (debug_before[v] > 0.0 && debug_before[v] < ec_delta) {
-        cerr << v << endl;
-        cerr << debug_before[v] << " " << ec_delta << endl;
-        for (auto p : X[v]) {
-          cerr << "X " << p.first << " " << p.second << endl;
-        }
-        int d = 0;
-        V dd = 0;
-        for (auto p : Xs) {
-          d++;
-          if (d == k) dd = p.first;
-          cerr << "Xs" << p.first << " " << p.second << endl;
-        }
-        int c = 0;
-        V cc = 0;
-        for (auto p : tmp) {
-          c++;
-          if (c == k) cc = p.first;
-          cerr << "T " << p.first << " " << p.second << endl;
-        }
-        cerr << dd << " " << cc << endl;
-        assert(false);
-      }
-
-      debug_before[v] = ec_delta;
-      if (v == 11) {
-        for (auto p : Xs) {
-          cerr << "Xs " << p.first << " " << p.second << endl;
-        }
-        for (auto p : tmp) {
-          cerr << "tmp " << p.first << " " << p.second << endl;
-        }
-      }
     }
-    cerr << "Naive " << selected_v << " " << argmax << endl;
 
     assert(selected_v >= 0);
 

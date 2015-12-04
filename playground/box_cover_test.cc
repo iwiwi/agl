@@ -8,7 +8,7 @@ TEST(box_cover, memb) {
     V M = 3;
     V N = M + agl::random(1000);
     auto es = generate_ba(N, M);
-    G g(es);
+    G g(make_undirected(es));
     pretty_print(g);
 
     W radius = 3;
@@ -32,5 +32,34 @@ TEST(box_cover, memb) {
       }
     }
     for (W dist : central_distances) ASSERT_TRUE(dist <= radius);
+  }
+}
+
+TEST(box_cover, build_sketch_check) {
+  for (int trial = 0; trial < 10; ++trial) {
+    V M = 3;
+    V N = M + agl::random(1000);
+    auto es = generate_ba(N, M);
+    G g(make_undirected(es));
+    pretty_print(g);
+
+    W radius = 1;
+    const int k = 200;
+    vector<V> rank(N);
+    vector<V> inv(N);
+    for (V i = 0; i < N; ++i) {
+      inv[i] = i;
+    }
+    random_shuffle(inv.begin(), inv.end());
+    for (int i = 0; i < N; ++i) {
+      rank[inv[i]] = i;
+    }
+
+    vector<map<V, V>> naive_x = naive_build_sketch(g, radius, k, rank);
+    vector<map<V, V>> x = build_sketch(g, radius, k, rank, inv);
+
+    for (V v = 0; v < N; v++) {
+      ASSERT_EQ(naive_x[v], x[v]) << v;
+    }
   }
 }
