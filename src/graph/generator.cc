@@ -285,7 +285,6 @@ unweighted_edge_list generate_kronecker_(int scale, size_t num_edges, size_t N, 
       prob_sum[i * N + j + 1] = prob_sum[i * N + j] + matrix[i][j];
     }
   }
-  std::cerr << prob_sum[N * N] << std::endl;
   CHECK_MSG(abs(prob_sum[N * N] - 1.0) < 1e-3, "the sum of the elements in the matrix must be 1.0");
 
   unweighted_edge_list out;
@@ -338,7 +337,7 @@ unweighted_edge_list generate_kronecker(int scale, const std::vector<std::vector
       sum += matrix[i][j];
     }
   }
-  cerr << sum << endl;
+
   for (size_t i: make_irange(N)) {
     for (size_t j: make_irange(N)) {
       normalized_matrix[i][j] = matrix[i][j] / sum;
@@ -347,6 +346,41 @@ unweighted_edge_list generate_kronecker(int scale, const std::vector<std::vector
 
   size_t num_edges = pow(sum, scale);
   return generate_kronecker_(scale, num_edges, N, normalized_matrix);
+}
+
+/**
+ * Generate a (directed) Kronecker graph by the given normalized square matrix and average degree.
+ * The number of vertices in the resulting graph will be (scale)-th power of N,
+ * where N is the size of the row (or column) of the matrix.
+ * This function avoids self-loops and multi-edges.
+ * Note that the function aborts edge insertion after
+ * 2 * (expected #edges) trials, which may result in fewer edges
+ * depending on the value of the matrix.
+ * \param scale is the number of hierarchy.
+ * \param avg_deg is the average degree of a generated graph.
+ * \param matrix is a normalized matrix. It must be a square matrix
+ * whose elements are between 0.0 and 1.0, and the sum of the elements is 1.0.
+ */
+unweighted_edge_list generate_kronecker(int scale, size_t avg_deg, const std::vector<std::vector<double>> &matrix) {
+  CHECK(scale > 0);
+  CHECK(matrix.size() > 0);
+  size_t N = matrix.size();
+  double sum = 0;
+  vector<vector<double>> normalized_matrix(N, vector<double>(N));
+  for (size_t i : make_irange(N)) {
+    CHECK(N == matrix[i].size());
+    for (size_t j : make_irange(N)) {
+      CHECK(0 <= matrix[i][j] && matrix[i][j] <= 1.0);
+      sum += matrix[i][j];
+    }
+  }
+
+  size_t num_edges = avg_deg;
+  for (int i : make_irange(scale)) {
+    num_edges *= N;
+  }
+
+  return generate_kronecker_(scale, num_edges, N, matrix);
 }
 
 unweighted_edge_list generate_random_planar(V num_vertices, size_t num_edges) {
