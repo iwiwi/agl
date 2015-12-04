@@ -87,7 +87,164 @@ vector<V> box_cover_memb(const G &g, W radius) {
   return ret;
 }
 
-vector<V> box_cover_burning(const G &g, W radius) { return {}; }
+vector<V> box_cover_burning(const G &g, W radius) {
+  vector<V> solution;
+
+  //
+  // Create all possible boxes.
+  //
+  V num_v = g.num_vertices();
+  vector<vector<V>> boxes(num_v);
+  {
+    for (V i = 0; i < num_v; ++i) {
+      vector<bool> vis(num_v);
+      queue<pair<V, W>> que;
+
+      que.push(make_pair(i, 0));
+      vis[i] = true;
+      boxes[i].push_back(i);
+
+      while (!que.empty()) {
+        V q = que.front().first;
+        W dist = que.front().second;
+        que.pop();
+        if (dist == radius) break;
+        for (V v : g.neighbors(q)) {
+          if (vis[v]) continue;
+          que.push(make_pair(v, dist + 1));
+          vis[v] = true;
+          boxes[i].push_back(v);
+        }
+      }
+      sort(boxes[i].begin(), boxes[i].end());
+    }
+  }
+
+  V prev_size = -1;
+  while (prev_size < (V)solution.size()) {
+    prev_size = solution.size();
+    //
+    // Remove unnecessary boxes.
+    //
+    {
+      for (V i = 0; i < num_v; ++i)
+        for (V j = i + 1; j < num_v; ++j) {
+          size_t cnt = 0;
+          for (size_t ci = 0, cj = 0;
+               ci < boxes[i].size() && cj < boxes[j].size();) {
+            if (boxes[i][ci] == boxes[j][cj]) {
+              cnt++;
+              ci++;
+              cj++;
+            } else if (boxes[i][ci] < boxes[j][cj]) {
+              ci++;
+            } else {
+              cj++;
+            }
+          }
+          if (cnt == boxes[j].size()) {
+            boxes[j].clear();
+          } else if (cnt == boxes[i].size()) {
+            boxes[i].clear();
+          }
+        }
+    }
+
+    //
+    // Remove unnecessary nodes.
+    //
+    {
+      vector<vector<V>> containd_box_list(num_v);
+      for (V i = 0; i < num_v; ++i)
+        for (V v : boxes[i]) containd_box_list[v].push_back(i);
+
+      for (V i = 0; i < num_v; ++i)
+        sort(containd_box_list[i].begin(), containd_box_list[i].end());
+
+      for (V i = 0; i < num_v; ++i)
+        for (V j = i + 1; j < num_v; ++j) {
+          if (containd_box_list[i].size() == 0 ||
+              containd_box_list[j].size() == 0)
+            continue;
+          size_t cnt = 0;
+          for (size_t ci = 0, cj = 0; ci < containd_box_list[i].size() &&
+                                          cj < containd_box_list[j].size();) {
+            if (containd_box_list[i][ci] == containd_box_list[j][cj]) {
+              cnt++;
+              ci++;
+              cj++;
+            } else if (containd_box_list[i][ci] < containd_box_list[j][cj]) {
+              ci++;
+            } else {
+              cj++;
+            }
+          }
+
+          if (cnt == containd_box_list[i].size()) {
+            containd_box_list[j].clear();
+          } else if (cnt == containd_box_list[j].size()) {
+            containd_box_list[i].clear();
+          }
+        }
+
+      boxes.clear();
+      boxes.resize(num_v);
+      for (V v = 0; v < num_v; ++v)
+        for (V b : containd_box_list[v]) boxes[b].push_back(v);
+
+      // Remove pairs of unnecessary twin boxes
+      for (V i = 0; i < num_v; ++i)
+        for (V j = i + 1; j < num_v; ++j)
+          if (containd_box_list[i].size() == 2 &&
+              containd_box_list[j].size() == 2) {
+            vector<V> &bi1 = boxes[containd_box_list[i][0]];
+            vector<V> &bi2 = boxes[containd_box_list[i][1]];
+            vector<V> &bj1 = boxes[containd_box_list[j][0]];
+            vector<V> &bj2 = boxes[containd_box_list[j][1]];
+
+            V k1 = bi1[0] == i ? bi1[1] : bi1[0];
+            V k2 = bi2[0] == i ? bi2[1] : bi2[0];
+            V l1 = bj1[0] == j ? bj1[1] : bj1[0];
+            V l2 = bj2[0] == j ? bj2[1] : bj2[0];
+
+            if (k1 == l1 && k2 == l2) {
+              bi2.clear();
+              bj1.clear();
+            } else if (k1 == l2 && k2 == l1) {
+              bi2.clear();
+              bj2.clear();
+            }
+          }
+    }
+
+    //
+    // Search for boxes that must be contained in the solution.
+    //
+    {
+      vector<vector<V>> containd_box_list(num_v);
+      for (V i = 0; i < num_v; ++i)
+        for (V v : boxes[i]) containd_box_list[v].push_back(i);
+      for (V v = 0; v < num_v; ++v)
+        if (containd_box_list[v].size() == 1) {
+          V b = containd_box_list[v][0];
+          solution.push_back(b);
+          vector<V> &covered = boxes[b];
+          for (V c : covered) containd_box_list[c].clear();
+        }
+
+      boxes.clear();
+      boxes.resize(num_v);
+      for (V v = 0; v < num_v; ++v)
+        for (V b : containd_box_list[v]) boxes[b].push_back(v);
+    }
+  }
+
+  //
+  // System split.
+  //
+
+  return solution;
+}
 
 double GetCurrentTimeSec() {
   struct timeval tv;
@@ -153,11 +310,11 @@ vector<map<V, V>> build_sketch(const G &g, const W radius, const int k,
           V max_rank = X[neighbor].rbegin()->first;
           V rv = rank[v];
           if (X[neighbor].find(rv) != X[neighbor].end()) continue;
-          if (X[neighbor].size() >= k && max_rank > rv) {
+          if (X[neighbor].size() >= (size_t)k && max_rank > rv) {
             X[neighbor].erase(max_rank);
             X[neighbor][rv] = v;
             next.insert(neighbor);
-          } else if (X[neighbor].size() < k) {
+          } else if ((int)X[neighbor].size() < k) {
             X[neighbor][rv] = v;
             next.insert(neighbor);
           }
@@ -170,7 +327,7 @@ vector<map<V, V>> build_sketch(const G &g, const W radius, const int k,
 }
 
 double estimated_cardinality(const G &g, const map<V, V> X, const int k) {
-  if (X.size() < k) {
+  if (X.size() < (size_t)k) {
     return X.size();
   }
   int cnt = 0;
