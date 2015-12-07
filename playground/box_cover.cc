@@ -1,6 +1,33 @@
 #include "box_cover.h"
 #include <sys/time.h>
 
+double coverage(const G &g, vector<V> s, W rad) {
+  vector<V> covered;
+  vector<bool> vis(g.num_vertices());
+  queue<pair<V, W>> que;
+  for (V center : s) {
+    que.push(make_pair(center, 0));
+    covered.push_back(center);
+    vis[center] = true;
+  }
+  while (!que.empty()) {
+    V v = que.front().first;
+    W dist = que.front().second;
+    que.pop();
+    if (dist == rad) break;
+    for (V u : g.neighbors(v)) {
+      if (vis[u]) continue;
+      vis[u] = true;
+      que.push(make_pair(u, dist + 1));
+      covered.push_back(u);
+    }
+  }
+  assert(covered.size() <= (size_t)g.num_vertices());
+
+  double coverage = covered.size();
+  return coverage / g.num_vertices();
+}
+
 vector<V> box_cover_memb(const G &g, W radius) {
   V num_v = g.num_vertices();
   vector<vector<pair<V, W>>> node_lists;
@@ -83,43 +110,13 @@ vector<V> box_cover_memb(const G &g, W radius) {
     }
   }
 
-  vector<int> ret(center_nodes.begin(), center_nodes.end());
+  vector<V> ret(center_nodes.begin(), center_nodes.end());
   return ret;
 }
 
-vector<V> box_cover_burning(const G &g, W radius) {
-  vector<V> solution;
-
-  //
-  // Create all possible boxes.
-  //
+void burning_splitted(const G &g, W radius, set<V> &solution,
+                      vector<vector<V>> &boxes) {
   V num_v = g.num_vertices();
-  vector<vector<V>> boxes(num_v);
-  {
-    for (V i = 0; i < num_v; ++i) {
-      vector<bool> vis(num_v);
-      queue<pair<V, W>> que;
-
-      que.push(make_pair(i, 0));
-      vis[i] = true;
-      boxes[i].push_back(i);
-
-      while (!que.empty()) {
-        V q = que.front().first;
-        W dist = que.front().second;
-        que.pop();
-        if (dist == radius) break;
-        for (V v : g.neighbors(q)) {
-          if (vis[v]) continue;
-          que.push(make_pair(v, dist + 1));
-          vis[v] = true;
-          boxes[i].push_back(v);
-        }
-      }
-      sort(boxes[i].begin(), boxes[i].end());
-    }
-  }
-
   V prev_size = -1;
   while (prev_size < (V)solution.size()) {
     prev_size = solution.size();
@@ -127,6 +124,12 @@ vector<V> box_cover_burning(const G &g, W radius) {
     // Remove unnecessary boxes.
     //
     {
+      for (int i = 0; i < num_v; ++i) {
+        sort(boxes[i].begin(), boxes[i].end());
+        boxes[i].erase(unique(boxes[i].begin(), boxes[i].end()),
+                       boxes[i].end());
+      }
+
       for (V i = 0; i < num_v; ++i)
         for (V j = i + 1; j < num_v; ++j) {
           size_t cnt = 0;
@@ -201,6 +204,9 @@ vector<V> box_cover_burning(const G &g, W radius) {
             vector<V> &bi2 = boxes[containd_box_list[i][1]];
             vector<V> &bj1 = boxes[containd_box_list[j][0]];
             vector<V> &bj2 = boxes[containd_box_list[j][1]];
+            if (bi1.size() != 2 || bi2.size() != 2 || bj1.size() != 2 ||
+                bj2.size() != 2)
+              continue;
 
             V k1 = bi1[0] == i ? bi1[1] : bi1[0];
             V k2 = bi2[0] == i ? bi2[1] : bi2[0];
@@ -227,7 +233,7 @@ vector<V> box_cover_burning(const G &g, W radius) {
       for (V v = 0; v < num_v; ++v)
         if (containd_box_list[v].size() == 1) {
           V b = containd_box_list[v][0];
-          solution.push_back(b);
+          solution.insert(b);
           vector<V> &covered = boxes[b];
           for (V c : covered) containd_box_list[c].clear();
         }
@@ -238,12 +244,110 @@ vector<V> box_cover_burning(const G &g, W radius) {
         for (V b : containd_box_list[v]) boxes[b].push_back(v);
     }
   }
+}
+
+vector<V> box_cover_burning(const G &g, W radius) {
+  set<V> solution;
+
+  //
+  // Create all possible boxes.
+  //
+  V num_v = g.num_vertices();
+  vector<vector<V>> boxes(num_v);
+  {
+    for (V i = 0; i < num_v; ++i) {
+      vector<bool> vis(num_v);
+      queue<pair<V, W>> que;
+
+      que.push(make_pair(i, 0));
+      vis[i] = true;
+      boxes[i].push_back(i);
+
+      while (!que.empty()) {
+        V q = que.front().first;
+        W dist = que.front().second;
+        que.pop();
+        if (dist == radius) break;
+        for (V v : g.neighbors(q)) {
+          if (vis[v]) continue;
+          que.push(make_pair(v, dist + 1));
+          vis[v] = true;
+          boxes[i].push_back(v);
+        }
+      }
+      sort(boxes[i].begin(), boxes[i].end());
+    }
+  }
 
   //
   // System split.
   //
+  deque<pair<vector<vector<V>>, set<V>>> que;
+  que.push_front(make_pair(boxes, solution));
+  V min_size = num_v;
+  while (!que.empty()) {
+    vector<vector<V>> qboxes = que.front().first;
+    set<V> qsolution = que.front().second;
+    que.pop_front();
+    if (qsolution.size() >= min_size) continue;
 
-  return solution;
+    burning_splitted(g, radius, qsolution, qboxes);
+
+    vector<V> s(qsolution.begin(), qsolution.end());
+    double qcoverage = coverage(g, s, radius);
+    if (qcoverage == 1.0) {
+      if (min_size > qsolution.size()) {
+        solution = qsolution;
+        min_size = solution.size();
+      }
+      continue;
+    }
+
+    // Find the node that is in the smallest number of boxes
+    vector<set<V>> containd_box_list(num_v);
+    vector<V> covered_largest(num_v, 0);
+    for (V i = 0; i < num_v; ++i)
+      for (V v : qboxes[i]) {
+        containd_box_list[v].insert(i);
+        if (covered_largest[v] < qboxes[i].size())
+          covered_largest[v] = qboxes[i].size();
+      }
+    V selected_v = -1;
+    size_t min_list_size = num_v;
+    V max_covered = 0;
+    for (int v = 0; v < num_v; ++v) {
+      if (containd_box_list[v].empty()) continue;
+      if (containd_box_list[v].size() < min_list_size) {
+        min_list_size = containd_box_list[v].size();
+        max_covered = covered_largest[v];
+        selected_v = v;
+      } else if (containd_box_list[v].size() == min_list_size &&
+                 covered_largest[v] > max_covered) {
+        min_list_size = containd_box_list[v].size();
+        max_covered = covered_largest[v];
+        selected_v = v;
+      }
+    }
+
+    assert(selected_v >= 0 && containd_box_list[selected_v].size() >= 2);
+
+    // After Selected
+    for (V onlycontain : containd_box_list[selected_v]) {
+      // Generate subboxes
+      vector<vector<V>> subboxes(num_v);
+      for (V v = 0; v < num_v; v++) {
+        if (v != onlycontain &&
+            containd_box_list[selected_v].find(v) !=
+                containd_box_list[selected_v].end())
+          continue;
+        subboxes[v].assign(qboxes[v].begin(), qboxes[v].end());
+      }
+      que.push_front(make_pair(subboxes, qsolution));
+    }
+  }
+  cerr << min_size << endl;
+  vector<V> ret(solution.begin(), solution.end());
+  return ret;
 }
 
 double GetCurrentTimeSec() {

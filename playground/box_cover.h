@@ -2,6 +2,8 @@
 using namespace std;
 using namespace agl;
 
+double coverage(const G &g, vector<V> s, W rad);
+
 //
 // Naive Functions for Tests
 //
