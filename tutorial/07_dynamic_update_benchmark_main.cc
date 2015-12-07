@@ -3,6 +3,7 @@
 #include "agl.h"
 using namespace std;
 using namespace agl;
+using namespace agl::dynamic_graph_update;
 
 // An example of dynamic indices
 class my_slow_index : public dynamic_graph_index_interface<G> {
@@ -27,12 +28,14 @@ class my_slow_index : public dynamic_graph_index_interface<G> {
 };
 
 int main() {
-  // Prepare the scenario
-  dynamic_index_evaluation_scenario<G> s;
-  s.initial_graph.assign(generate_path(10));
-  s.add_workload_edge_addition_and_removal_random(10);
+  // Prepare the scenario:
+  // * Starts with path graph (10 vertices)
+  // * Adds 5 random edges
+  // * Removes 5 random edges
+  update_scenario<G> s;
+  s = generate_scenario_random_addition_and_removal(generate_path(10), 5);
 
   // Evaluate
   my_slow_index i;
-  s.evaluate(&i);
+  evaluate_scenario(&i, s);
 }

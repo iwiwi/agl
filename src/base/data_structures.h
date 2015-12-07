@@ -54,4 +54,106 @@ class union_find {
     return ~par_[x];
   }
 };
+
+template<class T>
+class fenwick_tree {
+public:
+  fenwick_tree(std::size_t n) : x(n, 0) {}
+
+  T sum(std::size_t l, std::size_t r) {
+    if (l == 0) {
+      T ans = 0;
+      for (int64_t k = r; k >= 0; k = (k & (k + 1)) - 1) ans += x[k];
+      return ans;
+    }
+    return sum(0, r) - sum(0, l - 1);
+  }
+
+  void add(std::size_t k, T a) {
+    for (; k < x.size(); k |= k + 1) x[k] += a;
+  }
+
+  /** Returns the index i of the first element such that sum(0, i) is
+   *  not less than val. Returns the size of the tree if no such i exists.
+   *  Note that sum(0, i) must be non-decreasing, i.e., all the elements
+   *  in the tree must be non-negative.
+   *  Time complexity: O(log n).
+   */
+  std::size_t lower_bound(T val) {
+    int64_t n = x.size();
+    if (n == 0) return 0;
+    int64_t index = 1;
+    int64_t width = 1;
+
+    while (index <= n) {
+      index *= 2;
+      width *= 2;
+    }
+    index--;
+
+    std::size_t ans = n;
+    T sum = 0;
+
+    while (width) {
+      width /= 2;
+      if (index >= n) {
+	index -= width;
+      } else {
+	sum += x[index];
+	if (sum >= val) {
+	  ans = index;
+	  sum -= x[index];
+	  index -= width;
+	} else {
+	  index += width;
+	}
+      }
+    }
+
+    return ans;
+  }
+
+  /** Returns the index i of the first element such that sum(0, i) is
+   *  greater than val. Returns the size of the tree if no such i exists.
+   *  Note that sum(0, i) must be non-decreasing, i.e., all the elements
+   *  in the tree must be non-negative.
+   *  Time complexity: O(log n).
+   */
+  std::size_t upper_bound(T val) {
+    int64_t n = x.size();
+    if (n == 0) return 0;
+    int64_t index = 1;
+    int64_t width = 1;
+
+    while (index <= n) {
+      index *= 2;
+      width *= 2;
+    }
+    index--;
+
+    std::size_t ans = n;
+    T sum = 0;
+
+    while (width) {
+      width /= 2;
+      if (index >= n) {
+	index -= width;
+      } else {
+	sum += x[index];
+	if (sum > val) {
+	  ans = index;
+	  sum -= x[index];
+	  index -= width;
+	} else {
+	  index += width;
+	}
+      }
+    }
+
+    return ans;
+  }
+
+ private:
+  std::vector<T> x;
+};
 }  // namespace agl
