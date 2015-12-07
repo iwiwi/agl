@@ -5,7 +5,7 @@
 
 namespace {
 //set the end line code(regardless of the os)
-const std::string kEndLine = "\n";
+const char kEndLine = '\n';
 const std::string kMagic = "AGL_BINARY";
 const std::string kVersion = "0.01";
 
@@ -171,9 +171,9 @@ template<typename GraphType = G>
 GraphType read_graph_binary(std::istream &is = std::cin) {
   //header
   std::string magic,version,format;
-  std::getline(is, magic);
-  std::getline(is, version);
-  std::getline(is, format);
+  std::getline(is, magic, kEndLine);
+  std::getline(is, version, kEndLine);
+  std::getline(is, format, kEndLine);
 
   CHECK_MSG(magic == kMagic, "Invalid file magic.");
   CHECK_MSG(version == kVersion, "Invalid file version.");
