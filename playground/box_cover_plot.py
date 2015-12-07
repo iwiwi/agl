@@ -12,39 +12,52 @@ if __name__ == '__main__':
     log = open(sys.argv[1], 'r')
     jsonData = json.load(log)
     log.close()
-    boxSize = jsonData['algorithms'][0]['size']
-    x = []
-    y = []
-    for i in range(0, len(boxSize)):
-        x.append(2 * i + 1)
-        y.append(boxSize[i])
-        if boxSize[i] == 1:
-            break
+    graph_name = jsonData['graph_info'][0]['graph'].replace('/', '-')
+    for j in range(0, len(jsonData['algorithms'])):
+        boxSizes = jsonData['algorithms'][j]['size']
+        name = jsonData['algorithms'][j]['name'].replace(' ', '_')
+        x = []
+        y = []
+        for i in range(0, len(boxSizes)):
+            x.append(2 * i + 1)
+            y.append(boxSizes[i])
+            if boxSizes[i] == 1:
+                break
 
-    x = np.array(x)
-    y = np.array(y)
-    nsample = x.size
-    lnx = np.log10(x)
-    lny = np.log10(y)
+        x = np.array(x)
+        y = np.array(y)
+        nsample = x.size
+        lnx = np.log(x)
+        lny = np.log(y)
 
-    # おまじない
-    X = np.column_stack((np.repeat(1, nsample), lnx))
-    # 回帰実行
-    model = sm.OLS(lny, X)
-    results = model.fit()
+        X = np.column_stack((np.repeat(1, nsample), lnx))
+        model = sm.OLS(lny, X)
+        results = model.fit()
+        # print summary
+        print results.summary()
+        # get estimated params
+        a, b = results.params
 
-    # 結果の概要を表示
-    print results.summary()
+        X2 = np.column_stack((np.repeat(1, nsample), x))
+        model2 = sm.OLS(lny, X2)
+        results2 = model2.fit()
+        # print summary
+        print results2.summary()
+        # get estimated params
+        a2, b2 = results2.params
 
-    # パラメータの推定値を取得
-    a, b = results.params
-
-    # プロットを表示
-    plt.plot(x, y, 'o')
-    plt.plot(x, (x**b) * (10**a))
-
-    plt.xscale("log")
-    plt.yscale("log")
-    plt.xlim(xmin=0.5)
-    plt.xlim(xmax=25)
-    plt.savefig(sys.argv[2])
+        # show plot
+        plt.plot(x, y, 'o', label=name)
+        px = np.linspace(0, 100, 10000)
+        plt.plot(px, (px**b) * (np.exp(1)**a), label="ln(y)=a+b*ln(x)")
+        plt.plot(px, (np.exp(1)**(b2 * px)) * (np.exp(1)**a2), label="ln(y) = a+b*x")
+        plt.xscale("log")
+        plt.yscale("log")
+        plt.xlim(xmin=0.5)
+        plt.xlim(xmax=25)
+        plt.ylim(ymin=0.5)
+        plt.ylim(ymax=100000)
+        plt.legend(loc='best')
+        plt.savefig(graph_name + "_" + str(j) + ".png")
+        print j
+        plt.close()

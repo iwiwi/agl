@@ -87,9 +87,9 @@ int main(int argc, char **argv) {
       }
     }
   }
-  for (int k = 100; k <= 1000; k += 100) {
+  for (int k = 800; k <= 1200; k += 100) {
     JLOG_ADD_OPEN("algorithms") {
-      JLOG_PUT("name", "Sketch k=" + to_string(k));
+      JLOG_PUT("name", "Sketch_k=" + to_string(k));
 
       for (W rad = FLAGS_rad_min; rad <= FLAGS_rad_max; ++rad) {
         vector<V> res;
