@@ -4,15 +4,15 @@
 #include "graph.h"
 
 namespace {
-  //set the end line code(regardless of the os)
-  const std::string kEndLine = "\n";
-  const std::string kMagic = "AGL_BINARY";
-  const std::string kVersion = "0.01";
+//set the end line code(regardless of the os)
+const std::string kEndLine = "\n";
+const std::string kMagic = "AGL_BINARY";
+const std::string kVersion = "0.01";
 
-  // http://d.hatena.ne.jp/osyo-manga/20120211/1328922379
-  extern void* enabler;
-  template<bool B, typename T = void>
-  using enabler_if = typename std::enable_if<B, T>::type*&;
+// http://d.hatena.ne.jp/osyo-manga/20120211/1328922379
+extern void* enabler;
+template<bool B, typename T = void>
+using enabler_if = typename std::enable_if<B, T>::type*&;
 }
 
 namespace agl {
