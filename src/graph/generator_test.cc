@@ -203,7 +203,7 @@ TEST(gen_config, random_trial) {
     for (int i = 0; i < d * N; ++i) {
       V v;
       do {
-	v = agl::random(N);
+        v = agl::random(N);
       } while ((int)deg_seq[v] >= N);
       deg_seq[v]++;
     }
@@ -226,8 +226,8 @@ TEST(gen_kronecker, random_trial) {
     double sum = 0;
     for (int i : make_irange(2)) {
       for (int j : make_irange(2)) {
-	mat[i][j] = rng(agl::random);
-	sum += mat[i][j];
+        mat[i][j] = rng(agl::random);
+        sum += mat[i][j];
       }
     }
     G g(generate_kronecker(scale, mat));
@@ -238,7 +238,7 @@ TEST(gen_kronecker, random_trial) {
 
     for (int i : make_irange(2)) {
       for (int j : make_irange(2)) {
-	mat[i][j] /= sum;
+        mat[i][j] /= sum;
       }
     }
 

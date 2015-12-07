@@ -100,15 +100,15 @@ GraphType easy_cui_init(int argc, char **argv) {
       if (!(iss >> avg_deg)) avg_deg = 16;
       vector<vector<double>> mat;
       if (!(iss >> n)) {
-	n = 2;
-	mat = vector<vector<double>>(n, vector<double>(n));
-	mat[0][0] = 0.57;
-	mat[0][1] = 0.19;
-	mat[1][0] = 0.19;
-	mat[1][1] = 0.05;
+        n = 2;
+        mat = vector<vector<double>>(n, vector<double>(n));
+        mat[0][0] = 0.57;
+        mat[0][1] = 0.19;
+        mat[1][0] = 0.19;
+        mat[1][1] = 0.05;
       }
       for (int i = 0; i < n * n; ++i) {
-	if (!(iss >> mat[i / n][i % n])) mat[i / n][i % n] = 1.0 / (n * n);
+        if (!(iss >> mat[i / n][i % n])) mat[i / n][i % n] = 1.0 / (n * n);
       }
       es = generate_kronecker(scale, avg_deg, mat);
     } else {
