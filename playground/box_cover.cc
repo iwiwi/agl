@@ -281,6 +281,9 @@ vector<V> box_cover_burning(const G &g, W radius) {
 
   //
   // System split.
+  // Find the best solution by DFS
+  // The box-covering for tree networks could be performed in O(N^3), while for
+  // regular networks it requires O(2^N).
   //
   deque<pair<vector<vector<V>>, set<V>>> que;
   que.push_front(make_pair(boxes, solution));
@@ -345,7 +348,6 @@ vector<V> box_cover_burning(const G &g, W radius) {
       que.push_front(make_pair(subboxes, qsolution));
     }
   }
-  cerr << min_size << endl;
   vector<V> ret(solution.begin(), solution.end());
   return ret;
 }

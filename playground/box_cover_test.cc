@@ -21,7 +21,7 @@ TEST(box_cover, memb) {
 TEST(box_cover, burning) {
   for (int trial = 0; trial < 10; ++trial) {
     V M = 3;
-    V N = M + agl::random(1000);
+    V N = M + agl::random(200);
     auto es = generate_ba(N, M);
     G g(make_undirected(es));
     pretty_print(g);
