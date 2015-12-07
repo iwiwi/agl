@@ -247,6 +247,11 @@ void burning_splitted(const G &g, W radius, set<V> &solution,
 }
 
 vector<V> box_cover_burning(const G &g, W radius) {
+  if (radius == 0) {
+    vector<V> ret;
+    for (V v = 0; v < g.num_vertices(); v++) ret.push_back(v);
+    return ret;
+  }
   set<V> solution;
 
   //
@@ -282,12 +287,12 @@ vector<V> box_cover_burning(const G &g, W radius) {
   //
   // System split.
   // Find the best solution by DFS
-  // The box-covering for tree networks could be performed in O(N^3), while for
-  // regular networks it requires O(2^N).
+  // The box-covering for tree networks could be performed in O(N^3)
+  // while for regular networks it requires O(2^N).
   //
   deque<pair<vector<vector<V>>, set<V>>> que;
   que.push_front(make_pair(boxes, solution));
-  V min_size = num_v;
+  size_t min_size = num_v;
   while (!que.empty()) {
     vector<vector<V>> qboxes = que.front().first;
     set<V> qsolution = que.front().second;
@@ -312,7 +317,7 @@ vector<V> box_cover_burning(const G &g, W radius) {
     for (V i = 0; i < num_v; ++i)
       for (V v : qboxes[i]) {
         containd_box_list[v].insert(i);
-        if (covered_largest[v] < qboxes[i].size())
+        if ((size_t)covered_largest[v] < qboxes[i].size())
           covered_largest[v] = qboxes[i].size();
       }
     V selected_v = -1;
@@ -434,7 +439,7 @@ vector<map<V, V>> build_sketch(const G &g, const W radius, const int k,
 
 double estimated_cardinality(const G &g, const map<V, V> X, const int k) {
   if (X.size() < (size_t)k) {
-    return X.size();
+    return (k - 1);
   }
   int cnt = 0;
   for (pair<V, V> p : X) {
@@ -447,8 +452,7 @@ double estimated_cardinality(const G &g, const map<V, V> X, const int k) {
   return (k - 1);
 }
 
-vector<V> box_cover_sketch(const G &g, W radius) {
-  const int k = 200;
+vector<V> box_cover_sketch(const G &g, W radius, const int k) {
   const V num_v = g.num_vertices();
   vector<V> rank(num_v);
   vector<V> inv(num_v);
@@ -496,14 +500,14 @@ vector<V> box_cover_sketch(const G &g, W radius) {
     if (Xs.size() == 0) {
       for (pair<V, V> p : X[selected_v]) {
         Xs[p.first] = p.second;
-        if (Xs.size() == k) goto purified;
+        if (Xs.size() == (size_t)k) goto purified;
       }
     }
     // Merge-and-Purify
     for (pair<V, V> p : X[selected_v]) {
       V max_rank = Xs.rbegin()->first;
-      if (Xs.size() > k && p.first > max_rank) break;
-      if (Xs.size() > k) {
+      if (Xs.size() > (size_t)k && p.first > max_rank) break;
+      if (Xs.size() > (size_t)k) {
         Xs.erase(max_rank);
       }
       Xs[p.first] = p.second;

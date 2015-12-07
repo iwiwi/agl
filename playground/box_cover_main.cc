@@ -71,8 +71,7 @@ int main(int argc, char **argv) {
 
   vector<pair<string, function<vector<V>(const G &, W)>>> algos{
       {"MEMB", box_cover_memb},
-      {"Schneider", box_cover_burning},
-      {"Sketch", box_cover_sketch},
+      // {"Schneider", box_cover_burning},
   };
 
   for (auto a : algos) {
@@ -83,6 +82,18 @@ int main(int argc, char **argv) {
       for (W rad = FLAGS_rad_min; rad <= FLAGS_rad_max; ++rad) {
         vector<V> res;
         JLOG_ADD_BENCHMARK("time") res = f(g, rad);
+        JLOG_ADD("size", res.size());
+        JLOG_PUT("coverage", coverage(g, res, rad));
+      }
+    }
+  }
+  for (int k = 100; k <= 1000; k += 100) {
+    JLOG_ADD_OPEN("algorithms") {
+      JLOG_PUT("name", "Sketch k=" + to_string(k));
+
+      for (W rad = FLAGS_rad_min; rad <= FLAGS_rad_max; ++rad) {
+        vector<V> res;
+        JLOG_ADD_BENCHMARK("time") res = box_cover_sketch(g, rad, k);
         JLOG_ADD("size", res.size());
         JLOG_PUT("coverage", coverage(g, res, rad));
       }
