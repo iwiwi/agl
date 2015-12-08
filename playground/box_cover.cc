@@ -511,7 +511,9 @@ vector<V> box_cover_sketch(const G &g, W radius, const int k,
         }
       }
 
-      assert(selected_v >= 0);
+      if (selected_v < 0) {
+        break;
+      }
 
       centers.push_back(selected_v);
       centered[selected_v] = true;
