@@ -4,6 +4,7 @@ using namespace std;
 
 DEFINE_int32(rad_min, 0, "minimum radius");
 DEFINE_int32(rad_max, 10, "maximum radius");
+DEFINE_int32(path_num, 1, "number of pathes for multi-path sketch");
 
 int main(int argc, char **argv) {
   //
@@ -90,10 +91,13 @@ int main(int argc, char **argv) {
   for (int k = 128; k <= 1024; k *= 2) {
     JLOG_ADD_OPEN("algorithms") {
       JLOG_PUT("name", "Sketch_k=" + to_string(k));
+      JLOG_PUT("k", to_string(k));
+      JLOG_PUT("path_num", to_string(FLAGS_path_num));
 
       for (W rad = FLAGS_rad_min; rad <= FLAGS_rad_max; ++rad) {
         vector<V> res;
-        JLOG_ADD_BENCHMARK("time") res = box_cover_sketch(g, rad, k, 1);
+        JLOG_ADD_BENCHMARK("time") res =
+            box_cover_sketch(g, rad, k, FLAGS_path_num);
         JLOG_ADD("size", res.size());
         JLOG_PUT("coverage", coverage(g, res, rad));
       }

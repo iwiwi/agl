@@ -1,7 +1,8 @@
 #include "box_cover.h"
 #include <sys/time.h>
 
-double coverage(const G &g, vector<V> s, W rad) {
+double coverage(const G &g, const vector<V> &s, W rad,
+                vector<bool> &is_covered) {
   vector<V> covered;
   vector<bool> vis(g.num_vertices());
   queue<pair<V, W>> que;
@@ -23,9 +24,18 @@ double coverage(const G &g, vector<V> s, W rad) {
     }
   }
   assert(covered.size() <= (size_t)g.num_vertices());
+  
+  for (V c : covered) {
+    is_covered[c] = true;
+  }
 
-  double coverage = covered.size();
-  return coverage / g.num_vertices();
+  double ret = covered.size();
+  return ret / g.num_vertices();
+}
+
+double coverage(const G &g, const vector<V> &s, W rad) {
+  vector<bool> dummy(g.num_vertices(), false);
+  return coverage(g, s, rad, dummy);
 }
 
 vector<V> box_cover_memb(const G &g, W radius) {
@@ -363,6 +373,7 @@ double GetCurrentTimeSec() {
   return tv.tv_sec + tv.tv_usec * 1e-6;
 }
 
+// Naive BFS method of Build-Sketch
 vector<map<V, V>> naive_build_sketch(const G &g, const W radius, const int k,
                                      const vector<V> &rank,
                                      const vector<bool> &is_covered) {
@@ -390,6 +401,7 @@ vector<map<V, V>> naive_build_sketch(const G &g, const W radius, const int k,
     }
     int cnt = 0;
     for (pair<V, V> p : tmp) {
+      if (is_covered[p.second]) continue;
       naive_X[i][p.first] = p.second;
       cnt++;
       if (cnt == k) break;
@@ -418,20 +430,19 @@ vector<map<V, V>> build_sketch(const G &g, const W radius, const int k,
   }
   for (W d = 0; d < radius; ++d) {
     for (V v : inv) {
-      if (is_covered[v]) continue;
       set<V> next;
       for (V a : previous_added[v])
         for (V neighbor : g.neighbors(a)) {
-          if (is_covered[neighbor]) continue;
           // Merge & Purify
-          V max_rank = X[neighbor].rbegin()->first;
           V rv = rank[v];
           if (X[neighbor].find(rv) != X[neighbor].end()) continue;
-          if (X[neighbor].size() >= (size_t)k && max_rank > rv) {
+          if (X[neighbor].size() >= (size_t)k) {
+            V max_rank = X[neighbor].rbegin()->first;
+            if (max_rank <= rv) continue;
             X[neighbor].erase(max_rank);
             X[neighbor][rv] = v;
             next.insert(neighbor);
-          } else if ((int)X[neighbor].size() < k) {
+          } else {
             X[neighbor][rv] = v;
             next.insert(neighbor);
           }

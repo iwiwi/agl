@@ -44,21 +44,29 @@ TEST(box_cover, build_sketch_check) {
 
     W radius = 1;
     const int k = 200;
-    vector<V> rank(N);
-    vector<V> inv(N);
-    for (V i = 0; i < N; ++i) {
+    vector<V> rank(g.num_vertices());
+    vector<V> inv(g.num_vertices());
+    for (V i = 0; i < g.num_vertices(); ++i) {
       inv[i] = i;
     }
     random_shuffle(inv.begin(), inv.end());
-    for (int i = 0; i < N; ++i) {
+    for (int i = 0; i < g.num_vertices(); ++i) {
       rank[inv[i]] = i;
     }
-    vector<bool> a;
-    vector<map<V, V>> naive_x = naive_build_sketch(g, radius, k, rank, a);
-    vector<map<V, V>> x = build_sketch(g, radius, k, rank, inv, a);
 
-    for (V v = 0; v < N; v++) {
-      ASSERT_EQ(naive_x[v], x[v]) << v;
+    vector<bool> covered(g.num_vertices(), false);
+    for (int cover_trial = 0; cover_trial < 10; ++cover_trial) {
+      vector<map<V, V>> naive_x =
+          naive_build_sketch(g, radius, k, rank, covered);
+      vector<map<V, V>> x = build_sketch(g, radius, k, rank, inv, covered);
+      for (V v = 0; v < g.num_vertices(); v++) {
+        ASSERT_EQ(naive_x[v], x[v]) << v;
+      }
+
+      for (int i = 0; i < 100; ++i) {
+        int target = agl::random(g.num_vertices());
+        covered[target] = true;
+      }
     }
   }
 }
