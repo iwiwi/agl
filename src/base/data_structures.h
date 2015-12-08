@@ -97,16 +97,16 @@ public:
     while (width) {
       width /= 2;
       if (index >= n) {
-	index -= width;
+        index -= width;
       } else {
-	sum += x[index];
-	if (sum >= val) {
-	  ans = index;
-	  sum -= x[index];
-	  index -= width;
-	} else {
-	  index += width;
-	}
+        sum += x[index];
+        if (sum >= val) {
+          ans = index;
+          sum -= x[index];
+          index -= width;
+        } else {
+          index += width;
+        }
       }
     }
 
@@ -137,16 +137,16 @@ public:
     while (width) {
       width /= 2;
       if (index >= n) {
-	index -= width;
+        index -= width;
       } else {
-	sum += x[index];
-	if (sum > val) {
-	  ans = index;
-	  sum -= x[index];
-	  index -= width;
-	} else {
-	  index += width;
-	}
+        sum += x[index];
+        if (sum > val) {
+          ans = index;
+          sum -= x[index];
+          index -= width;
+        } else {
+          index += width;
+        }
       }
     }
 

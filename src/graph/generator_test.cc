@@ -203,7 +203,7 @@ TEST(gen_config, random_trial) {
     for (int i = 0; i < d * N; ++i) {
       V v;
       do {
-	v = agl::random(N);
+        v = agl::random(N);
       } while ((int)deg_seq[v] >= N);
       deg_seq[v]++;
     }
@@ -215,5 +215,37 @@ TEST(gen_config, random_trial) {
     for (V i = 0; i < N; ++i) {
       ASSERT_TRUE(g.degree(i, kFwd) + g.degree(i, kBwd) <= deg_seq[i]);
     }
+  }
+}
+
+TEST(gen_kronecker, random_trial) {
+  uniform_real_distribution<double> rng(0.4, 0.8);
+  for (int trial = 0; trial < 10; ++trial) {
+    int scale = agl::random(5) + 6;
+    vector<vector<double>> mat(2, vector<double>(2));
+    double sum = 0;
+    for (int i : make_irange(2)) {
+      for (int j : make_irange(2)) {
+        mat[i][j] = rng(agl::random);
+        sum += mat[i][j];
+      }
+    }
+    G g(generate_kronecker(scale, mat));
+    pretty_print(g);
+
+    V num_v = 1 << scale;
+    ASSERT_TRUE(g.num_vertices() == num_v);
+
+    for (int i : make_irange(2)) {
+      for (int j : make_irange(2)) {
+        mat[i][j] /= sum;
+      }
+    }
+
+    size_t avg_deg = 16;
+    G h(generate_kronecker(scale, avg_deg, mat));
+    pretty_print(h);
+    ASSERT_TRUE(h.num_vertices() == num_v);
+    ASSERT_TRUE(h.num_edges() <=  avg_deg * num_v);
   }
 }
