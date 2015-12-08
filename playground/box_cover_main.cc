@@ -4,7 +4,6 @@ using namespace std;
 
 DEFINE_int32(rad_min, 0, "minimum radius");
 DEFINE_int32(rad_max, 10, "maximum radius");
-DEFINE_bool(sketch_only, false, "Only on Sketch Algorithm?");
 
 int main(int argc, char **argv) {
   //
@@ -71,7 +70,7 @@ int main(int argc, char **argv) {
   }
 
   vector<pair<string, function<vector<V>(const G &, W)>>> algos{
-      // {"MEMB", box_cover_memb},
+      {"MEMB", box_cover_memb},
       // {"Schneider", box_cover_burning},
   };
 

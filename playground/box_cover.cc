@@ -475,6 +475,7 @@ vector<V> box_cover_sketch(const G &g, W radius, const int k,
 
   vector<V> centers;
   vector<bool> covered(num_v, false);
+  vector<bool> centered(num_v, false);
   for (int trial = 0; trial < pathnum; trial++) {
     //
     // Build-Sketches O((n+m)*rad)
@@ -484,7 +485,6 @@ vector<V> box_cover_sketch(const G &g, W radius, const int k,
     //
     // Select-Greedy O(n^2*k)
     //
-    vector<bool> centered(num_v);
     map<V, V> Xs;
     while (estimated_cardinality(g, Xs, k) < max(num_v, k - 1)) {
       V selected_v = -1;
@@ -511,10 +511,8 @@ vector<V> box_cover_sketch(const G &g, W radius, const int k,
       for (pair<V, V> p : X[selected_v]) {
         if (Xs.size() > (size_t)k) {
           V max_rank = Xs.rbegin()->first;
-          if (Xs.size() > (size_t)k && p.first > max_rank) break;
-          if (Xs.size() > (size_t)k) {
-            Xs.erase(max_rank);
-          }
+          if (p.first > max_rank) break;
+          Xs.erase(max_rank);
         }
         Xs[p.first] = p.second;
       }
