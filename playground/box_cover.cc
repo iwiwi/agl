@@ -406,19 +406,23 @@ vector<map<V, V>> build_sketch(const G &g, const W radius, const int k,
   vector<map<V, V>> X(num_v);
   vector<set<V>> previous_added(num_v);
   for (V i = 0; i < num_v; ++i) {
+    if (is_covered[i]) continue;
     previous_added[i].insert(i);
   }
   //
   // Build-Sketches O((n+m)*rad)
   //
   for (V i = 0; i < num_v; ++i) {
+    if (is_covered[i]) continue;
     X[i][rank[i]] = i;
   }
   for (W d = 0; d < radius; ++d) {
     for (V v : inv) {
+      if (is_covered[v]) continue;
       set<V> next;
       for (V a : previous_added[v])
         for (V neighbor : g.neighbors(a)) {
+          if (is_covered[neighbor]) continue;
           // Merge & Purify
           V max_rank = X[neighbor].rbegin()->first;
           V rv = rank[v];
@@ -456,6 +460,8 @@ double estimated_cardinality(const G &g, const map<V, V> &X, const int k) {
 
 vector<V> box_cover_sketch(const G &g, W radius, const int k,
                            const int pathnum) {
+  assert(k > 0);
+
   const V num_v = g.num_vertices();
   vector<V> rank(num_v);
   vector<V> inv(num_v);
@@ -467,56 +473,52 @@ vector<V> box_cover_sketch(const G &g, W radius, const int k,
     rank[inv[i]] = i;
   }
 
-  //
-  // Build-Sketches O((n+m)*rad)
-  //
-  vector<map<V, V>> X = build_sketch(g, radius, k, rank, inv);
-
-  //
-  // Select-Greedy O(n^2*k)
-  //
   vector<V> centers;
-  vector<bool> centered(num_v);
-  map<V, V> Xs;
+  vector<bool> covered(num_v, false);
+  for (int trial = 0; trial < pathnum; trial++) {
+    //
+    // Build-Sketches O((n+m)*rad)
+    //
+    vector<map<V, V>> X = build_sketch(g, radius, k, rank, inv, covered);
 
-  vector<double> debug_before(num_v, 0.0);
-  while (estimated_cardinality(g, Xs, k) < max(num_v, k - 1)) {
-    V selected_v = -1;
+    //
+    // Select-Greedy O(n^2*k)
+    //
+    vector<bool> centered(num_v);
+    map<V, V> Xs;
+    while (estimated_cardinality(g, Xs, k) < max(num_v, k - 1)) {
+      V selected_v = -1;
 
-    double argmax = 0.0;
-    for (V v = 0; v < num_v; v++) {
-      if (centered[v]) continue;
-      map<V, V> tmp(Xs);
-      tmp.insert(X[v].begin(), X[v].end());
+      double argmax = 0.0;
+      for (V v = 0; v < num_v; v++) {
+        if (centered[v]) continue;
+        map<V, V> tmp(Xs);
+        tmp.insert(X[v].begin(), X[v].end());
 
-      double ec_tmp = estimated_cardinality(g, tmp, k);
-      if (argmax < ec_tmp) {
-        argmax = ec_tmp;
-        selected_v = v;
+        double ec_tmp = estimated_cardinality(g, tmp, k);
+        if (argmax < ec_tmp) {
+          argmax = ec_tmp;
+          selected_v = v;
+        }
       }
-    }
 
-    assert(selected_v >= 0);
+      assert(selected_v >= 0);
 
-    centers.push_back(selected_v);
-    centered[selected_v] = true;
-    if (Xs.size() == 0) {
+      centers.push_back(selected_v);
+      centered[selected_v] = true;
+
+      // Merge-and-Purify
       for (pair<V, V> p : X[selected_v]) {
+        if (Xs.size() > (size_t)k) {
+          V max_rank = Xs.rbegin()->first;
+          if (Xs.size() > (size_t)k && p.first > max_rank) break;
+          if (Xs.size() > (size_t)k) {
+            Xs.erase(max_rank);
+          }
+        }
         Xs[p.first] = p.second;
-        if (Xs.size() == (size_t)k) goto purified;
       }
     }
-    // Merge-and-Purify
-    for (pair<V, V> p : X[selected_v]) {
-      V max_rank = Xs.rbegin()->first;
-      if (Xs.size() > (size_t)k && p.first > max_rank) break;
-      if (Xs.size() > (size_t)k) {
-        Xs.erase(max_rank);
-      }
-      Xs[p.first] = p.second;
-    }
-  purified:
-    ;
   }
 
   return centers;
