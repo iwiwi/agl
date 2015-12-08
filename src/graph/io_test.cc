@@ -55,6 +55,15 @@ TYPED_TEST(graph_io_test, tsv) {
   is_graph_eq(g1, g2); 
 }
 
+TEST(graph_io_test, tsv_failed) {
+  string s;
+  s += "0 1";
+  s += "\n3"; // invalid line(only from vertex)
+  s += "\n1 2";
+  std::istringstream iss(s);
+  ASSERT_DEATH(read_graph_tsv<G>(iss), "CHECK Failed .* at line 2: \"3\".*");
+}
+
 } // namespace
 
 
