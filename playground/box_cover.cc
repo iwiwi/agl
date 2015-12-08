@@ -364,7 +364,8 @@ double GetCurrentTimeSec() {
 }
 
 vector<map<V, V>> naive_build_sketch(const G &g, const W radius, const int k,
-                                     const vector<V> &rank) {
+                                     const vector<V> &rank,
+                                     const vector<bool> &is_covered) {
   V num_v = g.num_vertices();
   vector<map<V, V>> naive_X(num_v);
   for (V i = 0; i < num_v; ++i) {
@@ -399,7 +400,8 @@ vector<map<V, V>> naive_build_sketch(const G &g, const W radius, const int k,
 }
 
 vector<map<V, V>> build_sketch(const G &g, const W radius, const int k,
-                               const vector<V> &rank, const vector<V> &inv) {
+                               const vector<V> &rank, const vector<V> &inv,
+                               const vector<bool> &is_covered) {
   V num_v = g.num_vertices();
   vector<map<V, V>> X(num_v);
   vector<set<V>> previous_added(num_v);
@@ -437,7 +439,7 @@ vector<map<V, V>> build_sketch(const G &g, const W radius, const int k,
   return X;
 }
 
-double estimated_cardinality(const G &g, const map<V, V> X, const int k) {
+double estimated_cardinality(const G &g, const map<V, V> &X, const int k) {
   if (X.size() < (size_t)k) {
     return (k - 1);
   }
@@ -452,7 +454,8 @@ double estimated_cardinality(const G &g, const map<V, V> X, const int k) {
   return (k - 1);
 }
 
-vector<V> box_cover_sketch(const G &g, W radius, const int k) {
+vector<V> box_cover_sketch(const G &g, W radius, const int k,
+                           const int pathnum) {
   const V num_v = g.num_vertices();
   vector<V> rank(num_v);
   vector<V> inv(num_v);

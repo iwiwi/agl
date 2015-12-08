@@ -48,15 +48,15 @@ if __name__ == '__main__':
 
         # show plot
         plt.plot(x, y, 'o', label=name)
-        px = np.linspace(0, 100, 10000)
-        plt.plot(px, (px**b) * (np.exp(1)**a), label="ln(y)=a+b*ln(x)")
-        plt.plot(px, (np.exp(1)**(b2 * px)) * (np.exp(1)**a2), label="ln(y) = a+b*x")
-        plt.xscale("log")
-        plt.yscale("log")
+        px = np.linspace(0.5, 100, 10000)
+        plt.plot(px, (px**b) * (np.exp(1)**a), label="y=x^" + str(b) + "*e^" + str(a))
+        plt.plot(px, (np.exp(1)**(b2 * px)) * (np.exp(1)**a2), label="y=e^(" + str(b2) + "x+" + str(a2) + ")")
         plt.xlim(xmin=0.5)
         plt.xlim(xmax=25)
-        plt.ylim(ymin=0.5)
+        plt.ylim(ymin=1)
         plt.ylim(ymax=100000)
+        plt.xscale("log")
+        plt.yscale("log")
         plt.legend(loc='best')
         plt.savefig(graph_name + "_" + str(j) + ".png")
         print j

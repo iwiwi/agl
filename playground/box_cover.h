@@ -8,9 +8,11 @@ double coverage(const G &g, vector<V> s, W rad);
 // Naive Functions for Tests
 //
 vector<map<V, V>> naive_build_sketch(const G &g, const W radius, const int k,
-                                     const vector<V> &rank);
+                                     const vector<V> &rank,
+                                     const vector<bool> &is_covered);
 vector<map<V, V>> build_sketch(const G &g, const W radius, const int k,
-                               const vector<V> &rank, const vector<V> &inv);
+                               const vector<V> &rank, const vector<V> &inv,
+                               const vector<bool> &is_covered);
 
 //
 // Radius-based Methods:
@@ -25,7 +27,8 @@ vector<V> box_cover_memb(const G &g, W radius);
 vector<V> box_cover_burning(const G &g, W radius);
 
 //! Akiba et al. 2015
-vector<V> box_cover_sketch(const G &g, W radius, const int k);
+vector<V> box_cover_sketch(const G &g, W radius, const int k,
+                           const int path_num);
 
 //
 // Diameter-based Methods:

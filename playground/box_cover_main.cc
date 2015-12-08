@@ -4,6 +4,7 @@ using namespace std;
 
 DEFINE_int32(rad_min, 0, "minimum radius");
 DEFINE_int32(rad_max, 10, "maximum radius");
+DEFINE_bool(sketch_only, false, "Only on Sketch Algorithm?");
 
 int main(int argc, char **argv) {
   //
@@ -70,7 +71,7 @@ int main(int argc, char **argv) {
   }
 
   vector<pair<string, function<vector<V>(const G &, W)>>> algos{
-      {"MEMB", box_cover_memb},
+      // {"MEMB", box_cover_memb},
       // {"Schneider", box_cover_burning},
   };
 
@@ -87,13 +88,13 @@ int main(int argc, char **argv) {
       }
     }
   }
-  for (int k = 800; k <= 1200; k += 100) {
+  for (int k = 128; k <= 1024; k *= 2) {
     JLOG_ADD_OPEN("algorithms") {
       JLOG_PUT("name", "Sketch_k=" + to_string(k));
 
       for (W rad = FLAGS_rad_min; rad <= FLAGS_rad_max; ++rad) {
         vector<V> res;
-        JLOG_ADD_BENCHMARK("time") res = box_cover_sketch(g, rad, k);
+        JLOG_ADD_BENCHMARK("time") res = box_cover_sketch(g, rad, k, 1);
         JLOG_ADD("size", res.size());
         JLOG_PUT("coverage", coverage(g, res, rad));
       }

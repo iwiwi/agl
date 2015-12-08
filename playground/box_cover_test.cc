@@ -53,9 +53,9 @@ TEST(box_cover, build_sketch_check) {
     for (int i = 0; i < N; ++i) {
       rank[inv[i]] = i;
     }
-
-    vector<map<V, V>> naive_x = naive_build_sketch(g, radius, k, rank);
-    vector<map<V, V>> x = build_sketch(g, radius, k, rank, inv);
+    vector<bool> a;
+    vector<map<V, V>> naive_x = naive_build_sketch(g, radius, k, rank, a);
+    vector<map<V, V>> x = build_sketch(g, radius, k, rank, inv, a);
 
     for (V v = 0; v < N; v++) {
       ASSERT_EQ(naive_x[v], x[v]) << v;
