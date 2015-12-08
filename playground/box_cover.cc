@@ -24,7 +24,7 @@ double coverage(const G &g, const vector<V> &s, W rad,
     }
   }
   assert(covered.size() <= (size_t)g.num_vertices());
-  
+
   for (V c : covered) {
     is_covered[c] = true;
   }
@@ -417,17 +417,15 @@ vector<map<V, V>> build_sketch(const G &g, const W radius, const int k,
   V num_v = g.num_vertices();
   vector<map<V, V>> X(num_v);
   vector<set<V>> previous_added(num_v);
-  for (V i = 0; i < num_v; ++i) {
-    if (is_covered[i]) continue;
-    previous_added[i].insert(i);
-  }
   //
   // Build-Sketches O((n+m)*rad)
   //
   for (V i = 0; i < num_v; ++i) {
     if (is_covered[i]) continue;
     X[i][rank[i]] = i;
+    previous_added[i].insert(i);
   }
+
   for (W d = 0; d < radius; ++d) {
     for (V v : inv) {
       set<V> next;
@@ -470,7 +468,7 @@ double estimated_cardinality(const G &g, const map<V, V> &X, const int k) {
 }
 
 vector<V> box_cover_sketch(const G &g, W radius, const int k,
-                           const int pathnum) {
+                           const int pass_num) {
   assert(k > 0);
 
   const V num_v = g.num_vertices();
@@ -487,7 +485,7 @@ vector<V> box_cover_sketch(const G &g, W radius, const int k,
   vector<V> centers;
   vector<bool> covered(num_v, false);
   vector<bool> centered(num_v, false);
-  for (int trial = 0; trial < pathnum; trial++) {
+  for (int trial = 0; trial < pass_num; trial++) {
     //
     // Build-Sketches O((n+m)*rad)
     //
