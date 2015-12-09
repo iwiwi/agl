@@ -528,16 +528,15 @@ vector<V> box_cover_sketch(const G &g, W radius, const int k,
   vector<V> centers;
   vector<bool> is_covered(num_v, false);
   vector<bool> centered(num_v, false);
+  vector<V> rank(num_v);
+  vector<V> inv(num_v);
+  for (V i = 0; i < num_v; ++i) {
+    inv[i] = i;
+  }
   for (int pass_trial = 0; pass_trial < pass_num; pass_trial++) {
     //
     // Build-Sketches O((n+m)*rad)
     //
-
-    vector<V> rank(num_v);
-    vector<V> inv(num_v);
-    for (V i = 0; i < num_v; ++i) {
-      inv[i] = i;
-    }
     random_shuffle(inv.begin(), inv.end());
     for (int i = 0; i < num_v; ++i) {
       rank[inv[i]] = i;

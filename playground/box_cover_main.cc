@@ -4,6 +4,9 @@ using namespace std;
 
 DEFINE_int32(rad_min, 0, "minimum radius");
 DEFINE_int32(rad_max, 10, "maximum radius");
+DEFINE_int32(min_k, 1024, "minimum k");
+DEFINE_int32(max_k, 1024, "maximum k");
+DEFINE_int32(pass_num, 1, "number of multi-pass sketch");
 
 int main(int argc, char **argv) {
   //
@@ -88,8 +91,8 @@ int main(int argc, char **argv) {
     }
   }
 
-  for (int pass_num = 1; pass_num <= 16; pass_num *= 2) {
-    for (int k = 128; k <= 1024; k *= 2) {
+  for (int pass_num = 1; pass_num <= FLAGS_pass_num; pass_num *= 2) {
+    for (int k = FLAGS_min_k; k <= FLAGS_max_k; k *= 2) {
       JLOG_ADD_OPEN("algorithms") {
         JLOG_PUT("name",
                  "Sketch_k=" + to_string(k) + "_pass=" + to_string(pass_num));
