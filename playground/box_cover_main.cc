@@ -4,7 +4,6 @@ using namespace std;
 
 DEFINE_int32(rad_min, 0, "minimum radius");
 DEFINE_int32(rad_max, 10, "maximum radius");
-DEFINE_int32(pass_num, 1, "number of pass for multipass sketch");
 
 int main(int argc, char **argv) {
   //
@@ -84,22 +83,26 @@ int main(int argc, char **argv) {
         vector<V> res;
         JLOG_ADD_BENCHMARK("time") res = f(g, rad);
         JLOG_ADD("size", res.size());
-        JLOG_PUT("coverage", coverage(g, res, rad));
+        JLOG_ADD("coverage", coverage(g, res, rad));
       }
     }
   }
-  for (int k = 128; k <= 1024; k *= 2) {
-    JLOG_ADD_OPEN("algorithms") {
-      JLOG_PUT("name", "Sketch_k=" + to_string(k));
-      JLOG_PUT("k", to_string(k));
-      JLOG_PUT("pass_num", to_string(FLAGS_pass_num));
 
-      for (W rad = FLAGS_rad_min; rad <= FLAGS_rad_max; ++rad) {
-        vector<V> res;
-        JLOG_ADD_BENCHMARK("time") res =
-            box_cover_sketch(g, rad, k, FLAGS_pass_num);
-        JLOG_ADD("size", res.size());
-        JLOG_PUT("coverage", coverage(g, res, rad));
+  for (int pass_num = 1; pass_num <= 16; pass_num *= 2) {
+    for (int k = 128; k <= 1024; k *= 2) {
+      JLOG_ADD_OPEN("algorithms") {
+        JLOG_PUT("name",
+                 "Sketch_k=" + to_string(k) + "_pass=" + to_string(pass_num));
+        JLOG_PUT("k", to_string(k));
+        JLOG_PUT("pass_num", to_string(pass_num));
+
+        for (W rad = FLAGS_rad_min; rad <= FLAGS_rad_max; ++rad) {
+          vector<V> res;
+          JLOG_ADD_BENCHMARK("time") res =
+              box_cover_sketch(g, rad, k, pass_num);
+          JLOG_ADD("size", res.size());
+          JLOG_ADD("coverage", coverage(g, res, rad));
+        }
       }
     }
   }

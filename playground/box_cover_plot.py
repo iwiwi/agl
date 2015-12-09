@@ -49,8 +49,8 @@ if __name__ == '__main__':
         # show plot
         plt.plot(x, y, 'o', label=name)
         px = np.linspace(0.5, 100, 10000)
-        plt.plot(px, (px**b) * (np.exp(1)**a), label="y=x^" + str(b) + "*e^" + str(a))
-        plt.plot(px, (np.exp(1)**(b2 * px)) * (np.exp(1)**a2), label="y=e^(" + str(b2) + "x+" + str(a2) + ")")
+        # plt.plot(px, (px**b) * (np.exp(1)**a), label="y=x^" + str(b) + "*e^" + str(a))
+        # plt.plot(px, (np.exp(1)**(b2 * px)) * (np.exp(1)**a2), label="y=e^(" + str(b2) + "x+" + str(a2) + ")")
         plt.xlim(xmin=0.5)
         plt.xlim(xmax=25)
         plt.ylim(ymin=1)
@@ -60,4 +60,4 @@ if __name__ == '__main__':
         plt.legend(loc='best')
         plt.savefig(graph_name + "_" + str(j) + ".png")
         print j
-        plt.close()
+        # plt.close()
