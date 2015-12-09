@@ -7,10 +7,11 @@ double coverage(const G &g, const vector<V> &s, W rad);
 //
 // Naive Functions for Tests
 //
-vector<map<V, V>> naive_build_sketch(const G &g, const W radius, const int k,
+vector<vector<V>> naive_build_sketch(const G &g, const W radius, const int k,
                                      const vector<V> &rank,
+                                     const vector<V> &inv,
                                      const vector<bool> &is_covered);
-vector<map<V, V>> build_sketch(const G &g, const W radius, const int k,
+vector<vector<V>> build_sketch(const G &g, const W radius, const int k,
                                const vector<V> &rank, const vector<V> &inv,
                                const vector<bool> &is_covered);
 

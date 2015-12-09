@@ -56,9 +56,9 @@ TEST(box_cover, build_sketch_check) {
 
     vector<bool> covered(g.num_vertices(), false);
     for (int cover_trial = 0; cover_trial < 10; ++cover_trial) {
-      vector<map<V, V>> naive_x =
-          naive_build_sketch(g, radius, k, rank, covered);
-      vector<map<V, V>> x = build_sketch(g, radius, k, rank, inv, covered);
+      vector<vector<V>> naive_x =
+          naive_build_sketch(g, radius, k, rank, inv, covered);
+      vector<vector<V>> x = build_sketch(g, radius, k, rank, inv, covered);
       for (V v = 0; v < g.num_vertices(); v++) {
         ASSERT_EQ(naive_x[v], x[v]) << v;
       }

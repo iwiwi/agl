@@ -374,18 +374,19 @@ double GetCurrentTimeSec() {
 }
 
 // Naive BFS method of Build-Sketch
-vector<map<V, V>> naive_build_sketch(const G &g, const W radius, const int k,
+vector<vector<V>> naive_build_sketch(const G &g, const W radius, const int k,
                                      const vector<V> &rank,
+                                     const vector<V> &inv,
                                      const vector<bool> &is_covered) {
   V num_v = g.num_vertices();
-  vector<map<V, V>> naive_X(num_v);
+  vector<vector<V>> naive_X(num_v);
   for (V i = 0; i < num_v; ++i) {
-    map<V, V> tmp;
+    set<V> tmp;
     vector<bool> vis(num_v, false);
     queue<pair<V, W>> que;
     que.push(make_pair(i, 0));
     vis[i] = true;
-    tmp[rank[i]] = i;
+    tmp.insert(rank[i]);
 
     while (!que.empty()) {
       V v = que.front().first;
@@ -396,13 +397,13 @@ vector<map<V, V>> naive_build_sketch(const G &g, const W radius, const int k,
         if (vis[u]) continue;
         que.push(make_pair(u, dist + 1));
         vis[u] = true;
-        tmp[rank[u]] = u;
+        tmp.insert(rank[u]);
       }
     }
     int cnt = 0;
-    for (pair<V, V> p : tmp) {
-      if (is_covered[p.second]) continue;
-      naive_X[i][p.first] = p.second;
+    for (V p : tmp) {
+      if (is_covered[inv[p]]) continue;
+      naive_X[i].push_back(p);
       cnt++;
       if (cnt == k) break;
     }
@@ -411,18 +412,18 @@ vector<map<V, V>> naive_build_sketch(const G &g, const W radius, const int k,
   return naive_X;
 }
 
-vector<map<V, V>> build_sketch(const G &g, const W radius, const int k,
+vector<vector<V>> build_sketch(const G &g, const W radius, const int k,
                                const vector<V> &rank, const vector<V> &inv,
                                const vector<bool> &is_covered) {
   V num_v = g.num_vertices();
-  vector<map<V, V>> X(num_v);
+  vector<set<V>> X(num_v);
   vector<set<V>> previous_added(num_v);
   //
   // Build-Sketches O((n+m)*rad)
   //
   for (V i = 0; i < num_v; ++i) {
     if (is_covered[i]) continue;
-    X[i][rank[i]] = i;
+    X[i].insert(rank[i]);
     previous_added[i].insert(i);
   }
 
@@ -435,13 +436,13 @@ vector<map<V, V>> build_sketch(const G &g, const W radius, const int k,
           V rv = rank[v];
           if (X[neighbor].find(rv) != X[neighbor].end()) continue;
           if (X[neighbor].size() >= (size_t)k) {
-            V max_rank = X[neighbor].rbegin()->first;
+            V max_rank = *X[neighbor].rbegin();
             if (max_rank <= rv) continue;
             X[neighbor].erase(max_rank);
-            X[neighbor][rv] = v;
+            X[neighbor].insert(rv);
             next.insert(neighbor);
           } else {
-            X[neighbor][rv] = v;
+            X[neighbor].insert(rv);
             next.insert(neighbor);
           }
         }
@@ -449,76 +450,47 @@ vector<map<V, V>> build_sketch(const G &g, const W radius, const int k,
       previous_added[v].swap(next);
     }
   }
-  return X;
+
+  vector<vector<V>> ret;
+  for (V v = 0; v < num_v; ++v) {
+    vector<V> sketch(X[v].begin(), X[v].end());
+    ret.push_back(sketch);
+  }
+
+  return ret;
 }
 
-double estimated_cardinality(const G &g, const map<V, V> &X, const int k) {
+double estimated_cardinality(const G &g, const set<V> &X, const int k) {
   if (X.size() < (size_t)k) {
     return (k - 1);
   }
   int cnt = 0;
-  for (pair<V, V> p : X) {
+  for (V p : X) {
     cnt++;
     if (cnt == k) {
-      return (double)(k - 1) / p.first * g.num_vertices();
+      return (double)(k - 1) / p * g.num_vertices();
     }
   }
   assert(false);
   return (k - 1);
 }
 
-void select_greedily(const G &g, const vector<map<V, V>> &X, vector<V> &centers,
-                     vector<bool> &centered, const int k) {
-  V num_v = g.num_vertices();
-  map<V, V> Xs;
-  while (estimated_cardinality(g, Xs, k) < max(num_v, k - 1)) {
-    V selected_v = -1;
-
-    double argmax = 0.0;
-    for (V v = 0; v < num_v; v++) {
-      if (centered[v]) continue;
-      map<V, V> tmp(Xs);
-      tmp.insert(X[v].begin(), X[v].end());
-
-      double ec_tmp = estimated_cardinality(g, tmp, k);
-      if (argmax < ec_tmp) {
-        argmax = ec_tmp;
-        selected_v = v;
-      }
-    }
-
-    if (selected_v < 0) {
-      break;
-    }
-
-    centers.push_back(selected_v);
-    centered[selected_v] = true;
-
-    // Merge-and-Purify
-    for (pair<V, V> p : X[selected_v]) {
-      if (Xs.size() > (size_t)k) {
-        V max_rank = Xs.rbegin()->first;
-        if (p.first > max_rank) break;
-        Xs.erase(max_rank);
-      }
-      Xs[p.first] = p.second;
-    }
-  }
-}
+void select_greedily(const G &g, const vector<vector<V>> &X, vector<V> &centers,
+                     vector<bool> &centered, const int k) {}
 
 // Select-Greedily O(n^2*k)
-void naive_select_greedily(const G &g, const vector<map<V, V>> &X,
+void naive_select_greedily(const G &g, const vector<vector<V>> &X,
                            vector<V> &centers, vector<bool> &centered,
                            const int k) {
   V num_v = g.num_vertices();
-  map<V, V> Xs;
+  set<V> Xs;
   while (estimated_cardinality(g, Xs, k) < max(num_v, k - 1)) {
     V selected_v = -1;
 
     double argmax = 0.0;
     for (V v = 0; v < num_v; v++) {
       if (centered[v]) continue;
-      map<V, V> tmp(Xs);
+      set<V> tmp(Xs);
       tmp.insert(X[v].begin(), X[v].end());
 
       double ec_tmp = estimated_cardinality(g, tmp, k);
@@ -536,13 +508,13 @@ void naive_select_greedily(const G &g, const vector<map<V, V>> &X,
     centered[selected_v] = true;
 
     // Merge-and-Purify
-    for (pair<V, V> p : X[selected_v]) {
-      if (Xs.size() > (size_t)k) {
-        V max_rank = Xs.rbegin()->first;
-        if (p.first > max_rank) break;
+    for (V p : X[selected_v]) {
+      if (Xs.size() >= (size_t)k) {
+        V max_rank = *Xs.rbegin();
+        if (p > max_rank) break;
         Xs.erase(max_rank);
       }
-      Xs[p.first] = p.second;
+      Xs.insert(p);
     }
   }
 }
@@ -570,7 +542,7 @@ vector<V> box_cover_sketch(const G &g, W radius, const int k,
     for (int i = 0; i < num_v; ++i) {
       rank[inv[i]] = i;
     }
-    vector<map<V, V>> X = build_sketch(g, radius, k, rank, inv, is_covered);
+    vector<vector<V>> X = build_sketch(g, radius, k, rank, inv, is_covered);
 
     //
     // Select-Greedily O(n^2*k)
