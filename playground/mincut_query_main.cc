@@ -1,12 +1,9 @@
-#include <vector>
-#include <queue>
-#include <cstring>
-#include <cassert>
-using namespace std;
+#include "easy_cui.h"
 
-#define sz(c) ((int)c.size())
+DEFINE_int64(solver_iter, 50, "");
 
 namespace naive {
+#define sz(c) ((int)c.size())
 
 struct E {
   int to, rev, cap;
@@ -76,8 +73,6 @@ int max_flow(int s, int t) {
 }
 } // naive
 
-#include "easy_cui.h"
-
 namespace naive {
 void init(G& g){
   V n = g.num_vertices();
@@ -118,6 +113,23 @@ class min_cut_query_with_random_contraction {
     return w;
   }
 
+  void contraction(vector<int>& ancestor, V u, V v) {
+      assert(!uf_.is_same(u, v));
+      V new_vertex = (V)binary_tree_edges_.size();
+      u = uf_.root(u), v = uf_.root(v);
+      int uw = out_edge_weight(u), vw = out_edge_weight(v);
+      int ua = ancestor[u] , va = ancestor[v];
+      uf_.unite(u, v);
+      ((uf_.root(u) == u) ? ancestor[u] : ancestor[v]) = new_vertex;
+
+      // 縮約した結果を元にbinary treeの構築を進める
+      binary_tree_edges_.emplace_back(); // new_vertex分の確保
+      binary_tree_edges_[new_vertex].emplace_back(ua, uw);
+      binary_tree_edges_[ua].emplace_back(new_vertex, uw);
+      binary_tree_edges_[new_vertex].emplace_back(va, vw);
+      binary_tree_edges_[va].emplace_back(new_vertex, vw);       
+    };
+
  public:
   // g の辺を使い、グラフを作成する(勝手にundirectedとして読み替えている)
   min_cut_query_with_random_contraction(G& g) :
@@ -131,23 +143,33 @@ class min_cut_query_with_random_contraction {
     vector<int> ancestor(g.num_vertices());
     std::iota(ancestor.begin(),ancestor.end(), 0);
 
+    // 次数1の頂点を先に縮約する
+    {
+      vector<int> degree;
+      queue<int> q;
+      for(V v : make_irange(g.num_vertices())) {
+        degree.push_back(g.degree(v, kFwd) + g.degree(v, kBwd));
+        if(degree[v] == 1) q.push(v);
+      }
+      while(!q.empty()) {
+        V v = q.front(); q.pop();
+        for(D dir : direction_range()) {
+          for(auto edge : g.neighbors(v, dir)) {
+            V u = to(edge);
+            degree[u]--;
+            if(degree[u] >= 1) contraction(ancestor, v, u); //つながってる先へ縮約
+            if(degree[u] == 1) q.push(u);
+          }
+        }
+      }
+    }
+
     //O(VE uf(E))
     for(const auto& edge : initial_edges_) {
       V u = edge.first, v = to(edge.second);
       if(uf_.is_same(u,v)) continue;
       //縮約
-      V new_vertex = (V)binary_tree_edges_.size();
-      u = uf_.root(u), v = uf_.root(v);
-      int uw = out_edge_weight(u), vw = out_edge_weight(v);
-      int ua = ancestor[u] , va = ancestor[v];
-      uf_.unite(u, v);
-      ((uf_.root(u) == u) ? ancestor[u] : ancestor[v]) = new_vertex;
-
-      binary_tree_edges_.emplace_back(); // new_vertex分の確保
-      binary_tree_edges_[new_vertex].emplace_back(ua, uw);
-      binary_tree_edges_[ua].emplace_back(new_vertex, uw);
-      binary_tree_edges_[new_vertex].emplace_back(va, vw);
-      binary_tree_edges_[va].emplace_back(new_vertex, vw);
+      contraction(ancestor, u, v);
     }
     // gが連結とは限らないので、uv_costs.size() == g.num_vertices() - 1ではない
     assert(int(binary_tree_edges_.size() - g.num_vertices()) <= g.num_vertices() - 1);
@@ -192,8 +214,6 @@ private:
   vector<vector<pair<V,int>>> binary_tree_edges_;
 };
 
-DEFINE_int64(solver_iter, 50, "");
-
 class min_cut_query {
  public:
   min_cut_query(G& g) {
@@ -212,8 +232,6 @@ class min_cut_query {
  private:
   vector<min_cut_query_with_random_contraction> solvers_;
 };
-
-
 
 
 G to_directed_graph(G& g){
@@ -252,16 +270,16 @@ int main(int argc, char **argv) {
   const int all = g.num_vertices() * (g.num_vertices() - 1) / 2;
   int counter = 0,unmatch = 0;
   JLOG_ADD_OPEN("sampleing") {
-    for(V s = 0; s < g.num_vertices(); s++) {
-      for(V t = s + 1; t < g.num_vertices(); t++) {
-        if(counter % 100 == 0){
-          fprintf(stderr, "count/unmatch/all : %d/%d/%d, \n",counter, unmatch, all);
+      for(V s = 0; s < g.num_vertices(); s++) {
+        for(V t = s + 1; t < g.num_vertices(); t++) {
+          if(counter % 100 == 0){
+            fprintf(stderr, "count/unmatch/all : %d/%d/%d, \n",counter, unmatch, all);
+          }
+          bool is_matched = check_min_cut_query(mcq, s, t, g);
+          if(!is_matched) unmatch++;
+          counter++;
         }
-        bool is_matched = check_min_cut_query(mcq, s, t, g);
-        if(!is_matched) unmatch++;
-        counter++;
       }
-    }
   }
   JLOG_PUT("result.all", all);
   JLOG_PUT("result.match", (all - unmatch));
