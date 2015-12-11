@@ -148,9 +148,6 @@ class min_cut_query_with_random_contraction {
       binary_tree_edges_[ua].emplace_back(new_vertex, uw);
       binary_tree_edges_[new_vertex].emplace_back(va, vw);
       binary_tree_edges_[va].emplace_back(new_vertex, vw);
-      // cerr << "contraction: " << "(" << u << "," << v << ")" << endl;
-      // cerr << "  (" << u << "," << new_vertex << ") cost = " << binary_tree_edges_[new_vertex][0].second << endl;
-      // cerr << "  (" << v << "," << new_vertex << ") cost = " << binary_tree_edges_[new_vertex][1].second << endl;
     }
     // gが連結とは限らないので、uv_costs.size() == g.num_vertices() - 1ではない
     assert(int(binary_tree_edges_.size() - g.num_vertices()) <= g.num_vertices() - 1);
@@ -205,7 +202,7 @@ class min_cut_query {
     }
   }
 
-  int query(int u,int v){
+  int query(int u,int v) const {
     int ans = numeric_limits<int>::max();
     for(const auto& solver : solvers_){
       ans = min(ans, solver.query(u, v));
@@ -216,40 +213,59 @@ class min_cut_query {
   vector<min_cut_query_with_random_contraction> solvers_;
 };
 
+
+
+
+G to_directed_graph(G& g){
+  vector<pair<V,V>> ret;
+  for(auto& e : g.edge_list()) {
+      if(e.first < to(e.second)) ret.emplace_back(e.first,to(e.second));
+  }
+  return G(ret);
+}
+
+bool check_min_cut_query(const min_cut_query& mcq,int s,int t,G& g){
+  naive::init(g);
+  int naive_w = naive::max_flow(s,t);
+  int mcq_w = mcq.query(s,t);
+  if(naive_w == mcq_w) return true; //matched
+ 
+  CHECK(naive_w <= mcq_w);
+  JLOG_ADD_OPEN("unmatched") {
+    JLOG_PUT("S",s);
+    JLOG_PUT("T",t);
+    JLOG_PUT("naive", naive_w);
+    JLOG_PUT("mcq_w", mcq_w);
+  }
+  return false;
+}
+
 int main(int argc, char **argv) {
+  // JLOG_INIT(&argc, argv); called in "easy_cui_init"
   G g = easy_cui_init(argc, argv);
+  g = to_directed_graph(g);
   min_cut_query mcq(g);
   // mcq.debug_output_graph();
 
-  int counter = 0,unmatch = 0;
+  JLOG_PUT("argv.mincut_tree_iter", FLAGS_solver_iter);
+
   const int all = g.num_vertices() * (g.num_vertices() - 1) / 2;
-  for(V s = 0; s < g.num_vertices(); s++) {
-    for(V t = s + 1; t < g.num_vertices(); t++) {
-      if(counter % 100 == 0){
-        printf("%d/%d\n",counter, all);
+  int counter = 0,unmatch = 0;
+  JLOG_ADD_OPEN("sampleing") {
+    for(V s = 0; s < g.num_vertices(); s++) {
+      for(V t = s + 1; t < g.num_vertices(); t++) {
+        if(counter % 100 == 0){
+          fprintf(stderr, "count/unmatch/all : %d/%d/%d, \n",counter, unmatch, all);
+        }
+        bool is_matched = check_min_cut_query(mcq, s, t, g);
+        if(!is_matched) unmatch++;
+        counter++;
       }
-      naive::init(g);
-      int naive_w = naive::max_flow(s,t);
-      int mcq_w = mcq.query(s,t);
-      if(naive_w != mcq_w){
-        unmatch++;
-        printf("(%d,%d) naive = %d, cmq = %d\n",s,t,naive_w, mcq_w); 
-        CHECK(naive_w <= mcq_w);
-      }
-      counter++;
     }
   }
-  printf("result: match/all = %d/%d , unmatch = %d\n",all - unmatch,all, unmatch);
-
-  V s,t;
-  while(cin>> s >> t) {
-    naive::init(g);
-    int naive_w = naive::max_flow(s,t);
-    int mcq_w = mcq.query(s, t);
-
-    cout << "naive : " << naive_w << endl;
-    cout << "min_cut_query : " << mcq_w << endl;
-  }
+  JLOG_PUT("result.all", all);
+  JLOG_PUT("result.match", (all - unmatch));
+  JLOG_PUT("result.unmatch", unmatch);
 
   return 0;
 }
