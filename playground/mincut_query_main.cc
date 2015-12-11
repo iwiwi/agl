@@ -91,9 +91,9 @@ void init(G& g){
 }
 } // naive
 
-class min_cut_query {
+class min_cut_query_with_random_contraction {
 
-  int query_dfs(V v, V t, int cost,V par = -1) {
+  int query_dfs(V v, V t, int cost,V par = -1) const {
     if(v == t) return cost;
     for(const auto& to_cost : binary_tree_edges_[v]) {
         V to; int edge_cost; tie(to,edge_cost) = to_cost;
@@ -118,9 +118,9 @@ class min_cut_query {
     return w;
   }
 
-public:
+ public:
   // g の辺を使い、グラフを作成する(勝手にundirectedとして読み替えている)
-  min_cut_query(G& g) :
+  min_cut_query_with_random_contraction(G& g) :
     num_vertices_(g.num_vertices()),
     initial_edges_(g.edge_list()),
     uf_(g.num_vertices()),
@@ -148,9 +148,9 @@ public:
       binary_tree_edges_[ua].emplace_back(new_vertex, uw);
       binary_tree_edges_[new_vertex].emplace_back(va, vw);
       binary_tree_edges_[va].emplace_back(new_vertex, vw);
-      cerr << "contraction: " << "(" << u << "," << v << ")" << endl;
-      cerr << "  (" << u << "," << new_vertex << ") cost = " << binary_tree_edges_[new_vertex][0].second << endl;
-      cerr << "  (" << v << "," << new_vertex << ") cost = " << binary_tree_edges_[new_vertex][1].second << endl;
+      // cerr << "contraction: " << "(" << u << "," << v << ")" << endl;
+      // cerr << "  (" << u << "," << new_vertex << ") cost = " << binary_tree_edges_[new_vertex][0].second << endl;
+      // cerr << "  (" << v << "," << new_vertex << ") cost = " << binary_tree_edges_[new_vertex][1].second << endl;
     }
     // gが連結とは限らないので、uv_costs.size() == g.num_vertices() - 1ではない
     assert(int(binary_tree_edges_.size() - g.num_vertices()) <= g.num_vertices() - 1);
@@ -158,7 +158,7 @@ public:
 
   void debug_output_graph(){
     ostringstream oss;
-    for(V v = num_vertices_; v < binary_tree_edges_.size(); v++) {
+    for(V v = num_vertices_; v < (V)binary_tree_edges_.size(); v++) {
       for(auto& to_cost : binary_tree_edges_[v]) {
         V to; int edge_cost; tie(to,edge_cost) = to_cost;
         if(v < to) continue;
@@ -168,7 +168,7 @@ public:
     istringstream iss(oss.str());
     auto g = read_graph_tsv<G>(iss);
     graphviz gv(g);
-    for(V v = num_vertices_; v < binary_tree_edges_.size(); v++) {
+    for(V v = num_vertices_; v < (V)binary_tree_edges_.size(); v++) {
       for(auto& to_cost : binary_tree_edges_[v]) {
         V to; int edge_cost; tie(to,edge_cost) = to_cost;
         if(v < to) continue;
@@ -178,7 +178,7 @@ public:
     gv.generate_png("binary.png");
   }
 
-  int query(V u,V v) {
+  int query(V u,V v) const {
     CHECK(u != v);
     CHECK(u < num_vertices_ && v < num_vertices_);
     int ans = query_dfs(u,v, numeric_limits<int>::max());
@@ -195,23 +195,51 @@ private:
   vector<vector<pair<V,int>>> binary_tree_edges_;
 };
 
+DEFINE_int64(solver_iter, 50, "");
+
+class min_cut_query {
+ public:
+  min_cut_query(G& g) {
+    for(int i = 0; i < FLAGS_solver_iter; i++) {
+      solvers_.emplace_back(g);
+    }
+  }
+
+  int query(int u,int v){
+    int ans = numeric_limits<int>::max();
+    for(const auto& solver : solvers_){
+      ans = min(ans, solver.query(u, v));
+    }
+    return ans;
+  }
+ private:
+  vector<min_cut_query_with_random_contraction> solvers_;
+};
 
 int main(int argc, char **argv) {
   G g = easy_cui_init(argc, argv);
   min_cut_query mcq(g);
   // mcq.debug_output_graph();
 
+  int counter = 0,unmatch = 0;
+  const int all = g.num_vertices() * (g.num_vertices() - 1) / 2;
   for(V s = 0; s < g.num_vertices(); s++) {
     for(V t = s + 1; t < g.num_vertices(); t++) {
+      if(counter % 100 == 0){
+        printf("%d/%d\n",counter, all);
+      }
       naive::init(g);
       int naive_w = naive::max_flow(s,t);
       int mcq_w = mcq.query(s,t);
       if(naive_w != mcq_w){
+        unmatch++;
         printf("(%d,%d) naive = %d, cmq = %d\n",s,t,naive_w, mcq_w); 
         CHECK(naive_w <= mcq_w);
-      }      
+      }
+      counter++;
     }
   }
+  printf("result: match/all = %d/%d , unmatch = %d\n",all - unmatch,all, unmatch);
 
   V s,t;
   while(cin>> s >> t) {
@@ -225,3 +253,4 @@ int main(int argc, char **argv) {
 
   return 0;
 }
+ 
