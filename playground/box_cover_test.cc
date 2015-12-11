@@ -70,3 +70,70 @@ TEST(box_cover, build_sketch_check) {
     }
   }
 }
+
+TEST(box_cover, small_select_greedily) {
+  const W radius = 1;
+  auto es = generate_grid(4, 5);
+  G g(make_undirected(es));
+  const int k = 3;
+  vector<V> rank(g.num_vertices());
+  vector<V> inv(g.num_vertices());
+  for (V i = 0; i < g.num_vertices(); ++i) {
+    inv[i] = i;
+  }
+  random_shuffle(inv.begin(), inv.end());
+  for (int i = 0; i < g.num_vertices(); ++i) {
+    rank[inv[i]] = i;
+  }
+  vector<bool> covered(g.num_vertices(), false);
+  vector<vector<V>> X = build_sketch(g, radius, k, rank, inv, covered);
+  for (int i = 0; i < g.num_vertices(); ++i) {
+    cerr << i << " " << X[i] << endl;
+  }
+
+  vector<V> centers1;
+  {
+    vector<bool> centered(g.num_vertices(), false);
+    select_greedily(g, X, inv, centers1, centered, k);
+  }
+  vector<V> centers2;
+  {
+    vector<bool> centered(g.num_vertices(), false);
+    naive_select_greedily(g, X, centers2, centered, k);
+  }
+  cerr << centers1 << endl;
+  cerr << centers2 << endl;
+  ASSERT_EQ(centers1, centers2);
+}
+
+TEST(box_cover, large_select_greedily) {
+  const W radius = 3;
+  auto es = generate_grid(30, 40);
+  G g(make_undirected(es));
+  const int k = 50;
+  vector<V> rank(g.num_vertices());
+  vector<V> inv(g.num_vertices());
+  for (V i = 0; i < g.num_vertices(); ++i) {
+    inv[i] = i;
+  }
+  random_shuffle(inv.begin(), inv.end());
+  for (int i = 0; i < g.num_vertices(); ++i) {
+    rank[inv[i]] = i;
+  }
+  vector<bool> covered(g.num_vertices(), false);
+  vector<vector<V>> X = build_sketch(g, radius, k, rank, inv, covered);
+
+  vector<V> centers1;
+  {
+    vector<bool> centered(g.num_vertices(), false);
+    select_greedily(g, X, inv, centers1, centered, k);
+  }
+  vector<V> centers2;
+  {
+    vector<bool> centered(g.num_vertices(), false);
+    naive_select_greedily(g, X, centers2, centered, k);
+  }
+  cerr << centers1 << endl;
+  cerr << centers2 << endl;
+  ASSERT_EQ(centers1, centers2);
+}

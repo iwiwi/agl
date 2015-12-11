@@ -38,6 +38,15 @@ double coverage(const G &g, const vector<V> &s, W rad) {
   return coverage(g, s, rad, dummy);
 }
 
+void remove_multimap_pair(multimap<V, V> &T, pair<V, V> p) {
+  multimap<V, V>::iterator itup = T.upper_bound(p.first);
+  for (multimap<V, V>::iterator it = T.lower_bound(p.first); it != itup; it++)
+    if ((*it).second == p.second) {
+      T.erase(it);
+      break;
+    }
+}
+
 vector<V> box_cover_memb(const G &g, W radius) {
   V num_v = g.num_vertices();
   vector<vector<pair<V, W>>> node_lists;
@@ -464,6 +473,10 @@ double estimated_cardinality(const G &g, const set<V> &X, const int k) {
   if (X.size() < (size_t)k) {
     return (k - 1);
   }
+  if (X.size() == k) {
+    V kth = *X.rbegin();
+    return (double)(k - 1) / kth * g.num_vertices();
+  }
   int cnt = 0;
   for (V p : X) {
     cnt++;
@@ -475,24 +488,80 @@ double estimated_cardinality(const G &g, const set<V> &X, const int k) {
   return (k - 1);
 }
 
+// Get values which has a key which is strictly greater than low_key
+vector<V> get_greater_values(multimap<V, V> &T, V low_key) {
+  vector<V> values;
+  for (multimap<V, V>::iterator it = T.lower_bound(low_key + 1); it != T.end();
+       ++it)
+    values.push_back((*it).second);
+  return values;
+}
+
+void pruned_select_greedily(const G &g, const vector<vector<V>> &X,
+                            vector<V> &centers, vector<bool> &centered,
+                            const int k) {
+  multimap<V, V> T;
+  priority_queue<pair<V, V>, vector<pair<V, V>>, greater<pair<V, V>>> que;
+
+  V num_v = g.num_vertices();
+  set<V> Xs;
+  auto merge_and_purify =
+      [](set<V> &Xs, const vector<V> &sorted_X, const int k) {
+        // Merge-and-Purify
+        for (V p_rank : sorted_X) {
+          if (Xs.size() >= (size_t)k) {
+            V max_rank = *Xs.rbegin();
+            if (p_rank > max_rank) break;
+            Xs.erase(max_rank);
+          }
+          Xs.insert(p_rank);
+        }
+      };
+
+  // Initialization
+  for (V v = 0; v < num_v; v++) {
+    if (centered[v]) continue;
+    V rank_tmp = X[v].size() == k ? X[v][k - 1] : (k - 1);
+    T.insert(make_pair(rank_tmp, v));
+    que.push(make_pair(rank_tmp, v));
+  }
+
+  while (estimated_cardinality(g, Xs, k) < max(num_v, k - 1)) {
+    while (!que.empty() && centered[que.top().second]) {
+      que.pop();
+    }
+    if (que.empty()) {
+      break;
+    }
+
+    V selected_v = que.top().second;
+    centers.push_back(selected_v);
+    centered[selected_v] = true;
+
+    // Merge-and-Purify
+    merge_and_purify(Xs, X[selected_v], k);
+  }
+}
+
 void select_greedily(const G &g, const vector<vector<V>> &X,
-                     const vector<V> inv, vector<V> &centers,
+                     const vector<V> &inv, vector<V> &centers,
                      vector<bool> &centered, const int k) {
-  assert(false);
   // Initialization
   V num_v = g.num_vertices();
   set<V> Xs;
-  priority_queue<pair<V, V>> que[2];
+  priority_queue<pair<V, V>, vector<pair<V, V>>, greater<pair<V, V>>> que[2];
   multimap<V, V> T;
-  vector<int> kp(num_v, k);
+  vector<int> kp(num_v);
   vector<V> keys(num_v);
   vector<bool> is_type1(num_v, true);
+  vector<bool> removed(num_v, false);
 
   for (V p = 0; p < num_v; ++p) {
-    V kth = X[p].size() == k ? X[p][k - 1] : k - 1;
-    que[0].push(make_pair(kth, p));
-    T.insert(make_pair(kth, p));
+    V kth = X[p].size() == k ? X[p][k - 1] : num_v;
     keys[p] = kth;
+    que[0].push(make_pair(keys[p], p));
+    T.insert(make_pair(keys[p], p));
+    kp[p] = X[p].size();
   }
 
   // Main loop
@@ -503,25 +572,10 @@ void select_greedily(const G &g, const vector<vector<V>> &X,
     for (int q = 0; q < 2; q++) {
       while (!que[q].empty()) {
         V top_v = que[q].top().second;
-        if (centered[top_v]) {
+        if (removed[top_v] || centered[top_v] || (q == 1 && is_type1[top_v]) ||
+            (q == 0 && !is_type1[top_v])) {
           que[q].pop();
           continue;
-        } else if (q == 0) {
-          if (!is_type1[top_v]) {
-            que[0].pop();
-            continue;
-          } else if (que[0].top().first > keys[top_v]) {
-            que[0].pop();
-            continue;
-          }
-        } else {
-          if (is_type1[top_v]) {
-            que[1].pop();
-            continue;
-          } else if (que[1].top().first > kp[top_v]) {
-            que[1].pop();
-            continue;
-          }
         }
         break;
       }
@@ -531,27 +585,16 @@ void select_greedily(const G &g, const vector<vector<V>> &X,
       set<V> tmp(Xs);
       tmp.insert(X[v].begin(), X[v].end());
       double ec_tmp = estimated_cardinality(g, tmp, k);
-      if (argmax < ec_tmp) {
+      if (argmax < ec_tmp || (argmax == ec_tmp && v < selected_v)) {
         argmax = ec_tmp;
         selected_v = v;
       }
     }
-    if (selected_v < 0) {
-      break;
-    }
+    if (selected_v < 0) break;
     centers.push_back(selected_v);
     centered[selected_v] = true;
-    {
-      if (!que[0].empty() && que[0].top().second == selected_v) que[0].pop();
-      if (!que[1].empty() && que[1].top().second == selected_v) que[1].pop();
-      multimap<V, V>::iterator itup = T.upper_bound(keys[selected_v]);
-      for (multimap<V, V>::iterator it = T.lower_bound(keys[selected_v]);
-           it != itup; it++)
-        if ((*it).second == selected_v) {
-          T.erase(it);
-          break;
-        }
-    }
+    removed[selected_v] = true;
+    remove_multimap_pair(T, make_pair(keys[selected_v], selected_v));
 
     // Merge
     vector<V> delta;
@@ -567,26 +610,27 @@ void select_greedily(const G &g, const vector<vector<V>> &X,
 
     // Update
     reverse(delta.begin(), delta.end());
-    for (V ri : delta) {
-      for (pair<V, V> tp : T) {
-        if (tp.first >= ri) break;
-        V p = tp.second;
-        V i = inv[ri];
-        if (binary_search(X[p].begin(), X[p].end(), i)) continue;
+    for (V rank_delta : delta) {
+      vector<V> ps_from_T;
+      for (multimap<V, V>::iterator it = T.lower_bound(rank_delta);
+           it != T.end(); it++) {
+        V p = (*it).second;
+        ps_from_T.push_back(p);
+      }
+      for (V p : ps_from_T) {
+        if (binary_search(X[p].begin(), X[p].end(), rank_delta)) continue;
         if (is_type1[p]) {  // From type 1 to type 2
+          is_type1[p] = false;
           kp[p]--;
-          {
-            multimap<V, V>::iterator itup = T.upper_bound(keys[p]);
-            for (multimap<V, V>::iterator it = T.lower_bound(keys[p]);
-                 it != itup; it++)
-              if ((*it).second == p) {
-                T.erase(it);
-                break;
-              }
+          remove_multimap_pair(T, make_pair(keys[p], p));
+          if (kp[p] <= 0) {
+            removed[p] = true;
+            keys[p] = -1;
+            continue;
           }
           keys[p] = X[p][kp[p] - 1];
           T.insert(make_pair(keys[p], p));
-          is_type1[p] = false;
+          cerr << keys[p] << " " << p << endl;
           que[1].push(make_pair(kp[p], p));
         } else {  // From type 2 to type 1
           is_type1[p] = true;
@@ -626,13 +670,13 @@ void naive_select_greedily(const G &g, const vector<vector<V>> &X,
     centered[selected_v] = true;
 
     // Merge-and-Purify
-    for (V p : X[selected_v]) {
+    for (V p_rank : X[selected_v]) {
       if (Xs.size() >= (size_t)k) {
         V max_rank = *Xs.rbegin();
-        if (p > max_rank) break;
+        if (p_rank > max_rank) break;
         Xs.erase(max_rank);
       }
-      Xs.insert(p);
+      Xs.insert(p_rank);
     }
   }
 }
