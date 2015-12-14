@@ -5,12 +5,6 @@
 using namespace agl;
 using namespace std;
 
-double GetCurrentTimeSec() {
-  struct timeval tv;
-  gettimeofday(&tv, NULL);
-  return tv.tv_sec + tv.tv_usec * 1e-6;
-}
-
 TEST(box_cover, memb) {
   for (int trial = 0; trial < 10; ++trial) {
     V M = 3;
@@ -87,7 +81,7 @@ TEST(box_cover, nakamura_lazy_greedy) {
     V N = M + agl::random(5000);
     auto es = generate_ba(N, M);
     G g(make_undirected(es));
-    const int k = 1024;
+    const int k = 512;
     if (g.num_vertices() < k) {
       trial--;
       continue;
@@ -104,25 +98,25 @@ TEST(box_cover, nakamura_lazy_greedy) {
     vector<bool> covered(g.num_vertices(), false);
     vector<vector<V>> X = build_sketch(g, radius, k, rank, inv, covered);
     cerr << "Naive_greedy" << endl;
-    timer = -GetCurrentTimeSec();
+    timer = -get_current_time_sec();
     vector<V> centers2;
     {
       vector<bool> centered(g.num_vertices(), false);
       naive_select_greedily(g, X, centers2, centered, k);
     }
     cerr << centers2 << endl;
-    timer += GetCurrentTimeSec();
+    timer += get_current_time_sec();
     cerr << timer << " sec " << endl;
 
     cerr << "Nakamura_lazy_greedy" << endl;
-    timer = -GetCurrentTimeSec();
+    timer = -get_current_time_sec();
     vector<V> centers1;
     {
       vector<bool> centered(g.num_vertices(), false);
       nakamura_select_greedily(g, X, centers1, centered, k);
     }
     cerr << centers1 << endl;
-    timer += GetCurrentTimeSec();
+    timer += get_current_time_sec();
     cerr << timer << " sec " << endl;
     ASSERT_EQ(centers1, centers2);
   }

@@ -496,6 +496,7 @@ vector<pair<V, V>> get_greater_submap(multimap<V, V> &T, V low_key) {
   return values;
 }
 
+// O(n)
 void nakamura_select_greedily(const G &g, const vector<vector<V>> &vecX,
                               vector<V> &centers, vector<bool> &centered,
                               const int k) {
@@ -504,6 +505,7 @@ void nakamura_select_greedily(const G &g, const vector<vector<V>> &vecX,
   vector<set<V>> X(num_v);
   vector<V> keys(num_v);
   for (V v = 0; v < num_v; ++v) X[v].insert(vecX[v].begin(), vecX[v].end());
+
   // Initialization
   multimap<V, V> T;
   priority_queue<pair<V, V>, vector<pair<V, V>>, greater<pair<V, V>>> que;
@@ -516,8 +518,7 @@ void nakamura_select_greedily(const G &g, const vector<vector<V>> &vecX,
 
   // Main loop
   while (estimated_cardinality(g, Xs, k) < max(num_v, k - 1)) {
-    while (!que.empty() && (centered[que.top().second] ||
-                            que.top().first != keys[que.top().second])) {
+    while (!que.empty() && centered[que.top().second]) {
       que.pop();
     }
     if (que.empty()) {
@@ -527,22 +528,21 @@ void nakamura_select_greedily(const G &g, const vector<vector<V>> &vecX,
     V selected = que.top().second;
     centers.push_back(selected);
     centered[selected] = true;
+    remove_multimap_pair(T, make_pair(keys[selected], selected));
     que.pop();
 
-    // Merge-and-Purify
     vector<V> delta = merge_and_purify(Xs, vecX[selected], k);
 
-    for (V inserted_rank : delta) {
+    for (int i = delta.size() - 1; i >= 0; --i) {
+      V inserted_rank = delta[i];
       vector<pair<V, V>> greater_subsets = get_greater_submap(T, inserted_rank);
       for (auto subset : greater_subsets) {
-        remove_multimap_pair(T, subset);  // logN
         set<V> &target_X = X[subset.second];
+        if (target_X.find(inserted_rank) != target_X.end()) continue;
+        remove_multimap_pair(T, subset);  // logN
 
         // Megre
-        target_X.insert(inserted_rank);
-        while (target_X.size() > (size_t)k) {
-          target_X.erase(*target_X.rbegin());
-        }
+        merge_and_purify(target_X, delta, k);
 
         keys[subset.second] = target_X.size() == k ? *target_X.rbegin() : num_v;
         que.push(make_pair(keys[subset.second], subset.second));
