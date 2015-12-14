@@ -1,5 +1,4 @@
 #include "box_cover.h"
-#include <sys/time.h>
 
 double coverage(const G &g, const vector<V> &s, W rad,
                 vector<bool> &is_covered) {
@@ -38,13 +37,25 @@ double coverage(const G &g, const vector<V> &s, W rad) {
   return coverage(g, s, rad, dummy);
 }
 
-void remove_multimap_pair(multimap<V, V> &T, pair<V, V> p) {
+void remove_multimap_pair(multimap<V, V> &T, const pair<V, V> &p) {
   multimap<V, V>::iterator itup = T.upper_bound(p.first);
   for (multimap<V, V>::iterator it = T.lower_bound(p.first); it != itup; it++)
     if ((*it).second == p.second) {
       T.erase(it);
       break;
     }
+}
+
+vector<V> merge_and_purify(set<V> &parent, const vector<V> &sorted_vec,
+                           const int k) {
+  vector<V> delta;
+  for (V p_rank : sorted_vec) {
+    if (parent.size() == (size_t)k && p_rank > *parent.rbegin()) break;
+    parent.insert(p_rank);
+    delta.push_back(p_rank);
+    while (parent.size() > (size_t)k) parent.erase(*parent.rbegin());
+  }
+  return delta;
 }
 
 vector<V> box_cover_memb(const G &g, W radius) {
@@ -376,12 +387,6 @@ vector<V> box_cover_burning(const G &g, W radius) {
   return ret;
 }
 
-double GetCurrentTimeSec() {
-  struct timeval tv;
-  gettimeofday(&tv, NULL);
-  return tv.tv_sec + tv.tv_usec * 1e-6;
-}
-
 // Naive BFS method of Build-Sketch
 vector<vector<V>> naive_build_sketch(const G &g, const W radius, const int k,
                                      const vector<V> &rank,
@@ -477,69 +482,73 @@ double estimated_cardinality(const G &g, const set<V> &X, const int k) {
     V kth = *X.rbegin();
     return (double)(k - 1) / kth * g.num_vertices();
   }
-  int cnt = 0;
-  for (V p : X) {
-    cnt++;
-    if (cnt == k) {
-      return (double)(k - 1) / p * g.num_vertices();
-    }
-  }
+  cerr << X.size() << " " << k << endl;
   assert(false);
   return (k - 1);
 }
 
 // Get values which has a key which is strictly greater than low_key
-vector<V> get_greater_values(multimap<V, V> &T, V low_key) {
-  vector<V> values;
+vector<pair<V, V>> get_greater_submap(multimap<V, V> &T, V low_key) {
+  vector<pair<V, V>> values;
   for (multimap<V, V>::iterator it = T.lower_bound(low_key + 1); it != T.end();
        ++it)
-    values.push_back((*it).second);
+    values.push_back(make_pair((*it).first, (*it).second));
   return values;
 }
 
-void pruned_select_greedily(const G &g, const vector<vector<V>> &X,
-                            vector<V> &centers, vector<bool> &centered,
-                            const int k) {
-  multimap<V, V> T;
-  priority_queue<pair<V, V>, vector<pair<V, V>>, greater<pair<V, V>>> que;
-
+void nakamura_select_greedily(const G &g, const vector<vector<V>> &vecX,
+                              vector<V> &centers, vector<bool> &centered,
+                              const int k) {
   V num_v = g.num_vertices();
   set<V> Xs;
-  auto merge_and_purify =
-      [](set<V> &Xs, const vector<V> &sorted_X, const int k) {
-        // Merge-and-Purify
-        for (V p_rank : sorted_X) {
-          if (Xs.size() >= (size_t)k) {
-            V max_rank = *Xs.rbegin();
-            if (p_rank > max_rank) break;
-            Xs.erase(max_rank);
-          }
-          Xs.insert(p_rank);
-        }
-      };
-
+  vector<set<V>> X(num_v);
+  vector<V> keys(num_v);
+  for (V v = 0; v < num_v; ++v) X[v].insert(vecX[v].begin(), vecX[v].end());
   // Initialization
+  multimap<V, V> T;
+  priority_queue<pair<V, V>, vector<pair<V, V>>, greater<pair<V, V>>> que;
   for (V v = 0; v < num_v; v++) {
     if (centered[v]) continue;
-    V rank_tmp = X[v].size() == k ? X[v][k - 1] : (k - 1);
-    T.insert(make_pair(rank_tmp, v));
-    que.push(make_pair(rank_tmp, v));
+    keys[v] = X[v].size() == k ? *X[v].rbegin() : num_v;
+    T.insert(make_pair(keys[v], v));
+    que.push(make_pair(keys[v], v));
   }
 
+  // Main loop
   while (estimated_cardinality(g, Xs, k) < max(num_v, k - 1)) {
-    while (!que.empty() && centered[que.top().second]) {
+    while (!que.empty() && (centered[que.top().second] ||
+                            que.top().first != keys[que.top().second])) {
       que.pop();
     }
     if (que.empty()) {
       break;
     }
 
-    V selected_v = que.top().second;
-    centers.push_back(selected_v);
-    centered[selected_v] = true;
+    V selected = que.top().second;
+    centers.push_back(selected);
+    centered[selected] = true;
+    que.pop();
 
     // Merge-and-Purify
-    merge_and_purify(Xs, X[selected_v], k);
+    vector<V> delta = merge_and_purify(Xs, vecX[selected], k);
+
+    for (V inserted_rank : delta) {
+      vector<pair<V, V>> greater_subsets = get_greater_submap(T, inserted_rank);
+      for (auto subset : greater_subsets) {
+        remove_multimap_pair(T, subset);  // logN
+        set<V> &target_X = X[subset.second];
+
+        // Megre
+        target_X.insert(inserted_rank);
+        while (target_X.size() > (size_t)k) {
+          target_X.erase(*target_X.rbegin());
+        }
+
+        keys[subset.second] = target_X.size() == k ? *target_X.rbegin() : num_v;
+        que.push(make_pair(keys[subset.second], subset.second));
+        T.insert(make_pair(keys[subset.second], subset.second));
+      }
+    }
   }
 }
 
@@ -647,13 +656,14 @@ void naive_select_greedily(const G &g, const vector<vector<V>> &X,
                            const int k) {
   V num_v = g.num_vertices();
   set<V> Xs;
+
   while (estimated_cardinality(g, Xs, k) < max(num_v, k - 1)) {
     V selected_v = -1;
     double argmax = 0.0;
     for (V v = 0; v < num_v; v++) {
       if (centered[v]) continue;
       set<V> tmp(Xs);
-      tmp.insert(X[v].begin(), X[v].end());
+      merge_and_purify(tmp, X[v], k);
 
       double ec_tmp = estimated_cardinality(g, tmp, k);
       if (argmax < ec_tmp) {
@@ -669,15 +679,7 @@ void naive_select_greedily(const G &g, const vector<vector<V>> &X,
     centers.push_back(selected_v);
     centered[selected_v] = true;
 
-    // Merge-and-Purify
-    for (V p_rank : X[selected_v]) {
-      if (Xs.size() >= (size_t)k) {
-        V max_rank = *Xs.rbegin();
-        if (p_rank > max_rank) break;
-        Xs.erase(max_rank);
-      }
-      Xs.insert(p_rank);
-    }
+    merge_and_purify(Xs, X[selected_v], k);
   }
 }
 

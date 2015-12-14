@@ -1,7 +1,15 @@
 #include "box_cover.h"
 #include "gtest/gtest.h"
+#include <sys/time.h>
+
 using namespace agl;
 using namespace std;
+
+double GetCurrentTimeSec() {
+  struct timeval tv;
+  gettimeofday(&tv, NULL);
+  return tv.tv_sec + tv.tv_usec * 1e-6;
+}
 
 TEST(box_cover, memb) {
   for (int trial = 0; trial < 10; ++trial) {
@@ -71,69 +79,51 @@ TEST(box_cover, build_sketch_check) {
   }
 }
 
-TEST(box_cover, small_select_greedily) {
-  const W radius = 1;
-  auto es = generate_grid(4, 5);
-  G g(make_undirected(es));
-  const int k = 3;
-  vector<V> rank(g.num_vertices());
-  vector<V> inv(g.num_vertices());
-  for (V i = 0; i < g.num_vertices(); ++i) {
-    inv[i] = i;
-  }
-  random_shuffle(inv.begin(), inv.end());
-  for (int i = 0; i < g.num_vertices(); ++i) {
-    rank[inv[i]] = i;
-  }
-  vector<bool> covered(g.num_vertices(), false);
-  vector<vector<V>> X = build_sketch(g, radius, k, rank, inv, covered);
-  for (int i = 0; i < g.num_vertices(); ++i) {
-    cerr << i << " " << X[i] << endl;
-  }
+TEST(box_cover, nakamura_lazy_greedy) {
+  double timer = 0.0;
+  for (int trial = 0; trial < 10; ++trial) {
+    const W radius = 2;
+    V M = 3;
+    V N = M + agl::random(5000);
+    auto es = generate_ba(N, M);
+    G g(make_undirected(es));
+    const int k = 1024;
+    if (g.num_vertices() < k) {
+      trial--;
+      continue;
+    }
+    vector<V> rank(g.num_vertices());
+    vector<V> inv(g.num_vertices());
+    for (V i = 0; i < g.num_vertices(); ++i) {
+      inv[i] = i;
+    }
+    random_shuffle(inv.begin(), inv.end());
+    for (int i = 0; i < g.num_vertices(); ++i) {
+      rank[inv[i]] = i;
+    }
+    vector<bool> covered(g.num_vertices(), false);
+    vector<vector<V>> X = build_sketch(g, radius, k, rank, inv, covered);
+    cerr << "Naive_greedy" << endl;
+    timer = -GetCurrentTimeSec();
+    vector<V> centers2;
+    {
+      vector<bool> centered(g.num_vertices(), false);
+      naive_select_greedily(g, X, centers2, centered, k);
+    }
+    cerr << centers2 << endl;
+    timer += GetCurrentTimeSec();
+    cerr << timer << " sec " << endl;
 
-  vector<V> centers1;
-  {
-    vector<bool> centered(g.num_vertices(), false);
-    select_greedily(g, X, inv, centers1, centered, k);
+    cerr << "Nakamura_lazy_greedy" << endl;
+    timer = -GetCurrentTimeSec();
+    vector<V> centers1;
+    {
+      vector<bool> centered(g.num_vertices(), false);
+      nakamura_select_greedily(g, X, centers1, centered, k);
+    }
+    cerr << centers1 << endl;
+    timer += GetCurrentTimeSec();
+    cerr << timer << " sec " << endl;
+    ASSERT_EQ(centers1, centers2);
   }
-  vector<V> centers2;
-  {
-    vector<bool> centered(g.num_vertices(), false);
-    naive_select_greedily(g, X, centers2, centered, k);
-  }
-  cerr << centers1 << endl;
-  cerr << centers2 << endl;
-  ASSERT_EQ(centers1, centers2);
-}
-
-TEST(box_cover, large_select_greedily) {
-  const W radius = 3;
-  auto es = generate_grid(30, 40);
-  G g(make_undirected(es));
-  const int k = 50;
-  vector<V> rank(g.num_vertices());
-  vector<V> inv(g.num_vertices());
-  for (V i = 0; i < g.num_vertices(); ++i) {
-    inv[i] = i;
-  }
-  random_shuffle(inv.begin(), inv.end());
-  for (int i = 0; i < g.num_vertices(); ++i) {
-    rank[inv[i]] = i;
-  }
-  vector<bool> covered(g.num_vertices(), false);
-  vector<vector<V>> X = build_sketch(g, radius, k, rank, inv, covered);
-
-  vector<V> centers1;
-  {
-    vector<bool> centered(g.num_vertices(), false);
-    select_greedily(g, X, inv, centers1, centered, k);
-  }
-  vector<V> centers2;
-  {
-    vector<bool> centered(g.num_vertices(), false);
-    naive_select_greedily(g, X, centers2, centered, k);
-  }
-  cerr << centers1 << endl;
-  cerr << centers2 << endl;
-  ASSERT_EQ(centers1, centers2);
 }

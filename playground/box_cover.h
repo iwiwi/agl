@@ -18,6 +18,9 @@ vector<vector<V>> build_sketch(const G &g, const W radius, const int k,
 void naive_select_greedily(const G &g, const vector<vector<V>> &X,
                            vector<V> &centers, vector<bool> &centered,
                            const int k);
+void nakamura_select_greedily(const G &g, const vector<vector<V>> &X,
+                           vector<V> &centers, vector<bool> &centered,
+                           const int k);
 void select_greedily(const G &g, const vector<vector<V>> &X,
                      const vector<V> &inv, vector<V> &centers,
                      vector<bool> &centered, const int k);
