@@ -100,75 +100,80 @@ class min_cut_query_with_random_contraction {
     return -1;
   }
 
-  //O(E uf(E))
-  int out_edge_weight(int uf_index) {
-    int w = 0;
-    for(const auto& edge : initial_edges_) {
-      V u = edge.first, v = to(edge.second);
-      if(uf_.is_same(uf_index, u) ^ uf_.is_same(uf_index, v)) {
-        w++;
-      }
-    }
-
-    return w;
-  }
-
   void contraction(vector<int>& ancestor, V u, V v) {
       assert(!uf_.is_same(u, v));
       V new_vertex = (V)binary_tree_edges_.size();
       u = uf_.root(u), v = uf_.root(v);
-      int uw = out_edge_weight(u), vw = out_edge_weight(v);
+      int uw = (int)contraction_graph_edges_[u].size(), vw = (int)contraction_graph_edges_[v].size();
       int ua = ancestor[u] , va = ancestor[v];
       uf_.unite(u, v);
-      ((uf_.root(u) == u) ? ancestor[u] : ancestor[v]) = new_vertex;
+      if(uf_.root(u) != u) swap(u, v);
+      ancestor[u] = new_vertex;
 
       // 縮約した結果を元にbinary treeの構築を進める
       binary_tree_edges_.emplace_back(); // new_vertex分の確保
       binary_tree_edges_[new_vertex].emplace_back(ua, uw);
       binary_tree_edges_[ua].emplace_back(new_vertex, uw);
       binary_tree_edges_[new_vertex].emplace_back(va, vw);
-      binary_tree_edges_[va].emplace_back(new_vertex, vw);       
-    };
+      binary_tree_edges_[va].emplace_back(new_vertex, vw);
+
+      //縮約した頂点の辺をまとめる
+      auto& uset = contraction_graph_edges_[u];
+      auto& vset = contraction_graph_edges_[v];
+      if(uset.size() < vset.size()) uset.swap(vset);
+      for(const auto& edge : vset) {
+        V from, to; tie(from, to) = edge;
+        if(uf_.is_same(from, to)){
+          auto it = uset.find(make_pair(to, from));
+          assert(it != uset.end());
+          uset.erase(it);
+        } else {
+          uset.insert(edge);
+        }
+      }
+      vset.clear();
+    }
 
  public:
   // g の辺を使い、グラフを作成する(勝手にundirectedとして読み替えている)
   min_cut_query_with_random_contraction(G& g) :
     num_vertices_(g.num_vertices()),
-    initial_edges_(g.edge_list()),
+    contraction_graph_edges_(g.num_vertices()),
     uf_(g.num_vertices()),
     binary_tree_edges_(g.num_vertices()) {
     //unordered -> weight = 1なので、random_shuffleでよい
     //重みがあるならBITで。(stochastic acceptanceはupdateありだと使えない)
-    std::random_shuffle(initial_edges_.begin(),initial_edges_.end());
+    typename G::edge_list_type initial_edges(g.edge_list());
+    std::random_shuffle(initial_edges.begin(),initial_edges.end());
     vector<int> ancestor(g.num_vertices());
     std::iota(ancestor.begin(),ancestor.end(), 0);
 
+    for(auto edge : initial_edges) {
+      V u = edge.first, v = to(edge.second);
+      contraction_graph_edges_[u].emplace(u, v);
+      contraction_graph_edges_[v].emplace(v, u);
+    }
+
     // 次数1の頂点を先に縮約する
     {
-      vector<int> degree;
       queue<int> q;
       for(V v : make_irange(g.num_vertices())) {
-        degree.push_back(g.degree(v, kFwd) + g.degree(v, kBwd));
-        if(degree[v] == 1) q.push(v);
+        if(contraction_graph_edges_[v].size() == 1) q.push(v);
       }
       while(!q.empty()) {
         V v = q.front(); q.pop();
-        for(D dir : direction_range()) {
-          for(auto edge : g.neighbors(v, dir)) {
-            V u = to(edge);
-            degree[u]--;
-            if(degree[u] >= 1) contraction(ancestor, v, u); //つながってる先へ縮約
-            if(degree[u] == 1) q.push(u);
-          }
-        }
+        V u;
+        if(contraction_graph_edges_[v].size() == 0) continue;
+        tie(std::ignore, u) = *contraction_graph_edges_[v].begin();
+        contraction(ancestor, v, u);
+        if(contraction_graph_edges_[u].size() == 1) q.push(u);
       }
     }
 
-    //O(VE uf(E))
-    for(const auto& edge : initial_edges_) {
+    //O(E log(E))
+    for(const auto& edge : initial_edges) {
       V u = edge.first, v = to(edge.second);
       if(uf_.is_same(u,v)) continue;
-      //縮約
       contraction(ancestor, u, v);
     }
     // gが連結とは限らないので、uv_costs.size() == g.num_vertices() - 1ではない
@@ -209,7 +214,7 @@ class min_cut_query_with_random_contraction {
 
 private:
   const int num_vertices_;
-  typename G::edge_list_type initial_edges_;
+  vector<unordered_set<pair<V,V>>> contraction_graph_edges_;
   union_find uf_;
   vector<vector<pair<V,int>>> binary_tree_edges_;
 };
@@ -267,6 +272,7 @@ int main(int argc, char **argv) {
 
   JLOG_PUT("argv.mincut_tree_iter", FLAGS_solver_iter);
 
+/*
   const int all = g.num_vertices() * (g.num_vertices() - 1) / 2;
   int counter = 0,unmatch = 0;
   JLOG_ADD_OPEN("sampleing") {
@@ -284,7 +290,8 @@ int main(int argc, char **argv) {
   JLOG_PUT("result.all", all);
   JLOG_PUT("result.match", (all - unmatch));
   JLOG_PUT("result.unmatch", unmatch);
-
+*/
+  
   return 0;
 }
  
