@@ -104,7 +104,6 @@ TEST(box_cover, nakamura_lazy_greedy) {
       vector<bool> centered(g.num_vertices(), false);
       naive_select_greedily(g, X, centers2, centered, k);
     }
-    cerr << centers2 << endl;
     timer += get_current_time_sec();
     cerr << timer << " sec " << endl;
 
@@ -115,7 +114,6 @@ TEST(box_cover, nakamura_lazy_greedy) {
       vector<bool> centered(g.num_vertices(), false);
       nakamura_select_greedily(g, X, centers1, centered, k);
     }
-    cerr << centers1 << endl;
     timer += get_current_time_sec();
     cerr << timer << " sec " << endl;
     ASSERT_EQ(centers1, centers2);

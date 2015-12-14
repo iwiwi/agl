@@ -7,6 +7,7 @@ DEFINE_int32(rad_max, 10, "maximum radius");
 DEFINE_int32(min_k, 1024, "minimum k");
 DEFINE_int32(max_k, 1024, "maximum k");
 DEFINE_int32(pass_num, 1, "number of multi-pass sketch");
+DEFINE_double(goal_coverage, 0.98, "coverage to goal");
 
 int main(int argc, char **argv) {
   //
@@ -94,15 +95,16 @@ int main(int argc, char **argv) {
   for (int pass_num = 1; pass_num <= FLAGS_pass_num; pass_num *= 2) {
     for (int k = FLAGS_min_k; k <= FLAGS_max_k; k *= 2) {
       JLOG_ADD_OPEN("algorithms") {
-        JLOG_PUT("name",
-                 "Sketch_k=" + to_string(k) + "_pass=" + to_string(pass_num));
+        JLOG_PUT("name", "Sketch_k=" + to_string(k) + "_pass=" +
+                             to_string(pass_num) + "_coverage=" +
+                             to_string(FLAGS_goal_coverage));
         JLOG_PUT("k", to_string(k));
         JLOG_PUT("pass_num", to_string(pass_num));
 
         for (W rad = FLAGS_rad_min; rad <= FLAGS_rad_max; ++rad) {
           vector<V> res;
           JLOG_ADD_BENCHMARK("time") res =
-              box_cover_sketch(g, rad, k, pass_num);
+              box_cover_sketch(g, rad, k, pass_num, FLAGS_goal_coverage);
           JLOG_ADD("size", res.size());
           JLOG_ADD("coverage", coverage(g, res, rad));
         }

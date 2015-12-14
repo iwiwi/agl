@@ -19,8 +19,8 @@ void naive_select_greedily(const G &g, const vector<vector<V>> &X,
                            vector<V> &centers, vector<bool> &centered,
                            const int k);
 void nakamura_select_greedily(const G &g, const vector<vector<V>> &X,
-                           vector<V> &centers, vector<bool> &centered,
-                           const int k);
+                              vector<V> &centers, vector<bool> &centered,
+                              const int k);
 void select_greedily(const G &g, const vector<vector<V>> &X,
                      const vector<V> &inv, vector<V> &centers,
                      vector<bool> &centered, const int k);
@@ -39,7 +39,7 @@ vector<V> box_cover_burning(const G &g, W radius);
 
 //! Akiba et al. 2015
 vector<V> box_cover_sketch(const G &g, W radius, const int k,
-                           const int pass_num);
+                           const int pass_num, const double aim_coverage);
 
 //
 // Diameter-based Methods:

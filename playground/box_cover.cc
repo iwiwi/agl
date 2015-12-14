@@ -482,7 +482,6 @@ double estimated_cardinality(const G &g, const set<V> &X, const int k) {
     V kth = *X.rbegin();
     return (double)(k - 1) / kth * g.num_vertices();
   }
-  cerr << X.size() << " " << k << endl;
   assert(false);
   return (k - 1);
 }
@@ -496,7 +495,6 @@ vector<pair<V, V>> get_greater_submap(multimap<V, V> &T, V low_key) {
   return values;
 }
 
-// O(n)
 void nakamura_select_greedily(const G &g, const vector<vector<V>> &vecX,
                               vector<V> &centers, vector<bool> &centered,
                               const int k) {
@@ -516,6 +514,8 @@ void nakamura_select_greedily(const G &g, const vector<vector<V>> &vecX,
     que.push(make_pair(keys[v], v));
   }
 
+  int cnt = 0;
+
   // Main loop
   while (estimated_cardinality(g, Xs, k) < max(num_v, k - 1)) {
     while (!que.empty() && centered[que.top().second]) {
@@ -533,23 +533,24 @@ void nakamura_select_greedily(const G &g, const vector<vector<V>> &vecX,
 
     vector<V> delta = merge_and_purify(Xs, vecX[selected], k);
 
-    for (int i = delta.size() - 1; i >= 0; --i) {
-      V inserted_rank = delta[i];
+    for (V inserted_rank : delta) {
       vector<pair<V, V>> greater_subsets = get_greater_submap(T, inserted_rank);
       for (auto subset : greater_subsets) {
         set<V> &target_X = X[subset.second];
         if (target_X.find(inserted_rank) != target_X.end()) continue;
-        remove_multimap_pair(T, subset);  // logN
 
-        // Megre
+        cnt++;
+        // Merge
         merge_and_purify(target_X, delta, k);
 
         keys[subset.second] = target_X.size() == k ? *target_X.rbegin() : num_v;
         que.push(make_pair(keys[subset.second], subset.second));
+        remove_multimap_pair(T, subset);
         T.insert(make_pair(keys[subset.second], subset.second));
       }
     }
   }
+  cerr << cnt << " times " << num_v << endl;
 }
 
 void select_greedily(const G &g, const vector<vector<V>> &X,
@@ -684,7 +685,7 @@ void naive_select_greedily(const G &g, const vector<vector<V>> &X,
 }
 
 vector<V> box_cover_sketch(const G &g, W radius, const int k,
-                           const int pass_num) {
+                           const int pass_num, const double aim_coverage) {
   assert(k > 0);
 
   const V num_v = g.num_vertices();
@@ -710,8 +711,10 @@ vector<V> box_cover_sketch(const G &g, W radius, const int k,
     //
     // Select-Greedily O(n^2*k)
     //
-    // naive_select_greedily(g, X, centers, centered, k);
-    select_greedily(g, X, inv, centers, centered, k);
+    naive_select_greedily(g, X, centers, centered, k);
+    // select_greedily(g, X, inv, centers, centered, k);
+
+    if (coverage(g, centers, radius) >= aim_coverage) break;
   }
 
   return centers;
