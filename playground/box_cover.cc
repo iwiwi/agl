@@ -486,15 +486,6 @@ double estimated_cardinality(const G &g, const set<V> &X, const int k) {
   return (k - 1);
 }
 
-// Get values which has a key which is strictly greater than low_key
-vector<pair<V, V>> get_greater_submap(multimap<V, V> &T, V low_key) {
-  vector<pair<V, V>> values;
-  for (multimap<V, V>::iterator it = T.lower_bound(low_key + 1); it != T.end();
-       ++it)
-    values.push_back(make_pair((*it).first, (*it).second));
-  return values;
-}
-
 void nakamura_select_greedily(const G &g, const vector<vector<V>> &vecX,
                               vector<V> &centers, vector<bool> &centered,
                               const int k) {
@@ -534,8 +525,9 @@ void nakamura_select_greedily(const G &g, const vector<vector<V>> &vecX,
     vector<V> delta = merge_and_purify(Xs, vecX[selected], k);
 
     for (V inserted_rank : delta) {
-      vector<pair<V, V>> greater_subsets = get_greater_submap(T, inserted_rank);
-      for (auto subset : greater_subsets) {
+      for (multimap<V, V>::iterator it = T.lower_bound(inserted_rank + 1);
+           it != T.end(); ++it) {
+        const pair<V, V> &subset = *it;
         set<V> &target_X = X[subset.second];
         if (target_X.find(inserted_rank) != target_X.end()) continue;
 
@@ -550,7 +542,7 @@ void nakamura_select_greedily(const G &g, const vector<vector<V>> &vecX,
       }
     }
   }
-  cerr << cnt << " times " << num_v << endl;
+  cerr << cnt << " times " << endl;
 }
 
 void select_greedily(const G &g, const vector<vector<V>> &X,
@@ -658,6 +650,7 @@ void naive_select_greedily(const G &g, const vector<vector<V>> &X,
   V num_v = g.num_vertices();
   set<V> Xs;
 
+  int cnt = 0;
   while (estimated_cardinality(g, Xs, k) < max(num_v, k - 1)) {
     V selected_v = -1;
     double argmax = 0.0;
@@ -665,7 +658,7 @@ void naive_select_greedily(const G &g, const vector<vector<V>> &X,
       if (centered[v]) continue;
       set<V> tmp(Xs);
       merge_and_purify(tmp, X[v], k);
-
+      cnt++;
       double ec_tmp = estimated_cardinality(g, tmp, k);
       if (argmax < ec_tmp) {
         argmax = ec_tmp;
@@ -682,6 +675,7 @@ void naive_select_greedily(const G &g, const vector<vector<V>> &X,
 
     merge_and_purify(Xs, X[selected_v], k);
   }
+  cerr << cnt << " times" << endl;
 }
 
 vector<V> box_cover_sketch(const G &g, W radius, const int k,
