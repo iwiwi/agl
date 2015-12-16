@@ -73,19 +73,12 @@ TEST(box_cover, build_sketch_check) {
   }
 }
 
-TEST(box_cover, nakamura_lazy_greedy) {
-  double timer = 0.0;
-  for (int trial = 0; trial < 10; ++trial) {
-    const W radius = 2;
-    V M = 3;
-    V N = M + agl::random(5000);
-    auto es = generate_ba(N, M);
+TEST(box_cover, greedy) {
+  for (int trial = 0; trial < 100; ++trial) {
+    const W radius = agl::random(3) + 1;
+    auto es = generate_grid(agl::random(10) + 5, agl::random(10) + 5);
     G g(make_undirected(es));
-    const int k = 512;
-    if (g.num_vertices() < k) {
-      trial--;
-      continue;
-    }
+    const int k = agl::random(5) + 5;
     vector<V> rank(g.num_vertices());
     vector<V> inv(g.num_vertices());
     for (V i = 0; i < g.num_vertices(); ++i) {
@@ -97,25 +90,25 @@ TEST(box_cover, nakamura_lazy_greedy) {
     }
     vector<bool> covered(g.num_vertices(), false);
     vector<vector<V>> X = build_sketch(g, radius, k, rank, inv, covered);
-    cerr << "Naive_greedy" << endl;
-    timer = -get_current_time_sec();
+    for (int i = 0; i < X.size(); ++i) {
+      cerr << i << " " << X[i] << endl;
+    }
+
     vector<V> centers2;
     {
+      cerr << "naive" << endl;
       vector<bool> centered(g.num_vertices(), false);
       naive_select_greedily(g, X, centers2, centered, k);
+      cerr << centers2 << endl;
     }
-    timer += get_current_time_sec();
-    cerr << timer << " sec " << endl;
 
-    cerr << "Nakamura_lazy_greedy" << endl;
-    timer = -get_current_time_sec();
     vector<V> centers1;
     {
+      cerr << "greedy" << endl;
       vector<bool> centered(g.num_vertices(), false);
-      nakamura_select_greedily(g, X, centers1, centered, k);
+      select_greedily(g, X, inv, centers1, centered, k, centers2);
     }
-    timer += get_current_time_sec();
-    cerr << timer << " sec " << endl;
     ASSERT_EQ(centers1, centers2);
+    cerr << "Stage: " << (trial + 1) << " CLEARED!!!!!!!" << endl;
   }
 }
