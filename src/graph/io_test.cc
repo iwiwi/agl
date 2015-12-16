@@ -26,6 +26,19 @@ void is_graph_eq(const GraphType& g1,const GraphType& g2) {
   }
 }
 
+TEST(graph_io_test, graph_type_string) {
+  EXPECT_TRUE(graph_binary_format<G>() == "unweighted");
+  EXPECT_TRUE(graph_binary_format<weighted_graph<int>>()
+    == "weight=int,weight_size=4");
+  EXPECT_TRUE(graph_binary_format<weighted_graph<long long>>()
+    == "weight=int,weight_size=8");
+  EXPECT_TRUE(graph_binary_format<weighted_graph<float>>()
+    == "weight=float,weight_size=4");
+  EXPECT_TRUE(graph_binary_format<weighted_graph<double>>()
+    == "weight=float,weight_size=8");
+
+}
+
 TYPED_TEST(graph_io_test, binary) {
   using GraphType = TypeParam;
   GraphType g1(add_random_weight<GraphType>(generate_erdos_renyi(100, 2)));
