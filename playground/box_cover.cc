@@ -491,31 +491,24 @@ double estimated_cardinality(const G &g, const set<V> &X, const int k) {
 
 void select_greedily(const G &g, const vector<vector<V>> &X,
                      const vector<V> &inv, vector<V> &centers,
-                     vector<bool> &centered, const int k,
-                     const vector<V> &naive) {
+                     vector<bool> &centered, const int k) {
   // Initialization
   V num_v = g.num_vertices();
   assert(num_v > k);
   set<V> Xs;
   priority_queue<pair<V, V>, vector<pair<V, V>>, greater<pair<V, V>>> que[2];
   vector<multimap<V, V>> T(k + 2);
-  vector<vector<V>> vars(3, vector<V>(num_v));
-  vector<V> &k1 = vars[0];
-  vector<V> &k2 = vars[1];
-  vector<V> &c = vars[2];
+  vector<V> k1 = vector<V>(num_v);
+  vector<V> k2 = vector<V>(num_v);
+  vector<V> c = vector<V>(num_v);
   vector<V> last_blue(num_v);
   vector<int> type(num_v, 0);
   vector<set<V>> I(num_v);
   vector<bool> removed(num_v, false);
   vector<bool> covered_rank(num_v, false);
 
-  // DEBUG
-  vector<vector<V>> debug_delta;
-
-  const V watching = 2;
-
   for (V p = 0; p < num_v; ++p) {
-    if (X[p].size() == k) {
+    if (X[p].size() == (size_t)k) {
       k1[p] = k;
       k2[p] = 0;
       c[p] = 0;
@@ -565,9 +558,6 @@ void select_greedily(const G &g, const vector<vector<V>> &X,
       if (que[q].empty()) continue;
       V v = que[q].top().second;
 
-      // DEBUG
-      // cerr << "q=" << q << que[q].top() << endl;
-
       set<V> tmp(Xs);
       merge_and_purify(tmp, X[v], k);
       double ec_tmp = estimated_cardinality(g, tmp, k);
@@ -575,39 +565,6 @@ void select_greedily(const G &g, const vector<vector<V>> &X,
         argmax = ec_tmp;
         select = v;
       }
-    }
-
-    // DEBUG ASSERT
-    assert(naive.size() > centers.size());
-    if (select != naive[centers.size()]) {
-      cerr << "k=" << k << endl;
-      V nn = naive[centers.size()];
-      cerr << "Actual: " << nn << " Whichi is: " << select << endl;
-      cerr << "que[0].size()=" << que[0].size()
-           << "que[1].size()=" << que[1].size() << endl;
-      {
-        V box = nn;
-        cerr << box << X[box] << endl;
-        cerr << "box=" << box << "(" << k1[box] << "," << k2[box] << ","
-             << c[box] << ") type=" << type[box]
-             << ", last_blue=" << last_blue[box] << " " << removed[box] << endl;
-      }
-      if (!que[0].empty()) {
-        V box = que[0].top().second;
-        cerr << box << X[box] << endl;
-        cerr << "box=" << box << "(" << k1[box] << "," << k2[box] << ","
-             << c[box] << ") type=" << type[box]
-             << ", last_blue=" << last_blue[box] << " " << removed[box] << endl;
-      }
-      if (!que[1].empty()) {
-        V box = que[1].top().second;
-        cerr << box << X[box] << endl;
-        cerr << "box=" << box << "(" << k1[box] << "," << k2[box] << ","
-             << c[box] << ") type=" << type[box]
-             << ", last_blue=" << last_blue[box] << " " << removed[box] << endl;
-      }
-      cerr << Xs << endl;
-      assert(false);
     }
 
     // Merge and Remove
@@ -658,14 +615,6 @@ void select_greedily(const G &g, const vector<vector<V>> &X,
       }
     }
 
-    debug_delta.push_back(delta);
-    cerr << "delta " << delta << endl;
-    {
-      V box = watching;
-      cerr << "box=" << box << "(" << k1[box] << "," << k2[box] << "," << c[box]
-           << ") type=" << type[box] << ", last_blue=" << last_blue[box] << " "
-           << removed[box] << endl;
-    }
     int j = 1;
     for (auto it_Xs = Xs.begin(); it_Xs != Xs.end(); ++it_Xs, ++j) {
       V jth_rank = *it_Xs;
@@ -737,14 +686,6 @@ void select_greedily(const G &g, const vector<vector<V>> &X,
         }
       completely_included:
         ;
-
-        if (box == watching) {
-          cerr << "box=" << box << "(" << k1[box] << "," << k2[box] << ","
-               << c[box] << ") type=" << type[box]
-               << ", last_blue=" << last_blue[box] << " " << removed[box]
-               << endl;
-          cerr << "jth_rank=" << jth_rank << " " << j << endl;
-        }
       }
       for (auto pp : removing) remove_multimap_pair(T[j], pp);
     }

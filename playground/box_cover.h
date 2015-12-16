@@ -20,8 +20,7 @@ void naive_select_greedily(const G &g, const vector<vector<V>> &X,
                            const int k);
 void select_greedily(const G &g, const vector<vector<V>> &X,
                      const vector<V> &inv, vector<V> &centers,
-                     vector<bool> &centered, const int k,
-                     const vector<V> &naive);
+                     vector<bool> &centered, const int k);
 
 //
 // Radius-based Methods:

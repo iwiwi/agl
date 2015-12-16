@@ -112,7 +112,7 @@ TEST(box_cover, greedy_small) {
     {
       cerr << "greedy" << endl;
       vector<bool> centered(g.num_vertices(), false);
-      select_greedily(g, X, inv, centers1, centered, k, centers2);
+      select_greedily(g, X, inv, centers1, centered, k);
     }
     ASSERT_EQ(centers1, centers2);
     cerr << "Stage: " << (trial + 1) << " CLEARED!!!!!!!" << endl;
@@ -143,6 +143,7 @@ TEST(box_cover, greedy_big) {
     vector<bool> covered(g.num_vertices(), false);
     vector<vector<V>> X = build_sketch(g, radius, k, rank, inv, covered);
 
+    double timer = -get_current_time_sec();
     vector<V> centers2;
     {
       cerr << "naive" << endl;
@@ -150,13 +151,18 @@ TEST(box_cover, greedy_big) {
       naive_select_greedily(g, X, centers2, centered, k);
       cerr << centers2 << endl;
     }
+    timer += get_current_time_sec();
+    cerr << timer << " sec" << endl;
 
+    timer = -get_current_time_sec();
     vector<V> centers1;
     {
       cerr << "greedy" << endl;
       vector<bool> centered(g.num_vertices(), false);
-      select_greedily(g, X, inv, centers1, centered, k, centers2);
+      select_greedily(g, X, inv, centers1, centered, k);
     }
+    timer += get_current_time_sec();
+    cerr << timer << " sec" << endl;
     ASSERT_EQ(centers1, centers2);
     cerr << "Stage: " << (trial + 1) << " CLEARED!!!!!!!" << endl;
   }
