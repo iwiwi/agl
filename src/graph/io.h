@@ -123,7 +123,14 @@ std::string graph_binary_format_weight() {
   return "weight=float,weight_size=" + to_string(sizeof(WeightType));
 }
 
-template<typename GraphType>
+template<typename GraphType,
+  enabler_if<std::is_same<typename std::decay<GraphType>::type,G>::value> = enabler >
+const std::string graph_binary_format() {
+  return "unweighted";
+}
+
+template<typename GraphType,
+  enabler_if<!std::is_same<typename std::decay<GraphType>::type,G>::value> = enabler >
 const std::string graph_binary_format() {
   using decayed_gragh_type = typename std::decay<GraphType>::type;
   using weight_type = typename decayed_gragh_type::W;
