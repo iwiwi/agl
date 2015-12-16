@@ -120,13 +120,13 @@ TEST(box_cover, greedy_small) {
 }
 
 TEST(box_cover, greedy_big) {
-  for (int trial = 0; trial < 20; ++trial) {
+  for (int trial = 0; trial < 30; ++trial) {
     const W radius = agl::random(4) + 1;
     V M = 3;
-    V N = M + agl::random(1000);
+    V N = M + agl::random(2000);
     auto es = generate_ba(N, M);
     G g(make_undirected(es));
-    const int k = 512;
+    const int k = 1024;
     if (g.num_vertices() < k) {
       trial--;
       continue;
