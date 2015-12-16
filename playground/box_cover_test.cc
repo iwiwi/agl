@@ -73,7 +73,7 @@ TEST(box_cover, build_sketch_check) {
   }
 }
 
-TEST(box_cover, greedy) {
+TEST(box_cover, greedy_small) {
   for (int trial = 0; trial < 100; ++trial) {
     const W radius = agl::random(3) + 1;
     auto es = generate_grid(agl::random(10) + 5, agl::random(10) + 5);
