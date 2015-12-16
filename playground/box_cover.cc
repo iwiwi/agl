@@ -481,7 +481,7 @@ double estimated_cardinality(const G &g, const set<V> &X, const int k) {
   if (X.size() < (size_t)k) {
     return (k - 1);
   }
-  if (X.size() == k) {
+  if (X.size() == (size_t)k) {
     V kth = *X.rbegin();
     return (double)(k - 1) / kth * g.num_vertices();
   }
@@ -489,8 +489,7 @@ double estimated_cardinality(const G &g, const set<V> &X, const int k) {
   return (k - 1);
 }
 
-void select_greedily(const G &g, const vector<vector<V>> &X,
-                     const vector<V> &inv, vector<V> &centers,
+void select_greedily(const G &g, const vector<vector<V>> &X, vector<V> &centers,
                      vector<bool> &centered, const int k) {
   // Initialization
   V num_v = g.num_vertices();
@@ -540,9 +539,9 @@ void select_greedily(const G &g, const vector<vector<V>> &X,
       while (!que[q].empty()) {
         V top_v = que[q].top().second;
 
-        if (que[q].top().first == g.num_vertices() && Xs.size() < k &&
+        if (que[q].top().first == g.num_vertices() && Xs.size() < (size_t)k &&
             !centered[top_v]) {
-          break;
+          break;//Fit to Naive Method
         } else if (removed[top_v]) {
           que[q].pop();
           continue;

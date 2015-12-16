@@ -96,9 +96,6 @@ TEST(box_cover, greedy_small) {
     }
     vector<bool> covered(g.num_vertices(), false);
     vector<vector<V>> X = build_sketch(g, radius, k, rank, inv, covered);
-    for (int i = 0; i < X.size(); ++i) {
-      cerr << i << " " << X[i] << endl;
-    }
 
     vector<V> centers2;
     {
@@ -112,7 +109,7 @@ TEST(box_cover, greedy_small) {
     {
       cerr << "greedy" << endl;
       vector<bool> centered(g.num_vertices(), false);
-      select_greedily(g, X, inv, centers1, centered, k);
+      select_greedily(g, X, centers1, centered, k);
     }
     ASSERT_EQ(centers1, centers2);
     cerr << "Stage: " << (trial + 1) << " CLEARED!!!!!!!" << endl;
@@ -159,7 +156,7 @@ TEST(box_cover, greedy_big) {
     {
       cerr << "greedy" << endl;
       vector<bool> centered(g.num_vertices(), false);
-      select_greedily(g, X, inv, centers1, centered, k);
+      select_greedily(g, X, centers1, centered, k);
     }
     timer += get_current_time_sec();
     cerr << timer << " sec" << endl;
