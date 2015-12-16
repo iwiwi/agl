@@ -512,7 +512,7 @@ void select_greedily(const G &g, const vector<vector<V>> &X,
   // DEBUG
   vector<vector<V>> debug_delta;
 
-  const V watching = 0;
+  const V watching = 2;
 
   for (V p = 0; p < num_v; ++p) {
     if (X[p].size() == k) {
@@ -547,11 +547,12 @@ void select_greedily(const G &g, const vector<vector<V>> &X,
       while (!que[q].empty()) {
         V top_v = que[q].top().second;
 
-        if (removed[top_v]) {
+        if (que[q].top().first == g.num_vertices() && Xs.size() < k &&
+            !centered[top_v]) {
+          break;
+        } else if (removed[top_v]) {
           que[q].pop();
           continue;
-        } else if (que[q].top().first == g.num_vertices() && Xs.size() < k) {
-          break;
         } else if (q != type[top_v]) {
           que[q].pop();
           continue;

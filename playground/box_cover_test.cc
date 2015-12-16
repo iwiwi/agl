@@ -80,7 +80,7 @@ TEST(box_cover, greedy_small) {
     V N = M + agl::random(50);
     auto es = generate_ba(N, M);
     G g(make_undirected(es));
-    const int k = agl::random(10) + 5;
+    const int k = agl::random(20) + 5;
     if (g.num_vertices() <= k) {
       trial--;
       continue;
@@ -120,7 +120,7 @@ TEST(box_cover, greedy_small) {
 }
 
 TEST(box_cover, greedy_big) {
-  for (int trial = 0; trial < 10; ++trial) {
+  for (int trial = 0; trial < 20; ++trial) {
     const W radius = agl::random(4) + 1;
     V M = 3;
     V N = M + agl::random(1000);
@@ -142,9 +142,6 @@ TEST(box_cover, greedy_big) {
     }
     vector<bool> covered(g.num_vertices(), false);
     vector<vector<V>> X = build_sketch(g, radius, k, rank, inv, covered);
-    for (int i = 0; i < X.size(); ++i) {
-      cerr << i << " " << X[i] << endl;
-    }
 
     vector<V> centers2;
     {
