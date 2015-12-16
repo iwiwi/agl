@@ -6,7 +6,7 @@ build:
         code: |
           CXX=g++ ./waf configure
           ./waf clean
-          ./waf
+          ./waf build-full
     - script:
         name: test-gcc
         code: |

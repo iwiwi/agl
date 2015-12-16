@@ -19,10 +19,18 @@ namespace agl {
 template<typename GraphType = G>
 typename GraphType::edge_list_type read_edge_list_tsv(std::istream &is = std::cin) {
   using E = typename GraphType::E;
-  V v;
-  E e;
+
   typename GraphType::edge_list_type es;
-  while (is >> v >> e) es.emplace_back(v, e);
+  std::string line;
+  int line_no = 1; //1-origin
+  while(std::getline(is,line)) {
+    std::istringstream iss(line);
+    V v;
+    E e;
+    CHECK_MSG(iss >> v >> e, ("at line " + to_string(line_no) + ": \"" + line + "\"").c_str());
+    es.emplace_back(v,e);
+    line_no++;
+  }
   return es;
 }
 
@@ -115,7 +123,14 @@ std::string graph_binary_format_weight() {
   return "weight=float,weight_size=" + to_string(sizeof(WeightType));
 }
 
-template<typename GraphType>
+template<typename GraphType,
+  enabler_if<std::is_same<typename std::decay<GraphType>::type,G>::value> = enabler >
+const std::string graph_binary_format() {
+  return "unweighted";
+}
+
+template<typename GraphType,
+  enabler_if<!std::is_same<typename std::decay<GraphType>::type,G>::value> = enabler >
 const std::string graph_binary_format() {
   using decayed_gragh_type = typename std::decay<GraphType>::type;
   using weight_type = typename decayed_gragh_type::W;

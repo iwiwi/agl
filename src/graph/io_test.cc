@@ -26,6 +26,19 @@ void is_graph_eq(const GraphType& g1,const GraphType& g2) {
   }
 }
 
+TEST(graph_io_test, graph_type_string) {
+  EXPECT_TRUE(graph_binary_format<G>() == "unweighted");
+  EXPECT_TRUE(graph_binary_format<weighted_graph<int>>()
+    == "weight=int,weight_size=4");
+  EXPECT_TRUE(graph_binary_format<weighted_graph<long long>>()
+    == "weight=int,weight_size=8");
+  EXPECT_TRUE(graph_binary_format<weighted_graph<float>>()
+    == "weight=float,weight_size=4");
+  EXPECT_TRUE(graph_binary_format<weighted_graph<double>>()
+    == "weight=float,weight_size=8");
+
+}
+
 TYPED_TEST(graph_io_test, binary) {
   using GraphType = TypeParam;
   GraphType g1(add_random_weight<GraphType>(generate_erdos_renyi(100, 2)));
@@ -53,6 +66,15 @@ TYPED_TEST(graph_io_test, tsv) {
   auto g2 = read_graph_tsv<GraphType>(iss);
 
   is_graph_eq(g1, g2); 
+}
+
+TEST(graph_io_test, tsv_failed) {
+  string s;
+  s += "0 1";
+  s += "\n3"; // invalid line(only from vertex)
+  s += "\n1 2";
+  std::istringstream iss(s);
+  ASSERT_DEATH(read_graph_tsv<G>(iss), "CHECK Failed .* at line 2: \"3\".*");
 }
 
 } // namespace
