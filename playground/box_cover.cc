@@ -509,7 +509,10 @@ void select_greedily(const G &g, const vector<vector<V>> &X,
   vector<bool> removed(num_v, false);
   vector<bool> covered_rank(num_v, false);
 
-  const V watching = 33;
+  // DEBUG
+  vector<vector<V>> debug_delta;
+
+  const V watching = 0;
 
   for (V p = 0; p < num_v; ++p) {
     if (X[p].size() == k) {
@@ -562,7 +565,7 @@ void select_greedily(const G &g, const vector<vector<V>> &X,
       V v = que[q].top().second;
 
       // DEBUG
-      cerr << "q=" << q << que[q].top() << endl;
+      // cerr << "q=" << q << que[q].top() << endl;
 
       set<V> tmp(Xs);
       merge_and_purify(tmp, X[v], k);
@@ -654,6 +657,7 @@ void select_greedily(const G &g, const vector<vector<V>> &X,
       }
     }
 
+    debug_delta.push_back(delta);
     cerr << "delta " << delta << endl;
     {
       V box = watching;
@@ -687,9 +691,12 @@ void select_greedily(const G &g, const vector<vector<V>> &X,
           last_blue[box] = X[box][k1[box] - 1];
 
           vector<V> force_kenkoooo(Xs.begin(), Xs.end());
-          if (last_blue[box] == force_kenkoooo[k2[box] - 1] ||
-              covered_rank[last_blue[box]]) {
+          while (covered_rank[last_blue[box]]) {
             k1[box]--;
+            if (k1[box] == 0) {
+              removed[box] = true;
+              goto completely_included;
+            }
             c[box]--;
             last_blue[box] = X[box][k1[box] - 1];
           }

@@ -74,11 +74,63 @@ TEST(box_cover, build_sketch_check) {
 }
 
 TEST(box_cover, greedy_small) {
-  for (int trial = 0; trial < 100; ++trial) {
+  for (int trial = 0; trial < 1000; ++trial) {
     const W radius = agl::random(3) + 1;
-    auto es = generate_grid(agl::random(10) + 5, agl::random(10) + 5);
+    V M = 3;
+    V N = M + agl::random(50);
+    auto es = generate_ba(N, M);
     G g(make_undirected(es));
-    const int k = agl::random(5) + 5;
+    const int k = agl::random(10) + 5;
+    if (g.num_vertices() <= k) {
+      trial--;
+      continue;
+    }
+    vector<V> rank(g.num_vertices());
+    vector<V> inv(g.num_vertices());
+    for (V i = 0; i < g.num_vertices(); ++i) {
+      inv[i] = i;
+    }
+    random_shuffle(inv.begin(), inv.end());
+    for (int i = 0; i < g.num_vertices(); ++i) {
+      rank[inv[i]] = i;
+    }
+    vector<bool> covered(g.num_vertices(), false);
+    vector<vector<V>> X = build_sketch(g, radius, k, rank, inv, covered);
+    for (int i = 0; i < X.size(); ++i) {
+      cerr << i << " " << X[i] << endl;
+    }
+
+    vector<V> centers2;
+    {
+      cerr << "naive" << endl;
+      vector<bool> centered(g.num_vertices(), false);
+      naive_select_greedily(g, X, centers2, centered, k);
+      cerr << centers2 << endl;
+    }
+
+    vector<V> centers1;
+    {
+      cerr << "greedy" << endl;
+      vector<bool> centered(g.num_vertices(), false);
+      select_greedily(g, X, inv, centers1, centered, k, centers2);
+    }
+    ASSERT_EQ(centers1, centers2);
+    cerr << "Stage: " << (trial + 1) << " CLEARED!!!!!!!" << endl;
+  }
+}
+
+TEST(box_cover, greedy_big) {
+  for (int trial = 0; trial < 10; ++trial) {
+    const W radius = agl::random(4) + 1;
+    V M = 3;
+    V N = M + agl::random(1000);
+    auto es = generate_ba(N, M);
+    G g(make_undirected(es));
+    const int k = 512;
+    if (g.num_vertices() < k) {
+      trial--;
+      continue;
+    }
     vector<V> rank(g.num_vertices());
     vector<V> inv(g.num_vertices());
     for (V i = 0; i < g.num_vertices(); ++i) {
