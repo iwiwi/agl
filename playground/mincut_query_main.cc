@@ -141,10 +141,10 @@ class min_cut_query_with_random_contraction {
     contraction_graph_edges_(g.num_vertices()),
     uf_(g.num_vertices()),
     binary_tree_edges_(g.num_vertices()) {
-    //unordered -> weight = 1なので、random_shuffleでよい
+    //unordered -> weight = 1なので、shuffleでよい
     //重みがあるならBITで。(stochastic acceptanceはupdateありだと使えない)
     typename G::edge_list_type initial_edges(g.edge_list());
-    std::random_shuffle(initial_edges.begin(),initial_edges.end());
+    std::shuffle(initial_edges.begin(),initial_edges.end(), agl::random);
     vector<int> ancestor(g.num_vertices());
     std::iota(ancestor.begin(),ancestor.end(), 0);
 
@@ -272,7 +272,6 @@ int main(int argc, char **argv) {
 
   JLOG_PUT("argv.mincut_tree_iter", FLAGS_solver_iter);
 
-/*
   const int all = g.num_vertices() * (g.num_vertices() - 1) / 2;
   int counter = 0,unmatch = 0;
   JLOG_ADD_OPEN("sampleing") {
@@ -290,7 +289,6 @@ int main(int argc, char **argv) {
   JLOG_PUT("result.all", all);
   JLOG_PUT("result.match", (all - unmatch));
   JLOG_PUT("result.unmatch", unmatch);
-*/
   
   return 0;
 }
