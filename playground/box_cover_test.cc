@@ -164,48 +164,42 @@ TEST(box_cover, greedy_big) {
 }
 
 TEST(box_cover, greedy_huge) {
-  for (int trial = 0; trial < 5; ++trial) {
-    const W radius = agl::random(4) + 1;
-    V M = 3;
-    V N = M + agl::random(10000) + 10000;
-    auto es = generate_ba(N, M);
-    G g(make_undirected(es));
-    const int k = 1024;
-    if (g.num_vertices() < k) {
-      trial--;
-      continue;
-    }
-    vector<V> rank(g.num_vertices());
-    vector<V> inv(g.num_vertices());
-    for (V i = 0; i < g.num_vertices(); ++i) {
-      inv[i] = i;
-    }
-    random_shuffle(inv.begin(), inv.end());
-    for (int i = 0; i < g.num_vertices(); ++i) {
-      rank[inv[i]] = i;
-    }
-    vector<bool> covered(g.num_vertices(), false);
-    vector<vector<V>> X = build_sketch(g, radius, k, rank, inv, covered);
-    pretty_print(g);
-    cerr << "radius: " << radius << endl;
-    vector<V> centers1;
-    {
-      double timer = -get_current_time_sec();
-      vector<bool> centered(g.num_vertices(), false);
-      select_greedily(g, X, centers1, centered, k);
-      timer += get_current_time_sec();
-      cerr << "greedy: " << timer << " sec" << endl;
-    }
-    vector<V> centers2;
-    {
-      double timer = -get_current_time_sec();
-      vector<bool> centered(g.num_vertices(), false);
-      naive_select_greedily(g, X, centers2, centered, k);
-      timer += get_current_time_sec();
-      cerr << "naive: " << timer << " sec" << endl;
-    }
-
-    ASSERT_EQ(centers1, centers2);
-    cerr << "Stage: " << (trial + 1) << " CLEARED!!!!!!!" << endl;
+  const int k = 1024;
+  W radius = agl::random(4) + 1;
+  V M = 3;
+  V N = M + agl::random(10000) + 10000;
+  while (N <= k) N = M + agl::random(10000) + 10000;
+  auto es = generate_ba(N, M);
+  G g(make_undirected(es));
+  vector<V> rank(g.num_vertices());
+  vector<V> inv(g.num_vertices());
+  for (V i = 0; i < g.num_vertices(); ++i) {
+    inv[i] = i;
   }
+  random_shuffle(inv.begin(), inv.end());
+  for (int i = 0; i < g.num_vertices(); ++i) {
+    rank[inv[i]] = i;
+  }
+  vector<bool> covered(g.num_vertices(), false);
+  vector<vector<V>> X = build_sketch(g, radius, k, rank, inv, covered);
+  pretty_print(g);
+  cerr << "radius: " << radius << endl;
+  vector<V> centers1;
+  {
+    double timer = -get_current_time_sec();
+    vector<bool> centered(g.num_vertices(), false);
+    select_greedily(g, X, centers1, centered, k);
+    timer += get_current_time_sec();
+    cerr << "greedy: " << timer << " sec" << endl;
+  }
+  vector<V> centers2;
+  {
+    double timer = -get_current_time_sec();
+    vector<bool> centered(g.num_vertices(), false);
+    naive_select_greedily(g, X, centers2, centered, k);
+    timer += get_current_time_sec();
+    cerr << "naive: " << timer << " sec" << endl;
+  }
+
+  ASSERT_EQ(centers1, centers2);
 }
