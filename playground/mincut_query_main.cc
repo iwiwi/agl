@@ -275,7 +275,6 @@ int main(int argc, char **argv) {
     }
     bool is_matched = check_min_cut_query(mcq, s, t, g);
     if(!is_matched) unmatch++;
-    counter++;
   }
   JLOG_PUT("result.all", FLAGS_num_query);
   JLOG_PUT("result.match", (FLAGS_num_query - unmatch));
