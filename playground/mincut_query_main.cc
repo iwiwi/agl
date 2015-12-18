@@ -89,11 +89,11 @@ class min_cut_query_with_random_contraction {
     return -1;
   }
 
-  void contraction(vector<int>& ancestor, V u, V v) {
+  void contraction(vector<int>& ancestor,vector<unordered_set<pair<V,V>>>& contraction_graph_edges , V u, V v) {
       assert(!uf_.is_same(u, v));
       V new_vertex = (V)binary_tree_edges_.size();
       u = uf_.root(u), v = uf_.root(v);
-      int uw = (int)contraction_graph_edges_[u].size(), vw = (int)contraction_graph_edges_[v].size();
+      int uw = (int)contraction_graph_edges[u].size(), vw = (int)contraction_graph_edges[v].size();
       int ua = ancestor[u] , va = ancestor[v];
       uf_.unite(u, v);
       if(uf_.root(u) != u) swap(u, v);
@@ -107,8 +107,8 @@ class min_cut_query_with_random_contraction {
       binary_tree_edges_[va].emplace_back(new_vertex, vw);
 
       //縮約した頂点の辺をまとめる
-      auto& uset = contraction_graph_edges_[u];
-      auto& vset = contraction_graph_edges_[v];
+      auto& uset = contraction_graph_edges[u];
+      auto& vset = contraction_graph_edges[v];
       if(uset.size() < vset.size()) uset.swap(vset);
       for(const auto& edge : vset) {
         V from, to; tie(from, to) = edge;
@@ -127,11 +127,11 @@ class min_cut_query_with_random_contraction {
   // g の辺を使い、グラフを作成する(勝手にundirectedとして読み替えている)
   min_cut_query_with_random_contraction(G& g) :
     num_vertices_(g.num_vertices()),
-    contraction_graph_edges_(g.num_vertices()),
     uf_(g.num_vertices()),
     binary_tree_edges_(g.num_vertices()) {
     //unordered -> weight = 1なので、shuffleでよい
     //重みがあるならBITで。(stochastic acceptanceはupdateありだと使えない)
+    vector<unordered_set<pair<V,V>>> contraction_graph_edges(g.num_vertices());
     typename G::edge_list_type initial_edges(g.edge_list());
     std::shuffle(initial_edges.begin(),initial_edges.end(), agl::random);
     vector<int> ancestor(g.num_vertices());
@@ -139,23 +139,23 @@ class min_cut_query_with_random_contraction {
 
     for(auto edge : initial_edges) {
       V u = edge.first, v = to(edge.second);
-      contraction_graph_edges_[u].emplace(u, v);
-      contraction_graph_edges_[v].emplace(v, u);
+      contraction_graph_edges[u].emplace(u, v);
+      contraction_graph_edges[v].emplace(v, u);
     }
 
     // 次数1の頂点を先に縮約する
     {
       queue<int> q;
       for(V v : make_irange(g.num_vertices())) {
-        if(contraction_graph_edges_[v].size() == 1) q.push(v);
+        if(contraction_graph_edges[v].size() == 1) q.push(v);
       }
       while(!q.empty()) {
         V v = q.front(); q.pop();
         V u;
-        if(contraction_graph_edges_[v].size() == 0) continue;
-        tie(std::ignore, u) = *contraction_graph_edges_[v].begin();
-        contraction(ancestor, v, u);
-        if(contraction_graph_edges_[u].size() == 1) q.push(u);
+        if(contraction_graph_edges[v].size() == 0) continue;
+        tie(std::ignore, u) = *contraction_graph_edges[v].begin();
+        contraction(ancestor, contraction_graph_edges, u, v);
+        if(contraction_graph_edges[u].size() == 1) q.push(u);
       }
     }
 
@@ -163,7 +163,7 @@ class min_cut_query_with_random_contraction {
     for(const auto& edge : initial_edges) {
       V u = edge.first, v = to(edge.second);
       if(uf_.is_same(u,v)) continue;
-      contraction(ancestor, u, v);
+        contraction(ancestor, contraction_graph_edges, u, v);
     }
     // gが連結とは限らないので、uv_costs.size() == g.num_vertices() - 1ではない
     assert(int(binary_tree_edges_.size() - g.num_vertices()) <= g.num_vertices() - 1);
@@ -203,7 +203,6 @@ class min_cut_query_with_random_contraction {
 
 private:
   const int num_vertices_;
-  vector<unordered_set<pair<V,V>>> contraction_graph_edges_;
   union_find uf_;
   vector<vector<pair<V,int>>> binary_tree_edges_;
 };
@@ -267,18 +266,16 @@ int main(int argc, char **argv) {
   JLOG_PUT("argv.mincut_tree_iter", FLAGS_solver_iter);
 
   int unmatch = 0;
-  JLOG_ADD_OPEN("sampleing") {
-    for(int counter = 0; counter < FLAGS_num_query; counter++) {
-      V s = agl::random() % g.num_vertices();
-      V t = agl::random() % (g.num_vertices() - 1);
-      if(s <= t) t++;
-      if(counter % 100 == 0){
-        fprintf(stderr, "count/unmatch/all : %d/%d/%d, \n",counter, unmatch, FLAGS_num_query);
-      }
-      bool is_matched = check_min_cut_query(mcq, s, t, g);
-      if(!is_matched) unmatch++;
-      counter++;
+  for(int counter = 0; counter < FLAGS_num_query; counter++) {
+    V s = agl::random() % g.num_vertices();
+    V t = agl::random() % (g.num_vertices() - 1);
+    if(s <= t) t++;
+    if(counter % 100 == 0){
+      fprintf(stderr, "count/unmatch/all : %d/%d/%d, \n",counter, unmatch, FLAGS_num_query);
     }
+    bool is_matched = check_min_cut_query(mcq, s, t, g);
+    if(!is_matched) unmatch++;
+    counter++;
   }
   JLOG_PUT("result.all", FLAGS_num_query);
   JLOG_PUT("result.match", (FLAGS_num_query - unmatch));
