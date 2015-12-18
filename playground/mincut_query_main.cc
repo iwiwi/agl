@@ -1,90 +1,79 @@
 #include "easy_cui.h"
 
-DEFINE_int64(solver_iter, 50, "");
+DEFINE_int32(solver_iter, 50, "");
+DEFINE_int32(num_query, 1000, "");
 
-namespace naive {
-#define sz(c) ((int)c.size())
+class naive {
+  #define sz(c) ((int)c.size())
 
-struct E {
-  int to, rev, cap;
-  E(int to, int rev, int cap) : to(to), rev(rev), cap(cap) {}
+  struct E {
+    int to, rev, cap;
+    E(int to, int rev, int cap) : to(to), rev(rev), cap(cap) {}
+  };
+
+  void add_undirected_edge(int f, int t, int c) {
+    e[f].push_back(E(t, sz(e[t]), c));
+    e[t].push_back(E(f, sz(e[f]) - 1, c));
+  }
+
+  void bfs(int s) {
+    level.assign(level.size(), -1);
+    queue<int> q;
+    level[s] = 0;
+    q.push(s);
+    while (!q.empty()) {
+      int v = q.front(); q.pop();
+      for (auto t : e[v]) {
+        if (t.cap > 0 && level[t.to] < 0) {
+          level[t.to] = level[v] + 1;
+          q.push(t.to);
+        }
+      }
+    }
+  }
+
+  int dfs(int v, int t, int f) {
+    if (v == t) return f;
+    for (int &i = iter[v]; i < sz(e[v]); i++) {
+      E& _e = e[v][i];
+      if (_e.cap > 0 && level[v] < level[_e.to]) {
+        int d = dfs(_e.to, t, min(f, _e.cap));
+        if (d > 0) {
+          _e.cap -= d;
+          e[_e.to][_e.rev].cap += d;
+          return d;
+        }
+      }
+    }
+    return 0;
+  }
+
+  static const int INF = (int)1e8;
+public:
+  naive(const G& g) 
+  : level(g.num_vertices()), iter(g.num_vertices()), e(g.num_vertices()) {
+    for(const auto edge : g.edge_list()){
+      add_undirected_edge(edge.first, edge.second, 1);
+    }
+  }
+
+  int max_flow(int s, int t) {
+    assert(s != t);
+    int flow = 0;
+    while (true) {
+      bfs(s);
+      if (level[t] < 0) return flow;
+      iter.assign(iter.size(), 0);
+      int f;
+      while ((f = dfs(s, t, INF)) > 0) {
+        flow += f;
+      }
+    }
+  }
+
+  vector<int> level,iter;
+  vector<vector<E>> e;
 };
-
-const int MAX_V = 5000;
-int level[MAX_V], iter[MAX_V];
-vector<E> e[MAX_V];
-
-void add_undirected_edge(int f, int t, int c) {
-  e[f].push_back(E(t, sz(e[t]), c));
-  e[t].push_back(E(f, sz(e[f]) - 1, c));
-}
-
-void add_directed_edge(int f, int t, int c) {
-  e[f].push_back(E(t, sz(e[t]), c));
-  e[t].push_back(E(f, sz(e[f]) - 1, 0));
-}
-
-void bfs(int s) {
-  memset(level, -1, sizeof(level));
-  queue<int> q;
-  level[s] = 0;
-  q.push(s);
-  while (!q.empty()) {
-    int v = q.front(); q.pop();
-    for (auto t : e[v]) {
-      if (t.cap > 0 && level[t.to] < 0) {
-        level[t.to] = level[v] + 1;
-        q.push(t.to);
-      }
-    }
-  }
-}
-
-int dfs(int v, int t, int f) {
-  if (v == t) return f;
-  for (int &i = iter[v]; i < sz(e[v]); i++) {
-    E& _e = e[v][i];
-    if (_e.cap > 0 && level[v] < level[_e.to]) {
-      int d = dfs(_e.to, t, min(f, _e.cap));
-      if (d > 0) {
-        _e.cap -= d;
-        e[_e.to][_e.rev].cap += d;
-        return d;
-      }
-    }
-  }
-  return 0;
-}
-
-const int INF = (int)1e8;
-
-int max_flow(int s, int t) {
-  assert(s != t);
-  int flow = 0;
-  while (true) {
-    bfs(s);
-    if (level[t] < 0) return flow;
-    memset(iter, 0, sizeof(iter));
-    int f;
-    while ((f = dfs(s, t, INF)) > 0) {
-      flow += f;
-    }
-  }
-}
-} // naive
-
-namespace naive {
-void init(G& g){
-  V n = g.num_vertices();
-  CHECK(n < MAX_V);
-  for(V v : make_irange(n)) {
-    e[v].clear();
-  }
-  for(auto edge : g.edge_list()){
-    add_undirected_edge(edge.first, edge.second, 1);
-  }
-}
-} // naive
 
 class min_cut_query_with_random_contraction {
 
@@ -222,9 +211,12 @@ private:
 class min_cut_query {
  public:
   min_cut_query(G& g) {
+    fprintf(stderr, "initialize mincut-query tree ...\n");
     for(int i = 0; i < FLAGS_solver_iter; i++) {
+      if(i % 10 == 0) fprintf(stderr, "trees .. %d/%d\n",i,FLAGS_solver_iter);
       solvers_.emplace_back(g);
     }
+    fprintf(stderr, "completed.\n");
   }
 
   int query(int u,int v) const {
@@ -248,19 +240,21 @@ G to_directed_graph(G& g){
 }
 
 bool check_min_cut_query(const min_cut_query& mcq,int s,int t,G& g){
-  naive::init(g);
-  int naive_w = naive::max_flow(s,t);
+  naive nv(g);
+  int naive_w = nv.max_flow(s,t);
   int mcq_w = mcq.query(s,t);
-  if(naive_w == mcq_w) return true; //matched
- 
   CHECK(naive_w <= mcq_w);
-  JLOG_ADD_OPEN("unmatched") {
+
+  JLOG_ADD_OPEN("query") {
     JLOG_PUT("S",s);
     JLOG_PUT("T",t);
     JLOG_PUT("naive", naive_w);
     JLOG_PUT("mcq_w", mcq_w);
   }
-  return false;
+  if(naive_w != mcq_w) {
+    fprintf(stderr, "unmatched. (S,T) = (%d,%d), naive = %d, mcq_w =%d\n",s,t,naive_w,mcq_w);
+  }
+  return naive_w == mcq_w;
 }
 
 int main(int argc, char **argv) {
@@ -272,22 +266,22 @@ int main(int argc, char **argv) {
 
   JLOG_PUT("argv.mincut_tree_iter", FLAGS_solver_iter);
 
-  const int all = g.num_vertices() * (g.num_vertices() - 1) / 2;
-  int counter = 0,unmatch = 0;
+  int unmatch = 0;
   JLOG_ADD_OPEN("sampleing") {
-      for(V s = 0; s < g.num_vertices(); s++) {
-        for(V t = s + 1; t < g.num_vertices(); t++) {
-          if(counter % 100 == 0){
-            fprintf(stderr, "count/unmatch/all : %d/%d/%d, \n",counter, unmatch, all);
-          }
-          bool is_matched = check_min_cut_query(mcq, s, t, g);
-          if(!is_matched) unmatch++;
-          counter++;
-        }
+    for(int counter = 0; counter < FLAGS_num_query; counter++) {
+      V s = agl::random() % g.num_vertices();
+      V t = agl::random() % (g.num_vertices() - 1);
+      if(s <= t) t++;
+      if(counter % 100 == 0){
+        fprintf(stderr, "count/unmatch/all : %d/%d/%d, \n",counter, unmatch, FLAGS_num_query);
       }
+      bool is_matched = check_min_cut_query(mcq, s, t, g);
+      if(!is_matched) unmatch++;
+      counter++;
+    }
   }
-  JLOG_PUT("result.all", all);
-  JLOG_PUT("result.match", (all - unmatch));
+  JLOG_PUT("result.all", FLAGS_num_query);
+  JLOG_PUT("result.match", (FLAGS_num_query - unmatch));
   JLOG_PUT("result.unmatch", unmatch);
   
   return 0;

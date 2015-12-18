@@ -25,7 +25,7 @@
 using namespace std;
 using namespace agl;
 
-DEFINE_string(type, "tsv", "tsv, built_in");
+DEFINE_string(type, "tsv", "tsv, agl, built_in");
 DEFINE_string(graph, "-", "input graph");
 DEFINE_bool(force_undirected, false, "Automatically add reverse edges?");
 
@@ -37,6 +37,11 @@ GraphType easy_cui_init(int argc, char **argv) {
   G::edge_list_type es;
   if (FLAGS_type == "tsv") {
     es = read_edge_list_tsv(FLAGS_graph.c_str());
+  } else if (FLAGS_type == "agl") {
+    auto g = read_graph_binary<G>(FLAGS_graph.c_str());
+    assert(!FLAGS_force_undirected);
+    pretty_print(g);
+    return g;
   } else if (FLAGS_type == "built_in") {
     es = built_in_edge_list(FLAGS_graph.c_str());
   } else if (FLAGS_type == "gen") {
