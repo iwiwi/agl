@@ -71,7 +71,7 @@ int main(int argc, char **argv) {
 
   // Calculation
   vector<pair<string, function<vector<V>(const G &, W)>>> algos{
-      // {"MEMB", box_cover_memb},
+      //{"MEMB", box_cover_memb},
       //{"Schneider", box_cover_burning},
   };
 
@@ -91,7 +91,7 @@ int main(int argc, char **argv) {
 
   const double goal_coverage = 0.98;
   const int k = 1024;
-  const int pass = 128;
+  const int pass = 1;
   JLOG_ADD_OPEN("algorithms") {
     JLOG_PUT("name", "Sketch k=" + to_string(k) + " pass=" + to_string(pass) +
                          " coverage=" + to_string(goal_coverage));
