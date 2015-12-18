@@ -37,18 +37,6 @@ double coverage(const G &g, const vector<V> &s, W rad) {
   return coverage(g, s, rad, dummy);
 }
 
-inline bool remove_multimap_pair(multimap<V, V> &T, const pair<V, V> &p) {
-  auto it_p = T.equal_range(p.first);
-  for (auto it = it_p.first; it != T.end(); it++) {
-    if ((*it).second == p.second) {
-      T.erase(it);
-      return true;
-    }
-    if (it == it_p.second) return false;
-  }
-  return false;
-}
-
 vector<V> merge_and_purify(set<V> &parent, const vector<V> &sorted_vec,
                            const int k) {
   vector<V> delta;
@@ -478,25 +466,13 @@ vector<vector<V>> build_sketch(const G &g, const W radius, const int k,
   return ret;
 }
 
-double estimated_cardinality(const G &g, const set<V> &X, const int k) {
-  if (X.size() < (size_t)k) {
-    return (k - 1);
-  }
-  if (X.size() == (size_t)k) {
-    V kth = *X.rbegin();
-    return (double)(k - 1) / kth * g.num_vertices();
-  }
-  assert(false);
-  return (k - 1);
-}
-
 void select_greedily(const G &g, const vector<vector<V>> &X, vector<V> &centers,
                      vector<bool> &centered, const int k) {
+  assert(g.num_vertices() > k);
   //
   // Variables
   //
   V num_v = g.num_vertices();
-  assert(num_v > k);
   set<V> Xs;
   priority_queue<pair<V, V>, vector<pair<V, V>>, greater<pair<V, V>>> que[2];
   vector<multimap<V, V>> T(k + 2);
@@ -531,6 +507,16 @@ void select_greedily(const G &g, const vector<vector<V>> &X, vector<V> &centers,
       last_blue[box] = X[box][k1[box] - 1];
     }
   };
+  auto remove_multimap_pair = [&](V from, const pair<V, V> &p) {
+    auto it_p = T[from].equal_range(p.first);
+    for (auto it = it_p.first; it != T[from].end(); it++) {
+      if ((*it).second == p.second) {
+        T[from].erase(it);
+        break;
+      }
+      if (it == it_p.second) break;
+    }
+  };
 
   //
   // Initialization
@@ -558,10 +544,10 @@ void select_greedily(const G &g, const vector<vector<V>> &X, vector<V> &centers,
   //
   // Main loop
   //
-  while (estimated_cardinality(g, Xs, k) < max(num_v, k - 1)) {
+  while ((Xs.size() == k ? *Xs.rbegin() : num_v) > k - 1) {
     // Selection
     V select = -1;
-    double argmax = 0.0;
+    V argmin = num_v + 1;
     for (int q = 0; q < 2; q++) {
       while (!que[q].empty()) {
         // Remove unnecessary or changed elements from queue
@@ -584,9 +570,9 @@ void select_greedily(const G &g, const vector<vector<V>> &X, vector<V> &centers,
 
       set<V> tmp(Xs);
       merge_and_purify(tmp, X[v], k);
-      double ec_tmp = estimated_cardinality(g, tmp, k);
-      if (argmax < ec_tmp || (argmax == ec_tmp && v < select)) {
-        argmax = ec_tmp;
+      V ec_tmp = tmp.size() == k ? *tmp.rbegin() : num_v;
+      if (argmin > ec_tmp || (argmin == ec_tmp && v < select)) {
+        argmin = ec_tmp;
         select = v;
       }
     }
@@ -599,7 +585,7 @@ void select_greedily(const G &g, const vector<vector<V>> &X, vector<V> &centers,
     centers.push_back(select);
     centered[select] = true;
     removed[select] = true;
-    remove_multimap_pair(T[k2[select]], {last_blue[select], select});
+    remove_multimap_pair(k2[select], {last_blue[select], select});
 
     //
     // Update about covered elements
@@ -614,7 +600,7 @@ void select_greedily(const G &g, const vector<vector<V>> &X, vector<V> &centers,
         // When the subbox is Type 1 and its last element is covered,
         // it has to be Type2
         if (rank_i == last_blue[box] && type[box] == 0) {
-          remove_multimap_pair(T[k2[box] + 1], box_pair);
+          remove_multimap_pair(k2[box] + 1, box_pair);
           c[box]++;
           k2[box]++;
           remove_covered_ranks(box);
@@ -624,10 +610,10 @@ void select_greedily(const G &g, const vector<vector<V>> &X, vector<V> &centers,
           que[1].push({k2[box], box});
         } else {
           if (type[box] == 0) {
-            remove_multimap_pair(T[k2[box] + 1], box_pair);
+            remove_multimap_pair(k2[box] + 1, box_pair);
             T[k2[box] + 2].insert(box_pair);
           } else {
-            remove_multimap_pair(T[k2[box]], box_pair);
+            remove_multimap_pair(k2[box], box_pair);
             T[k2[box] + 1].insert(box_pair);
             que[1].push({k2[box] + 1, box});
           }
@@ -694,7 +680,7 @@ void select_greedily(const G &g, const vector<vector<V>> &X, vector<V> &centers,
       completely_included:
         ;
       }
-      for (auto rm_pair : removing) remove_multimap_pair(T[j], rm_pair);
+      for (auto rm_pair : removing) remove_multimap_pair(j, rm_pair);
     }
   }
 }
@@ -705,15 +691,26 @@ void naive_select_greedily(const G &g, const vector<vector<V>> &X,
                            const int k) {
   V num_v = g.num_vertices();
   set<V> Xs;
+  auto estimated_cardinality = [&](const set<V> &subset) -> double {
+    if (subset.size() < (size_t)k) {
+      return (k - 1);
+    }
+    if (subset.size() == (size_t)k) {
+      V kth = *subset.rbegin();
+      return (double)(k - 1) / kth * g.num_vertices();
+    }
+    assert(false);
+    return (k - 1);
+  };
 
-  while (estimated_cardinality(g, Xs, k) < max(num_v, k - 1)) {
+  while (estimated_cardinality(Xs) < max(num_v, k - 1)) {
     V selected_v = -1;
     double argmax = 0.0;
     for (V v = 0; v < num_v; v++) {
       if (centered[v]) continue;
       set<V> tmp(Xs);
       merge_and_purify(tmp, X[v], k);
-      double ec_tmp = estimated_cardinality(g, tmp, k);
+      double ec_tmp = estimated_cardinality(tmp);
       if (argmax < ec_tmp) {
         argmax = ec_tmp;
         selected_v = v;
