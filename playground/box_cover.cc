@@ -604,7 +604,7 @@ void select_greedily(const G &g, const vector<vector<V>> &X, vector<V> &centers,
           c[box]++;
           k2[box]++;
           remove_covered_ranks(box);
-          if (removed[box]) goto box_removed;
+          if (removed[box]) continue;
           type[box] = 1;
           if (k2[box] <= k) T[k2[box]].insert({last_blue[box], box});
           que[1].push({k2[box], box});
@@ -620,8 +620,6 @@ void select_greedily(const G &g, const vector<vector<V>> &X, vector<V> &centers,
           c[box]++;
           k2[box]++;
         }
-      box_removed:
-        ;
       }
     }
 
@@ -639,7 +637,7 @@ void select_greedily(const G &g, const vector<vector<V>> &X, vector<V> &centers,
         auto it_j = it_Xs;
         // always last_blue[box] >= jth_rank
         removing.push_back({last_blue[box], box});
-        if (removed[box]) goto completely_included;
+        if (removed[box]) continue;
         if (type[box] == 0) {  // Type1->
           assert(k2[box] + 1 == j);
           k1[box]--;
@@ -651,34 +649,18 @@ void select_greedily(const G &g, const vector<vector<V>> &X, vector<V> &centers,
           }
           if (k1[box] == 0 || k2[box] >= k) {
             removed[box] = true;
-            goto completely_included;
-          }
-          last_blue[box] = X[box][k1[box] - 1];
-
-          remove_covered_ranks(box);
-          if (removed[box]) goto completely_included;
-
-          if (last_blue[box] > *it_j) {  // Type1->Type1
-            insert_as_type(box, 0);
-          } else {  // Type1->Type2
-            insert_as_type(box, 1);
-          }
-        } else {  // Type2->
-          assert(k2[box] == j);
-          if (!covered_rank[last_blue[box]]) {
-            insert_as_type(box, 0);  // Type2->Type1
             continue;
           }
-          remove_covered_ranks(box);
-          if (removed[box]) goto completely_included;
-          if (last_blue[box] > *it_j) {
-            insert_as_type(box, 0);  // Type2->Type1
-          } else {
-            insert_as_type(box, 1);  // Type2->Type2
-          }
+          last_blue[box] = X[box][k1[box] - 1];
+        } 
+        
+        remove_covered_ranks(box);
+        if (removed[box]) continue;
+        if (last_blue[box] > *it_j) {  // Type1->Type1
+          insert_as_type(box, 0);
+        } else {  // Type1->Type2
+          insert_as_type(box, 1);
         }
-      completely_included:
-        ;
       }
       for (auto rm_pair : removing) remove_multimap_pair(j, rm_pair);
     }
