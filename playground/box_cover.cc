@@ -632,11 +632,11 @@ void select_greedily(const G &g, const vector<vector<V>> &X, vector<V> &centers,
     for (auto it_Xs = Xs.begin(); it_Xs != Xs.end(); ++it_Xs, ++j) {
       if (T[j].empty()) continue;
 
-      V jth_rank = *it_Xs;
       vector<pair<V, V>> removing;  // removed elements from T after iteration
-      for (auto it = T[j].lower_bound(jth_rank); it != T[j].end(); ++it) {
+      for (auto it = T[j].lower_bound(*it_Xs); it != T[j].end(); ++it) {
         V box = (*it).second;
 
+        auto it_j = it_Xs;
         // always last_blue[box] >= jth_rank
         removing.push_back({last_blue[box], box});
         if (removed[box]) goto completely_included;
@@ -644,7 +644,6 @@ void select_greedily(const G &g, const vector<vector<V>> &X, vector<V> &centers,
           assert(k2[box] + 1 == j);
           k1[box]--;
           k2[box]++;
-          auto it_j = it_Xs;
           if (covered_rank[last_blue[box]]) {
             c[box]--;
             k2[box]--;
@@ -672,7 +671,7 @@ void select_greedily(const G &g, const vector<vector<V>> &X, vector<V> &centers,
           }
           remove_covered_ranks(box);
           if (removed[box]) goto completely_included;
-          if (last_blue[box] > jth_rank) {
+          if (last_blue[box] > *it_j) {
             insert_as_type(box, 0);  // Type2->Type1
           } else {
             insert_as_type(box, 1);  // Type2->Type2
