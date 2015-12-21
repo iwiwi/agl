@@ -1,5 +1,15 @@
 #include "box_cover.h"
 
+
+
+
+
+
+
+
+
+
+
 double coverage(const G &g, const vector<V> &s, W rad,
                 vector<bool> &is_covered) {
   vector<V> covered;
