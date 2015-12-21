@@ -204,3 +204,37 @@ TEST(box_cover, greedy_huge) {
 
   ASSERT_EQ(centers1, centers2);
 }
+
+TEST(box_cover, coverage_management) {
+  for (int trial = 0; trial < 100; ++trial) {
+    const int k = 1024;
+    W radius = agl::random(2) + 1;
+    V M = 3;
+    V N = M + agl::random(1000) + 1000;
+    while (N <= k) N = M + agl::random(1000) + 1000;
+    auto es = generate_ba(N, M);
+    G g(make_undirected(es));
+    vector<V> rank(g.num_vertices());
+    vector<V> inv(g.num_vertices());
+    for (V i = 0; i < g.num_vertices(); ++i) {
+      inv[i] = i;
+    }
+    random_shuffle(inv.begin(), inv.end());
+    for (int i = 0; i < g.num_vertices(); ++i) {
+      rank[inv[i]] = i;
+    }
+    vector<bool> covered(g.num_vertices(), false);
+    vector<vector<V>> X = build_sketch(g, radius, k, rank, inv, covered);
+    pretty_print(g);
+    cerr << "radius: " << radius << endl;
+    vector<V> centers;
+    vector<bool> centered(g.num_vertices(), false);
+    select_greedily(g, X, centers, centered, k);
+
+    coverage_manager cm(g, radius);
+    for (V v : centers) cm.add(g, v);
+    double tester = coverage(g, centers, radius);
+    double hey = cm.get_current_coverage();
+    ASSERT_EQ(tester, hey);
+  }
+}

@@ -2,6 +2,49 @@
 using namespace std;
 using namespace agl;
 
+class coverage_manager {
+ private:
+  V num_v;
+  vector<W> dist;
+  V cnt = 0;
+  W radius;
+  coverage_manager() {}
+
+ public:
+  vector<bool> is_covered;
+  coverage_manager(const G &g, const W r) {
+    num_v = g.num_vertices();
+    dist.assign(num_v, num_v);
+    is_covered.assign(num_v, false);
+    radius = r;
+  }
+
+  void add(const G &g, V new_v) {
+    queue<V> que;
+    if (dist[new_v] == num_v) cnt++;
+    dist[new_v] = 0;
+    is_covered[new_v] = true;
+    que.push(new_v);
+
+    for (W d = 0; d < radius; ++d) {
+      size_t s = que.size();
+      for (size_t t = 0; t < s; t++) {
+        V a = que.front();
+        que.pop();
+        for (V neighbor : g.neighbors(a)) {
+          if (dist[neighbor] <= d + 1) continue;
+          if (dist[neighbor] == num_v) cnt++;
+          dist[neighbor] = d + 1;
+          is_covered[neighbor] = true;
+          que.push(neighbor);
+        }
+      }
+    }
+  }
+  
+  double get_current_coverage() { return (double)cnt / num_v; }
+};
+
 double coverage(const G &g, const vector<V> &s, W rad);
 
 //

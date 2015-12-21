@@ -1,45 +1,28 @@
 #include "box_cover.h"
 
-
-
-
-
-
-
-
-
-
-
 double coverage(const G &g, const vector<V> &s, W rad,
                 vector<bool> &is_covered) {
-  vector<V> covered;
-  vector<bool> vis(g.num_vertices());
-  queue<pair<V, W>> que;
-  for (V center : s) {
-    que.push(make_pair(center, 0));
-    covered.push_back(center);
-    vis[center] = true;
-  }
-  while (!que.empty()) {
-    V v = que.front().first;
-    W dist = que.front().second;
-    que.pop();
-    if (dist == rad) break;
-    for (V u : g.neighbors(v)) {
-      if (vis[u]) continue;
-      vis[u] = true;
-      que.push(make_pair(u, dist + 1));
-      covered.push_back(u);
+  vector<W> dist(g.num_vertices(), g.num_vertices());
+  for (V start : s) {
+    queue<pair<V, W>> que;
+    que.push({start, 0});
+    is_covered[start] = true;
+    while (!que.empty()) {
+      auto p = que.front();
+      que.pop();
+      dist[p.first] = p.second;
+      if (p.second == rad) continue;
+      for (V n : g.neighbors(p.first)) {
+        if (dist[n] < p.second + 1) continue;
+        is_covered[n] = true;
+        que.push({n, p.second + 1});
+      }
     }
   }
-  assert(covered.size() <= (size_t)g.num_vertices());
-
-  for (V c : covered) {
-    is_covered[c] = true;
-  }
-
-  double ret = covered.size();
-  return ret / g.num_vertices();
+  V cnt = 0;
+  for (bool a : is_covered)
+    if (a) cnt++;
+  return (double)cnt / g.num_vertices();
 }
 
 double coverage(const G &g, const vector<V> &s, W rad) {
