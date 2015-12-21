@@ -599,27 +599,25 @@ void select_greedily(const G &g, const vector<vector<V>> &X, vector<V> &centers,
 
         // When the subbox is Type 1 and its last element is covered,
         // it has to be Type2
-        if (rank_i == last_blue[box] && type[box] == 0) {
+
+        if (type[box] == 1) {
+          remove_multimap_pair(k2[box], box_pair);
+          T[k2[box] + 1].insert(box_pair);
+          que[1].push({k2[box] + 1, box});
+        } else if (rank_i == last_blue[box]) {
           remove_multimap_pair(k2[box] + 1, box_pair);
-          c[box]++;
-          k2[box]++;
           remove_covered_ranks(box);
           if (removed[box]) continue;
           type[box] = 1;
-          if (k2[box] <= k) T[k2[box]].insert({last_blue[box], box});
-          que[1].push({k2[box], box});
+          if (k2[box] + 1 <= k) T[k2[box] + 1].insert({last_blue[box], box});
+          que[1].push({k2[box] + 1, box});
         } else {
-          if (type[box] == 0) {
-            remove_multimap_pair(k2[box] + 1, box_pair);
-            T[k2[box] + 2].insert(box_pair);
-          } else {
-            remove_multimap_pair(k2[box], box_pair);
-            T[k2[box] + 1].insert(box_pair);
-            que[1].push({k2[box] + 1, box});
-          }
-          c[box]++;
-          k2[box]++;
+          remove_multimap_pair(k2[box] + 1, box_pair);
+          T[k2[box] + 2].insert(box_pair);
         }
+
+        c[box]++;
+        k2[box]++;
       }
     }
 
@@ -652,8 +650,8 @@ void select_greedily(const G &g, const vector<vector<V>> &X, vector<V> &centers,
             continue;
           }
           last_blue[box] = X[box][k1[box] - 1];
-        } 
-        
+        }
+
         remove_covered_ranks(box);
         if (removed[box]) continue;
         if (last_blue[box] > *it_j) {  // Type1->Type1
