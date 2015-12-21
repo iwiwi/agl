@@ -14,7 +14,7 @@ if __name__ == '__main__':
     jsonData = json.load(log)
     log.close()
     graph_name = jsonData['graph_info'][0]['graph']
-    r = re.compile("/([a-zA-Z0-9]*\.[a-zA-Z0-9]*)$")
+    r = re.compile("/([a-zA-Z0-9_\-]*\.[a-zA-Z0-9_\-]*)$")
     m = r.search(graph_name)
     graph_name = m.group(1)
     for j in range(0, len(jsonData['algorithms'])):
