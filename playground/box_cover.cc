@@ -593,9 +593,9 @@ void select_greedily(const G &g, const vector<vector<V>> &X, vector<V> &centers,
     for (V rank_i : delta) {
       covered_rank[rank_i] = true;
       for (V box : I[rank_i]) {
+        if (k2[box] + 1 >= k) removed[box] = true;
         if (removed[box]) continue;
         pair<V, V> box_pair = {last_blue[box], box};
-        if (k2[box] + 1 >= k) removed[box] = true;
 
         // When the subbox is Type 1 and its last element is covered,
         // it has to be Type2
@@ -672,10 +672,11 @@ void select_greedily(const G &g, const vector<vector<V>> &X, vector<V> &centers,
           }
           remove_covered_ranks(box);
           if (removed[box]) goto completely_included;
-          if (last_blue[box] > jth_rank)
+          if (last_blue[box] > jth_rank) {
             insert_as_type(box, 0);  // Type2->Type1
-          else
+          } else {
             insert_as_type(box, 1);  // Type2->Type2
+          }
         }
       completely_included:
         ;

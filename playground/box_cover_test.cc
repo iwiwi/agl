@@ -200,6 +200,7 @@ TEST(box_cover, greedy_huge) {
     timer += get_current_time_sec();
     cerr << "naive: " << timer << " sec" << endl;
   }
+  cerr << "size: " << centers1.size() << endl;
 
   ASSERT_EQ(centers1, centers2);
 }

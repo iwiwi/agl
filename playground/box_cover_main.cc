@@ -4,6 +4,10 @@ using namespace std;
 
 DEFINE_int32(rad_min, 0, "minimum radius");
 DEFINE_int32(rad_max, 10, "maximum radius");
+DEFINE_string(method, "sketch", "using method");
+DEFINE_double(final_coverage, 0.98, "coverage");
+DEFINE_int32(pass, 1, "Number of multi-pass");
+DEFINE_int32(sketch_k, 1024, "sketch k");
 
 int main(int argc, char **argv) {
   //
@@ -69,41 +73,46 @@ int main(int argc, char **argv) {
     JLOG_PUT("graph", FLAGS_graph);
   }
 
-  // Calculation
-  vector<pair<string, function<vector<V>(const G &, W)>>> algos{
-      //{"MEMB", box_cover_memb},
-      //{"Schneider", box_cover_burning},
-  };
-
-  for (auto a : algos) {
+  if (FLAGS_method == "sketch") {
     JLOG_ADD_OPEN("algorithms") {
-      JLOG_PUT("name", a.first);
-      auto f = a.second;
+      JLOG_PUT("name", "Sketch k=" + to_string(FLAGS_sketch_k) + " pass=" +
+                           to_string(FLAGS_pass) + " coverage=" +
+                           to_string(FLAGS_final_coverage));
+      JLOG_PUT("k", to_string(FLAGS_sketch_k));
+      JLOG_PUT("pass", to_string(FLAGS_pass));
 
       for (W rad = FLAGS_rad_min; rad <= FLAGS_rad_max; ++rad) {
         vector<V> res;
-        JLOG_ADD_BENCHMARK("time") res = f(g, rad);
+        JLOG_ADD_BENCHMARK("time") res = box_cover_sketch(
+            g, rad, FLAGS_sketch_k, FLAGS_pass, FLAGS_final_coverage);
         JLOG_ADD("size", res.size());
         JLOG_ADD("coverage", coverage(g, res, rad));
       }
     }
-  }
+  } else if (FLAGS_method == "memb") {
+    JLOG_ADD_OPEN("algorithms") {
+      JLOG_PUT("name", "MEMB");
 
-  const double goal_coverage = 0.98;
-  const int k = 1024;
-  const int pass = 1;
-  JLOG_ADD_OPEN("algorithms") {
-    JLOG_PUT("name", "Sketch k=" + to_string(k) + " pass=" + to_string(pass) +
-                         " coverage=" + to_string(goal_coverage));
-    JLOG_PUT("k", to_string(k));
-    JLOG_PUT("pass", to_string(pass));
-
-    for (W rad = FLAGS_rad_min; rad <= FLAGS_rad_max; ++rad) {
-      vector<V> res;
-      JLOG_ADD_BENCHMARK("time") res =
-          box_cover_sketch(g, rad, k, pass, goal_coverage);
-      JLOG_ADD("size", res.size());
-      JLOG_ADD("coverage", coverage(g, res, rad));
+      for (W rad = FLAGS_rad_min; rad <= FLAGS_rad_max; ++rad) {
+        vector<V> res;
+        JLOG_ADD_BENCHMARK("time") res = box_cover_memb(g, rad);
+        JLOG_ADD("size", res.size());
+        JLOG_ADD("coverage", coverage(g, res, rad));
+      }
     }
+  } else if (FLAGS_method == "burning") {
+    JLOG_ADD_OPEN("algorithms") {
+      JLOG_PUT("name", "Burning");
+
+      for (W rad = FLAGS_rad_min; rad <= FLAGS_rad_max; ++rad) {
+        vector<V> res;
+        JLOG_ADD_BENCHMARK("time") res = box_cover_burning(g, rad);
+        JLOG_ADD("size", res.size());
+        JLOG_ADD("coverage", coverage(g, res, rad));
+      }
+    }
+  } else {
+    cerr << "Unknown method: " << FLAGS_method << endl;
+    return 0;
   }
 }
