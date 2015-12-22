@@ -8,22 +8,22 @@ class coverage_manager {
   vector<W> dist;
   V cnt = 0;
   W radius;
+  double goal_coverage;
   coverage_manager() {}
 
  public:
-  vector<bool> is_covered;
-  coverage_manager(const G &g, const W r) {
+  coverage_manager(const G &g, const W r, const double c) {
     num_v = g.num_vertices();
     dist.assign(num_v, num_v);
-    is_covered.assign(num_v, false);
     radius = r;
+    assert(c <= 1.0);
+    goal_coverage = c;
   }
 
   void add(const G &g, V new_v) {
     queue<V> que;
     if (dist[new_v] == num_v) cnt++;
     dist[new_v] = 0;
-    is_covered[new_v] = true;
     que.push(new_v);
 
     for (W d = 0; d < radius; ++d) {
@@ -35,14 +35,15 @@ class coverage_manager {
           if (dist[neighbor] <= d + 1) continue;
           if (dist[neighbor] == num_v) cnt++;
           dist[neighbor] = d + 1;
-          is_covered[neighbor] = true;
           que.push(neighbor);
         }
       }
     }
   }
-  
+
   double get_current_coverage() { return (double)cnt / num_v; }
+
+  bool is_covered() { return get_current_coverage() >= goal_coverage; }
 };
 
 double coverage(const G &g, const vector<V> &s, W rad);
@@ -62,7 +63,7 @@ void naive_select_greedily(const G &g, const vector<vector<V>> &X,
                            vector<V> &centers, vector<bool> &centered,
                            const int k);
 void select_greedily(const G &g, const vector<vector<V>> &X, vector<V> &centers,
-                     vector<bool> &centered, const int k);
+                     vector<bool> &centered, const int k, coverage_manager &cm);
 
 //
 // Radius-based Methods:

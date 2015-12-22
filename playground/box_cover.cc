@@ -460,7 +460,8 @@ vector<vector<V>> build_sketch(const G &g, const W radius, const int k,
 }
 
 void select_greedily(const G &g, const vector<vector<V>> &X, vector<V> &centers,
-                     vector<bool> &centered, const int k) {
+                     vector<bool> &centered, const int k,
+                     coverage_manager &cm) {
   assert(g.num_vertices() > k);
   //
   // Variables
@@ -579,6 +580,8 @@ void select_greedily(const G &g, const vector<vector<V>> &X, vector<V> &centers,
     centered[select] = true;
     removed[select] = true;
     remove_multimap_pair(k2[select], {last_blue[select], select});
+    cm.add(g, select);
+    if (cm.is_covered()) return;
 
     //
     // Update about covered elements
@@ -712,6 +715,7 @@ vector<V> box_cover_sketch(const G &g, W radius, const int k,
   vector<bool> centered(num_v, false);
   vector<V> rank(num_v);
   vector<V> inv(num_v);
+  coverage_manager cm(g, radius, aim_coverage);
   for (V i = 0; i < num_v; ++i) {
     inv[i] = i;
   }
@@ -727,10 +731,8 @@ vector<V> box_cover_sketch(const G &g, W radius, const int k,
 
     //
     // Select-Greedily O(n^2*k)
-    //
-    // naive_select_greedily(g, X, centers, centered, k);
-    select_greedily(g, X, centers, centered, k);
-    if (coverage(g, centers, radius) >= aim_coverage) break;
+    select_greedily(g, X, centers, centered, k, cm);
+    if (cm.is_covered()) break;
   }
 
   return centers;

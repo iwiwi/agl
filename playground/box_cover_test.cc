@@ -109,7 +109,8 @@ TEST(box_cover, greedy_small) {
     {
       cerr << "greedy" << endl;
       vector<bool> centered(g.num_vertices(), false);
-      select_greedily(g, X, centers1, centered, k);
+      coverage_manager cm(g, radius, 1.0);
+      select_greedily(g, X, centers1, centered, k, cm);
     }
     ASSERT_EQ(centers1, centers2);
     cerr << "Stage: " << (trial + 1) << " CLEARED!!!!!!!" << endl;
@@ -145,7 +146,8 @@ TEST(box_cover, greedy_big) {
     {
       double timer = -get_current_time_sec();
       vector<bool> centered(g.num_vertices(), false);
-      select_greedily(g, X, centers1, centered, k);
+      coverage_manager cm(g, radius, 1.0);
+      select_greedily(g, X, centers1, centered, k, cm);
       timer += get_current_time_sec();
       cerr << "greedy: " << timer << " sec" << endl;
     }
@@ -188,7 +190,8 @@ TEST(box_cover, greedy_huge) {
   {
     double timer = -get_current_time_sec();
     vector<bool> centered(g.num_vertices(), false);
-    select_greedily(g, X, centers1, centered, k);
+    coverage_manager cm(g, radius, 1.0);
+    select_greedily(g, X, centers1, centered, k, cm);
     timer += get_current_time_sec();
     cerr << "greedy: " << timer << " sec" << endl;
   }
@@ -229,12 +232,43 @@ TEST(box_cover, coverage_management) {
     cerr << "radius: " << radius << endl;
     vector<V> centers;
     vector<bool> centered(g.num_vertices(), false);
-    select_greedily(g, X, centers, centered, k);
-
-    coverage_manager cm(g, radius);
-    for (V v : centers) cm.add(g, v);
+    coverage_manager cm(g, radius, 1.0);
+    select_greedily(g, X, centers, centered, k, cm);
     double tester = coverage(g, centers, radius);
     double hey = cm.get_current_coverage();
     ASSERT_EQ(tester, hey);
+  }
+}
+
+TEST(box_cover, coverage_break) {
+  for (int trial = 0; trial < 100; ++trial) {
+    const int k = 1024;
+    W radius = agl::random(2) + 1;
+    V M = 3;
+    V N = M + agl::random(1000) + 1000;
+    while (N <= k) N = M + agl::random(1000) + 1000;
+    auto es = generate_ba(N, M);
+    G g(make_undirected(es));
+    vector<V> rank(g.num_vertices());
+    vector<V> inv(g.num_vertices());
+    for (V i = 0; i < g.num_vertices(); ++i) {
+      inv[i] = i;
+    }
+    random_shuffle(inv.begin(), inv.end());
+    for (int i = 0; i < g.num_vertices(); ++i) {
+      rank[inv[i]] = i;
+    }
+    vector<bool> covered(g.num_vertices(), false);
+    vector<vector<V>> X = build_sketch(g, radius, k, rank, inv, covered);
+    pretty_print(g);
+    vector<bool> centered(g.num_vertices(), false);
+
+    double goal = (double)(agl::random(5) + 95) / 100;
+    cerr << "goal: " << goal << endl;
+    vector<V> centers = box_cover_sketch(g, radius, k, 100, goal);
+
+    coverage_manager cm(g, radius, goal);
+    for (V c : centers) cm.add(g, c);
+    ASSERT_TRUE(cm.get_current_coverage() >= goal);
   }
 }
