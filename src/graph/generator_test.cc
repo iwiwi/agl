@@ -246,6 +246,42 @@ TEST(gen_kronecker, random_trial) {
     G h(generate_kronecker(scale, avg_deg, mat));
     pretty_print(h);
     ASSERT_TRUE(h.num_vertices() == num_v);
-    ASSERT_TRUE(h.num_edges() <=  avg_deg * num_v);
+    ASSERT_TRUE(h.num_edges() <= avg_deg * num_v);
+  }
+}
+
+TEST(gen_uv_flower, random_trial) {
+  for (int trial = 0; trial < 10; ++trial) {
+    V u = agl::random(20) + 1;
+    V v = u + agl::random(20);
+    V w = u + v;
+    V req = w;
+    int n = agl::random(3);
+    for (int i = 0; i < n; ++i) {
+      req *= w;
+    }
+    auto es = generate_uv_flower(req, u, v);
+
+    // Number of edges
+    size_t expected_edge_num = w;
+    size_t expected_node_num = w;
+    size_t max_deg = 2;
+    while (expected_edge_num < es.size()) {
+      expected_edge_num *= w;
+      expected_node_num = w * expected_node_num - w;
+      max_deg *= 2;
+    }
+    ASSERT_EQ(es.size(), expected_edge_num);
+
+    G g(es);
+    pretty_print(g);
+    ASSERT_TRUE(is_connected(g));
+    ASSERT_EQ(g.num_vertices(), expected_node_num);
+
+    // Check degree
+    G ug(make_undirected(es));
+    for (V v : ug.vertices()) {
+      ASSERT_TRUE(ug.degree(v) <= max_deg);
+    }
   }
 }

@@ -383,6 +383,43 @@ unweighted_edge_list generate_kronecker(int scale, size_t avg_deg, const std::ve
   return generate_kronecker_(scale, num_edges, N, matrix);
 }
 
+/*
+*/
+unweighted_edge_list generate_uv_flower(V required_num, V u, V v) {
+  assert(u <= v && u >= 1);
+  unweighted_edge_list es;
+  es.emplace_back(u + v - 1, 0);
+  for (int i = 1; i < u + v; ++i) {
+    es.emplace_back(i - 1, i);
+  }
+  V current_vertices = u + v;
+  while (current_vertices < required_num) {
+    unweighted_edge_list next;
+    for (auto e : es) {
+      V s = e.first, t = e.second;
+      for (int i = 0; i < u; ++i) {
+        V left = current_vertices - 1;
+        V right = current_vertices;
+        if (i == 0) left = s;
+        if (i == u - 1) right = t;
+        next.emplace_back(left, right);
+        if (right != t) current_vertices++;
+      }
+      for (int i = 0; i < v; ++i) {
+        V left = current_vertices - 1;
+        V right = current_vertices;
+        if (i == 0) left = s;
+        if (i == v - 1) right = t;
+        next.emplace_back(left, right);
+        if (right != t) current_vertices++;
+      }
+    }
+    es.swap(next);
+  }
+
+  return es;
+}
+
 unweighted_edge_list generate_random_planar(V num_vertices, size_t num_edges) {
   using namespace agl::geometry2d;
 
