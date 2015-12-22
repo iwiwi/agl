@@ -516,6 +516,7 @@ void select_greedily(const G &g, const vector<vector<V>> &X, vector<V> &centers,
   // Initialization
   //
   for (V p = 0; p < num_v; ++p) {
+    if (centered[p]) continue;
     k1[p] = X[p].size();
     k2[p] = k - k1[p];
     c[p] = 0;
@@ -570,7 +571,8 @@ void select_greedily(const G &g, const vector<vector<V>> &X, vector<V> &centers,
         select = v;
       }
     }
-    assert(select >= 0);
+    if (select < 0) break;
+    assert(!centered[select]);
 
     //
     // Merge and Remove

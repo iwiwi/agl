@@ -75,8 +75,8 @@ int main(int argc, char **argv) {
 
   if (FLAGS_method == "sketch") {
     JLOG_ADD_OPEN("algorithms") {
-      JLOG_PUT("name", "Sketch k=" + to_string(FLAGS_sketch_k) + " pass=" +
-                           to_string(FLAGS_pass) + " coverage=" +
+      JLOG_PUT("name", "Sketch_k=" + to_string(FLAGS_sketch_k) + "_pass=" +
+                           to_string(FLAGS_pass) + "_coverage=" +
                            to_string(FLAGS_final_coverage));
       JLOG_PUT("k", to_string(FLAGS_sketch_k));
       JLOG_PUT("pass", to_string(FLAGS_pass));

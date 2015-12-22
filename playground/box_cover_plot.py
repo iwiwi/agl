@@ -19,7 +19,7 @@ if __name__ == '__main__':
     graph_name = m.group(1)
     for j in range(0, len(jsonData['algorithms'])):
         boxSizes = jsonData['algorithms'][j]['size']
-        name = jsonData['algorithms'][j]['name'].replace(' ', '_')
+        name = jsonData['algorithms'][j]['name']
 
         x = []
         y = []

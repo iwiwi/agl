@@ -140,7 +140,7 @@ TEST(box_cover, greedy_big) {
     }
     vector<bool> covered(g.num_vertices(), false);
     vector<vector<V>> X = build_sketch(g, radius, k, rank, inv, covered);
-    pretty_print(g);
+    // pretty_print(g);
     cerr << "radius: " << radius << endl;
     vector<V> centers1;
     {
@@ -161,6 +161,7 @@ TEST(box_cover, greedy_big) {
     }
 
     ASSERT_EQ(centers1, centers2);
+    cerr << "size: " << centers1.size() << endl;
     cerr << "Stage: " << (trial + 1) << " CLEARED!!!!!!!" << endl;
   }
 }
