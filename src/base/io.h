@@ -1,5 +1,8 @@
 #pragma once
 #include <cstdio>
+#include <iostream>
+#include <locale>
+#include <string>
 #include "macros.h"
 
 namespace agl {
@@ -38,11 +41,11 @@ inline long read_text_integer(FILE *fp) {
 
 template<typename T>
 void read_binary(std::istream &is, T *t) {
-  CHECK_perror(is.read((char*)t, sizeof(T)));
+  CHECK_PERROR(is.read((char*)t, sizeof(T)));
 }
 
 template<typename T>
 void write_binary(std::ostream &os, const T &t) {
-  CHECK_perror(os.write((char*)&t, sizeof(T)));
+  CHECK_PERROR(os.write((char*)&t, sizeof(T)));
 }
 }  // namespace agl

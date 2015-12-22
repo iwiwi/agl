@@ -1,219 +1,195 @@
-#include "graph_index_interface.h"
+/**
+ * update_interface, update_add_edge, update_remove_edge = single update
+ * update_workload = sequence of updates
+ * update_scenario = initial graph + sequence of workloads
+ */
+
 #include <unordered_set>
 #include <memory>
+#include <algorithm>
+#include "graph_index_interface.h"
 
 namespace agl {
+namespace dynamic_graph_update {
 //
-// Dynamic index update scenario.
-// A scenario consists of
-// (1) construction, and
-// (2) update workloads (groups of update queries)
-//
-template<typename GraphType = G>
-struct dynamic_index_evaluation_scenario {
-  class update_interface;
-  using edge_list_type = typename GraphType::edge_list_type;
-  using workload_type = std::vector<std::shared_ptr<update_interface>>;
-  using dynamic_index_type = dynamic_graph_index_interface<GraphType>;
-
-  // Variables
-  GraphType initial_graph;
-  std::vector<workload_type> workloads;
-
-  // Workload construction
-  void add_workload_edge_addition(const edge_list_type &update_es);
-  void add_workload_edge_addition_and_removal(const edge_list_type &update_es);
-  void add_workload_edge_addition_and_removal_random(size_t num_update_es);
-
-  // Evaluation
-  struct workload_result;
-  struct scenario_result;
-  scenario_result evaluate(dynamic_index_type *idx);
-
-  // Update queries
-  class update_add_edge;
-  class update_remove_edge;
-
- private:
-  class nothing_index;
-  std::vector<double> evaluate_internal(dynamic_index_type *idx);
-};
-
-//
-// Definition of dynamic update queries
+//! Single graph update
 //
 template<typename GraphType>
-class dynamic_index_evaluation_scenario<GraphType>::update_interface {
+class update_interface {
  public:
-  virtual void apply(GraphType *g, dynamic_graph_index_interface<GraphType> *i) const = 0;
+  virtual ~update_interface() {}
+  virtual void apply_to_graph(GraphType *g) const = 0;
+
+  // The update should already have been applied to |g|.
+  virtual void apply_to_index(GraphType *g, dynamic_graph_index_interface<GraphType> *i) const = 0;
 };
 
 template<typename GraphType>
-class dynamic_index_evaluation_scenario<GraphType>::update_add_edge
-: public dynamic_index_evaluation_scenario<GraphType>::update_interface {
+class update_add_edge : public update_interface<GraphType> {
  public:
   using E = typename GraphType::E;
-
   V v_from;
   E e;
 
   update_add_edge(V v_from, const E &e) : v_from(v_from), e(e) {}
+  virtual ~update_add_edge() {}
 
-  virtual void apply(GraphType *g, dynamic_graph_index_interface<GraphType> *i) const override {
+  virtual void apply_to_graph(GraphType *g) const override {
     g->add_edge(v_from, e);
+  }
+
+  virtual void apply_to_index(GraphType *g, dynamic_graph_index_interface<GraphType> *i) const override {
     i->add_edge(*g, v_from, e);
   }
 };
 
 template<typename GraphType>
-class dynamic_index_evaluation_scenario<GraphType>::update_remove_edge
-: public dynamic_index_evaluation_scenario<GraphType>::update_interface {
+class update_remove_edge : public update_interface<GraphType> {
  public:
   V v_from, v_to;
 
   update_remove_edge(V v_from, V v_to) : v_from(v_from), v_to(v_to) {}
+  virtual ~update_remove_edge() {}
 
-  virtual void apply(GraphType *g, dynamic_graph_index_interface<GraphType> *i) const override {
+  virtual void apply_to_graph(GraphType *g) const override {
     g->remove_edge(v_from, v_to);
+  }
+
+  virtual void apply_to_index(GraphType *g, dynamic_graph_index_interface<GraphType> *i) const override {
     i->remove_edge(*g, v_from, v_to);
   }
 };
 
 //
-// Workload generation
+//! Update workload (a sequence of graph update)
 //
 template<typename GraphType>
-void dynamic_index_evaluation_scenario<GraphType>::add_workload_edge_addition(const edge_list_type &update_es) {
-  workloads.emplace_back();
-  auto &w = workloads.back();
-  w.resize(update_es.size());
-  for (size_t i : make_irange(update_es.size())) {
-    const auto &e = update_es[i];
-    w[i] = std::make_shared<update_add_edge>(e.first, e.second);
+using update_workload = std::vector<std::shared_ptr<update_interface<GraphType>>>;
+
+//! Measure the total time consumption for updating the graph and an index
+template<typename GraphType>
+double evaluate_workload(GraphType *g, dynamic_graph_index_interface<GraphType> *i, const update_workload<GraphType> &w) {
+  assert(g != nullptr);
+  double t = get_current_time_sec();
+  for (const auto &u : w) {
+    u->apply_to_graph(g);
+    if (i != nullptr) u->apply_to_index(g, i);
   }
+  return get_current_time_sec() - t;
 }
 
+//
+//! Update scenario (initial graph + graph update workloads)
+//
 template<typename GraphType>
-void dynamic_index_evaluation_scenario<GraphType>::add_workload_edge_addition_and_removal(const edge_list_type &update_es) {
-  add_workload_edge_addition(update_es);
+struct update_scenario {
+  using edge_list_type = typename GraphType::edge_list_type;
 
-  workloads.emplace_back();
-  auto &w = workloads.back();
-  w.resize(update_es.size());
-  for (size_t i : make_irange(update_es.size())) {
-    const auto &e = update_es[update_es.size() - i - 1];
-    w[i] = std::make_shared<update_remove_edge>(e.first, e.second);
+  V initial_num_vertices;
+  edge_list_type initial_edges;
+  std::vector<update_workload<GraphType>> update_workloads;
+};
+
+//
+// Evaluation using |update_scenario|
+//
+
+//! A struct to represent the evaluation result
+struct scenario_evaluation_result {
+  struct workload_evaluation_result {
+    double total_graph_and_index_udpate_time_sec;
+    double total_graph_update_time_sec;  // Time used for just updating graph data structure
+    double total_index_update_time_sec;  // Time used purely for index update
+    double average_index_update_time_sec;
+  };
+
+  double construction_time_sec;
+  std::vector<workload_evaluation_result> workload_results;
+};
+
+//! Evaluate a dynamic indexing method by using the whole scenario
+template<typename GraphType>
+scenario_evaluation_result evaluate_scenario
+(dynamic_graph_index_interface<GraphType> *i, const update_scenario<GraphType> &s) {
+  scenario_evaluation_result r;
+  std::vector<double> t0, t1;
+  {
+    GraphType g1(s.initial_edges);
+    {
+      // Construction
+      double t = get_current_time_sec();
+      i->construct(g1);
+      r.construction_time_sec = get_current_time_sec() - t;
+      JLOG_PUT("construction_time_sec", r.construction_time_sec);
+    }
+    for (const auto &w : s.update_workloads) {
+      // Update
+      t1.emplace_back(evaluate_workload(&g1, i, w));
+    }
   }
+  {
+    GraphType g0(s.initial_edges);
+    for (const auto &w : s.update_workloads) {
+      t0.emplace_back(evaluate_workload(&g0, (dynamic_graph_index_interface<GraphType>*)nullptr, w));
+    }
+  }
+
+  std::cout << s.update_workloads.size() << std::endl;
+
+  // Aggregation
+  r.workload_results.resize(s.update_workloads.size());
+  for (size_t i : make_irange(s.update_workloads.size())) {
+    auto &wr = r.workload_results[i];
+    wr.total_graph_and_index_udpate_time_sec = t1[i];
+    wr.total_graph_update_time_sec = t0[i];
+    wr.total_index_update_time_sec = t1[i] - t0[i];
+    wr.average_index_update_time_sec = (t1[i] - t0[i]) / s.update_workloads[i].size();
+
+    JLOG_ADD_OPEN("workloads") {
+      JLOG_PUT("total_graph_and_index_udpate_time_sec", wr.total_graph_and_index_udpate_time_sec);
+      JLOG_PUT("total_graph_update_time_sec", wr.total_graph_update_time_sec);
+      JLOG_PUT("total_index_update_time_sec", wr.total_index_update_time_sec);
+      JLOG_PUT("average_index_update_time_sec", wr.average_index_update_time_sec);
+    }
+  }
+
+  return r;
 }
 
-template<typename GraphType>
-void dynamic_index_evaluation_scenario<GraphType>::add_workload_edge_addition_and_removal_random(size_t num_update_es) {
-  edge_list_type update_es(num_update_es);
+//
+// Scenario generation
+//
+template<typename GraphType = G>
+update_scenario<GraphType> generate_scenario_random_addition_and_removal
+(const typename GraphType::edge_list_type &edges, size_t num_update_es) {
+  update_scenario<GraphType> us;
+  us.initial_edges.assign(edges.begin(), edges.end());
+  auto &es = us.initial_edges;
+  std::sort(es.begin(), es.end());
+  V num_vs = us.initial_num_vertices = num_vertices_from_edge_list(es);
+
+  us.update_workloads.assign(2, update_workload<GraphType>(num_update_es));
   std::unordered_set<std::pair<V, V>> update_es_set;
-
-  std::uniform_int_distribution<V> rng(0, initial_graph.num_vertices() - 1);
+  std::uniform_int_distribution<V> rng(0, num_vs - 1);
   for (size_t i = 0; i < num_update_es; ++i) {
     V u, v;
-    do {
+    for (;;) {
       u = rng(agl::random);
       v = rng(agl::random);
-    } while (u == v || is_adjacent(initial_graph, u, v) || update_es_set.count({u, v}));
+      if (u == v) continue;
+      if (std::binary_search(es.begin(), es.end(), std::make_pair(u, v))) continue;
+      if (update_es_set.count({u, v})) continue;
+      break;
+    }
 
     update_es_set.insert({u, v});
-    update_es[i] = {u, v};
+    us.update_workloads[0][i] =
+        std::make_shared<update_add_edge<GraphType>>(u, v);
+    us.update_workloads[1][num_update_es - i - 1] =
+        std::make_shared<update_remove_edge<GraphType>>(u, v);
   }
 
-  add_workload_edge_addition_and_removal(update_es);
+  return us;
 }
-
-//
-// Workload evaluation
-//
-template<typename GraphType>
-struct dynamic_index_evaluation_scenario<GraphType>::workload_result {
-  double total_graph_and_index_udpate_time_sec;
-  double total_graph_update_time_sec;  // Time used for just updating graph data structure
-  double total_index_update_time_sec;  // Time used purely for index update
-  double average_index_update_time_sec;
-};
-
-template<typename GraphType>
-struct dynamic_index_evaluation_scenario<GraphType>::scenario_result {
-  double construction_time_sec;
-  std::vector<workload_result> workload_results;
-};
-
-template<typename GraphType>
-typename dynamic_index_evaluation_scenario<GraphType>::scenario_result
-dynamic_index_evaluation_scenario<GraphType>::evaluate(dynamic_index_type *i) {
-  scenario_result r;
-  {
-    // Construction
-    double t = get_current_time_sec();
-    i->construct(initial_graph);
-    r.construction_time_sec = get_current_time_sec() - t;
-    JLOG_PUT("construction_time_sec", r.construction_time_sec);
-  }
-  {
-    // Update workloads
-    r.workload_results.resize(workloads.size());
-    nothing_index ni;
-    std::vector<double> t0 = evaluate_internal(&ni);
-    std::vector<double> t1 = evaluate_internal(i);
-    for (size_t i : make_irange(workloads.size())) {
-      auto &wr = r.workload_results[i];
-      wr.total_graph_and_index_udpate_time_sec = t1[i];
-      wr.total_graph_update_time_sec = t0[i];
-      wr.total_index_update_time_sec = t1[i] - t0[i];
-      wr.average_index_update_time_sec = (t1[i] - t0[i]) / workloads[i].size();
-
-      JLOG_ADD_OPEN("workloads") {
-        JLOG_PUT("total_graph_and_index_udpate_time_sec", wr.total_graph_and_index_udpate_time_sec);
-        JLOG_PUT("total_graph_update_time_sec", wr.total_graph_update_time_sec);
-        JLOG_PUT("total_index_update_time_sec", wr.total_index_update_time_sec);
-        JLOG_PUT("average_index_update_time_sec", wr.average_index_update_time_sec);
-      }
-    }
-  }
-
-  return r;
-}
-
-template<typename GraphType>
-class dynamic_index_evaluation_scenario<GraphType>::nothing_index : public dynamic_index_type {
- public:
-  virtual void construct(const GraphType &g) override {}
-  virtual void add_edge(const GraphType &g, V v_from, const E &e) override {}
-  virtual void remove_edge(const GraphType &g, V v_from, V v_to) override {}
-  virtual void add_vertices(const GraphType &g, V old_num_vertices) override {}
-  virtual void remove_vertices(const GraphType&, V) override {}
-};
-
-template<typename GraphType>
-std::vector<double> dynamic_index_evaluation_scenario<GraphType>::evaluate_internal(dynamic_index_type *i) {
-  std::vector<double> r;
-  GraphType g = initial_graph;
-  for (const auto &w : workloads) {
-    double t = get_current_time_sec();
-    for (const auto &u : w) {
-      u->apply(&g, i);
-    }
-    r.emplace_back(get_current_time_sec() - t);
-  }
-  return r;
-}
-
-//
-// Pretty print
-//
-template<typename GraphType>
-void pretty_print(const dynamic_index_evaluation_scenario<GraphType> &s, std::ostream &os = std::cerr) {
-  pretty_print(s.initial_graph, os);
-
-  for (size_t i : make_irange(s.workloads.size())) {
-    if (i > 0) os << "----------" << std::endl;
-    os << "  Number of updates: " << s.workloads[i].size() << std::endl;
-  }
-  os << "=========" << std::endl;
-}
+}  // namespace dynamic_graph_update
 }  // namespace agl

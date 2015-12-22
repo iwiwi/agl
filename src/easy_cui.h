@@ -86,6 +86,44 @@ GraphType easy_cui_init(int argc, char **argv) {
       if (!(iss >> m)) m = 5;
       if (!(iss >> p)) p = 0.5;
       es = generate_hk(n, m, p);
+    } else if (family == "ws") {
+      V n, d;
+      double p;
+      if (!(iss >> n)) n = 10;
+      if (!(iss >> d)) d = 4;
+      if (!(iss >> p)) p = 0.5;
+      es = generate_ws(n, d, p);
+    } else if (family == "kronecker") {
+      int scale, n;
+      size_t avg_deg;
+      if (!(iss >> scale)) scale = 5;
+      if (!(iss >> avg_deg)) avg_deg = 16;
+      vector<vector<double>> mat;
+      if (!(iss >> n)) {
+        n = 2;
+        mat = vector<vector<double>>(n, vector<double>(n));
+        mat[0][0] = 0.57;
+        mat[0][1] = 0.19;
+        mat[1][0] = 0.19;
+        mat[1][1] = 0.05;
+      }
+      for (int i = 0; i < n * n; ++i) {
+        if (!(iss >> mat[i / n][i % n])) mat[i / n][i % n] = 1.0 / (n * n);
+      }
+      es = generate_kronecker(scale, avg_deg, mat);
+    } else if (family == "flower") {
+      V required, u, v;
+      if (!(iss >> required)) required = 44;
+      if (!(iss >> u)) u = 2;
+      if (!(iss >> v)) v = 2;
+      es = generate_uv_flower(required, u, v);
+    } else if (family == "shm") {
+      V required_num, initial_num;
+      int t;
+      if (!(iss >> required_num)) required_num = 101;
+      if (!(iss >> initial_num)) initial_num = 5;
+      if (!(iss >> t)) t = 2;
+      es = generate_shm(required_num, initial_num, t);
     } else {
       FAIL_MSG("Unknown generator family: " + family);
     }
