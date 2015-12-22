@@ -420,6 +420,60 @@ unweighted_edge_list generate_uv_flower(V required_num, V u, V v) {
   return es;
 }
 
+/*
+*/
+unweighted_edge_list generate_shm(V required_num, V initial_num, int t) {
+  assert(t >= 2 && initial_num >= 3);
+  unweighted_edge_list es;
+  vector<vector<V>> adj(initial_num);
+  for (int i = 1; i < initial_num; ++i) {
+    es.emplace_back(0, i);
+    adj[0].push_back(i);
+    adj[i].push_back(0);
+  }
+
+  while (adj.size() < required_num) {
+    V current_num = adj.size();
+    V next_num = current_num;
+    for (int i = 0; i < current_num; ++i) next_num += adj[i].size() * t;
+
+    vector<vector<V>> next(next_num);
+    unweighted_edge_list next_es;
+    V new_comer = current_num;
+    for (V s = 0; s < current_num; ++s)
+      for (int i = 0; i < adj[s].size() * t; ++i) {
+        next_es.emplace_back(s, new_comer);
+        next[s].push_back(new_comer);
+        next[new_comer].push_back(s);
+        new_comer++;
+      }
+    for (auto e : es) {
+      V s = e.first;
+      V ns = -1;
+      for (V n : next[s])
+        if (next[n].size() == 1) {
+          ns = n;
+          break;
+        }
+      assert(ns >= 0);
+      V t = e.second;
+      V nt = -1;
+      for (V n : next[t])
+        if (next[n].size() == 1) {
+          nt = n;
+          break;
+        }
+      assert(nt >= 0);
+      next_es.emplace_back(ns, nt);
+      next[ns].push_back(nt);
+      next[nt].push_back(ns);
+    }
+    es.swap(next_es);
+    adj.swap(next);
+  }
+  return es;
+}
+
 unweighted_edge_list generate_random_planar(V num_vertices, size_t num_edges) {
   using namespace agl::geometry2d;
 

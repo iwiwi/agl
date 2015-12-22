@@ -285,3 +285,59 @@ TEST(gen_uv_flower, random_trial) {
     }
   }
 }
+
+TEST(gen_shm, small_case) {
+  V initial_num = 5;
+  V required_num = initial_num;
+  int t = 2;
+  int generation = 3;
+  V max_deg = initial_num - 1;
+  for (int i = 1; i < generation; ++i) {
+    required_num = (2 * t + 1) * required_num - 2 * t;
+    max_deg *= t;
+  }
+  auto es = generate_shm(required_num, initial_num, t);
+
+  // Number of edges
+  ASSERT_EQ(es.size(), required_num - 1);
+
+  G g(make_undirected(es));
+  pretty_print(g);
+  ASSERT_TRUE(is_connected(g));
+  ASSERT_EQ(g.num_vertices(), required_num);
+  ASSERT_EQ(g.degree(0), max_deg);
+
+  // Check degree
+  for (V v : g.vertices()) {
+    ASSERT_TRUE(g.degree(v) <= max_deg);
+  }
+}
+
+TEST(gen_shm, random_trial) {
+  for (int trial = 0; trial < 10; ++trial) {
+    V initial_num = agl::random(20) + 3;
+    V required_num = initial_num;
+    int t = agl::random(20) + 2;
+    int generation = agl::random(5) + 1;
+    V max_deg = initial_num - 1;
+    for (int i = 1; i < generation; ++i) {
+      required_num = (2 * t + 1) * required_num - 2 * t;
+      max_deg *= t;
+    }
+    auto es = generate_shm(required_num, initial_num, t);
+
+    // Number of edges
+    ASSERT_EQ(es.size(), required_num - 1);
+
+    G g(make_undirected(es));
+    pretty_print(g);
+    ASSERT_TRUE(is_connected(g));
+    ASSERT_EQ(g.num_vertices(), required_num);
+    ASSERT_EQ(g.degree(0), max_deg);
+
+    // Check degree
+    for (V v : g.vertices()) {
+      ASSERT_TRUE(g.degree(v) <= max_deg);
+    }
+  }
+}
