@@ -383,8 +383,17 @@ unweighted_edge_list generate_kronecker(int scale, size_t avg_deg, const std::ve
   return generate_kronecker_(scale, num_edges, N, matrix);
 }
 
-/*
-*/
+/**
+ * Generate a (u, v)-flower graph by the given parameters.
+ * Starting from (u + v)-vertices cycle graph, the number of vertices in the
+ * resulting graph will be equal to or larger than the given number. The fractal
+ * dimension D of this graph will be D = log(u + v) / log(u) (u <= v)
+ * \param required_num is the minimum number of the vertices. The resulting
+ * graph the number of vertices in the resulting graph will be equal to or
+ * larger than this number.
+ * \param u is the smaller parameter of (u, v)-flower.
+ * \param v is the larger parameter of (u, v)-flower.
+ */
 unweighted_edge_list generate_uv_flower(V required_num, V u, V v) {
   assert(u <= v && u >= 1);
   unweighted_edge_list es;
@@ -420,8 +429,18 @@ unweighted_edge_list generate_uv_flower(V required_num, V u, V v) {
   return es;
 }
 
-/*
-*/
+/**
+ * Generate a Song-Havlin-Makse model (SHM-model) graph.
+ * Starting from a star tree, the resulting graph will be a tree.
+ * The fractal dimension D of this graph will be D = log(2t + 1) / log3
+ * \param required_num is the minimum number of the vertices. The resulting
+ * graph the number of vertices in the resulting graph will be equal to or
+ * larger than this number.
+ * \param initial_num is the number of vertices of the star tree of the first
+ * generation.
+ * \param t decides the fractal dimension of this graph. The fractal dimension D
+ * of this graph will be D = log(2t + 1) / log3
+ */
 unweighted_edge_list generate_shm(V required_num, V initial_num, int t) {
   assert(t >= 2 && initial_num >= 3);
   unweighted_edge_list es;
