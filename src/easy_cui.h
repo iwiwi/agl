@@ -111,6 +111,19 @@ GraphType easy_cui_init(int argc, char **argv) {
         if (!(iss >> mat[i / n][i % n])) mat[i / n][i % n] = 1.0 / (n * n);
       }
       es = generate_kronecker(scale, avg_deg, mat);
+    } else if (family == "flower") {
+      V required, u, v;
+      if (!(iss >> required)) required = 44;
+      if (!(iss >> u)) u = 2;
+      if (!(iss >> v)) v = 2;
+      es = generate_uv_flower(required, u, v);
+    } else if (family == "shm") {
+      V required_num, initial_num;
+      int t;
+      if (!(iss >> required_num)) required_num = 101;
+      if (!(iss >> initial_num)) initial_num = 5;
+      if (!(iss >> t)) t = 2;
+      es = generate_shm(required_num, initial_num, t);
     } else {
       FAIL_MSG("Unknown generator family: " + family);
     }
