@@ -69,7 +69,6 @@ int main(int argc, char **argv) {
   JLOG_ADD_OPEN("graph_info") {
     JLOG_PUT("vertices", g.num_vertices());
     JLOG_PUT("edges", g.num_edges());
-    JLOG_PUT("type", FLAGS_graph);
     JLOG_PUT("graph", FLAGS_graph);
   }
 

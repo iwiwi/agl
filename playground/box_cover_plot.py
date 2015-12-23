@@ -13,10 +13,12 @@ if __name__ == '__main__':
     log = open(sys.argv[1], 'r')
     jsonData = json.load(log)
     log.close()
-    graph_name = jsonData['graph_info'][0]['graph']
-    r = re.compile("/([a-zA-Z0-9_\-]*\.[a-zA-Z0-9_\-]*)$")
-    m = r.search(graph_name)
-    graph_name = m.group(1)
+    graph_name = jsonData['graph_info'][0]['graph'].replace(" ", "_")
+    if '/' in graph_name:
+        r = re.compile("/([a-zA-Z0-9_\-\.]*)$")
+        m = r.search(graph_name)
+        graph_name = m.group(1)
+    print graph_name
     for j in range(0, len(jsonData['algorithms'])):
         boxSizes = jsonData['algorithms'][j]['size']
         name = jsonData['algorithms'][j]['name']
@@ -64,7 +66,7 @@ if __name__ == '__main__':
         plt.xlim(xmin=0.5)
         plt.xlim(xmax=25)
         plt.ylim(ymin=1)
-        plt.ylim(ymax=100000)
+        plt.ylim(ymax=10000000)
         plt.xscale("log")
         plt.yscale("log")
         plt.legend(loc='best')
