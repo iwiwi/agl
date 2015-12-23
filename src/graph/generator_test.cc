@@ -291,7 +291,7 @@ TEST(gen_shm, small_case) {
   V required_num = initial_num;
   int t = 2;
   int generation = 3;
-  V max_deg = initial_num - 1;
+  size_t max_deg = initial_num - 1;
   for (int i = 1; i < generation; ++i) {
     required_num = (2 * t + 1) * required_num - 2 * t;
     max_deg *= t;
@@ -319,7 +319,7 @@ TEST(gen_shm, random_trial) {
     V required_num = initial_num;
     int t = agl::random(20) + 2;
     int generation = agl::random(5) + 1;
-    V max_deg = initial_num - 1;
+    size_t max_deg = initial_num - 1;
     for (int i = 1; i < generation; ++i) {
       required_num = (2 * t + 1) * required_num - 2 * t;
       max_deg *= t;

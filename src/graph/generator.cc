@@ -451,7 +451,7 @@ unweighted_edge_list generate_shm(V required_num, V initial_num, int t) {
     adj[i].push_back(0);
   }
 
-  while (adj.size() < required_num) {
+  while ((V)adj.size() < required_num) {
     V current_num = adj.size();
     V next_num = current_num;
     for (int i = 0; i < current_num; ++i) next_num += adj[i].size() * t;
@@ -460,7 +460,7 @@ unweighted_edge_list generate_shm(V required_num, V initial_num, int t) {
     unweighted_edge_list next_es;
     V new_comer = current_num;
     for (V s = 0; s < current_num; ++s)
-      for (int i = 0; i < adj[s].size() * t; ++i) {
+      for (int i = 0; i < (int)adj[s].size() * t; ++i) {
         next_es.emplace_back(s, new_comer);
         next[s].push_back(new_comer);
         next[new_comer].push_back(s);
