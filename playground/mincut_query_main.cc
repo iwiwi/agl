@@ -1,5 +1,6 @@
 #include "easy_cui.h"
 
+DEFINE_bool(prune_if_degree_eq_1, true, "");
 DEFINE_int32(solver_iter, 50, "");
 DEFINE_int32(num_query, 1000, "");
 
@@ -144,19 +145,23 @@ class min_cut_query_with_random_contraction {
     }
 
     // 次数1の頂点を先に縮約する
-    {
+    if(FLAGS_prune_if_degree_eq_1){
+      cerr << "First, prune node which degree eq 1." << endl;
+      int pruned = 0;
       queue<int> q;
       for(V v : make_irange(g.num_vertices())) {
         if(contraction_graph_edges[v].size() == 1) q.push(v);
       }
       while(!q.empty()) {
         V v = q.front(); q.pop();
+        pruned++;
         V u;
         if(contraction_graph_edges[v].size() == 0) continue;
         tie(std::ignore, u) = *contraction_graph_edges[v].begin();
         contraction(ancestor, contraction_graph_edges, u, v);
         if(contraction_graph_edges[u].size() == 1) q.push(u);
       }
+      cerr << pruned << " node(s) was pruned." << endl;
     }
 
     //O(E log(E))
