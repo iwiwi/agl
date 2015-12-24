@@ -395,7 +395,7 @@ unweighted_edge_list generate_kronecker(int scale, size_t avg_deg, const std::ve
  * \param v is the larger parameter of (u, v)-flower.
  */
 unweighted_edge_list generate_uv_flower(V required_num, V u, V v) {
-  assert(u <= v && u >= 1);
+  assert(u <= v && u >= 1 && u + v >= 3);
   unweighted_edge_list es;
   es.emplace_back(u + v - 1, 0);
   for (int i = 1; i < u + v; ++i) {
