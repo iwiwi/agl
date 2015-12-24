@@ -25,7 +25,7 @@
 using namespace std;
 using namespace agl;
 
-DEFINE_string(type, "tsv", "tsv, built_in");
+DEFINE_string(type, "tsv", "tsv, agl, built_in");
 DEFINE_string(graph, "-", "input graph");
 DEFINE_bool(force_undirected, false, "Automatically add reverse edges?");
 
@@ -33,6 +33,16 @@ template<typename GraphType = G>
 GraphType easy_cui_init(int argc, char **argv) {
   JLOG_INIT(&argc, argv);
   google::ParseCommandLineFlags(&argc, &argv, true);
+
+  //agl形式は隣接リストを介すると効率が悪いため、直接GraphTypeを生成する
+  if (FLAGS_type == "agl") {
+    auto g = read_graph_binary<G>(FLAGS_graph.c_str());
+    if(FLAGS_force_undirected){
+      g = GraphType(make_undirected(g.edge_list()));
+    }
+    pretty_print(g);
+    return g;
+  }
 
   G::edge_list_type es;
   if (FLAGS_type == "tsv") {
