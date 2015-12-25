@@ -3,6 +3,7 @@
 DEFINE_bool(prune_if_degree_eq_1, true, "");
 DEFINE_int32(solver_iter, 50, "");
 DEFINE_int32(num_query, 1000, "");
+DEFINE_int64(node_pair_random_seed, 922337203685477583LL, "");
 
 class naive {
   #define sz(c) ((int)c.size())
@@ -263,6 +264,7 @@ bool check_min_cut_query(const min_cut_query& mcq,int s,int t,G& g){
 
 int main(int argc, char **argv) {
   // JLOG_INIT(&argc, argv); called in "easy_cui_init"
+  xorshift64star gen_node(FLAGS_node_pair_random_seed);
   G g = easy_cui_init(argc, argv);
   g = to_directed_graph(g);
   min_cut_query mcq(g);
@@ -272,8 +274,8 @@ int main(int argc, char **argv) {
 
   int unmatch = 0;
   for(int counter = 0; counter < FLAGS_num_query; counter++) {
-    V s = agl::random() % g.num_vertices();
-    V t = agl::random() % (g.num_vertices() - 1);
+    V s = gen_node() % g.num_vertices();
+    V t = gen_node() % (g.num_vertices() - 1);
     if(s <= t) t++;
     if(counter % 100 == 0){
       fprintf(stderr, "count/unmatch/all : %d/%d/%d, \n",counter, unmatch, FLAGS_num_query);
