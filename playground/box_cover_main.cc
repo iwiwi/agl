@@ -9,7 +9,15 @@ DEFINE_double(final_coverage, 0.98, "coverage");
 DEFINE_int32(pass, 1, "Number of multi-pass");
 DEFINE_int32(sketch_k, 1024, "sketch k");
 
-int main(int argc, char **argv) {
+int main(int argc, char** argv) {
+  auto str_replace = [](string& str, const string& from, const string& to) {
+    string::size_type pos = 0;
+    while (pos = str.find(from, pos), pos != string::npos) {
+      str.replace(pos, from.length(), to);
+      pos += to.length();
+    }
+  };
+
   //
   // Extract maximal connected subgraph & Compress coordinates
   //
@@ -49,7 +57,7 @@ int main(int argc, char **argv) {
       }
     }
 
-    vector<V> &max_c = connected_sets[max_g];
+    vector<V>& max_c = connected_sets[max_g];
     vector<V> inv(num_v, -1);
     for (V v : max_c) {
       inv[v] = (lower_bound(max_c.begin(), max_c.end(), v) - max_c.begin());
@@ -65,18 +73,27 @@ int main(int argc, char **argv) {
 
   G g(es);
   pretty_print(g);
-
   JLOG_ADD_OPEN("graph_info") {
     JLOG_PUT("vertices", g.num_vertices());
     JLOG_PUT("edges", g.num_edges());
     JLOG_PUT("graph", FLAGS_graph);
   }
 
+  const char* slash = strrchr(FLAGS_graph.c_str(), '/');
+  string graph_name = slash ? slash + 1 : FLAGS_graph;
+  str_replace(graph_name, " ", "-");
+
+  string experiment_name = FLAGS_method;
   if (FLAGS_method == "sketch") {
+    experiment_name.append("k=" + to_string(FLAGS_sketch_k));
+    experiment_name.append("_pass=" + to_string(FLAGS_pass));
+    experiment_name.append("_coverage=" + to_string(FLAGS_final_coverage));
+
+    if (FLAGS_pass == 1) {
+      FLAGS_final_coverage = 1.0;
+    }
     JLOG_ADD_OPEN("algorithms") {
-      JLOG_PUT("name", "Sketch_k=" + to_string(FLAGS_sketch_k) + "_pass=" +
-                           to_string(FLAGS_pass) + "_coverage=" +
-                           to_string(FLAGS_final_coverage));
+      JLOG_PUT("name", experiment_name);
       JLOG_PUT("k", to_string(FLAGS_sketch_k));
       JLOG_PUT("pass", to_string(FLAGS_pass));
 
@@ -86,6 +103,7 @@ int main(int argc, char **argv) {
             g, rad, FLAGS_sketch_k, FLAGS_pass, FLAGS_final_coverage);
         JLOG_ADD("size", res.size());
         JLOG_ADD("coverage", coverage(g, res, rad));
+        if (res.size() == 1) break;
       }
     }
   } else if (FLAGS_method == "memb") {
@@ -97,6 +115,7 @@ int main(int argc, char **argv) {
         JLOG_ADD_BENCHMARK("time") res = box_cover_memb(g, rad);
         JLOG_ADD("size", res.size());
         JLOG_ADD("coverage", coverage(g, res, rad));
+        if (res.size() == 1) break;
       }
     }
   } else if (FLAGS_method == "burning") {
@@ -108,10 +127,14 @@ int main(int argc, char **argv) {
         JLOG_ADD_BENCHMARK("time") res = box_cover_burning(g, rad);
         JLOG_ADD("size", res.size());
         JLOG_ADD("coverage", coverage(g, res, rad));
+        if (res.size() == 1) break;
       }
     }
   } else {
     cerr << "Unknown method: " << FLAGS_method << endl;
     return 0;
   }
+
+  JLOG_ADD_FILENAME("_" + experiment_name);
+  JLOG_ADD_FILENAME("_" + graph_name);
 }
