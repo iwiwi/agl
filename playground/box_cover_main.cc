@@ -85,7 +85,7 @@ int main(int argc, char** argv) {
 
   string experiment_name = FLAGS_method;
   if (FLAGS_method == "sketch") {
-    experiment_name.append("k=" + to_string(FLAGS_sketch_k));
+    experiment_name.append("_k=" + to_string(FLAGS_sketch_k));
     experiment_name.append("_pass=" + to_string(FLAGS_pass));
     experiment_name.append("_coverage=" + to_string(FLAGS_final_coverage));
 
@@ -137,4 +137,5 @@ int main(int argc, char** argv) {
 
   JLOG_ADD_FILENAME("_" + experiment_name);
   JLOG_ADD_FILENAME("_" + graph_name);
+  JLOG_ADD_FILENAME("_rad_max=" + to_string(FLAGS_rad_max));
 }
