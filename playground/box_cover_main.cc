@@ -135,7 +135,7 @@ int main(int argc, char** argv) {
     return 0;
   }
 
-  JLOG_ADD_FILENAME("_" + experiment_name);
-  JLOG_ADD_FILENAME("_" + graph_name);
-  JLOG_ADD_FILENAME("_rad_max=" + to_string(FLAGS_rad_max));
+  JLOG_INSERT_FILENAME("_rad_max=" + to_string(FLAGS_rad_max));
+  JLOG_INSERT_FILENAME("_" + graph_name);
+  JLOG_INSERT_FILENAME(experiment_name);
 }

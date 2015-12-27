@@ -729,11 +729,16 @@ vector<V> box_cover_sketch(const G &g, W radius, const int k,
     for (int i = 0; i < num_v; ++i) {
       rank[inv[i]] = i;
     }
+
+    cerr << pass_trial << "-th building..." << endl;
     vector<vector<V>> X = build_sketch(g, radius, k, rank, inv, is_covered);
+    cerr << "built" << endl;
 
     //
     // Select-Greedily O(n^2*k)
+    cerr << pass_trial << "-th selecting..." << endl;
     select_greedily(g, X, centers, centered, k, cm);
+    cerr << "selected" << endl;
     if (cm.is_covered()) break;
   }
 
