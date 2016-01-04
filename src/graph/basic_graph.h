@@ -82,7 +82,7 @@ class basic_graph {
   basic_graph() = default;
 
   explicit basic_graph(const edge_list_type &es, V num_vs = -1) {
-    assign(es);
+    assign(es, num_vs);
   }
 
   basic_graph(const basic_graph<EdgeType> &g) : edges_from_{g.edges_from_[0], g.edges_from_[1]} {
