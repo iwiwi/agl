@@ -62,6 +62,178 @@ unweighted_edge_list generate_cycle(V num_vertices) {
   return es;
 }
 
+/**
+ * Generate a random scale-free network by the Barabasi-Albert (BA) model.
+ * The degree distribution resulting from the BA model is scale free
+ * with power-law coefficient &gamma; = 3.
+ * \param initial_num is a number of nodes of the initial connected network.
+ * \param final_num is a number of finally generated network.
+ */
+unweighted_edge_list generate_ba(V final_num, V initial_num) {
+  CHECK(initial_num > 2);
+  unweighted_edge_list es;
+  for (int v = 0; v < initial_num; ++v) {
+    for (int u = 0; u < v; ++u) {
+      es.emplace_back(u, v);
+    }
+  }
+
+  for (int v = initial_num; v < final_num; ++v) {
+    set<V> next;
+    std::uniform_int_distribution<size_t> rng(0, es.size() - 1);
+    while (next.size() < (size_t)initial_num) {
+      size_t e = rng(agl::random);
+      V u = rng(agl::random) % 2 ? es[e].first : es[e].second;
+      next.insert(u);
+    }
+    for (auto u : next) {
+      es.emplace_back(u, v);
+    }
+  }
+  return es;
+}
+
+/**
+ * Generate a random scale-free network by the Dorogovtsev-Mendes-Samukhin (DMS) model.
+ * Depending on K0, the power-law coefficient &gamma; takes values from 2 to &infin;.
+ * \param initial_num is a number of nodes of the initial connected network.
+ * \param final_num is a number of finally generated network.
+ * \param K0 is a constant value and forms &gamma; = 3 - K0/initial_num .
+ */
+unweighted_edge_list generate_dms(V final_num, V initial_num, V K0) {
+  CHECK(initial_num > K0);
+  unweighted_edge_list es;
+  vector<V> vs;
+  for (int v = 0; v <= initial_num; ++v) {
+    for (int u = 0; u < v; ++u) {
+      es.emplace_back(u, v);
+    }
+    for (int i = 0; i < initial_num - K0; ++i) {
+      vs.emplace_back(v);
+    }
+  }
+
+  for (int v = initial_num + 1; v < final_num; ++v) {
+    set<V> next;
+    std::uniform_int_distribution<size_t> rng(0, vs.size() - 1);
+    while (next.size() < (size_t)initial_num) {
+      V u = vs[rng(agl::random)];
+      next.insert(u);
+    }
+    for (auto u : next) {
+      es.emplace_back(u, v);
+      vs.emplace_back(u);
+    }
+    for (int i = 0; i < initial_num - K0; ++i) {
+      vs.emplace_back(v);
+    }
+  }
+
+  return es;
+}
+
+/**
+ * Generate a random scale-free network by the Holme-Kim (HK) model.
+ * The degree distribution resulting from the HK model is scale free
+ * with power-law coefficient &gamma; = 3.
+ * The clustering coefficient C can be increased systematically by increasing P, 
+ * and finally it becomes C &asymp; 0.5 .
+ * \param initial_num is a number of nodes of the initial connected network.
+ * \param final_num is a number of finally generated network.
+ * \param P is the probability to perform a triangle formation step. 
+ */
+unweighted_edge_list generate_hk(V final_num, V initial_num, double P) {
+  CHECK(initial_num > 2 && final_num > initial_num);
+  unweighted_edge_list es;
+  vector<vector<V>> adj(final_num);
+  for (int v = 0; v <= initial_num; ++v) {
+    for (int u = 0; u < v; ++u) {
+      es.emplace_back(u, v);
+      adj[u].emplace_back(v);
+      adj[v].emplace_back(u);
+    }
+  }
+
+  std::uniform_real_distribution<> p_rng(0.0, 1.0);
+  for (int v = initial_num + 1; v < final_num; ++v) {
+    set<V> next;
+    V u = -1;
+    while (next.size() < (size_t)initial_num) {
+      if (next.size() > 0 && p_rng(agl::random) < P) {
+        std::uniform_int_distribution<size_t> adj_rng(0, adj[u].size() - 1);
+        u = adj[u][adj_rng(agl::random)];
+      } else {
+        std::uniform_int_distribution<size_t> rng(0, es.size() - 1);
+        size_t e = rng(agl::random);
+        u = rng(agl::random) % 2 ? es[e].first : es[e].second;
+      }
+      next.insert(u);
+    }
+    for (auto u : next) {
+      es.emplace_back(u, v);
+      adj[u].emplace_back(v);
+      adj[v].emplace_back(u);
+    }
+  }
+
+  return es;
+}
+
+/**
+ * Generate a random small-world network by the Watts-Strogatz (WS) model.
+ * \param num_vertices is a number of nodes of the generated network.
+ * \param avg_deg is the average degree of the vertices, which must be even.
+ * \param P is the probability of reconnecting each edge.
+ */
+unweighted_edge_list generate_ws(V num_vertices, V avg_deg, double P) {
+  CHECK(num_vertices > 1);
+  CHECK(0 < avg_deg && avg_deg < num_vertices);
+  CHECK(avg_deg % 2 == 0);
+  CHECK(0.0 <= P && P <= 1.0);
+
+  unweighted_edge_list out;
+  set<pair<int, int> > es;
+
+  for (V i : make_irange(num_vertices)) {
+    for (int j = 1; j <= avg_deg / 2; j++) {
+      V u = i, v = (i + j) % num_vertices;
+      out.emplace_back(u, v);
+      es.insert({u, v});
+      es.insert({v, u});
+    }
+  }
+
+  std::uniform_real_distribution<> p_rng(0.0, 1.0);
+  std::uniform_int_distribution<V> v_rng(0, num_vertices - 1);
+
+  for (size_t i = 0; i < out.size(); i++) {
+    V u = out[i].first, v = out[i].second;
+    if (p_rng(agl::random) > P) continue;
+
+    bool coin = p_rng(agl::random) < 0.5;
+    if (coin) {
+      swap(u, v);
+    }
+    es.erase({u, v});
+    es.erase({v, u});
+    do {
+      v = v_rng(agl::random);
+    } while (u == v || es.find({u, v}) != es.end());
+
+    if (coin) {
+      swap(u, v);
+    }
+    es.insert({u, v});
+    es.insert({v, u});
+
+    out[i].first = u;
+    out[i].second = v;
+  }
+
+  return out;
+}
+
+
 unweighted_edge_list generate_random_planar(V num_vertices, size_t num_edges) {
   using namespace agl::geometry2d;
 

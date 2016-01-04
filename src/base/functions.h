@@ -4,6 +4,7 @@
 #include <iostream>
 #include <algorithm>
 #include <cstdlib>
+#include <functional>
 #include "type.h"
 
 namespace agl {
