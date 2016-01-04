@@ -168,6 +168,8 @@ TEST(distance_sketch, ads_update_large) {
   }
 }
 
+
+#if 0 ///////////////////////////////////////////////////////////////////////
 TEST(distance_sketch, srs_update_small) {
   static constexpr V kNumVertices = 10;
 
@@ -274,3 +276,4 @@ TEST(distance_sketch, srs_update_large) {
     }
   }
 }
+#endif ///////////////////////////////////////////////////////////////////////
