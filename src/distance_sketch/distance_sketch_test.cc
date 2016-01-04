@@ -4,6 +4,7 @@
 using namespace agl;
 using namespace std;
 using namespace agl::distance_sketch;
+using namespace agl::dynamic_graph_update;
 
 TEST(distance_sketch, entry_comparison) {
   ASSERT_GT(entry(1, 2).raw, entry(2, 1).raw);
@@ -106,21 +107,22 @@ TEST(distance_sketch, ads_update_small) {
   static constexpr size_t kK = 2;
 
   for (int trial = 0; trial < 10; ++trial) {
-    dynamic_index_evaluation_scenario<G> s;
-    s.initial_graph.assign(generate_erdos_renyi(kNumVertices, 2), kNumVertices);
-    s.add_workload_edge_addition_and_removal_random(10);
+    auto es = generate_erdos_renyi(kNumVertices, 2);
+    auto us = generate_scenario_random_addition_and_removal(es, 10);
+    us.initial_num_vertices = kNumVertices;
 
     auto rs = generate_rank_array(kNumVertices);
 
-    G g = s.initial_graph;
+    G g(us.initial_edges, kNumVertices);
     dynamic_all_distances_sketches dads(kK, rs);
     dads.construct(g);
 
-    for (const auto &w : s.workloads) {
+    for (const auto &w : us.update_workloads) {
       for (const auto &u : w) {
         //graphviz_draw_graph(g, "before.png");
         pretty_print(g);
-        u->apply(&g, &dads);
+        u->apply_to_graph(&g);
+        u->apply_to_index(&g, &dads);
         //graphviz_draw_graph(g, "after.png");
         pretty_print(g);
         auto ads = compute_all_distances_sketches(g, kK, rs);
@@ -141,18 +143,21 @@ TEST(distance_sketch, ads_update_large) {
 
   for (int k : {1, 4, 16}) {
     for (int trial = 0; trial < 100; ++trial) {
-      dynamic_index_evaluation_scenario<G> s;
-      s.initial_graph.assign(generate_erdos_renyi(kNumVertices, 2), kNumVertices);
-      s.add_workload_edge_addition_and_removal_random(100);
+      auto es = generate_erdos_renyi(kNumVertices, 2);
+      auto us = generate_scenario_random_addition_and_removal(es, 100);
+      us.initial_num_vertices = kNumVertices;
 
       auto rs = generate_rank_array(kNumVertices);
 
-      G g = s.initial_graph;
+      G g(us.initial_edges, kNumVertices);
       dynamic_all_distances_sketches dads(k, rs);
       dads.construct(g);
 
-      for (const auto &w : s.workloads) {
-        for (const auto &u : w) u->apply(&g, &dads);
+      for (const auto &w : us.update_workloads) {
+        for (const auto &u : w) {
+          u->apply_to_graph(&g);
+          u->apply_to_index(&g, &dads);
+        }
 
         auto ads = compute_all_distances_sketches(g, k, rs);
         for (V v : g.vertices()) {
@@ -163,7 +168,6 @@ TEST(distance_sketch, ads_update_large) {
   }
 }
 
-
 TEST(distance_sketch, srs_update_small) {
   static constexpr V kNumVertices = 10;
 
@@ -171,21 +175,24 @@ TEST(distance_sketch, srs_update_small) {
     for (int trial = 0; trial < 1000; ++trial) {
       cout << "TRIAL: " << trial << endl;
 
-      dynamic_index_evaluation_scenario<G> s;
-      s.initial_graph.assign(generate_random_planar(kNumVertices, kNumVertices), kNumVertices);
-      // s.initial_graph.assign(generate_erdos_renyi(kNumVertices, 2), kNumVertices);
-      s.add_workload_edge_addition_and_removal_random(10);
+      auto es = generate_random_planar(kNumVertices, kNumVertices);
+      auto us = generate_scenario_random_addition_and_removal(es, 10);
+      us.initial_num_vertices = kNumVertices;
 
       auto rs = generate_rank_array(kNumVertices);
 
-      G g1 = s.initial_graph, g2 = s.initial_graph;
+      G g1(us.initial_edges, kNumVertices);
+      G g2(us.initial_edges, kNumVertices);
       dynamic_all_distances_sketches dads(k, rs);
       dynamic_sketch_retrieval_shortcuts dsrs(k, rs);
       dads.construct(g1);
       dsrs.construct(g2);
 
-      for (const auto &w : s.workloads) {
-        for (const auto &u : w) u->apply(&g1, &dads);
+      for (const auto &w : us.update_workloads) {
+        for (const auto &u : w) {
+          u->apply_to_graph(&g1);
+          u->apply_to_index(&g1, &dads);
+        }
 
         //  puts("nya");
        //   pretty_print(g2);
@@ -194,7 +201,8 @@ TEST(distance_sketch, srs_update_small) {
       //    printf("3: "); pretty_print(dsrs.retrieve_sketch(g2, 3));
         for (const auto &u : w) {
           //graphviz_draw_graph(g2, "0.png");
-          u->apply(&g2, &dsrs);
+          u->apply_to_graph(&g2);
+          u->apply_to_index(&g2, &dsrs);
           //graphviz_draw_graph(g2, "1.png");
 
           auto ads = compute_all_distances_sketches(g2, k, rs);
@@ -238,18 +246,21 @@ TEST(distance_sketch, srs_update_large) {
 
   for (int trial = 0; trial < 1000; ++trial) {
     for (int k : {1, 4, 16}) {
-      dynamic_index_evaluation_scenario<G> s;
-      s.initial_graph.assign(generate_erdos_renyi(kNumVertices, 2), kNumVertices);
-      s.add_workload_edge_addition_and_removal_random(100);
+      auto es = generate_erdos_renyi(kNumVertices, 2);
+      auto us = generate_scenario_random_addition_and_removal(es, 10);
+      us.initial_num_vertices = kNumVertices;
 
       auto rs = generate_rank_array(kNumVertices);
 
-      G g = s.initial_graph;
+      G g(us.initial_edges, kNumVertices);
       dynamic_sketch_retrieval_shortcuts dsrs(k, rs);
       dsrs.construct(g);
 
-      for (const auto &w : s.workloads) {
-        for (const auto &u : w) u->apply(&g, &dsrs);
+      for (const auto &w : us.update_workloads) {
+        for (const auto &u : w) {
+          u->apply_to_graph(&g);
+          u->apply_to_index(&g, &dsrs);
+        }
 
         auto ads = compute_all_distances_sketches(g, k, rs);
         auto srs = compute_sketch_retrieval_shortcuts(g, k, rs);
