@@ -9,6 +9,7 @@
 #include <array>
 #include <limits>
 #include <gflags/gflags.h>
+#include "macros.h"
 
 DECLARE_int64(random_seed);
 
