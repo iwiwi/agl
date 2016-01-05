@@ -744,3 +744,44 @@ vector<V> box_cover_sketch(const G &g, W radius, const int k,
 
   return centers;
 }
+
+vector<pair<W, V>> find_analytical_solution(const string &type, V u, V v,
+                                            const G &g) {
+  if (type == "flower") {
+    if (u > v) swap(u, v);
+    vector<W> diameters;
+    vector<V> nodes;
+    vector<V> edges;
+
+    V w = u + v;
+    V M = w;
+    V N = u + v;
+    W d = (u + v) / 2;
+    edges.push_back(M);
+    nodes.push_back(N);
+    diameters.push_back(d);
+    while (N < g.num_vertices()) {
+      N = w * N - w;
+      d = u * d + (v - u);
+      M *= w;
+      edges.push_back(M);
+      nodes.push_back(N);
+      diameters.push_back(d);
+    }
+    assert(N == g.num_vertices() && M == g.num_edges() / 2);
+
+    int n = edges.size();
+    vector<pair<W, V>> ret;
+    for (int m = 1; m <= n; ++m) {
+      V Nb = (w - 2) * pow(w, n - m) + w;
+      assert(Nb % (w - 1) == 0);
+      Nb /= (w - 1);
+      ret.push_back({diameters[m - 1], Nb});
+    }
+    return ret;
+  } else if (type == "shm") {
+  } else {
+    cerr << "Unknown graph type: " << type << endl;
+  }
+  return {};
+}

@@ -46,6 +46,9 @@ class coverage_manager {
   bool is_covered() { return get_current_coverage() >= goal_coverage; }
 };
 
+vector<pair<W, V>> find_analytical_solution(const string &type, V u, V v,
+                                            const G &g);
+
 double coverage(const G &g, const vector<V> &s, W rad);
 
 //

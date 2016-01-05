@@ -23,8 +23,8 @@ def plot_data(jsonData):
 
     x = []
     y = []
-    for i in range(0, len(boxSizes)):
-        x.append(2 * i + 1)
+    for i in range(1, len(boxSizes)):
+        x.append(2 * i)
         y.append(boxSizes[i])
         if boxSizes[i] == 1:
             break
@@ -55,17 +55,21 @@ def plot_data(jsonData):
     outstr = ""
 
     px = np.linspace(0.5, 100, 10000)
-    fu = 2
+    fu = 1
     fv = 2
     fb = -np.log(fu + fv) / np.log(fu)
     fa = np.log(vertices)
-    plt.plot(px, (px**fb) * (np.exp(1)**fa), label="y=x^" + str(fb) + "*e^" + str(fa))
 
     # show plot
     plt.plot(x, y, 'o', label=name)
-    plt.plot(px, (px**b) * (np.exp(1)**a), label="y=x^" + str(b) + "*e^" + str(a))
+
+    # plot carved lines
+    # if name == "MEMB":
+    # plt.plot(px, (px**fb) * (np.exp(1)**fa), label="y=x^" + str(fb) + "*e^" + str(fa))
+    # plt.plot(px, (px**b) * (np.exp(1)**a), label="y=x^" + str(b) + "*e^" + str(a))
+    # plt.plot(px, (np.exp(1)**(b2 * px)) * (np.exp(1)**a2), label="y=e^(" + str(b2) + "x+" + str(a2) + ")")
+
     outstr += "y=x^" + str(b) + "*e^" + str(a) + "\n" + str1 + "\n\n"
-    plt.plot(px, (np.exp(1)**(b2 * px)) * (np.exp(1)**a2), label="y=e^(" + str(b2) + "x+" + str(a2) + ")")
     outstr += "y=e^(" + str(b2) + "x+" + str(a2) + ")" + "\n" + str2 + "\n\n"
     plt.xlim(xmin=0.5)
     plt.xlim(xmax=100)

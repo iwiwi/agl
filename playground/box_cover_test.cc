@@ -273,3 +273,17 @@ TEST(box_cover, coverage_break) {
     ASSERT_TRUE(cm.get_current_coverage() >= goal);
   }
 }
+
+TEST(box_cover, solution_flower) {
+  vector<pair<V, V>> uvs = {{1, 2}, {2, 2}};
+  for (auto p : uvs) {
+    V u = p.first, v = p.second;
+    V req = 10000;
+    auto es = generate_uv_flower(req, u, v);
+    G g(make_undirected(es));
+    auto pairs = find_analytical_solution("flower", u, v, g);
+    for (auto p : pairs) {
+      cerr << p.first << " " << p.second << endl;
+    }
+  }
+}
