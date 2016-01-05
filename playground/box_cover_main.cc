@@ -85,57 +85,72 @@ int main(int argc, char** argv) {
 
   string experiment_name = FLAGS_method;
   if (FLAGS_method == "sketch") {
-    experiment_name.append("_k=" + to_string(FLAGS_sketch_k));
-    experiment_name.append("_pass=" + to_string(FLAGS_pass));
-    experiment_name.append("_coverage=" + to_string(FLAGS_final_coverage));
+    experiment_name.append("-k." + to_string(FLAGS_sketch_k));
+    experiment_name.append("-pass." + to_string(FLAGS_pass));
+    experiment_name.append("-coverage." + to_string(FLAGS_final_coverage));
 
     if (FLAGS_pass == 1) {
       FLAGS_final_coverage = 1.0;
     }
-    JLOG_ADD_OPEN("algorithms") {
-      JLOG_PUT("name", experiment_name);
-      JLOG_PUT("k", to_string(FLAGS_sketch_k));
-      JLOG_PUT("pass", to_string(FLAGS_pass));
+    JLOG_PUT("name", experiment_name);
+    JLOG_PUT("k", to_string(FLAGS_sketch_k));
+    JLOG_PUT("pass", to_string(FLAGS_pass));
 
-      for (W rad = FLAGS_rad_min; rad <= FLAGS_rad_max; ++rad) {
-        vector<V> res;
-        JLOG_ADD_BENCHMARK("time") res = box_cover_sketch(
-            g, rad, FLAGS_sketch_k, FLAGS_pass, FLAGS_final_coverage);
-        JLOG_ADD("size", res.size());
-        JLOG_ADD("coverage", coverage(g, res, rad));
-        if (res.size() == 1) break;
-      }
+    for (W rad = FLAGS_rad_min; rad <= FLAGS_rad_max; ++rad) {
+      vector<V> res;
+      JLOG_ADD_BENCHMARK("time") res = box_cover_sketch(
+          g, rad, FLAGS_sketch_k, FLAGS_pass, FLAGS_final_coverage);
+      JLOG_ADD("size", res.size());
+      JLOG_ADD("radius", rad);
+      JLOG_ADD("coverage", coverage(g, res, rad));
+      if (res.size() == 1) break;
     }
   } else if (FLAGS_method == "memb") {
-    JLOG_ADD_OPEN("algorithms") {
-      JLOG_PUT("name", "MEMB");
+    JLOG_PUT("name", "MEMB");
 
-      for (W rad = FLAGS_rad_min; rad <= FLAGS_rad_max; ++rad) {
-        vector<V> res;
-        JLOG_ADD_BENCHMARK("time") res = box_cover_memb(g, rad);
-        JLOG_ADD("size", res.size());
-        JLOG_ADD("coverage", coverage(g, res, rad));
-        if (res.size() == 1) break;
-      }
+    for (W rad = FLAGS_rad_min; rad <= FLAGS_rad_max; ++rad) {
+      vector<V> res;
+      JLOG_ADD_BENCHMARK("time") res = box_cover_memb(g, rad);
+      JLOG_ADD("size", res.size());
+      JLOG_ADD("radius", rad);
+      JLOG_ADD("coverage", coverage(g, res, rad));
+      if (res.size() == 1) break;
+    }
+
+  } else if (FLAGS_method == "analytical") {
+    istringstream iss(FLAGS_graph);
+    string family;
+    iss >> family;
+    JLOG_PUT("name", "analytical_solution_" + family);
+    V required, u, v;
+    if (!(iss >> required)) required = 44;
+    if (!(iss >> u)) u = 2;
+    if (!(iss >> v)) v = 2;
+    auto as = find_analytical_solution(family, u, v, g);
+
+    for (auto p : as) {
+      JLOG_ADD("size", p.second);
+      JLOG_ADD("diameter", p.first);
+      JLOG_ADD("radius", p.first / 2 + p.first % 2);
     }
   } else if (FLAGS_method == "burning") {
-    JLOG_ADD_OPEN("algorithms") {
-      JLOG_PUT("name", "Burning");
+    JLOG_PUT("name", "Burning");
 
-      for (W rad = FLAGS_rad_min; rad <= FLAGS_rad_max; ++rad) {
-        vector<V> res;
-        JLOG_ADD_BENCHMARK("time") res = box_cover_burning(g, rad);
-        JLOG_ADD("size", res.size());
-        JLOG_ADD("coverage", coverage(g, res, rad));
-        if (res.size() == 1) break;
-      }
+    for (W rad = FLAGS_rad_min; rad <= FLAGS_rad_max; ++rad) {
+      vector<V> res;
+      JLOG_ADD_BENCHMARK("time") res = box_cover_burning(g, rad);
+      JLOG_ADD("size", res.size());
+      JLOG_ADD("radius", rad);
+      JLOG_ADD("coverage", coverage(g, res, rad));
+      if (res.size() == 1) break;
     }
+
   } else {
     cerr << "Unknown method: " << FLAGS_method << endl;
     return 0;
   }
 
-  JLOG_INSERT_FILENAME("_rad_max=" + to_string(FLAGS_rad_max));
-  JLOG_INSERT_FILENAME("_" + graph_name);
+  JLOG_INSERT_FILENAME("-rad." + to_string(FLAGS_rad_max) + "-");
+  JLOG_INSERT_FILENAME("-" + graph_name);
   JLOG_INSERT_FILENAME(experiment_name);
 }

@@ -2,7 +2,7 @@ import subprocess
 
 if __name__ == "__main__":
     sketch_ks = [128, 256, 512, 1024]
-    rad_maxs = [52, 60, 68, 76, 84, 92, 100]
+    rad_maxs = [8, 16, 24, 32, 52, 60, 68, 76, 84, 92, 100]
     pass_nums = [1, 100]
     graph_names = ["'flower 10000 2 2'", "'flower 10000 1 2'", "'shm 10000 5 2'",
                    "'shm 10000 4 2'", "'shm 10000 6 2'"]

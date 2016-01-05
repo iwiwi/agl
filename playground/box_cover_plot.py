@@ -18,13 +18,14 @@ def plot_data(jsonData):
         graph_name = m.group(1)
     vertices = jsonData['graph_info'][0]['vertices']
     print graph_name
-    boxSizes = jsonData['algorithms'][0]['size']
-    name = jsonData['algorithms'][0]['name']
+    boxSizes = jsonData['size']
+    radiuses = jsonData['radius']
+    name = jsonData['name']
 
     x = []
     y = []
-    for i in range(1, len(boxSizes)):
-        x.append(2 * i)
+    for i in range(0, len(boxSizes)):
+        x.append(2 * radiuses[i] + 1)
         y.append(boxSizes[i])
         if boxSizes[i] == 1:
             break
