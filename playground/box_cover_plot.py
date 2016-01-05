@@ -25,7 +25,9 @@ def plot_data(jsonData):
     x = []
     y = []
     for i in range(0, len(boxSizes)):
-        x.append(2 * radiuses[i] + 1)
+        if radiuses[i] == 0:
+            continue
+        x.append(2 * radiuses[i])
         y.append(boxSizes[i])
         if boxSizes[i] == 1:
             break

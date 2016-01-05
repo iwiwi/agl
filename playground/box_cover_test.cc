@@ -287,3 +287,17 @@ TEST(box_cover, solution_flower) {
     }
   }
 }
+
+TEST(box_cover, solution_shm) {
+  vector<pair<V, int>> nts = {{5, 2}};
+  for (auto p : nts) {
+    V n = p.first, t = p.second;
+    V req = 50;
+    auto es = generate_shm(req, n, t);
+    G g(make_undirected(es));
+    auto pairs = find_analytical_solution("shm", n, t, g);
+    for (auto p : pairs) {
+      cerr << p.first << " " << p.second << endl;
+    }
+  }
+}
