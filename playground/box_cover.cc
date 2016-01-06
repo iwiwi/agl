@@ -707,7 +707,7 @@ void naive_select_greedily(const G &g, const vector<vector<V>> &X,
 }
 
 vector<V> box_cover_sketch(const G &g, W radius, const int k,
-                           const int pass_num, const double aim_coverage) {
+                           const int pass_num, double &aim_coverage) {
   assert(k > 0);
 
   const V num_v = g.num_vertices();
@@ -742,6 +742,7 @@ vector<V> box_cover_sketch(const G &g, W radius, const int k,
     if (cm.is_covered()) break;
   }
 
+  aim_coverage = cm.get_current_coverage();
   return centers;
 }
 
