@@ -1,11 +1,14 @@
+#!/usr/bin/env python
 import subprocess
 
 if __name__ == "__main__":
     sketch_ks = [128, 256, 512, 1024]
-    rad_maxs = [8, 16, 24, 32, 52, 60, 68, 76, 84, 92, 100]
+    rad_maxs = [32, 64, 128]
     pass_nums = [1, 100]
-    graph_names = ["'flower 10000 2 2'", "'flower 10000 1 2'", "'shm 10000 5 2'",
-                   "'shm 10000 4 2'", "'shm 10000 6 2'"]
+    graph_names = ["'flower 1000 2 2'", "'flower 2000 2 2'", "'flower 4000 2 2'", "'flower 8000 2 2'", "'flower 16000 2 2'", "'flower 32000 2 2'", "'flower 64000 2 2'",  "'flower 128000 2 2'",
+                   "'flower 1000 1 2'", "'flower 2000 1 2'", "'flower 4000 1 2'", "'flower 8000 1 2'", "'flower 16000 1 2'", "'flower 32000 1 2'", "'flower 64000 1 2'",  "'flower 128000 1 2'",
+                   "'shm 1000 5 2'", "'shm 2000 5 2'", "'shm 4000 5 2'", "'shm 8000 5 2'", "'shm 16000 5 2'", "'shm 32000 5 2'", "'shm 64000 5 2'",  "'shm 128000 5 2'"
+                   ]
     for sketch_k in sketch_ks:
         for rad_max in rad_maxs:
             for pass_num in pass_nums:
@@ -16,6 +19,7 @@ if __name__ == "__main__":
                     command = command + " --rad_max " + str(rad_max)
                     command = command + " --sketch_k " + str(sketch_k)
                     command = command + " --pass " + str(pass_num)
+                    command = command + " --rad_analytical "
                     # method_name = "memb"
                     # command = command + " --method " + method_name
                     # job_name = method_name + "-" + graph_name.replace("'", "").replace(" ", "-")
@@ -32,6 +36,7 @@ if __name__ == "__main__":
             command = command + " --graph " + graph_name
             command = command + " --rad_max " + str(rad_max)
             command = command + " --method " + "memb"
+            command = command + " --rad_analytical "
             # method_name = "memb"
             # command = command + " --method " + method_name
             # job_name = method_name + "-" + graph_name.replace("'", "").replace(" ", "-")

@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 # coding: UTF-8
 
 import pandas as pd
@@ -20,6 +21,8 @@ def plot_data(jsonData):
     print graph_name
     boxSizes = jsonData['size']
     radiuses = jsonData['radius']
+    if 'diameter' in jsonData:
+        diameters = jsonData['diameter']
     name = jsonData['name']
 
     x = []
@@ -27,7 +30,11 @@ def plot_data(jsonData):
     for i in range(0, len(boxSizes)):
         if radiuses[i] == 0:
             continue
-        x.append(2 * radiuses[i])
+
+        if 'diameter' in jsonData:
+            x.append(diameters[i])
+        else:
+            x.append(radiuses[i] * 2)
         y.append(boxSizes[i])
         if boxSizes[i] == 1:
             break
@@ -57,32 +64,30 @@ def plot_data(jsonData):
     str2 = results2.summary().as_text()
     outstr = ""
 
-    px = np.linspace(0.5, 100, 10000)
-    fu = 1
-    fv = 2
-    fb = -np.log(fu + fv) / np.log(fu)
-    fa = np.log(vertices)
+    px = np.linspace(0.5, 1000, 10000)
+    fb = -np.log(5) / np.log(3)
+    fa = np.log(boxSizes[2] / (diameters[2]**fb))
 
     # show plot
     plt.plot(x, y, 'o', label=name)
 
     # plot carved lines
     # if name == "MEMB":
-    # plt.plot(px, (px**fb) * (np.exp(1)**fa), label="y=x^" + str(fb) + "*e^" + str(fa))
-    # plt.plot(px, (px**b) * (np.exp(1)**a), label="y=x^" + str(b) + "*e^" + str(a))
+    plt.plot(px, (px**fb) * (np.exp(1)**fa), label="y=x^(log5/log3)" + "*e^" + str(fa))
+    plt.plot(px, (px**b) * (np.exp(1)**a), label="y=x^" + str(b) + "*e^" + str(a))
     # plt.plot(px, (np.exp(1)**(b2 * px)) * (np.exp(1)**a2), label="y=e^(" + str(b2) + "x+" + str(a2) + ")")
 
     outstr += "y=x^" + str(b) + "*e^" + str(a) + "\n" + str1 + "\n\n"
     outstr += "y=e^(" + str(b2) + "x+" + str(a2) + ")" + "\n" + str2 + "\n\n"
     plt.xlim(xmin=0.5)
-    plt.xlim(xmax=100)
+    plt.xlim(xmax=1000)
     plt.ylim(ymin=1)
     plt.ylim(ymax=10000000)
     plt.xscale("log")
     plt.yscale("log")
     plt.legend(loc='best')
     plt.savefig(graph_name + "_" + name + ".png")
-    plt.close()
+    # plt.close()
     outf = open(graph_name + "_" + name + ".log", "w")
     outf.write(outstr)
     outf.close()
