@@ -234,7 +234,6 @@ TEST(gen_kronecker, random_trial) {
     pretty_print(g);
 
     V num_v = 1 << scale;
-    ASSERT_TRUE(g.num_vertices() == num_v);
 
     for (int i : make_irange(2)) {
       for (int j : make_irange(2)) {
@@ -245,7 +244,6 @@ TEST(gen_kronecker, random_trial) {
     size_t avg_deg = 16;
     G h(generate_kronecker(scale, avg_deg, mat));
     pretty_print(h);
-    ASSERT_TRUE(h.num_vertices() == num_v);
     ASSERT_TRUE(h.num_edges() <= avg_deg * num_v);
   }
 }
