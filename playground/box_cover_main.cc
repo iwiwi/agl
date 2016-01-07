@@ -68,9 +68,12 @@ int main(int argc, char** argv) {
   };
 
   // Extract maximal connected subgraph & Compress coordinates
-  G g_pre = easy_cui_init(argc, argv);
-  CHECK_MSG(FLAGS_force_undirected, "undirected only!!!");
-  unweighted_edge_list es = extract_maximal_connected(g_pre);
+  unweighted_edge_list es;
+  {
+    G g_pre = easy_cui_init(argc, argv);
+    CHECK_MSG(FLAGS_force_undirected, "undirected only!!!");
+    es = extract_maximal_connected(g_pre);
+  }
 
   G g(es);
   pretty_print(g);
@@ -173,7 +176,9 @@ int main(int argc, char** argv) {
     return 0;
   }
 
-  JLOG_INSERT_FILENAME("-rad." + to_string(FLAGS_rad_max) + "-");
+  string rad_str = to_string(FLAGS_rad_max);
+  while (rad_str.size() < 3) rad_str = "0" + rad_str;
+  JLOG_INSERT_FILENAME("-rad." + rad_str + "-");
   JLOG_INSERT_FILENAME("-" + graph_name);
   JLOG_INSERT_FILENAME(experiment_name);
 }

@@ -1,7 +1,7 @@
 #include "box_cover.h"
 
-double coverage(const G &g, const vector<V> &s, W rad,
-                vector<bool> &is_covered) {
+double naive_coverage(const G &g, const vector<V> &s, W rad,
+                      vector<bool> &is_covered) {
   vector<W> dist(g.num_vertices(), g.num_vertices());
   for (V start : s) {
     queue<pair<V, W>> que;
@@ -25,9 +25,17 @@ double coverage(const G &g, const vector<V> &s, W rad,
   return (double)cnt / g.num_vertices();
 }
 
-double coverage(const G &g, const vector<V> &s, W rad) {
+double naive_coverage(const G &g, const vector<V> &s, W rad) {
   vector<bool> dummy(g.num_vertices(), false);
-  return coverage(g, s, rad, dummy);
+  return naive_coverage(g, s, rad, dummy);
+}
+
+double coverage(const G &g, const vector<V> &s, W rad) {
+  coverage_manager c(g, rad, 1.0);
+  for (auto a : s) {
+    c.add(g, a);
+  }
+  return c.get_current_coverage();
 }
 
 vector<V> merge_and_purify(set<V> &parent, const vector<V> &sorted_vec,

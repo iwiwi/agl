@@ -49,6 +49,7 @@ class coverage_manager {
 vector<pair<W, V>> find_analytical_solution(const string &type, V u, V v,
                                             const G &g);
 
+double naive_coverage(const G &g, const vector<V> &s, W rad);
 double coverage(const G &g, const vector<V> &s, W rad);
 
 //
