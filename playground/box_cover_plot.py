@@ -20,11 +20,14 @@ def plot_data(jsonData):
     vertices = jsonData['graph_info'][0]['vertices']
     print graph_name
     boxSizes = jsonData['size']
-    radiuses = jsonData['radius']
+    if 'radius' in jsonData:
+        radiuses = jsonData['radius']
     if 'diameter' in jsonData:
         diameters = jsonData['diameter']
     name = jsonData['name']
 
+    if len(boxSizes) == 0:
+        return
     x = []
     y = []
     for i in range(0, len(boxSizes)):
@@ -38,7 +41,6 @@ def plot_data(jsonData):
         y.append(boxSizes[i])
         if boxSizes[i] == 1:
             break
-
     x = np.array(x)
     y = np.array(y)
     nsample = x.size
@@ -66,14 +68,17 @@ def plot_data(jsonData):
 
     px = np.linspace(0.5, 1000, 10000)
     fb = -np.log(5) / np.log(3)
-    fa = np.log(boxSizes[2] / (diameters[2]**fb))
+    if 'diameter' in jsonData:
+        fa = np.log(boxSizes[0] / (diameters[0]**fb))
+    else:
+        fa = np.log(boxSizes[0] / ((radiuses[0] * 2)**fb))
 
     # show plot
     plt.plot(x, y, 'o', label=name)
 
     # plot carved lines
     # if name == "MEMB":
-    plt.plot(px, (px**fb) * (np.exp(1)**fa), label="y=x^(log5/log3)" + "*e^" + str(fa))
+    plt.plot(px, (px**fb) * (np.exp(1)**fa), label="y=x^" + str(fb) + "*e^" + str(fa))
     plt.plot(px, (px**b) * (np.exp(1)**a), label="y=x^" + str(b) + "*e^" + str(a))
     # plt.plot(px, (np.exp(1)**(b2 * px)) * (np.exp(1)**a2), label="y=e^(" + str(b2) + "x+" + str(a2) + ")")
 
@@ -86,9 +91,9 @@ def plot_data(jsonData):
     plt.xscale("log")
     plt.yscale("log")
     plt.legend(loc='best')
-    plt.savefig(graph_name + "_" + name + ".png")
-    # plt.close()
-    outf = open(graph_name + "_" + name + ".log", "w")
+    plt.savefig(graph_name + "_" + str(vertices) + "_" + name + ".png")
+    plt.close()
+    outf = open(graph_name + "_" + str(vertices) + "_" + name + ".log", "w")
     outf.write(outstr)
     outf.close()
 
