@@ -480,7 +480,6 @@ void select_greedily(const G &g, const vector<vector<V>> &X, vector<V> &centers,
   vector<multimap<V, V>> T(k + 2);
   vector<V> k1(num_v);
   vector<V> k2(num_v);
-  vector<V> c(num_v);
   vector<bool> is_type1(num_v, false);
   vector<vector<V>> I(num_v);
   vector<bool> removed(num_v, false);
@@ -501,7 +500,6 @@ void select_greedily(const G &g, const vector<vector<V>> &X, vector<V> &centers,
   auto remove_covered_ranks = [&](V box) {
     while (covered_rank[last_element(box)]) {
       k1[box]--;
-      c[box]--;
       if (k1[box] == 0) {
         removed[box] = true;
         break;
@@ -526,7 +524,6 @@ void select_greedily(const G &g, const vector<vector<V>> &X, vector<V> &centers,
     if (centered[p]) continue;
     k1[p] = X[p].size();
     k2[p] = k - k1[p];
-    c[p] = 0;
     if (X[p].size() == (size_t)k) {
       que[0].push({last_element(p), p});
       is_type1[p] = false;
@@ -619,8 +616,6 @@ void select_greedily(const G &g, const vector<vector<V>> &X, vector<V> &centers,
           remove_multimap_pair(k2[box] + 1, box_pair);
           T[k2[box] + 2].insert(box_pair);
         }
-
-        c[box]++;
         k2[box]++;
       }
     }
@@ -643,7 +638,6 @@ void select_greedily(const G &g, const vector<vector<V>> &X, vector<V> &centers,
         if (!is_type1[box]) {  // Type0->
           assert(k2[box] + 1 == j);
           if (covered_rank[last_element(box)]) {
-            c[box]--;
             k2[box]--;
             it_j--;
           }
