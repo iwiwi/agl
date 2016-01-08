@@ -482,7 +482,7 @@ void select_greedily(const G &g, const vector<vector<V>> &X, vector<V> &centers,
   vector<V> k2(num_v);
   vector<V> c(num_v);
   vector<bool> is_type1(num_v, false);
-  vector<set<V>> I(num_v);
+  vector<vector<V>> I(num_v);
   vector<bool> removed(num_v, false);
   vector<bool> covered_rank(num_v, false);
 
@@ -538,7 +538,7 @@ void select_greedily(const G &g, const vector<vector<V>> &X, vector<V> &centers,
       T[k2[p]].insert({last_element(p), p});
     }
     for (V ri : X[p]) {
-      I[ri].insert(p);
+      I[ri].push_back(p);
     }
   }
 
