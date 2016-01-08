@@ -458,10 +458,10 @@ vector<vector<V>> build_sketch(const G &g, const W radius, const int k,
     }
   }
 
-  vector<vector<V>> ret;
+  vector<vector<V>> ret(num_v);
   for (V v = 0; v < num_v; ++v) {
     vector<V> sketch(X[v].begin(), X[v].end());
-    ret.push_back(sketch);
+    ret[v] = sketch;
   }
 
   return ret;
@@ -547,7 +547,7 @@ void select_greedily(const G &g, const vector<vector<V>> &X, vector<V> &centers,
   //
   // Main loop
   //
-  while ((Xs.size() == k ? *Xs.rbegin() : num_v) > k - 1) {
+  while ((Xs.size() == (size_t)k ? *Xs.rbegin() : num_v) > k - 1) {
     // Selection
     V select = -1;
     V argmin = num_v + 1;
@@ -573,7 +573,7 @@ void select_greedily(const G &g, const vector<vector<V>> &X, vector<V> &centers,
 
       set<V> tmp(Xs);
       merge_and_purify(tmp, X[v], k);
-      V ec_tmp = tmp.size() == k ? *tmp.rbegin() : num_v;
+      V ec_tmp = tmp.size() == (size_t)k ? *tmp.rbegin() : num_v;
       if (argmin > ec_tmp || (argmin == ec_tmp && v < select)) {
         argmin = ec_tmp;
         select = v;
@@ -776,7 +776,7 @@ vector<pair<W, V>> find_analytical_solution(const string &type, V u, V v,
       nodes.push_back(N);
       diameters.push_back(d);
     }
-    assert(N == g.num_vertices() && M == g.num_edges() / 2);
+    assert(N == g.num_vertices() && M == (V)g.num_edges() / 2);
 
     int n = edges.size();
     vector<pair<W, V>> ret;
@@ -804,7 +804,7 @@ vector<pair<W, V>> find_analytical_solution(const string &type, V u, V v,
       nodes.push_back(N);
       diameters.push_back(d);
     }
-    assert(N == g.num_vertices() && M == g.num_edges() / 2);
+    assert(N == g.num_vertices() && M == (V)g.num_edges() / 2);
     int n = edges.size();
     vector<pair<W, V>> ret;
     for (int m = 1; m <= n; ++m) {
