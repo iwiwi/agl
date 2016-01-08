@@ -478,10 +478,10 @@ void select_greedily(const G &g, const vector<vector<V>> &X, vector<V> &centers,
   set<V> Xs;
   priority_queue<pair<V, V>, vector<pair<V, V>>, greater<pair<V, V>>> que[2];
   vector<multimap<V, V>> T(k + 2);
-  vector<V> k1 = vector<V>(num_v);
-  vector<V> k2 = vector<V>(num_v);
-  vector<V> c = vector<V>(num_v);
-  vector<int> type(num_v, 0);
+  vector<V> k1(num_v);
+  vector<V> k2(num_v);
+  vector<V> c(num_v);
+  vector<bool> is_type1(num_v, false);
   vector<set<V>> I(num_v);
   vector<bool> removed(num_v, false);
   vector<bool> covered_rank(num_v, false);
@@ -489,11 +489,11 @@ void select_greedily(const G &g, const vector<vector<V>> &X, vector<V> &centers,
   auto last_element = [&](V box) -> V { return X[box][k1[box] - 1]; };
   auto insert_as_type = [&](V box, int target_type) {
     if (target_type == 0) {
-      type[box] = 0;
+      is_type1[box] = false;
       T[k2[box] + 1].insert({last_element(box), box});
       que[0].push({last_element(box), box});
     } else {
-      type[box] = 1;
+      is_type1[box] = true;
       T[k2[box]].insert({last_element(box), box});
       que[1].push({k2[box], box});
     }
@@ -529,12 +529,12 @@ void select_greedily(const G &g, const vector<vector<V>> &X, vector<V> &centers,
     c[p] = 0;
     if (X[p].size() == (size_t)k) {
       que[0].push({last_element(p), p});
-      type[p] = 0;
+      is_type1[p] = false;
       T[k2[p] + 1].insert({last_element(p), p});
     } else {
       que[0].push({num_v, p});
       que[1].push({k2[p], p});
-      type[p] = 1;
+      is_type1[p] = true;
       T[k2[p]].insert({last_element(p), p});
     }
     for (V ri : X[p]) {
@@ -557,7 +557,7 @@ void select_greedily(const G &g, const vector<vector<V>> &X, vector<V> &centers,
 
         if (top_key == num_v && Xs.size() < (size_t)k && !centered[top_v]) {
           break;  // Fit to Naive Method
-        } else if (removed[top_v] || q != type[top_v]) {
+        } else if (removed[top_v] || q != is_type1[top_v]) {
           que[q].pop();
           continue;
         } else if (q == 1 && k2[top_v] != top_key) {
@@ -601,10 +601,10 @@ void select_greedily(const G &g, const vector<vector<V>> &X, vector<V> &centers,
         if (removed[box]) continue;
         pair<V, V> box_pair = {last_element(box), box};
 
-        // When the subbox is Type 1 and its last element is covered,
-        // it has to be Type2
+        // When the subbox is Type0 and its last element is covered,
+        // it has to be Type1
 
-        if (type[box] == 1) {
+        if (is_type1[box]) {
           remove_multimap_pair(k2[box], box_pair);
           T[k2[box] + 1].insert(box_pair);
           que[1].push({k2[box] + 1, box});
@@ -612,7 +612,7 @@ void select_greedily(const G &g, const vector<vector<V>> &X, vector<V> &centers,
           remove_multimap_pair(k2[box] + 1, box_pair);
           remove_covered_ranks(box);
           if (removed[box]) continue;
-          type[box] = 1;
+          is_type1[box] = true;
           if (k2[box] + 1 <= k) T[k2[box] + 1].insert({last_element(box), box});
           que[1].push({k2[box] + 1, box});
         } else {
@@ -640,7 +640,7 @@ void select_greedily(const G &g, const vector<vector<V>> &X, vector<V> &centers,
         // always last_blue[box] >= jth_rank
         removing.push_back({last_element(box), box});
         if (removed[box]) continue;
-        if (type[box] == 0) {  // Type1->
+        if (!is_type1[box]) {  // Type0->
           assert(k2[box] + 1 == j);
           if (covered_rank[last_element(box)]) {
             c[box]--;
@@ -657,9 +657,9 @@ void select_greedily(const G &g, const vector<vector<V>> &X, vector<V> &centers,
 
         remove_covered_ranks(box);
         if (removed[box]) continue;
-        if (last_element(box) > *it_j) {  // Type1->Type1
+        if (last_element(box) > *it_j) {  // Type0->Type0
           insert_as_type(box, 0);
-        } else {  // Type1->Type2
+        } else {  // Type0->Type1
           insert_as_type(box, 1);
         }
       }
