@@ -6,9 +6,11 @@
 #include <cstdlib>
 #include <memory>
 #include <cxxabi.h>
+#endif
 
 namespace agl {
-std::string demangle_typename(const char* name) {
+#ifdef __GNUG__
+  std::string demangle_typename(const char* name) {
   int status = -4;
   std::unique_ptr<char, void (*)(void*)> res {
     abi::__cxa_demangle(name, NULL, NULL, &status), std::free };

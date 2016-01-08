@@ -1,0 +1,163 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="ソース ファイル">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="ソース ファイル\base">
+      <UniqueIdentifier>{85b5e37a-c3ed-45c8-bcf6-83a535a5715c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\3rd_party">
+      <UniqueIdentifier>{bef99b3e-fb6f-4032-9a08-b1eb80ede0e0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\graph">
+      <UniqueIdentifier>{296dd387-0dfa-4d2a-b37f-32273c1068e6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\3rd_party\gflags">
+      <UniqueIdentifier>{39ed70db-4528-40e8-8401-2a235333c9b7}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\src\base\base.h">
+      <Filter>ソース ファイル\base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\base\data_structures.h">
+      <Filter>ソース ファイル\base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\base\functions.h">
+      <Filter>ソース ファイル\base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\base\geometry2d.h">
+      <Filter>ソース ファイル\base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\base\hash.h">
+      <Filter>ソース ファイル\base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\base\io.h">
+      <Filter>ソース ファイル\base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\base\irange.h">
+      <Filter>ソース ファイル\base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\base\jlog.h">
+      <Filter>ソース ファイル\base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\base\macros.h">
+      <Filter>ソース ファイル\base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\base\random.h">
+      <Filter>ソース ファイル\base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\base\type.h">
+      <Filter>ソース ファイル\base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\graph\basic_graph.h">
+      <Filter>ソース ファイル\graph</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\graph\built_in_data.h">
+      <Filter>ソース ファイル\graph</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\graph\built_in_data_inc.h">
+      <Filter>ソース ファイル\graph</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\graph\direction.h">
+      <Filter>ソース ファイル\graph</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\graph\dynamic_index_evaluation.h">
+      <Filter>ソース ファイル\graph</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\graph\edge_type.h">
+      <Filter>ソース ファイル\graph</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\graph\generator.h">
+      <Filter>ソース ファイル\graph</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\graph\graph.h">
+      <Filter>ソース ファイル\graph</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\graph\graph_index_interface.h">
+      <Filter>ソース ファイル\graph</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\graph\io.h">
+      <Filter>ソース ファイル\graph</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\graph\unweighted_graph.h">
+      <Filter>ソース ファイル\graph</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\graph\weighted_graph.h">
+      <Filter>ソース ファイル\graph</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\graph\weight_type.h">
+      <Filter>ソース ファイル\graph</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\agl.h">
+      <Filter>ソース ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\easy_cui.h">
+      <Filter>ソース ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="..\3rd_party\gflags\util.h">
+      <Filter>ソース ファイル\3rd_party\gflags</Filter>
+    </ClInclude>
+    <ClInclude Include="..\3rd_party\gflags\windows_port.h">
+      <Filter>ソース ファイル\3rd_party\gflags</Filter>
+    </ClInclude>
+    <ClInclude Include="..\3rd_party\gflags\config.h">
+      <Filter>ソース ファイル\3rd_party\gflags</Filter>
+    </ClInclude>
+    <ClInclude Include="..\3rd_party\gflags\gflags.h">
+      <Filter>ソース ファイル\3rd_party\gflags</Filter>
+    </ClInclude>
+    <ClInclude Include="..\3rd_party\gflags\gflags_completions.h">
+      <Filter>ソース ファイル\3rd_party\gflags</Filter>
+    </ClInclude>
+    <ClInclude Include="..\3rd_party\gflags\gflags_declare.h">
+      <Filter>ソース ファイル\3rd_party\gflags</Filter>
+    </ClInclude>
+    <ClInclude Include="..\3rd_party\gflags\gflags_gflags.h">
+      <Filter>ソース ファイル\3rd_party\gflags</Filter>
+    </ClInclude>
+    <ClInclude Include="..\3rd_party\gflags\mutex.h">
+      <Filter>ソース ファイル\3rd_party\gflags</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\src\base\functions.cc">
+      <Filter>ソース ファイル\base</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\base\jlog.cc">
+      <Filter>ソース ファイル\base</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\base\random.cc">
+      <Filter>ソース ファイル\base</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\base\type.cc">
+      <Filter>ソース ファイル\base</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\graph\built_in_data.cc">
+      <Filter>ソース ファイル\graph</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\graph\generator.cc">
+      <Filter>ソース ファイル\graph</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\graph\io.cc">
+      <Filter>ソース ファイル\graph</Filter>
+    </ClCompile>
+    <ClCompile Include="main.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="..\3rd_party\gflags\windows_port.cc">
+      <Filter>ソース ファイル\3rd_party\gflags</Filter>
+    </ClCompile>
+    <ClCompile Include="..\3rd_party\gflags\gflags.cc">
+      <Filter>ソース ファイル\3rd_party\gflags</Filter>
+    </ClCompile>
+    <ClCompile Include="..\3rd_party\gflags\gflags_completions.cc">
+      <Filter>ソース ファイル\3rd_party\gflags</Filter>
+    </ClCompile>
+    <ClCompile Include="..\3rd_party\gflags\gflags_reporting.cc">
+      <Filter>ソース ファイル\3rd_party\gflags</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>

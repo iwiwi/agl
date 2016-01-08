@@ -70,13 +70,13 @@
 #  include <stdint.h>                   // the normal place uint32_t is defined
 #elif 1
 #  include <sys/types.h>                // the normal place u_int32_t is defined
-#elif 1
+#elif 0
 #  include <inttypes.h>                 // a third place for uint32_t or u_int32_t
 #endif
 
 namespace GFLAGS_NAMESPACE {
 
-#if 1 // C99
+#if 0 // C99
 typedef int32_t          int32;
 typedef uint32_t         uint32;
 typedef int64_t          int64;
@@ -86,7 +86,7 @@ typedef int32_t          int32;
 typedef u_int32_t        uint32;
 typedef int64_t          int64;
 typedef u_int64_t        uint64;
-#elif 0 // Windows
+#elif 1 // Windows
 typedef __int32          int32;
 typedef unsigned __int32 uint32;
 typedef __int64          int64;

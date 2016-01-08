@@ -27,6 +27,9 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+#ifdef _WIN32
+#include <Windows.h>
+#endif
 #include "jlog.h"
 
 std::string FLAGS_jlog_out = "./jlog";
@@ -42,12 +45,33 @@ struct null_streambuf : public std::streambuf {
 null_streambuf ns;
 std::ostream jlog::null_ostream(&ns);
 
+#ifdef _WIN32
+double get_current_time_sec() {
+	LARGE_INTEGER start_pc, end_pc, freq_pc;
+	double sec_pc;
+
+	QueryPerformanceFrequency(&freq_pc);
+	QueryPerformanceCounter(&start_pc);
+
+	/* èàóù */
+
+	QueryPerformanceCounter(&end_pc);
+	sec_pc = (end_pc.QuadPart - start_pc.QuadPart) / (double)freq_pc.QuadPart;
+	return sec_pc;
+}
+#else
 double get_current_time_sec() {
   struct timeval tv;
   gettimeofday(&tv, NULL);
   return tv.tv_sec + tv.tv_usec * 1e-6;
 }
+#endif
 
+#ifdef _WIN32
+long get_memory_usage() {
+	return 0;
+}
+#else
 long get_memory_usage() {
   //  http://stackoverflow.com/questions/669438/how-to-get-memory-usage-at-run-time-in-c
 
@@ -75,6 +99,7 @@ long get_memory_usage() {
   return resident_set;
   // return vm_usage;
 }
+#endif
 }
 
 void JLOG_INIT(int *argc, char **argv) {

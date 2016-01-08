@@ -32,9 +32,6 @@
 
 #include <stdarg.h>
 #include <time.h>
-#include <sys/time.h>
-#include <sys/utsname.h>
-#include <sys/resource.h>
 #include <iostream>
 #include <iomanip>
 #include <sstream>
@@ -46,7 +43,6 @@
 #include <cstdlib>
 #include <stdint.h>
 #include <vector>
-#include <unistd.h>
 
 extern std::string FLAGS_jlog_out;
 extern bool FLAGS_jlog_suppress_log;
@@ -186,46 +182,62 @@ class jlog {
     const char *slash = strrchr(argv[0], '/');
     instance_.program_name_ = slash ? slash + 1 : argv[0];
 
-    struct utsname u;
+#ifndef _WIN32
+	struct utsname u;
     if (0 != uname(&u)) {
       *u.nodename = '\0';
     }
+#endif
 
-    time_t timestamp = time(NULL);
-    struct ::tm tm_time;
-    localtime_r(&timestamp, &tm_time);
+	time_t timestamp = time(NULL);
+	struct ::tm tm_time;
+#ifdef _WIN32
+	localtime_s(&tm_time, &timestamp);
+#else
+	localtime_r(&timestamp, &tm_time);
+#endif
 
     std::ostringstream os;
     os.fill('0');
-    os << instance_.program_name_ << "."
-       << u.nodename << "."
-       // << getenv("USER") << "."
-       << "jlog."
-       << std::setw(2) << (1900 + tm_time.tm_year) % 100
-       << std::setw(2) << 1+tm_time.tm_mon
-       << std::setw(2) << tm_time.tm_mday
-       << '-'
-       << std::setw(2) << tm_time.tm_hour
-       << std::setw(2) << tm_time.tm_min
-       << std::setw(2) << tm_time.tm_sec
-       << '.'
+	os << instance_.program_name_ << "."
+#ifndef _WIN32
+		<< u.nodename << "."
+#endif
+		// << getenv("USER") << "."
+		<< "jlog."
+		<< std::setw(2) << (1900 + tm_time.tm_year) % 100
+		<< std::setw(2) << 1 + tm_time.tm_mon
+		<< std::setw(2) << tm_time.tm_mday
+		<< '-'
+		<< std::setw(2) << tm_time.tm_hour
+		<< std::setw(2) << tm_time.tm_min
+		<< std::setw(2) << tm_time.tm_sec
+		<< '.'
+#ifdef _WIN32
+		;
+#else
        << getpid();
+#endif
 
     instance_.filename_ = os.str();
-    LOG() << "JLOG: " << instance_.filename_ << std::endl;
+	LOG() << "JLOG: " << instance_.filename_ << std::endl;
 
     jlog_put("run.program", instance_.program_name_, true);
     for (int i = 0; i < argc; ++i) {
       jlog_add("run.args", argv[i], true);
     }
+#ifndef _WIN32
     jlog_put("run.machine", u.nodename, true);
+#endif
     {
       char buf[256];
       strftime(buf, sizeof(buf), "%Y/%m/%d %H:%M:%S", &tm_time);
       jlog_put("run.date", buf, true);
     }
+#ifndef _WIN32
     jlog_put("run.user", getenv("USER"), true);
     jlog_put("run.pid", getpid(), true);
+#endif
 
     instance_.start_time_ = get_current_time_sec();
   }
@@ -237,8 +249,11 @@ class jlog {
     }
     time_t timestamp = time(NULL);
     struct ::tm tm_time;
+#ifdef _WIN32
+	localtime_s(&tm_time, &timestamp);
+#else
     localtime_r(&timestamp, &tm_time);
-
+#endif
     std::cerr.fill('0');
     std::cerr
         << '['
@@ -278,13 +293,14 @@ class jlog {
 
       std::ostringstream os;
       std::string linkname = FLAGS_jlog_out + "/" + std::string(program_name_);
-
+#ifndef _WIN32
       if (0 != system(("rm -rf " + linkname).c_str())) {
         perror("rm");
       }
       if (0 != symlink(filename_.c_str(), linkname.c_str())) {
         perror("symlink");
       }
+#endif
     }
   }
 
@@ -309,7 +325,7 @@ class jlog {
     return *jn;
   }
 
-  json_parent root_;
+  jlog_internal::json_parent root_;
   json_node *current_;
   bool already_warned_;
   bool nested_glog_flag_;

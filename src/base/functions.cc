@@ -1,12 +1,13 @@
 #include "macros.h"
 #include "functions.h"
 
+#ifdef _WIN32
+#include <Windows.h>
+#endif
+
 #include <thread>
 #include <future>
 #include <chrono>
-#include <sys/time.h>
-#include <sys/utsname.h>
-#include <unistd.h>
 using namespace std;
 
 namespace agl {
@@ -33,11 +34,27 @@ string strip(const string &s) {
   return s.substr(i, j - i);
 }
 
+#ifdef _WIN32
 double get_current_time_sec() {
-  struct timeval tv;
-  gettimeofday(&tv, NULL);
-  return tv.tv_sec + tv.tv_usec * 1e-6;
+	LARGE_INTEGER start_pc, end_pc, freq_pc;
+	double sec_pc;
+
+	QueryPerformanceFrequency(&freq_pc);
+	QueryPerformanceCounter(&start_pc);
+
+	/* èàóù */
+
+	QueryPerformanceCounter(&end_pc);
+	sec_pc = (end_pc.QuadPart - start_pc.QuadPart) / (double)freq_pc.QuadPart;
+	return sec_pc;
 }
+#else
+double get_current_time_sec() {
+	struct timeval tv;
+	gettimeofday(&tv, NULL);
+	return tv.tv_sec + tv.tv_usec * 1e-6;
+}
+#endif
 
 void execute_within_time_limit_or_die(double time_limit_sec,
                                       std::function<void()> task,

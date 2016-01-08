@@ -6,7 +6,7 @@
 // System checks
 
 // Define if you build this library for a MS Windows OS.
-/* #undef OS_WINDOWS */
+#define OS_WINDOWS
 
 // Define if you have the <stdint.h> header file.
 #define HAVE_STDINT_H
@@ -15,31 +15,31 @@
 #define HAVE_SYS_TYPES_H
 
 // Define if you have the <inttypes.h> header file.
-#define HAVE_INTTYPES_H
+/* #undef HAVE_INTTYPES_H */
 
 // Define if you have the <sys/stat.h> header file.
 #define HAVE_SYS_STAT_H
 
 // Define if you have the <unistd.h> header file.
-#define HAVE_UNISTD_H
+/* #undef HAVE_UNISTD_H */
 
 // Define if you have the <fnmatch.h> header file.
-#define HAVE_FNMATCH_H
+/* #undef HAVE_FNMATCH_H */
 
 // Define if you have the <shlwapi.h> header file (Windows 2000/XP).
 /* #undef HAVE_SHLWAPI_H */
 
 // Define if you have the strtoll function.
-#define HAVE_STRTOLL
+/* #undef HAVE_STRTOLL */
 
 // Define if you have the strtoq function.
 /* #undef HAVE_STRTOQ */
 
 // Define if you have the <pthread.h> header file.
-#define HAVE_PTHREAD
+/* #undef HAVE_PTHREAD */
 
 // Define if your pthread library defines the type pthread_rwlock_t
-#define HAVE_RWLOCK
+/* #undef HAVE_RWLOCK */
 
 // gcc requires this to get PRId64, etc.
 #if defined(HAVE_INTTYPES_H) && !defined(__STDC_FORMAT_MACROS)

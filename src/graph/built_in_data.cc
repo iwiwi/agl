@@ -18,7 +18,7 @@ namespace agl {
 
 #define MATCH_AND_RETURN(id) \
     do { \
-      if (strcasecmp(name, #id) == 0) {  \
+      if (_stricmp(name, #id) == 0) {  \
         return array_to_edge_list(id, sizeof(id) / sizeof(id[0]));  \
       }  \
     } while (false);
