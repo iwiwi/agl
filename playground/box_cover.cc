@@ -424,19 +424,19 @@ vector<vector<V>> build_sketch(const G &g, const W radius, const int k,
                                const vector<bool> &is_covered) {
   V num_v = g.num_vertices();
   vector<set<V>> X(num_v);
-  vector<set<V>> previous_added(num_v);
+  vector<vector<V>> previous_added(num_v);
   //
   // Build-Sketches O((n+m)*rad)
   //
   for (V i = 0; i < num_v; ++i) {
     if (is_covered[i]) continue;
     X[i].insert(rank[i]);
-    previous_added[i].insert(i);
+    previous_added[i].push_back(i);
   }
 
   for (W d = 0; d < radius; ++d) {
     for (V v : inv) {
-      set<V> next;
+      vector<V> next;
       for (V a : previous_added[v])
         for (V neighbor : g.neighbors(a)) {
           // Merge & Purify
@@ -447,10 +447,10 @@ vector<vector<V>> build_sketch(const G &g, const W radius, const int k,
             if (max_rank <= rv) continue;
             X[neighbor].erase(max_rank);
             X[neighbor].insert(rv);
-            next.insert(neighbor);
+            next.push_back(neighbor);
           } else {
             X[neighbor].insert(rv);
-            next.insert(neighbor);
+            next.push_back(neighbor);
           }
         }
 
@@ -481,32 +481,31 @@ void select_greedily(const G &g, const vector<vector<V>> &X, vector<V> &centers,
   vector<V> k1 = vector<V>(num_v);
   vector<V> k2 = vector<V>(num_v);
   vector<V> c = vector<V>(num_v);
-  vector<V> last_blue(num_v);
   vector<int> type(num_v, 0);
   vector<set<V>> I(num_v);
   vector<bool> removed(num_v, false);
   vector<bool> covered_rank(num_v, false);
 
+  auto last_element = [&](V box) -> V { return X[box][k1[box] - 1]; };
   auto insert_as_type = [&](V box, int target_type) {
     if (target_type == 0) {
       type[box] = 0;
-      T[k2[box] + 1].insert({last_blue[box], box});
-      que[0].push({last_blue[box], box});
+      T[k2[box] + 1].insert({last_element(box), box});
+      que[0].push({last_element(box), box});
     } else {
       type[box] = 1;
-      T[k2[box]].insert({last_blue[box], box});
+      T[k2[box]].insert({last_element(box), box});
       que[1].push({k2[box], box});
     }
   };
   auto remove_covered_ranks = [&](V box) {
-    while (covered_rank[last_blue[box]]) {
+    while (covered_rank[last_element(box)]) {
       k1[box]--;
       c[box]--;
       if (k1[box] == 0) {
         removed[box] = true;
         break;
       }
-      last_blue[box] = X[box][k1[box] - 1];
     }
   };
   auto remove_multimap_pair = [&](V from, const pair<V, V> &p) {
@@ -528,16 +527,15 @@ void select_greedily(const G &g, const vector<vector<V>> &X, vector<V> &centers,
     k1[p] = X[p].size();
     k2[p] = k - k1[p];
     c[p] = 0;
-    last_blue[p] = X[p].back();
     if (X[p].size() == (size_t)k) {
-      que[0].push({last_blue[p], p});
+      que[0].push({last_element(p), p});
       type[p] = 0;
-      T[k2[p] + 1].insert({last_blue[p], p});
+      T[k2[p] + 1].insert({last_element(p), p});
     } else {
       que[0].push({num_v, p});
       que[1].push({k2[p], p});
       type[p] = 1;
-      T[k2[p]].insert({last_blue[p], p});
+      T[k2[p]].insert({last_element(p), p});
     }
     for (V ri : X[p]) {
       I[ri].insert(p);
@@ -589,7 +587,7 @@ void select_greedily(const G &g, const vector<vector<V>> &X, vector<V> &centers,
     centers.push_back(select);
     centered[select] = true;
     removed[select] = true;
-    remove_multimap_pair(k2[select], {last_blue[select], select});
+    remove_multimap_pair(k2[select], {last_element(select), select});
     cm.add(g, select);
     if (cm.is_covered()) return;
 
@@ -601,7 +599,7 @@ void select_greedily(const G &g, const vector<vector<V>> &X, vector<V> &centers,
       for (V box : I[rank_i]) {
         if (k2[box] + 1 >= k) removed[box] = true;
         if (removed[box]) continue;
-        pair<V, V> box_pair = {last_blue[box], box};
+        pair<V, V> box_pair = {last_element(box), box};
 
         // When the subbox is Type 1 and its last element is covered,
         // it has to be Type2
@@ -610,12 +608,12 @@ void select_greedily(const G &g, const vector<vector<V>> &X, vector<V> &centers,
           remove_multimap_pair(k2[box], box_pair);
           T[k2[box] + 1].insert(box_pair);
           que[1].push({k2[box] + 1, box});
-        } else if (rank_i == last_blue[box]) {
+        } else if (rank_i == last_element(box)) {
           remove_multimap_pair(k2[box] + 1, box_pair);
           remove_covered_ranks(box);
           if (removed[box]) continue;
           type[box] = 1;
-          if (k2[box] + 1 <= k) T[k2[box] + 1].insert({last_blue[box], box});
+          if (k2[box] + 1 <= k) T[k2[box] + 1].insert({last_element(box), box});
           que[1].push({k2[box] + 1, box});
         } else {
           remove_multimap_pair(k2[box] + 1, box_pair);
@@ -640,27 +638,26 @@ void select_greedily(const G &g, const vector<vector<V>> &X, vector<V> &centers,
 
         auto it_j = it_Xs;
         // always last_blue[box] >= jth_rank
-        removing.push_back({last_blue[box], box});
+        removing.push_back({last_element(box), box});
         if (removed[box]) continue;
         if (type[box] == 0) {  // Type1->
           assert(k2[box] + 1 == j);
-          k1[box]--;
-          k2[box]++;
-          if (covered_rank[last_blue[box]]) {
+          if (covered_rank[last_element(box)]) {
             c[box]--;
             k2[box]--;
             it_j--;
           }
+          k1[box]--;
+          k2[box]++;
           if (k1[box] == 0 || k2[box] >= k) {
             removed[box] = true;
             continue;
           }
-          last_blue[box] = X[box][k1[box] - 1];
         }
 
         remove_covered_ranks(box);
         if (removed[box]) continue;
-        if (last_blue[box] > *it_j) {  // Type1->Type1
+        if (last_element(box) > *it_j) {  // Type1->Type1
           insert_as_type(box, 0);
         } else {  // Type1->Type2
           insert_as_type(box, 1);
