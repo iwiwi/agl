@@ -3,11 +3,15 @@ import subprocess
 
 if __name__ == "__main__":
     sketch_ks = [128, 256, 512, 1024]
-    rad_maxs = [32, 64, 128]
+    rad_maxs = [512]
     pass_nums = [1, 100]
-    graph_names = ["'flower 1000 2 2'", "'flower 2000 2 2'", "'flower 4000 2 2'", "'flower 8000 2 2'", "'flower 16000 2 2'", "'flower 32000 2 2'", "'flower 64000 2 2'",  "'flower 128000 2 2'",
-                   "'flower 1000 1 2'", "'flower 2000 1 2'", "'flower 4000 1 2'", "'flower 8000 1 2'", "'flower 16000 1 2'", "'flower 32000 1 2'", "'flower 64000 1 2'",  "'flower 128000 1 2'",
-                   "'shm 1000 5 2'", "'shm 2000 5 2'", "'shm 4000 5 2'", "'shm 8000 5 2'", "'shm 16000 5 2'", "'shm 32000 5 2'", "'shm 64000 5 2'",  "'shm 128000 5 2'"
+    graph_names = ["'flower 10924 2 2'", "'flower 43692 2 2'", "'flower 174764 2 2'", "'flower 699052 2 2'",
+                   "'flower 58595 2 3'", "'flower 292970 2 3'", "'flower 1464845 2 3'", "'flower 7324220 2 3'",
+                   "'flower 37326 2 4'", "'flower 223950 2 4'", "'flower 1343694 2 4'", "'flower 8062158 2 4'",
+                   "'flower 37326 3 3'", "'flower 223950 3 3'", "'flower 1343694 3 3'", "'flower 8062158 3 3'",
+                   "'flower 14007 3 4'", "'flower 98042 3 4'", "'flower 686287 3 4'", "'flower 4804002 3 4'",
+                   "'shm 12501 5 2'", "'shm 62501 5 2'", "'shm 312501 5 2'", "'shm 1562501 5 2'", "'shm 7812501 5 2'",
+                   "'shm 15626 6 2'", "'shm 78126 6 2'", "'shm 390626 6 2'", "'shm 1953126 6 2'", "'shm 9765626 6 2'"
                    ]
     for sketch_k in sketch_ks:
         for rad_max in rad_maxs:
@@ -45,3 +49,16 @@ if __name__ == "__main__":
             p2 = subprocess.Popen(["qsub", "-l", "walltime=240:00:00", "-N", job_name], stdin=p1.stdout)
             p1.stdout.close()
             output = p2.communicate()[0]
+    # Analytical
+    for graph_name in graph_names:
+        command = "/home/kenkoooo/fractal-dimension/agl/bin/box_cover --force_undirected --type gen"
+        command = command + " --graph " + graph_name
+        command = command + " --method " + "analytical"
+        # method_name = "memb"
+        # command = command + " --method " + method_name
+        # job_name = method_name + "-" + graph_name.replace("'", "").replace(" ", "-")
+        job_name = "analytical-" + graph_name.replace("'", "").replace(" ", "-")
+        p1 = subprocess.Popen(["echo", command], stdout=subprocess.PIPE)
+        p2 = subprocess.Popen(["qsub", "-l", "walltime=240:00:00", "-N", job_name], stdin=p1.stdout)
+        p1.stdout.close()
+        output = p2.communicate()[0]

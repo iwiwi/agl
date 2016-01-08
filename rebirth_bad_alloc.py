@@ -4,10 +4,8 @@ import sys
 import re
 import json
 
-if __name__ == '__main__':
-    log = open(sys.argv[1], 'r')
-    lines = log.readlines()
-    log.close()
+
+def data_mining(lines):
     p = re.compile('^\[[0-9 :]*\] ')
     prefix = re.compile('^.* = ')
     suffix = re.compile(' = .*$')
@@ -33,9 +31,21 @@ if __name__ == '__main__':
                 data['graph_info'][0][key] = int(value)
             elif key == 'graph':
                 data['graph_info'][0][key] = value.split(" ")[0]
-                data_name = value
+                data_name = value.replace(" ", "-")
     if len(data['radius']) == 0:
         del data['radius']
     if len(data['diameters']) == 0:
         del data['diameters']
-    print json.dumps(data, sort_keys=True, indent=4)
+    json_str = json.dumps(data, sort_keys=True, indent=4)
+    filename = data['name'] + "-" + data_name + "-rebirth.json"
+    f = open(filename, "w")
+    f.write(json_str)
+    f.close()
+
+
+if __name__ == '__main__':
+    for a in range(1, len(sys.argv)):
+        log = open(sys.argv[a], 'r')
+        lines = log.readlines()
+        log.close()
+        data_mining(lines)
