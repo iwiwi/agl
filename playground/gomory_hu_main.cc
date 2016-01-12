@@ -136,69 +136,65 @@ class dinic {
   };
 
   bool two_sided_bfs(int s, int t) {
-    for (auto& p : level) p.first = p.second = -1;
-
     queue<int> qs, qt;
     qs.push(s); qt.push(t);
     level[s].first = level[t].second = 0;
+    bfs_revision[s] = s_side_bfs_revision;
+    bfs_revision[t] = t_side_bfs_revision;
 
-    bool path_found = false;
-    for (int cur_level = 0; !path_found && sz(qs) != 0 && sz(qt) != 0 ; cur_level++) {
-      {
+    int slevel = 0, tlevel = 0;
+    while(sz(qs) != 0 && sz(qt) != 0) {
+      if (sz(qs) < sz(qt)) {
         int size = sz(qs);
         FOR(_, size) {
           const int v = qs.front(); qs.pop();
           for (auto t : e[v]) {
-            if (t.cap == 0) continue;
-            int& nlev = level[t.to].first;
-            if (nlev != -1) continue;
-            int& opplev = level[t.to].second;
-            if (opplev == -1) {
-              nlev = cur_level + 1;
-              qs.push(t.to);
-            } else {
-              path_found = true;
-              break;
+            if (t.cap == 0 || bfs_revision[t.to] == s_side_bfs_revision) continue;
+            if (bfs_revision[t.to] == t_side_bfs_revision) {
+              return true; // path was found.
             }
+            bfs_revision[t.to] = s_side_bfs_revision;
+            level[t.to].first = slevel + 1;
+            qs.push(t.to);
           }
         }
-      }
-      if (path_found) break;
-      {
+        slevel++;
+      } else {
         int size = sz(qt);
         FOR(_, size) {
           const int v = qt.front(); qt.pop();
           for (auto t : e[v]) {
-            if (e[t.to][t.rev].cap == 0) continue;
-            int& nlev = level[t.to].second;
-            if (nlev != -1) continue;
-            int& opplev = level[t.to].first;
-            if (opplev == -1) {
-              nlev = cur_level + 1;
-              qt.push(t.to);
-            } else {
-              path_found = true;
-              break;
+            if (e[t.to][t.rev].cap == 0 || bfs_revision[t.to] == t_side_bfs_revision) continue;
+            if (bfs_revision[t.to] == s_side_bfs_revision) {
+              return true; // path was found.
             }
+            bfs_revision[t.to] = t_side_bfs_revision;
+            level[t.to].second = tlevel + 1;
+            qt.push(t.to);
           }
         }
       }
+      tlevel++;
     }
-    return path_found;
+    return false;
   }
 
   int dfs(int v, int t,bool use_slevel, int f) {
     if (v == t) return f;
+    if (dfs_revision[v] != bfs_revision[v]) {
+      dfs_revision[v] = bfs_revision[v];
+      iter[v] = 0;
+    }
     for (int &i = iter[v]; i < sz(e[v]); i++) {
       E& _e = e[v][i];
-      if (_e.cap == 0) continue;
+      if (_e.cap == 0 || bfs_revision[_e.to] / 2 != s_side_bfs_revision / 2) continue;
       
       bool rec;
-      if (use_slevel) rec = level[v].first < level[_e.to].first || level[_e.to].first == -1 && level[_e.to].second != -1;
+      if (use_slevel) rec = bfs_revision[_e.to] == t_side_bfs_revision || level[v].first < level[_e.to].first;
       else rec = level[v].second > level[_e.to].second;
       if (!rec) continue;
 
-      bool next_slevel = use_slevel && level[v].first < level[_e.to].first;
+      bool next_slevel = use_slevel && bfs_revision[_e.to] == s_side_bfs_revision;
       int d = dfs(_e.to, t, next_slevel, min(f, _e.cap));
       if (d > 0) {
         _e.cap -= d;
@@ -211,7 +207,7 @@ class dinic {
 
 public:
   dinic(const int n)
-    : level(n), iter(n), e(n) {
+    : level(n), iter(n), bfs_revision(n), dfs_revision(n), e(n) {
   }
 
   void add_undirected_edge(int f, int t, int c) {
@@ -222,10 +218,10 @@ public:
   int max_flow(int s, int t) {
     assert(s != t);
     int flow = 0;
-    while (true) {
+    s_side_bfs_revision = 2; t_side_bfs_revision = 3;
+    for (; ; s_side_bfs_revision += 2, t_side_bfs_revision += 2) {
       bool path_found = two_sided_bfs(s, t);
       if (!path_found) return flow;
-      iter.assign(iter.size(), 0);
       int f;
       while ((f = dfs(s, t, true, numeric_limits<int>::max())) > 0) {
         flow += f;
@@ -235,7 +231,9 @@ public:
 
   vector<pair<int,int>> level;
   vector<int> iter;
+  vector<int> bfs_revision, dfs_revision;
   vector<vector<E>> e;
+  int s_side_bfs_revision, t_side_bfs_revision;
 };
 
 class Gomory_Hu {
