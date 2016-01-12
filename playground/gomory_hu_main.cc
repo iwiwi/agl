@@ -135,39 +135,51 @@ class dinic {
     E(int to, int rev, int cap) : to(to), rev(rev), cap(cap) {}
   };
 
-  bool two_sided_bfs(int s,int t) {
+  bool two_sided_bfs(int s, int t) {
     for (auto& p : level) p.first = p.second = -1;
-    min_length = numeric_limits<int>::max();
 
-    queue<pair<int,bool> > q;
-    level[s].first = 0;
-    q.emplace(s, true);
-    level[t].second = 0;
-    q.emplace(t, false);
+    queue<int> qs, qt;
+    qs.push(s); qt.push(t);
+    level[s].first = level[t].second = 0;
 
     bool path_found = false;
-    while (!q.empty()) {
-      int v; bool fromS; tie(v,fromS) = q.front(); q.pop();
-      const int cur_level = fromS ? level[v].first : level[v].second;
-      for (auto t : e[v]) {
-        if (fromS) {
-          if (t.cap == 0) continue;
-        } else {
-          if (e[t.to][t.rev].cap == 0) continue;
+    for (int cur_level = 0; !path_found && sz(qs) != 0 && sz(qt) != 0 ; cur_level++) {
+      {
+        int size = sz(qs);
+        FOR(_, size) {
+          const int v = qs.front(); qs.pop();
+          for (auto t : e[v]) {
+            if (t.cap == 0) continue;
+            int& nlev = level[t.to].first;
+            if (nlev != -1) continue;
+            int& opplev = level[t.to].second;
+            if (opplev == -1) {
+              nlev = cur_level + 1;
+              qs.push(t.to);
+            } else {
+              path_found = true;
+              break;
+            }
+          }
         }
-        int& nlevel = fromS ? level[t.to].first : level[t.to].second;
-        int& opplevel = fromS ? level[t.to].second : level[t.to].first;
-        if (nlevel != -1) continue;
-        nlevel = cur_level + 1;
-        if (opplevel == -1) {
-          q.emplace(t.to, fromS);
-        } else {
-          path_found = true;
-          int len = nlevel + opplevel;
-          if (len < min_length) {
-            min_length = len;
-          } else if (len > min_length) {
-            break;
+      }
+      if (path_found) break;
+      {
+        int size = sz(qt);
+        FOR(_, size) {
+          const int v = qt.front(); qt.pop();
+          for (auto t : e[v]) {
+            if (e[t.to][t.rev].cap == 0) continue;
+            int& nlev = level[t.to].second;
+            if (nlev != -1) continue;
+            int& opplev = level[t.to].first;
+            if (opplev == -1) {
+              nlev = cur_level + 1;
+              qt.push(t.to);
+            } else {
+              path_found = true;
+              break;
+            }
           }
         }
       }
@@ -182,11 +194,11 @@ class dinic {
       if (_e.cap == 0) continue;
       
       bool rec;
-      if (use_slevel) rec = level[v].first < level[_e.to].first;
+      if (use_slevel) rec = level[v].first < level[_e.to].first || level[_e.to].first == -1 && level[_e.to].second != -1;
       else rec = level[v].second > level[_e.to].second;
       if (!rec) continue;
 
-      bool next_slevel = use_slevel && level[_e.to].second == -1;
+      bool next_slevel = use_slevel && level[v].first < level[_e.to].first;
       int d = dfs(_e.to, t, next_slevel, min(f, _e.cap));
       if (d > 0) {
         _e.cap -= d;
@@ -224,7 +236,6 @@ public:
   vector<pair<int,int>> level;
   vector<int> iter;
   vector<vector<E>> e;
-  int min_length;
 };
 
 class Gomory_Hu {
