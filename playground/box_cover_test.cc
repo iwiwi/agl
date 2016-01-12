@@ -301,3 +301,52 @@ TEST(box_cover, solution_shm) {
     }
   }
 }
+
+TEST(box_cover, lazy_greedily) {
+  V u = 2, v = 2;
+  auto es = generate_uv_flower(10000, u, v);
+  G g(make_undirected(es));
+  vector<pair<W, V>> pairs = find_analytical_solution("flower", u, v, g);
+
+  vector<V> rank(g.num_vertices());
+  vector<V> inv(g.num_vertices());
+  for (V i = 0; i < g.num_vertices(); ++i) {
+    inv[i] = i;
+  }
+  random_shuffle(inv.begin(), inv.end());
+  for (int i = 0; i < g.num_vertices(); ++i) {
+    rank[inv[i]] = i;
+  }
+  cerr << g.num_vertices() << endl;
+  double timer = 0;
+  const int k = 1024;
+  for (auto p : pairs) {
+    W rad = p.first / 2;
+    cerr << rad << endl;
+
+    timer = -get_current_time_sec();
+    vector<bool> centered(g.num_vertices(), false);
+    auto X = build_sketch(g, rad, k, rank, inv, centered);
+    timer += get_current_time_sec();
+    cerr << timer << endl;
+    timer = -get_current_time_sec();
+    double cnt = 0.0;
+    for (auto x : X)
+      if (x.size() == k) cnt += 1.0;
+    cnt /= X.size();
+
+    coverage_manager cm(g, rad, 0.98);
+    vector<V> centers;
+    select_lazy_greedily(g, X, centers, centered, cm);
+    timer += get_current_time_sec();
+    cerr << cnt << endl;
+    cerr << centers.size() << " " << timer << endl;
+
+    timer = -get_current_time_sec();
+    auto memb = box_cover_memb(g, rad);
+    timer += get_current_time_sec();
+    cerr << memb.size() << " " << timer << endl;
+
+    cerr << p.second << endl;
+  }
+}

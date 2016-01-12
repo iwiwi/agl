@@ -1,5 +1,7 @@
 #include "box_cover.h"
 
+using namespace std;
+
 double naive_coverage(const G &g, const vector<V> &s, W rad,
                       vector<bool> &is_covered) {
   vector<W> dist(g.num_vertices(), g.num_vertices());
@@ -194,7 +196,7 @@ void burning_splitted(const G &g, W radius, set<V> &solution,
             continue;
           size_t cnt = 0;
           for (size_t ci = 0, cj = 0; ci < containd_box_list[i].size() &&
-                                          cj < containd_box_list[j].size();) {
+                                      cj < containd_box_list[j].size();) {
             if (containd_box_list[i][ci] == containd_box_list[j][cj]) {
               cnt++;
               ci++;
@@ -467,6 +469,44 @@ vector<vector<V>> build_sketch(const G &g, const W radius, const int k,
   return ret;
 }
 
+void select_lazy_greedily(const G &g, const vector<vector<V>> &X,
+                          vector<V> &centers, vector<bool> &centered,
+                          coverage_manager &cm) {
+  priority_queue<pair<V, V>> que;
+  vector<V> box_size(X.size());
+  for (size_t i = 0; i < X.size(); ++i) {
+    if (X[i].size() == 0 || centered[i]) continue;
+    box_size[i] = X[i].size();
+    que.push({box_size[i], i});
+  }
+
+  vector<vector<V>> inverted(X.size());
+  for (size_t box = 0; box < X.size(); ++box)
+    for (V v : X[box]) inverted[v].push_back(box);
+
+  while (!que.empty() && !cm.is_covered()) {
+    V s = que.top().first;
+    V v = que.top().second;
+    que.pop();
+    if (centered[v]) continue;
+    if (box_size[v] != s) {
+      que.push({box_size[v], v});
+      continue;
+    }
+
+    centers.push_back(v);
+    centered[v] = true;
+    cm.add(g, v);
+    if (cm.is_covered()) break;
+
+    for (auto u : X[v]) {
+      for (auto box : inverted[u]) {
+        box_size[box]--;
+      }
+    }
+  }
+}
+
 void select_greedily(const G &g, const vector<vector<V>> &X, vector<V> &centers,
                      vector<bool> &centered, const int k,
                      coverage_manager &cm) {
@@ -706,7 +746,8 @@ void naive_select_greedily(const G &g, const vector<vector<V>> &X,
 }
 
 vector<V> box_cover_sketch(const G &g, W radius, const int k,
-                           const int pass_num, double &aim_coverage) {
+                           const int pass_num, double &aim_coverage,
+                           double lazy) {
   assert(k > 0);
 
   const V num_v = g.num_vertices();
@@ -720,6 +761,8 @@ vector<V> box_cover_sketch(const G &g, W radius, const int k,
   for (V i = 0; i < num_v; ++i) {
     inv[i] = i;
   }
+
+  double timer = 0.0;
   for (int pass_trial = 0; pass_trial < pass_num; pass_trial++) {
     //
     // Build-Sketches O((n+m)*rad)
@@ -729,15 +772,34 @@ vector<V> box_cover_sketch(const G &g, W radius, const int k,
       rank[inv[i]] = i;
     }
 
+    timer = -get_current_time_sec();
     cerr << pass_trial << "-th building..." << endl;
     vector<vector<V>> X = build_sketch(g, radius, k, rank, inv, is_covered);
-    cerr << "built" << endl;
+    timer += get_current_time_sec();
+    cerr << timer << " sec built" << endl;
 
-    //
-    // Select-Greedily O(n^2*k)
-    cerr << pass_trial << "-th selecting..." << endl;
-    select_greedily(g, X, centers, centered, k, cm);
-    cerr << "selected" << endl;
+    V cnt_small = 0;
+    V cnt_all = 0;
+    for (size_t i = 0; i < X.size(); ++i) {
+      if ((int)X[i].size() < k) cnt_small++;
+      if (X[i].size() > 0) cnt_all++;
+    }
+    if (cnt_small / cnt_all > lazy) {
+      cerr << "Small box ratio: " << cnt_small << " / " << cnt_all << endl;
+
+      timer = -get_current_time_sec();
+      cerr << pass_trial << "-th lazy selecting..." << endl;
+      select_lazy_greedily(g, X, centers, centered, cm);
+      timer += get_current_time_sec();
+      cerr << timer << " sec lazy selected" << endl;
+    } else {
+      timer = -get_current_time_sec();
+      cerr << pass_trial << "-th selecting..." << endl;
+      select_greedily(g, X, centers, centered, k, cm);
+      timer += get_current_time_sec();
+      cerr << timer << " sec selected" << endl;
+    }
+
     if (cm.is_covered()) break;
   }
 
