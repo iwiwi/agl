@@ -4,15 +4,20 @@ import subprocess
 if __name__ == "__main__":
     sketch_ks = [128, 256, 512, 1024]
     rad_maxs = [512]
-    pass_nums = [1, 100]
-    graph_names = ["'flower 10924 2 2'", "'flower 43692 2 2'", "'flower 174764 2 2'", "'flower 699052 2 2'",
-                   "'flower 58595 2 3'", "'flower 292970 2 3'", "'flower 1464845 2 3'", "'flower 7324220 2 3'",
-                   "'flower 37326 2 4'", "'flower 223950 2 4'", "'flower 1343694 2 4'", "'flower 8062158 2 4'",
-                   "'flower 37326 3 3'", "'flower 223950 3 3'", "'flower 1343694 3 3'", "'flower 8062158 3 3'",
-                   "'flower 14007 3 4'", "'flower 98042 3 4'", "'flower 686287 3 4'", "'flower 4804002 3 4'",
-                   "'shm 12501 5 2'", "'shm 62501 5 2'", "'shm 312501 5 2'", "'shm 1562501 5 2'", "'shm 7812501 5 2'",
-                   "'shm 15626 6 2'", "'shm 78126 6 2'", "'shm 390626 6 2'", "'shm 1953126 6 2'", "'shm 9765626 6 2'"
-                   ]
+    pass_nums = [1, 200]
+    graph_names = [
+        "'flower 699052 2 2'", "'flower 292970 2 3'", "'flower 223950 2 4'",
+        "'flower 223950 3 3'",
+        "'flower 686287 3 4'",
+        "'shm 312501 5 2'",  "'shm 390626 6 2'"
+        # "'flower 10924 2 2'", "'flower 43692 2 2'", "'flower 174764 2 2'", "'flower 699052 2 2'",
+        # "'flower 58595 2 3'", "'flower 292970 2 3'", "'flower 1464845 2 3'", "'flower 7324220 2 3'",
+        # "'flower 37326 2 4'", "'flower 223950 2 4'", "'flower 1343694 2 4'", "'flower 8062158 2 4'",
+        # "'flower 37326 3 3'", "'flower 223950 3 3'", "'flower 1343694 3 3'", "'flower 8062158 3 3'",
+        # "'flower 14007 3 4'", "'flower 98042 3 4'", "'flower 686287 3 4'", "'flower 4804002 3 4'",
+        # "'shm 12501 5 2'", "'shm 62501 5 2'", "'shm 312501 5 2'", "'shm 1562501 5 2'", "'shm 7812501 5 2'",
+        # "'shm 15626 6 2'", "'shm 78126 6 2'", "'shm 390626 6 2'", "'shm 1953126 6 2'", "'shm 9765626 6 2'"
+    ]
     for sketch_k in sketch_ks:
         for rad_max in rad_maxs:
             for pass_num in pass_nums:

@@ -26,7 +26,8 @@ def plot_data(jsonData):
         diameters = jsonData['diameter']
     name = jsonData['name']
 
-    if len(boxSizes) == 0:
+    if len(boxSizes) <= 1:
+        print "very little"
         return
     x = []
     y = []
@@ -78,9 +79,12 @@ def plot_data(jsonData):
 
     # plot carved lines
     # if name == "MEMB":
-    plt.plot(px, (px**fb) * (np.exp(1)**fa), label="y=x^" + str(fb) + "*e^" + str(fa))
-    plt.plot(px, (px**b) * (np.exp(1)**a), label="y=x^" + str(b) + "*e^" + str(a))
-    # plt.plot(px, (np.exp(1)**(b2 * px)) * (np.exp(1)**a2), label="y=e^(" + str(b2) + "x+" + str(a2) + ")")
+    plt.plot(px, (px**fb) * (np.exp(1)**fa),
+             label="y=x^" + str(fb) + "*e^" + str(fa))
+    plt.plot(px, (px**b) * (np.exp(1)**a),
+             label="y=x^" + str(b) + "*e^" + str(a))
+    # plt.plot(px, (np.exp(1)**(b2 * px)) * (np.exp(1)**a2),
+    #          label="y=e^(" + str(b2) + "x+" + str(a2) + ")")
 
     outstr += "y=x^" + str(b) + "*e^" + str(a) + "\n" + str1 + "\n\n"
     outstr += "y=e^(" + str(b2) + "x+" + str(a2) + ")" + "\n" + str2 + "\n\n"
@@ -99,6 +103,7 @@ def plot_data(jsonData):
 
 if __name__ == '__main__':
     for ai in range(1, len(sys.argv)):
+        print sys.argv[ai]
         log = open(sys.argv[ai], 'r')
         json_data = json.load(log)
         log.close()
