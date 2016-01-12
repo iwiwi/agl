@@ -128,8 +128,9 @@ int main(int argc, char** argv) {
     for (W rad : rads) {
       vector<V> res;
       double coverage_bechmark = FLAGS_final_coverage;
-      JLOG_ADD_BENCHMARK("time") res = box_cover_sketch(
-          g, rad, FLAGS_sketch_k, FLAGS_pass, coverage_bechmark);
+      JLOG_ADD_BENCHMARK("time")
+      res = box_cover_sketch(g, rad, FLAGS_sketch_k, FLAGS_pass,
+                             coverage_bechmark, 0.98);
       JLOG_ADD("size", res.size());
       JLOG_ADD("radius", rad);
       JLOG_ADD("coverage", coverage_bechmark);
