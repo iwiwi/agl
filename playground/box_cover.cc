@@ -482,7 +482,7 @@ void select_lazy_greedily(const G &g, const vector<vector<V>> &X,
 
   vector<vector<V>> inverted(X.size());
   for (size_t box = 0; box < X.size(); ++box)
-    for (V v : X[box]) inverted[v].push_back(box);
+    for (V rank : X[box]) inverted[rank].push_back(box);
 
   while (!que.empty() && !cm.is_covered()) {
     V s = que.top().first;
@@ -499,8 +499,8 @@ void select_lazy_greedily(const G &g, const vector<vector<V>> &X,
     cm.add(g, v);
     if (cm.is_covered()) break;
 
-    for (auto u : X[v]) {
-      for (auto box : inverted[u]) {
+    for (auto rank : X[v]) {
+      for (auto box : inverted[rank]) {
         box_size[box]--;
       }
     }

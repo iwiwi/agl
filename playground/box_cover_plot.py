@@ -68,21 +68,31 @@ def plot_data(jsonData):
     outstr = ""
 
     px = np.linspace(0.5, 1000, 10000)
-    fb = -np.log(5) / np.log(3)
-    if 'diameter' in jsonData:
-        fa = np.log(boxSizes[0] / (diameters[0]**fb))
-    else:
-        fa = np.log(boxSizes[0] / ((radiuses[0] * 2)**fb))
+
+    # plot analytical line
+    if 'flower' in graph_name or 'shm' in graph_name:
+        m = re.match(
+            r"(?P<g>[a-z]+)\-(?P<vs>[0-9]+)\-(?P<u>[0-9]+)\-(?P<v>[0-9]+)", graph_name)
+        if 'flower' in graph_name:
+            fb = -np.log(int(m.group('u')) + int(m.group('v'))) / \
+                np.log(int(m.group('u')))
+        else:
+            fb = -np.log(2 * int(m.group('v')) + 1) / np.log(3)
+        n = int((len(boxSizes) - 1) / 2)
+        if 'diameter' in jsonData:
+            fa = np.log(boxSizes[n] / (diameters[n]**fb))
+        else:
+            fa = np.log(boxSizes[n] / ((radiuses[n] * 2)**fb))
+        plt.plot(px, (px**fb) * (np.exp(1)**fa),
+                 label="y=x^" + str(fb) + "*e^" + str(fa))
 
     # show plot
     plt.plot(x, y, 'o', label=name)
 
     # plot carved lines
     # if name == "MEMB":
-    plt.plot(px, (px**fb) * (np.exp(1)**fa),
-             label="y=x^" + str(fb) + "*e^" + str(fa))
-    plt.plot(px, (px**b) * (np.exp(1)**a),
-             label="y=x^" + str(b) + "*e^" + str(a))
+    # plt.plot(px, (px**b) * (np.exp(1)**a),
+    #          label="y=x^" + str(b) + "*e^" + str(a))
     # plt.plot(px, (np.exp(1)**(b2 * px)) * (np.exp(1)**a2),
     #          label="y=e^(" + str(b2) + "x+" + str(a2) + ")")
 
