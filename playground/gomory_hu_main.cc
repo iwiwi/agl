@@ -513,7 +513,7 @@ public:
     dinic_twosided dc_base(edges, num_vs);
 
     vector<int> degree(num_vertices_);
-    for(auto& e: edges) degree[e.first]++, degree[e.second]++;
+    for (auto& e : edges) degree[e.first]++, degree[e.second]++;
 
     vector<int> used(num_vertices_);
     FOR(s, num_vertices_) {
@@ -572,7 +572,6 @@ class ConnectedComponentsFilter {
 public:
   ConnectedComponentsFilter(const G& g) : n(g.num_vertices()), uf(n), local_indices(n), handlers_indices(n) {
 
-    vector<int> degree(n);
     FOR(v, n) for (auto e : g.edges(v)) {
       V u = to(e);
       uf.unite(u, v);
@@ -586,7 +585,7 @@ public:
 
     vector<bool> used(n);
     FOR(v, n) {
-      if (used[v]) continue;
+      if (uf.root(v) != v) continue;
       used[v] = true;
 
       const int num_vs = local_indices[uf.root(v)] + 1;
@@ -608,7 +607,7 @@ public:
         }
       }
 
-      fprintf(stderr, "root = %d, edge_size = %d\n", v, sz(edges));
+      fprintf(stderr, "root = %d num_vs = %d, edge_size = %d\n", v, num_vs, sz(edges));
       handlers.emplace_back(edges, num_vs);
     }
   }
@@ -627,7 +626,64 @@ private:
   vector<handler_t> handlers;
 };
 
-G to_directed_graph(G& g) {
+
+class OptimizedGusfield2 {
+public:
+  const int n;
+
+  OptimizedGusfield2(const G& g) : n(g.num_vertices()), uf(n) {
+    FOR(v, n) for (auto& e : g.edges(v)) {
+      uf.unite(v, to(e));
+    }
+
+    const int num_edges = g.num_edges();
+
+    vector<int> lowlink(n, -1), order(n, -1);
+    vector<pair<V, V>> bridge, biconnected_graphs_edges;
+
+    function<void(int, int, int&)> lowlink_dfs = [&](int v, int par, int& cur_ord) {
+      lowlink[v] = order[v] = cur_ord++;
+      FOR(dir, 2) for (auto to : g.edges(v, D(dir))) {
+        if (to == par) continue;
+        if (order[to] == -1) {
+          lowlink_dfs(to, v, cur_ord);
+          lowlink[v] = min(lowlink[v], lowlink[to]);
+          if (order[v] < lowlink[to]) bridge.emplace_back(v, to);
+          else biconnected_graphs_edges.emplace_back(v, to);
+        } else {
+          lowlink[v] = min(lowlink[v], lowlink[to]);
+          if (v < to) biconnected_graphs_edges.emplace_back(v, to);
+        }
+      }
+    };
+
+    FOR(v, n) if (uf.root(v) == v) {
+      int cur_ord = 0;
+      lowlink_dfs(v, -1, cur_ord);
+    }
+
+    CHECK(sz(bridge) + sz(biconnected_graphs_edges) == num_edges);
+
+    G new_g(biconnected_graphs_edges, n);
+    biconnected_graph_handler.reset(new ConnectedComponentsFilter<OptimizedGusfield>(new_g));
+  }
+
+public:
+  int query(V u, V v) {
+    int ans = biconnected_graph_handler->query(u, v);
+    if (ans == 0) {
+      if (uf.is_same(u, v)) return 1; // 橋で間接的につながっている
+      else return 0;
+    }
+    return ans;
+  }
+
+private:
+  union_find uf;
+  unique_ptr<ConnectedComponentsFilter<OptimizedGusfield>> biconnected_graph_handler;
+};
+
+G to_directed_graph(G g) {
   vector<pair<V, V>> ret;
   for (auto& e : g.edge_list()) {
     if (e.first < to(e.second)) ret.emplace_back(e.first, to(e.second));
@@ -636,26 +692,21 @@ G to_directed_graph(G& g) {
 }
 
 using Gusfield2 = ConnectedComponentsFilter<OptimizedGusfield>;
+using Gusfield3 = OptimizedGusfield2;
 
-bool check_min_cut_query(Gusfield2& gf2, int s, int t, G& g) {
-  dinic dc(g.num_vertices());
-  FOR(v, g.num_vertices()) {
-    for (auto& e : g.edges(v)) {
-      dc.add_undirected_edge(v, to(e), 1);
-    }
-  }
-
-  int naive_w = dc.max_flow(s, t);
+bool check_min_cut_query(Gusfield2& gf2, Gusfield3& gf3, int s, int t, const G& g) {
+  // int naive_w = dc.max_flow(s, t);
   int gf2_w = gf2.query(s, t);
+  int gf3_w = gf3.query(s, t);
 
-  if (naive_w != gf2_w) {
-    fprintf(stderr, "unmatched. (S,T) = (%d,%d), naive = %d, gf2_w = %d\n", s, t, naive_w, gf2_w);
+  if (gf2_w != gf3_w) {
+    fprintf(stderr, "unmatched. (S,T) = (%d,%d), naive = None, gf2_w = %d, gf3_w = %d\n", s, t, gf2_w, gf3_w);
   }
-  return naive_w == gf2_w;
+  return gf2_w == gf3_w;
 }
 
-void test(G& g) {
-  // Gusfield gf(g);
+void test(const G& g) {
+  Gusfield3 gf3(g);
   Gusfield2 gf2(g);
   xorshift64star gen_node(FLAGS_node_pair_random_seed);
 
@@ -667,12 +718,19 @@ void test(G& g) {
     if (counter % 100 == 0) {
       fprintf(stderr, "count/unmatch/all : %d/%d/%d, \n", counter, unmatch, FLAGS_num_query);
     }
-    bool is_matched = check_min_cut_query(gf2, s, t, g);
+    bool is_matched = check_min_cut_query(gf2, gf3, s, t, g);
     if (!is_matched) unmatch++;
   }
   JLOG_PUT("result.all", FLAGS_num_query);
   JLOG_PUT("result.match", (FLAGS_num_query - unmatch));
   JLOG_PUT("result.unmatch", unmatch);
+}
+
+void tester() {
+  test(to_directed_graph(built_in_graph("karate_club")));
+  test(to_directed_graph(built_in_graph("dolphin")));
+  test(to_directed_graph(built_in_graph("ca_grqc")));
+  exit(0);
 }
 
 int main(int argc, char** argv) {
@@ -682,7 +740,7 @@ int main(int argc, char** argv) {
   if (FLAGS_method == "test") {
     test(g);
   } else if (FLAGS_method == "gusfield") {
-    Gusfield2 gf(g);
+    Gusfield3 gf(g);
   } else {
     fprintf(stderr, "unrecognized option '%s'\n", FLAGS_method.c_str());
     exit(-1);
