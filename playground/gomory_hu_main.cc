@@ -143,7 +143,7 @@ class dinic {
     bfs_revision[t] = t_side_bfs_revision;
 
     int slevel = 0, tlevel = 0;
-    while(sz(qs) != 0 && sz(qt) != 0) {
+    while (sz(qs) != 0 && sz(qt) != 0) {
       if (sz(qs) < sz(qt)) {
         int size = sz(qs);
         FOR(_, size) {
@@ -179,7 +179,7 @@ class dinic {
     return false;
   }
 
-  int dfs(int v, int t,bool use_slevel, int f) {
+  int dfs(int v, int t, bool use_slevel, int f) {
     if (v == t) return f;
     if (dfs_revision[v] != bfs_revision[v]) {
       dfs_revision[v] = bfs_revision[v];
@@ -188,7 +188,7 @@ class dinic {
     for (int &i = iter[v]; i < sz(e[v]); i++) {
       E& _e = e[v][i];
       if (_e.cap == 0 || bfs_revision[_e.to] / 2 != s_side_bfs_revision / 2) continue;
-      
+
       bool rec;
       if (use_slevel) rec = bfs_revision[_e.to] == t_side_bfs_revision || level[v].first < level[_e.to].first;
       else rec = level[v].second > level[_e.to].second;
@@ -229,161 +229,180 @@ public:
     }
   }
 
-  vector<pair<int,int>> level;
+  vector<pair<int, int>> level;
   vector<int> iter;
   vector<int> bfs_revision, dfs_revision;
   vector<vector<E>> e;
   int s_side_bfs_revision, t_side_bfs_revision;
 };
 
-class Gomory_Hu {
-  int query_dfs(V v, V t, int cost, V par = -1) const {
-    if (v == t) return cost;
-    for (const auto& to_cost : binary_tree_edges_[v]) {
-      V to; int edge_cost; tie(to, edge_cost) = to_cost;
-      if (to == par) continue;
-      int ncost = query_dfs(to, t, min(cost, edge_cost), v);
-      if (ncost != -1) return ncost;
+
+class dinic_twosided {
+  class E {
+    const int init_cap_;
+    int cap_, revision_;
+  public:
+    E(int to, int reverse, int cap) :
+      init_cap_(cap), cap_(cap), revision_(0), to(to), reverse(reverse) {
     }
 
-    return -1;
+    const int to, reverse;
+    const int cap(int currenct_revision) {
+      if (revision_ != currenct_revision) {
+        revision_ = currenct_revision;
+        cap_ = init_cap_;
+      }
+      return cap_;
+    }
+    void add_cap(int val, int currenct_revision) {
+      revision_ = currenct_revision;
+      cap_ += val;
+    }
+
+    void reset() {
+      revision_ = 0;
+      cap_ = init_cap_;
+    }
+  };
+
+  bool two_sided_bfs(int s, int t) {
+    queue<int> qs, qt;
+    qs.push(s); qt.push(t);
+    level[s].first = level[t].second = 0;
+    bfs_revision[s] = s_side_bfs_revision;
+    bfs_revision[t] = t_side_bfs_revision;
+
+    int slevel = 0, tlevel = 0;
+    while (sz(qs) != 0 && sz(qt) != 0) {
+      if (sz(qs) < sz(qt)) {
+        int size = sz(qs);
+        FOR(_, size) {
+          const int v = qs.front(); qs.pop();
+          for (auto t : e[v]) {
+            if (t.cap(graph_revision) == 0 || bfs_revision[t.to] == s_side_bfs_revision) continue;
+            if (bfs_revision[t.to] == t_side_bfs_revision) {
+              return true; // path was found.
+            }
+            bfs_revision[t.to] = s_side_bfs_revision;
+            level[t.to].first = slevel + 1;
+            qs.push(t.to);
+          }
+        }
+        slevel++;
+      } else {
+        int size = sz(qt);
+        FOR(_, size) {
+          const int v = qt.front(); qt.pop();
+          for (auto t : e[v]) {
+            if (e[t.to][t.reverse].cap(graph_revision) == 0 || bfs_revision[t.to] == t_side_bfs_revision) continue;
+            if (bfs_revision[t.to] == s_side_bfs_revision) {
+              return true; // path was found.
+            }
+            bfs_revision[t.to] = t_side_bfs_revision;
+            level[t.to].second = tlevel + 1;
+            qt.push(t.to);
+          }
+        }
+      }
+      tlevel++;
+    }
+    return false;
   }
 
-  void rec_flow(vector<tuple<int,int,int>>& g, vector<char> contracted) {
-
-    vector<char> svs_contracted, tvs_contracted;
-    vector<tuple<int, int, int>> svs_g, tvs_g;
-
-    {
-      vector<char> has(num_vertices_);
-      V s = -1, t = -1;
-      auto add_sv_pair = [&s, &t](int x) {
-        if (s == -1) s = x;
-        else if (t == -1 && s != x) t = x;
-      };
-      for (auto& e : g) {
-        V u, v; tie(u, v, std::ignore) = e;
-        has[u] = has[v] = true;
-        if (!contracted[u]) add_sv_pair(u);
-        if (!contracted[v]) add_sv_pair(v);
-      }
-      if (t == -1) return;
-
-      dinic dc(num_vertices_);
-      for (auto& e : g) {
-        V u, v; int c; tie(u, v, c) = e;
-        dc.add_undirected_edge(u, v, c);
-      }
-
-      int cost = dc.max_flow(s, t);
-      binary_tree_edges_[s].emplace_back(t, cost);
-      binary_tree_edges_[t].emplace_back(s, cost);
-      fprintf(stderr, "(%d,%d) cost = %d\n", s, t, cost);
-
-      queue<V> q;
-      q.push(s);
-      has[s] = false;
-      while (!q.empty()) {
-        V v = q.front(); q.pop();
-        for (auto e : dc.e[v]) {
-          if (e.cap == 0 || !has[e.to]) continue;
-          q.push(e.to);
-          has[e.to] = false;
-        }
-      }
-      
-      auto new_graph = [&, n = num_vertices_](const vector<tuple<int,int,int>>& g, bool left) {
-        union_find uf(n);
-        vector<char> new_contracted = contracted;
-        int cut_cost = 0;
-        for (auto& e : g) {
-          V u, v; int c; tie(u, v, c) = e;
-          if (has[u] == has[v] && has[u] == left) {
-            uf.unite(u, v);
-          }
-          if (has[u] != has[v]) {
-            cut_cost += c;
-          }
-          if (has[u] == left) new_contracted[u] = true;
-          if (has[v] == left) new_contracted[v] = true;
-        }
-        assert(cut_cost == cost);
-        map<pair<int, int>, int> edge_cost;
-        for (auto& e : g) {
-          V u, v; int c; tie(u, v, c) = e;
-          u = uf.root(u), v = uf.root(v);
-          if (u == v) continue;
-          if (u > v) swap(u, v);
-          edge_cost[pair<int, int>(u, v)] += c;
-        }
-
-        vector<tuple<int, int, int>> ret;
-        for (auto& kv : edge_cost) {
-          ret.emplace_back(kv.first.first, kv.first.second, kv.second);
-        }
-      
-        return make_pair(new_contracted, ret);
-      };
-
-      tie(svs_contracted, svs_g) = new_graph(g, true);
-      tie(tvs_contracted, tvs_g) = new_graph(g, false);
+  int dfs(int v, int t, bool use_slevel, int f) {
+    if (v == t) return f;
+    if (dfs_revision[v] != bfs_revision[v]) {
+      dfs_revision[v] = bfs_revision[v];
+      iter[v] = 0;
     }
+    for (int &i = iter[v]; i < sz(e[v]); i++) {
+      E& _e = e[v][i];
+      if (_e.cap(graph_revision) == 0 || bfs_revision[_e.to] / 2 != s_side_bfs_revision / 2) continue;
 
-    // dinicで使うメモリを開放する
-    rec_flow(svs_g, svs_contracted);
-    rec_flow(tvs_g, tvs_contracted);
+      bool rec;
+      if (use_slevel) rec = bfs_revision[_e.to] == t_side_bfs_revision || level[v].first < level[_e.to].first;
+      else rec = level[v].second > level[_e.to].second;
+      if (!rec) continue;
+
+      bool next_slevel = use_slevel && bfs_revision[_e.to] == s_side_bfs_revision;
+      int d = dfs(_e.to, t, next_slevel, min(f, _e.cap(graph_revision)));
+      if (d > 0) {
+        _e.add_cap(-d, graph_revision);
+        e[_e.to][_e.reverse].add_cap(d, graph_revision);
+        return d;
+      }
+    }
+    return 0;
+  }
+
+  void add_undirected_edge(int f, int t, int c) {
+    e[f].push_back(E(t, sz(e[t]), c));
+    e[t].push_back(E(f, sz(e[f]) - 1, c));
+  }
+
+  void reset_rivision() {
+    FOR(v, n) for (auto& e_ : e[v]) e_.reset();
+    memset(bfs_revision.data(), 0, sizeof(bfs_revision[0]) * bfs_revision.size());
+    memset(dfs_revision.data(), 0, sizeof(dfs_revision[0]) * dfs_revision.size());
+    s_side_bfs_revision = 2;
+    t_side_bfs_revision = 3;
+    graph_revision = 0;
   }
 
 public:
-  // g の辺を使い、グラフを作成する(勝手にundirectedとして読み替えている)
-  Gomory_Hu(G& g) :
-    num_vertices_(g.num_vertices()),
-    binary_tree_edges_(g.num_vertices()) {
-    vector<unordered_set<pair<V, V>>> contraction_graph_edges(g.num_vertices());
-    typename G::edge_list_type initial_edges(g.edge_list());
-    vector<int> ancestor(g.num_vertices());
-    FOR(i, num_vertices_) ancestor[i] = i;
-
-    union_find uf_(num_vertices_);
-    for (auto edge : initial_edges) {
-      V u = edge.first, v = to(edge.second);
-      contraction_graph_edges[u].emplace(u, v);
-      contraction_graph_edges[v].emplace(v, u);
-      uf_.unite(u, v);
+  dinic_twosided() : n(0) {}
+  dinic_twosided(const G& g)
+    : n(g.num_vertices()), level(n), iter(n), bfs_revision(n), dfs_revision(n), e(n),
+    s_side_bfs_revision(2), t_side_bfs_revision(3), graph_revision(0) {
+    FOR(v, n) for (auto& e : g.edges(v)) {
+      add_undirected_edge(v, to(e), 1);
     }
-    map<uint32_t, vector<int>> mp;
-    FOR(i, num_vertices_) mp[uf_.root(i)].push_back(i);
-    for (auto& kv : mp) {
-      vector<tuple<int, int, int>> g;
-      const int uf_root = uf_.root(kv.second[0]);
-      for (auto& e : initial_edges) {
-        if (uf_.root(e.first) == uf_root) g.emplace_back(e.first, e.second, 1);
+  }
+  dinic_twosided(const vector<pair<V, V>>& edges, int num_vs)
+    : n(num_vs), level(n), iter(n), bfs_revision(n), dfs_revision(n), e(n),
+    s_side_bfs_revision(2), t_side_bfs_revision(3), graph_revision(0) {
+    for (auto& uv : edges) {
+      add_undirected_edge(uv.first, uv.second, 1);
+    }
+
+  }
+
+  int max_flow(int s, int t) {
+    assert(s != t);
+    int flow = 0;
+    s_side_bfs_revision += 2;
+    t_side_bfs_revision += 2;
+    for (; ; s_side_bfs_revision += 2, t_side_bfs_revision += 2) {
+      bool path_found = two_sided_bfs(s, t);
+      if (!path_found) return flow;
+      int f;
+      while ((f = dfs(s, t, true, numeric_limits<int>::max())) > 0) {
+        flow += f;
       }
-      vector<char> contracted(num_vertices_);
-      rec_flow(g, contracted);
     }
-    
-    
-    // gが連結とは限らないので、uv_costs.size() == g.num_vertices() - 1ではない
-    assert(int(binary_tree_edges_.size() - g.num_vertices()) <= g.num_vertices() - 1);
+    return flow;
   }
 
-  int query(V u, V v) const {
-    CHECK(u != v);
-    CHECK(u < num_vertices_ && v < num_vertices_);
-    int ans = query_dfs(u, v, numeric_limits<int>::max());
-    if (ans == -1) {
-      return 0; // 到達できなかった
+  //フローを流す前に実行する
+  void reset_graph() {
+    graph_revision++;
+    if (s_side_bfs_revision >= numeric_limits<decltype(s_side_bfs_revision)>::max() / 2) {
+      reset_rivision();
     }
-    return ans;
   }
 
-private:
-  const int num_vertices_;
-  vector<vector<pair<V, int>>> binary_tree_edges_;
+  const int n;
+  vector<pair<int, int>> level;
+  vector<int> iter;
+  vector<int> bfs_revision, dfs_revision;
+  vector<vector<E>> e;
+  int s_side_bfs_revision, t_side_bfs_revision;
+  int graph_revision;
+
 };
 
-class Gusfield{
+
+class Gusfield {
   int query_dfs(V v, V t, int cost, V par = -1) const {
     if (v == t) return cost;
     for (const auto& to_cost : binary_tree_edges_[v]) {
@@ -397,8 +416,8 @@ class Gusfield{
   }
 
 public:
-  
-  Gusfield(G& g) : num_vertices_(g.num_vertices()), binary_tree_edges_(g.num_vertices()) {
+
+  Gusfield(G g) : num_vertices_(g.num_vertices()), binary_tree_edges_(g.num_vertices()) {
     union_find uf(num_vertices_);
     FOR(v, num_vertices_) for (auto& e : g.edges(v)) {
       uf.unite(v, to(e));
@@ -409,19 +428,27 @@ public:
       else p[v] = uf.root(v);
     }
 
+    map<int, dinic_twosided> mp;
+    FOR(v, num_vertices_) {
+      if (v == uf.root(v)) {
+        vector<pair<V, V>> edges;
+        FOR(u, num_vertices_) {
+          if (!uf.is_same(u, v)) continue;
+          for (auto& e : g.edges(u)) {
+            edges.emplace_back(u, to(e));
+          }
+        }
+        mp.insert(make_pair(v, dinic_twosided(edges, num_vertices_)));
+      }
+    }
+
     FOR(s, num_vertices_) {
       if (p[s] == -1) continue;
       V t = p[s];
-      dinic dc(num_vertices_);
-      FOR(v, num_vertices_) {
-        if (!uf.is_same(s, v)) continue;
-        for (auto& e : g.edges(v)) {
-          dc.add_undirected_edge(v, to(e), 1);
-        }
-      }
+      dinic_twosided dc = mp[uf.root(t)];
 
       int cost = dc.max_flow(s, t);
-//       fprintf(stderr, "(%d,%d) cost = %d\n", s, t, cost);
+      //       fprintf(stderr, "(%d,%d) cost = %d\n", s, t, cost);
       binary_tree_edges_[s].emplace_back(t, cost);
       binary_tree_edges_[t].emplace_back(s, cost);
 
@@ -432,7 +459,7 @@ public:
       while (!q.empty()) {
         V v = q.front(); q.pop();
         for (auto& e : dc.e[v]) {
-          if (e.cap == 0 || used[e.to]) continue;
+          if (e.cap(dc.graph_revision) == 0 || used[e.to]) continue;
           used[e.to] = true;
           q.push(e.to);
           if (p[e.to] == t) p[e.to] = s;
@@ -440,7 +467,7 @@ public:
       }
     }
   }
-  
+
   int query(V u, V v) const {
     CHECK(u != v);
     CHECK(u < num_vertices_ && v < num_vertices_);
@@ -456,6 +483,149 @@ private:
   vector<vector<pair<V, int>>> binary_tree_edges_;
 };
 
+class OptimizedGusfield {
+  void build_depth() {
+    depth_[0] = 0;
+
+    stack<int> stk;
+    FOR(v, num_vertices_) {
+      while (depth_[v] == -1) {
+        stk.push(v);
+        v = parent_weight_[v].first;
+      }
+      while (!stk.empty()) {
+        int u = stk.top(); stk.pop();
+        depth_[u] = depth_[v] + 1;
+        v = u;
+      }
+    }
+  }
+
+public:
+
+  OptimizedGusfield(vector<pair<V, V>>& edges, int num_vs) :
+    num_vertices_(num_vs),
+    parent_weight_(num_vs, make_pair(-1, 0)),
+    depth_(num_vs, -1) {
+    for (V v = 1; v < num_vertices_; v++) {
+      parent_weight_[v].first = 0;
+    }
+    dinic_twosided dc_base(edges, num_vs);
+
+    vector<int> degree(num_vertices_);
+    for(auto& e: edges) degree[e.first]++, degree[e.second]++;
+
+    vector<int> used(num_vertices_);
+    FOR(s, num_vertices_) {
+      if (parent_weight_[s].first == -1) continue;
+      V t = parent_weight_[s].first;
+
+      auto dc = dc_base;
+      int cost = dc.max_flow(s, t);
+      fprintf(stderr, "(%d,%d) cost = %d\n", s, t, cost);
+      parent_weight_[s].second = cost;
+
+      if (degree[s] == cost) continue;
+
+      queue<int> q;
+      q.push(s);
+      const int F = s + 1;
+      used[s] = F;
+      while (!q.empty()) {
+        V v = q.front(); q.pop();
+        for (auto& e : dc.e[v]) {
+          if (e.cap(dc.graph_revision) == 0 || used[e.to] == F) continue;
+          used[e.to] = F;
+          q.push(e.to);
+          if (parent_weight_[e.to].first == t) parent_weight_[e.to].first = s;
+        }
+      }
+    }
+
+    build_depth();
+  }
+
+  int query(V u, V v) {
+    CHECK(u != v);
+    CHECK(u < num_vertices_ && v < num_vertices_);
+    int ans = numeric_limits<int>::max();
+    while (u != v) {
+      if (depth_[u] > depth_[v]) {
+        ans = min(ans, parent_weight_[u].second);
+        u = parent_weight_[u].first;
+      } else {
+        ans = min(ans, parent_weight_[v].second);
+        v = parent_weight_[v].first;
+      }
+    }
+    return ans;
+  }
+
+private:
+  const int num_vertices_;
+  vector<pair<V, int>> parent_weight_;
+  vector<int> depth_;
+};
+
+template<class handler_t>
+class ConnectedComponentsFilter {
+public:
+  ConnectedComponentsFilter(const G& g) : n(g.num_vertices()), uf(n), local_indices(n), handlers_indices(n) {
+
+    vector<int> degree(n);
+    FOR(v, n) for (auto e : g.edges(v)) {
+      V u = to(e);
+      uf.unite(u, v);
+    }
+    int num_connected_components = 0;
+    FOR(v, n) {
+      if (uf.root(v) != v) local_indices[v] = ++local_indices[uf.root(v)];
+      else handlers_indices[v] = num_connected_components++;
+    }
+    fprintf(stderr, "num_connected_components = %d\n", num_connected_components);
+
+    vector<bool> used(n);
+    FOR(v, n) {
+      if (used[v]) continue;
+      used[v] = true;
+
+      const int num_vs = local_indices[uf.root(v)] + 1;
+      local_indices[uf.root(v)] = 0;
+      vector<pair<V, V>> edges;
+      queue<int> q;
+      q.push(v);
+      while (!q.empty()) {
+        V u = q.front(); q.pop();
+        FOR(dir, 2) for (auto& e : g.edges(u, D(dir))) {
+          V w = to(e);
+          if (!used[w]) {
+            used[w] = true;
+            q.push(w);
+          }
+          if (dir == 0) {
+            edges.emplace_back(local_indices[u], local_indices[w]);
+          }
+        }
+      }
+
+      fprintf(stderr, "root = %d, edge_size = %d\n", v, sz(edges));
+      handlers.emplace_back(edges, num_vs);
+    }
+  }
+
+  int query(V u, V v) {
+    if (!uf.is_same(u, v)) return 0;
+    int lu = local_indices[u], lv = local_indices[v];
+    auto& handler = handlers[handlers_indices[uf.root(u)]];
+    return handler.query(lu, lv);
+  }
+
+private:
+  int n;
+  union_find uf;
+  vector<int> local_indices, handlers_indices;
+  vector<handler_t> handlers;
+};
 
 G to_directed_graph(G& g) {
   vector<pair<V, V>> ret;
@@ -465,42 +635,54 @@ G to_directed_graph(G& g) {
   return G(ret);
 }
 
-void test(G& g) {
-  g = to_directed_graph(g);
-  puts("--- Gomory_Hu ---");
-  Gomory_Hu gh(g);
-  puts("--- Gusfield ---");
-  Gusfield gf(g);
+using Gusfield2 = ConnectedComponentsFilter<OptimizedGusfield>;
 
-  dinic dc_base(g.num_vertices());
-  for (auto e : g.edge_list()) {
-    dc_base.add_undirected_edge(e.first, e.second, 1);
-  }
-
-  FOR(v, g.num_vertices()){
-    FOR(u, v) {
-      auto dc = dc_base;
-      int x = dc.max_flow(u, v);
-      //int y = gh.query(u, v);
-      int y = x;
-      int z = gf.query(u, v);
-      printf("(%d,%d) dinic : %d, Gomory-Hu : %d, Gusfield : %d\n",u,v,x,y,z);
-      assert(x == y && y == z);
+bool check_min_cut_query(Gusfield2& gf2, int s, int t, G& g) {
+  dinic dc(g.num_vertices());
+  FOR(v, g.num_vertices()) {
+    for (auto& e : g.edges(v)) {
+      dc.add_undirected_edge(v, to(e), 1);
     }
   }
+
+  int naive_w = dc.max_flow(s, t);
+  int gf2_w = gf2.query(s, t);
+
+  if (naive_w != gf2_w) {
+    fprintf(stderr, "unmatched. (S,T) = (%d,%d), naive = %d, gf2_w = %d\n", s, t, naive_w, gf2_w);
+  }
+  return naive_w == gf2_w;
+}
+
+void test(G& g) {
+  // Gusfield gf(g);
+  Gusfield2 gf2(g);
+  xorshift64star gen_node(FLAGS_node_pair_random_seed);
+
+  int unmatch = 0;
+  for (int counter = 0; counter < FLAGS_num_query; counter++) {
+    V s = gen_node() % g.num_vertices();
+    V t = gen_node() % (g.num_vertices() - 1);
+    if (s <= t) t++;
+    if (counter % 100 == 0) {
+      fprintf(stderr, "count/unmatch/all : %d/%d/%d, \n", counter, unmatch, FLAGS_num_query);
+    }
+    bool is_matched = check_min_cut_query(gf2, s, t, g);
+    if (!is_matched) unmatch++;
+  }
+  JLOG_PUT("result.all", FLAGS_num_query);
+  JLOG_PUT("result.match", (FLAGS_num_query - unmatch));
+  JLOG_PUT("result.unmatch", unmatch);
 }
 
 int main(int argc, char** argv) {
   G g = easy_cui_init(argc, argv);
   g = to_directed_graph(g);
 
-  if(FLAGS_method == "gomory_hu") {
-    Gomory_Hu gh(g);
-  } else if(FLAGS_method == "gusfield") {
-    Gusfield gf(g);
-  } else if(FLAGS_method == "both") {
-    Gomory_Hu gh(g);
-    Gusfield gf(g);
+  if (FLAGS_method == "test") {
+    test(g);
+  } else if (FLAGS_method == "gusfield") {
+    Gusfield2 gf(g);
   } else {
     fprintf(stderr, "unrecognized option '%s'\n", FLAGS_method.c_str());
     exit(-1);
