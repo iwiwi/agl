@@ -1,6 +1,7 @@
 #pragma once
 #include "ConnectedComponentsFilter.h"
 
+
 class OptimizedGusfieldWith2ECC_core {
   void build_depth() {
     depth_[root_node_] = 0;
@@ -50,24 +51,24 @@ public:
     dinic_twosided dc_base(edges, num_vs);
 
     vector<int> used(num_vertices_);
+    queue<int> q;
     for (V s : mincut_order) {
       V t = parent_weight_[s].first;
 
-      auto dc = dc_base;
-      int cost = dc.max_flow(s, t);
+      dc_base.reset_graph();
+      int cost = dc_base.max_flow(s, t);
       fprintf(stderr, "(%d,%d) cost = %d\n", s, t, cost);
       parent_weight_[s].second = cost;
 
       if (degree[s] == cost) continue;
 
-      queue<int> q;
       q.push(s);
       const int F = s + 1;
       used[s] = F;
       while (!q.empty()) {
         V v = q.front(); q.pop();
-        for (auto& e : dc.e[v]) {
-          if (e.cap(dc.graph_revision) == 0 || used[e.to] == F) continue;
+        for (auto& e : dc_base.e[v]) {
+          if (e.cap(dc_base.graph_revision) == 0 || used[e.to] == F) continue;
           used[e.to] = F;
           q.push(e.to);
           if (parent_weight_[e.to].first == t) parent_weight_[e.to].first = s;
