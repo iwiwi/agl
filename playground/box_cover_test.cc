@@ -44,8 +44,8 @@ TEST(box_cover, build_sketch_check) {
     G g(make_undirected(es));
     pretty_print(g);
 
-    W radius = 1;
-    const int k = 200;
+    W radius = agl::random(3) + 1;
+    const int k = 128;
     vector<V> rank(g.num_vertices());
     vector<V> inv(g.num_vertices());
     for (V i = 0; i < g.num_vertices(); ++i) {

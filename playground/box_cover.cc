@@ -424,38 +424,69 @@ vector<vector<V>> naive_build_sketch(const G &g, const W radius, const int k,
 vector<vector<V>> build_sketch(const G &g, const W radius, const int k,
                                const vector<V> &rank, const vector<V> &inv,
                                const vector<bool> &is_covered) {
+  bool t = false;
+  return build_sketch(g, radius, k, rank, inv, is_covered, t, rank.size() * k);
+}
+
+/**
+ * \param rank Ranks of vertices.
+ * \param inv Inverted index of rank.
+ * \param is_covered Is vertex v is covered?
+ * \param use_memb Want to use MEMB if the required memory is enough small?
+ * \param size_upper_bound Upper bound of memory size which MEMB can be used.
+ */
+vector<vector<V>> build_sketch(const G &g, const W radius, const int k,
+                               const vector<V> &rank, const vector<V> &inv,
+                               const vector<bool> &is_covered, bool &use_memb,
+                               size_t size_upper_bound) {
   V num_v = g.num_vertices();
   vector<set<V>> X(num_v);
   vector<vector<V>> previous_added(num_v);
+
   //
   // Build-Sketches O((n+m)*rad)
   //
+
+  size_t using_k = use_memb ? num_v * num_v : k;
+  size_t total_size = 0;
+  
   for (V i = 0; i < num_v; ++i) {
     if (is_covered[i]) continue;
     X[i].insert(rank[i]);
     previous_added[i].push_back(i);
+    total_size++;
   }
 
   for (W d = 0; d < radius; ++d) {
     for (V v : inv) {
       vector<V> next;
-      for (V a : previous_added[v])
+      for (V a : previous_added[v]) {
         for (V neighbor : g.neighbors(a)) {
           // Merge & Purify
           V rv = rank[v];
-          if (X[neighbor].find(rv) != X[neighbor].end()) continue;
-          if (X[neighbor].size() >= (size_t)k) {
-            V max_rank = *X[neighbor].rbegin();
+          set<V> &xn = X[neighbor];
+          if (xn.find(rv) != xn.end()) continue;
+          while (xn.size() > using_k) {
+            xn.erase(*xn.rbegin());
+          }
+          if (xn.size() >= using_k) {
+            V max_rank = *(xn.rbegin());
             if (max_rank <= rv) continue;
-            X[neighbor].erase(max_rank);
-            X[neighbor].insert(rv);
+            xn.erase(max_rank);
+            xn.insert(rv);
             next.push_back(neighbor);
+            total_size++;
           } else {
             X[neighbor].insert(rv);
             next.push_back(neighbor);
+            total_size++;
           }
         }
-
+        if (total_size >= size_upper_bound) {
+          using_k = k;
+          use_memb = false;
+        }
+      }
       previous_added[v].swap(next);
     }
   }

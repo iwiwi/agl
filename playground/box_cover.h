@@ -62,6 +62,10 @@ vector<vector<V>> naive_build_sketch(const G &g, const W radius, const int k,
 vector<vector<V>> build_sketch(const G &g, const W radius, const int k,
                                const vector<V> &rank, const vector<V> &inv,
                                const vector<bool> &is_covered);
+vector<vector<V>> build_sketch(const G &g, const W radius, const int k,
+                               const vector<V> &rank, const vector<V> &inv,
+                               const vector<bool> &is_covered, bool &use_memb,
+                               size_t size_upper_bound);
 
 void naive_select_greedily(const G &g, const vector<vector<V>> &X,
                            vector<V> &centers, vector<bool> &centered,
