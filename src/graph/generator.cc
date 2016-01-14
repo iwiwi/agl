@@ -383,6 +383,116 @@ unweighted_edge_list generate_kronecker(int scale, size_t avg_deg, const std::ve
   return generate_kronecker_(scale, num_edges, N, matrix);
 }
 
+/**
+ * Generate a (u, v)-flower graph by the given parameters.
+ * Starting from (u + v)-vertices cycle graph, the number of vertices in the
+ * resulting graph will be equal to or larger than the given number. The fractal
+ * dimension D of this graph will be D = log(u + v) / log(u) (u <= v)
+ * \param required_num is the minimum number of the vertices. The resulting
+ * graph the number of vertices in the resulting graph will be equal to or
+ * larger than this number.
+ * \param u is the smaller parameter of (u, v)-flower.
+ * \param v is the larger parameter of (u, v)-flower.
+ */
+unweighted_edge_list generate_uv_flower(V required_num, V u, V v) {
+  assert(u <= v && u >= 1 && u + v >= 3);
+  unweighted_edge_list es;
+  es.emplace_back(u + v - 1, 0);
+  for (int i = 1; i < u + v; ++i) {
+    es.emplace_back(i - 1, i);
+  }
+  V current_vertices = u + v;
+  while (current_vertices < required_num) {
+    unweighted_edge_list next;
+    for (auto e : es) {
+      V s = e.first, t = e.second;
+      for (int i = 0; i < u; ++i) {
+        V left = current_vertices - 1;
+        V right = current_vertices;
+        if (i == 0) left = s;
+        if (i == u - 1) right = t;
+        next.emplace_back(left, right);
+        if (right != t) current_vertices++;
+      }
+      for (int i = 0; i < v; ++i) {
+        V left = current_vertices - 1;
+        V right = current_vertices;
+        if (i == 0) left = s;
+        if (i == v - 1) right = t;
+        next.emplace_back(left, right);
+        if (right != t) current_vertices++;
+      }
+    }
+    es.swap(next);
+  }
+
+  return es;
+}
+
+/**
+ * Generate a Song-Havlin-Makse model (SHM-model) graph.
+ * Starting from a star tree, the resulting graph will be a tree.
+ * The fractal dimension D of this graph will be D = log(2t + 1) / log3
+ * \param required_num is the minimum number of the vertices. The resulting
+ * graph the number of vertices in the resulting graph will be equal to or
+ * larger than this number.
+ * \param initial_num is the number of vertices of the star tree of the first
+ * generation.
+ * \param t decides the fractal dimension of this graph. The fractal dimension D
+ * of this graph will be D = log(2t + 1) / log3
+ */
+unweighted_edge_list generate_shm(V required_num, V initial_num, int t) {
+  assert(t >= 2 && initial_num >= 3);
+  unweighted_edge_list es;
+  vector<vector<V>> adj(initial_num);
+  for (int i = 1; i < initial_num; ++i) {
+    es.emplace_back(0, i);
+    adj[0].push_back(i);
+    adj[i].push_back(0);
+  }
+
+  while ((V)adj.size() < required_num) {
+    V current_num = adj.size();
+    V next_num = current_num;
+    for (int i = 0; i < current_num; ++i) next_num += adj[i].size() * t;
+
+    vector<vector<V>> next(next_num);
+    unweighted_edge_list next_es;
+    V new_comer = current_num;
+    for (V s = 0; s < current_num; ++s)
+      for (int i = 0; i < (int)adj[s].size() * t; ++i) {
+        next_es.emplace_back(s, new_comer);
+        next[s].push_back(new_comer);
+        next[new_comer].push_back(s);
+        new_comer++;
+      }
+    for (auto e : es) {
+      V s = e.first;
+      V ns = -1;
+      for (V n : next[s])
+        if (next[n].size() == 1) {
+          ns = n;
+          break;
+        }
+      assert(ns >= 0);
+      V t = e.second;
+      V nt = -1;
+      for (V n : next[t])
+        if (next[n].size() == 1) {
+          nt = n;
+          break;
+        }
+      assert(nt >= 0);
+      next_es.emplace_back(ns, nt);
+      next[ns].push_back(nt);
+      next[nt].push_back(ns);
+    }
+    es.swap(next_es);
+    adj.swap(next);
+  }
+  return es;
+}
+
 unweighted_edge_list generate_random_planar(V num_vertices, size_t num_edges) {
   using namespace agl::geometry2d;
 

@@ -41,6 +41,9 @@ def build(bld):
   for src_dirname in target_dirs:
     for root, dirnames, filenames in os.walk(src_dirname):
       for filename in fnmatch.filter(filenames, '*.cc'):
+        if filename == 'test.cc':
+          print '\033[91m\033[1mWarning: You should avoid the filename \'test.cc\'.'
+          print 'It may conflict with gtest and cause unexpected behavior.\033[0m'
         filepath = os.path.join(root, filename)
         if filename.endswith('_main.cc'):
           cc_file_main.append(filepath)
