@@ -21,8 +21,7 @@ void test(G& g){
   maxflow_T dc(g);
   vector<V> vs;
   for(V v : make_irange(g.num_vertices())) {
-    int dg = g.degree(v, kFwd) + g.degree(v, kBwd);
-    if(dg >= 2 && dg <= 10) vs.push_back(v);
+    vs.push_back(v);
   }
   for (int counter = 0; counter < FLAGS_num_query; counter++) {
       int sid = gen_node() % sz(vs);

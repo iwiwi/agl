@@ -166,37 +166,20 @@ void test(const G& g) {
   Gusfield2 gf2(g);
   xorshift64star gen_node(FLAGS_node_pair_random_seed);
 
-  if (g.num_vertices() > 5000) {
-    int unmatch = 0;
-    for (int counter = 0; counter < FLAGS_num_query; counter++) {
-      V s = gen_node() % g.num_vertices();
-      V t = gen_node() % (g.num_vertices() - 1);
-      if (s <= t) t++;
-      if (counter % 100 == 0) {
-        fprintf(stderr, "count/unmatch/all : %d/%d/%d, \n", counter, unmatch, FLAGS_num_query);
-      }
-      bool is_matched = check_min_cut_query(gf2, gf3, s, t, g);
-      if (!is_matched) unmatch++;
+  int unmatch = 0;
+  for (int counter = 0; counter < FLAGS_num_query; counter++) {
+    V s = gen_node() % g.num_vertices();
+    V t = gen_node() % (g.num_vertices() - 1);
+    if (s <= t) t++;
+    if (counter % 100 == 0) {
+      fprintf(stderr, "count/unmatch/all : %d/%d/%d, \n", counter, unmatch, FLAGS_num_query);
     }
-    JLOG_PUT("result.all", FLAGS_num_query);
-    JLOG_PUT("result.match", (FLAGS_num_query - unmatch));
-    JLOG_PUT("result.unmatch", unmatch);
-  } else {
-    int counter = 0;
-    int unmatch = 0;
-    FOR(s, g.num_vertices()) for (int t = s + 1; t < g.num_vertices(); t++) {
-      if (counter % 100 == 0) {
-        fprintf(stderr, "count/unmatch/all : %d/%d/%d, \n", counter, unmatch, -1);
-      }
-      bool is_matched = check_min_cut_query(gf2, gf3, s, t, g);
-      if (!is_matched) unmatch++;
-      counter++;
-    }
-
-    JLOG_PUT("result.all", counter);
-    JLOG_PUT("result.match", (counter - unmatch));
-    JLOG_PUT("result.unmatch", unmatch);
+    bool is_matched = check_min_cut_query(gf2, gf3, s, t, g);
+    if (!is_matched) unmatch++;
   }
+  JLOG_PUT("result.all", FLAGS_num_query);
+  JLOG_PUT("result.match", (FLAGS_num_query - unmatch));
+  JLOG_PUT("result.unmatch", unmatch);
 }
 
 DEFINE_string(validation_data_path, "validate.data", "");

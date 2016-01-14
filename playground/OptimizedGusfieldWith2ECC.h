@@ -1,6 +1,7 @@
 #pragma once
 #include "ConnectedComponentsFilter.h"
 
+DEFINE_string(gusfield_choice_stpair_strategy, "sequential", "sequential, sort_by_degree_ascending, sort_by_degree_desending");
 
 class OptimizedGusfieldWith2ECC_core {
   void build_depth() {
@@ -17,6 +18,23 @@ class OptimizedGusfieldWith2ECC_core {
         depth_[u] = depth_[v] + 1;
         v = u;
       }
+    }
+  }
+
+  void gusfield_choice_stpair(vector<int>& mincut_order, const vector<int>& degree) {
+    if(FLAGS_gusfield_choice_stpair_strategy == "sequential"){
+      return ;
+    } else if(FLAGS_gusfield_choice_stpair_strategy == "sort_by_degree_ascending") {
+        sort(mincut_order.begin(),mincut_order.end(),[&degree](const int l,const int r) {
+          return degree[l] < degree[r];
+        });
+    } else if(FLAGS_gusfield_choice_stpair_strategy == "sort_by_degree_desending") {
+        sort(mincut_order.begin(),mincut_order.end(),[&degree](const int l,const int r) {
+          return degree[l] > degree[r];
+        });
+    }else {
+      fprintf(stderr, "unrecognized option '-gusfield_choice_stpair_strategy=%s'\n", FLAGS_gusfield_choice_stpair_strategy.c_str());
+      exit(-1);
     }
   }
 
@@ -48,8 +66,9 @@ public:
     }
     parent_weight_[root_node_].first = -1;
 
-    dinic_twosided dc_base(edges, num_vs);
+    gusfield_choice_stpair(mincut_order, degree);
 
+    dinic_twosided dc_base(edges, num_vs);
     vector<int> used(num_vertices_);
     queue<int> q;
     for (V s : mincut_order) {
@@ -57,7 +76,7 @@ public:
 
       dc_base.reset_graph();
       int cost = dc_base.max_flow(s, t);
-      fprintf(stderr, "(%d,%d) cost = %d\n", s, t, cost);
+      // fprintf(stderr, "(%d,%d) cost = %d\n", s, t, cost);
       parent_weight_[s].second = cost;
 
       if (degree[s] == cost) continue;
