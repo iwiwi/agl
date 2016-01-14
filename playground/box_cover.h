@@ -91,7 +91,7 @@ vector<V> box_cover_burning(const G &g, W radius);
 //! Akiba et al. 2016
 vector<V> box_cover_sketch(const G &g, W radius, const int k,
                            const int pass_num, double &aim_coverage,
-                           double lazy = 1.0);
+                           size_t size_upper_bound = 0);
 
 //
 // Diameter-based Methods:

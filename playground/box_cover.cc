@@ -449,7 +449,7 @@ vector<vector<V>> build_sketch(const G &g, const W radius, const int k,
 
   size_t using_k = use_memb ? num_v * num_v : k;
   size_t total_size = 0;
-  
+
   for (V i = 0; i < num_v; ++i) {
     if (is_covered[i]) continue;
     X[i].insert(rank[i]);
@@ -778,7 +778,7 @@ void naive_select_greedily(const G &g, const vector<vector<V>> &X,
 
 vector<V> box_cover_sketch(const G &g, W radius, const int k,
                            const int pass_num, double &aim_coverage,
-                           double lazy) {
+                           size_t size_upper_bound) {
   assert(k > 0);
 
   const V num_v = g.num_vertices();
@@ -802,22 +802,16 @@ vector<V> box_cover_sketch(const G &g, W radius, const int k,
     for (int i = 0; i < num_v; ++i) {
       rank[inv[i]] = i;
     }
+    bool use_memb = true;
 
     timer = -get_current_time_sec();
     cerr << pass_trial << "-th building..." << endl;
-    vector<vector<V>> X = build_sketch(g, radius, k, rank, inv, is_covered);
+    vector<vector<V>> X = build_sketch(g, radius, k, rank, inv, is_covered,
+                                       use_memb, size_upper_bound);
     timer += get_current_time_sec();
     cerr << timer << " sec built" << endl;
 
-    V cnt_small = 0;
-    V cnt_all = 0;
-    for (size_t i = 0; i < X.size(); ++i) {
-      if ((int)X[i].size() < k) cnt_small++;
-      if (X[i].size() > 0) cnt_all++;
-    }
-    if (cnt_small / cnt_all > lazy) {
-      cerr << "Small box ratio: " << cnt_small << " / " << cnt_all << endl;
-
+    if (use_memb) {
       timer = -get_current_time_sec();
       cerr << pass_trial << "-th lazy selecting..." << endl;
       select_lazy_greedily(g, X, centers, centered, cm);

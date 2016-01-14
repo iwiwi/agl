@@ -6,7 +6,7 @@ DEFINE_int32(rad_min, 1, "minimum radius");
 DEFINE_int32(rad_max, 10, "maximum radius");
 DEFINE_string(method, "sketch", "using method");
 DEFINE_double(final_coverage, 0.98, "coverage");
-DEFINE_double(lazy, 0.98, "ratio of lazy greedy");
+DEFINE_int64(size_upper, 6144000000, "size_upper_bound");
 DEFINE_int32(pass, 1, "Number of multi-pass");
 DEFINE_int32(sketch_k, 1024, "sketch k");
 DEFINE_bool(rad_analytical, false, "Using analytical diameters as rads");
@@ -133,7 +133,7 @@ int main(int argc, char** argv) {
       double coverage_bechmark = FLAGS_final_coverage;
       JLOG_ADD_BENCHMARK("time")
       res = box_cover_sketch(g, rad, FLAGS_sketch_k, FLAGS_pass,
-                             coverage_bechmark, FLAGS_lazy);
+                             coverage_bechmark, FLAGS_size_upper);
       JLOG_ADD("size", res.size());
       JLOG_ADD("radius", rad);
       JLOG_ADD("coverage", coverage_bechmark);
@@ -182,7 +182,7 @@ int main(int argc, char** argv) {
 
   string rad_str = to_string(FLAGS_rad_max);
   while (rad_str.size() < 3) rad_str = "0" + rad_str;
-  JLOG_INSERT_FILENAME("-lazy." + to_string(FLAGS_lazy) + "-");
+  JLOG_INSERT_FILENAME("-upper_bound." + to_string(FLAGS_size_upper) + "-");
   JLOG_INSERT_FILENAME("-rad." + rad_str + "-");
   JLOG_INSERT_FILENAME("-" + graph_name);
   JLOG_INSERT_FILENAME(experiment_name);
