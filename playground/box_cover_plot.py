@@ -71,7 +71,6 @@ def saveFig(jsonData):
     plt.yscale("log")
     plt.legend(loc='best')
     plt.savefig(graph_name + "_" + str(vertices) + "_" + name + ".png")
-    plt.close()
 
 
 def theoreticalValue(beta, x):
@@ -128,7 +127,7 @@ if __name__ == "__main__":
 
         initialValue = linearRegression(px, py)
         result = scipy.optimize.leastsq(fitFunc, initialValue, args=(px, py))
-        plotLine(result[0])
-        plotAnalytical(json_data)
-
+        # plotLine(result[0])
+        # plotAnalytical(json_data)
         saveFig(json_data)
+        # plt.close()
