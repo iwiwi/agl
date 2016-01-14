@@ -253,7 +253,7 @@ V num_vertices_from_edge_list(const std::vector<EdgePairType> &es) {
 }
 
 template<typename EdgeType>
-void basic_graph<EdgeType>::assign(const basic_graph<EdgeType>::edge_list_type &es, V num_vs) {
+void basic_graph<EdgeType>::assign(const typename basic_graph<EdgeType>::edge_list_type &es, V num_vs) {
   if (num_vs == -1) {
     num_vs = num_vertices_from_edge_list(es);
   }
