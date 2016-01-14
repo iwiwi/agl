@@ -1,6 +1,6 @@
 #pragma once
 
-class naive {
+class dinic_naive {
   struct E {
     int to, rev, cap;
     E(int to, int rev, int cap) : to(to), rev(rev), cap(cap) {}
@@ -45,9 +45,16 @@ class naive {
 
   static const int INF = (int)1e8;
 public:
-  naive(const G& g) 
+  dinic_naive(const G& g) 
   : level(g.num_vertices()), iter(g.num_vertices()), e(g.num_vertices()) {
     for(const auto edge : g.edge_list()){
+      add_undirected_edge(edge.first, edge.second, 1);
+    }
+  }
+
+  dinic_naive(const vector<pair<V, V>>& edges, int num_vs)
+  : level(num_vs), iter(num_vs), e(num_vs) {
+    for(const auto edge : edges){
       add_undirected_edge(edge.first, edge.second, 1);
     }
   }
