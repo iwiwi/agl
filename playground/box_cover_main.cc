@@ -127,6 +127,7 @@ int main(int argc, char** argv) {
     while (sk.size() < 4) sk = "0" + sk;
     JLOG_PUT("k", to_string(FLAGS_sketch_k));
     JLOG_PUT("pass", to_string(FLAGS_pass));
+    JLOG_PUT("size_upper", to_string(FLAGS_size_upper));
 
     for (W rad : rads) {
       vector<V> res;

@@ -54,6 +54,8 @@ vector<V> merge_and_purify(set<V> &parent, const vector<V> &sorted_vec,
 }
 
 vector<V> box_cover_memb(const G &g, W radius) {
+  double timer = -get_current_time_sec();
+
   V num_v = g.num_vertices();
   vector<vector<pair<V, W>>> node_lists;
   map<size_t, set<V>> excluded_mass_map;
@@ -88,7 +90,10 @@ vector<V> box_cover_memb(const G &g, W radius) {
       excluded_mass_map[p.first].insert(p.second);
     }
   }
+  timer += get_current_time_sec();
+  cerr << timer << "sec MEMB built" << endl;
 
+  timer = -get_current_time_sec();
   set<V> covered_nodes;
   set<V> center_nodes;
   vector<W> central_distance(num_v, num_v);
@@ -135,6 +140,8 @@ vector<V> box_cover_memb(const G &g, W radius) {
     }
   }
 
+  timer += get_current_time_sec();
+  cerr << timer << "sec MEMB select" << endl;
   vector<V> ret(center_nodes.begin(), center_nodes.end());
   return ret;
 }
