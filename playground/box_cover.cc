@@ -484,7 +484,7 @@ vector<vector<V>> build_sketch(const G &g, const W radius, const int k,
             next.push_back(neighbor);
             total_size++;
           } else {
-            X[neighbor].insert(rv);
+            xn.insert(rv);
             next.push_back(neighbor);
             total_size++;
           }
@@ -498,10 +498,11 @@ vector<vector<V>> build_sketch(const G &g, const W radius, const int k,
     }
   }
 
-  vector<vector<V>> ret(num_v);
+  vector<vector<V>> ret;
   for (V v = 0; v < num_v; ++v) {
+    while (X[v].size() > using_k) X[v].erase(*(X[v].rbegin()));
     vector<V> sketch(X[v].begin(), X[v].end());
-    ret[v] = sketch;
+    ret.push_back(sketch);
   }
 
   return ret;
