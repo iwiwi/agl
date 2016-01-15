@@ -1,7 +1,7 @@
 #pragma once
 #include "ConnectedComponentsFilter.h"
 
-DEFINE_string(gusfield_choice_stpair_strategy, "sequential", "sequential, sort_by_degree_ascending, sort_by_degree_desending");
+DEFINE_string(gusfield_choice_stpair_strategy, "sequential", "sequential, sort_by_degree_ascending, sort_by_degree_desending, random");
 
 class OptimizedGusfieldWith2ECC_core {
   void build_depth() {
@@ -32,7 +32,9 @@ class OptimizedGusfieldWith2ECC_core {
         sort(mincut_order.begin(),mincut_order.end(),[&degree](const int l,const int r) {
           return degree[l] > degree[r];
         });
-    }else {
+    } else if(FLAGS_gusfield_choice_stpair_strategy == "random") {
+      random_shuffle(mincut_order.begin(),mincut_order.end());
+    } else {
       fprintf(stderr, "unrecognized option '-gusfield_choice_stpair_strategy=%s'\n", FLAGS_gusfield_choice_stpair_strategy.c_str());
       exit(-1);
     }
