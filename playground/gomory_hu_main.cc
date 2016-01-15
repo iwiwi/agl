@@ -210,7 +210,6 @@ void tester() {
 int main(int argc, char** argv) {
 
   G g = easy_cui_init(argc, argv);
-  g = to_directed_graph(g);
 
   if (FLAGS_method == "test") {
     test(g);
