@@ -4,10 +4,10 @@ import subprocess
 if __name__ == "__main__":
     sketch_ks = [32, 64, 128, 256, 512]
     rad_maxs = [512]
-    # pass_nums = [1, 1000]
     pass_nums = [1000]
-    size_uppers = [0, 150000 * 1024 * 10]
+    size_uppers = [2500000, 5000000, 10000000, 20000000, 40000000]
     graph_names = [
+        "'flower 88575 1 2'", "'flower 43692 1 3'", "'flower 58595 1 4'", "'flower 37326 1 5'",
         "'flower 265722 1 2'", "'flower 699052 1 3'", "'flower 292970 1 4'", "'flower 223950 1 5'",
         "'flower 699052 2 2'", "'flower 292970 2 3'", "'flower 223950 2 4'",
         "'flower 223950 3 3'", "'flower 686287 3 4'",
@@ -31,11 +31,12 @@ if __name__ == "__main__":
                         # job_name = method_name + "-" + graph_name.replace("'", "").replace(" ", "-")
                         job_name = "sketch-" + graph_name.replace("'", "").replace(" ", "-") + \
                             "-k." + str(sketch_k) + "-rad." + \
-                            str(rad_max) + "-pass." + str(pass_num)
+                            str(rad_max) + "-pass." + str(pass_num) + \
+                            "-size_upper." + str(size_upper)
                         p1 = subprocess.Popen(
                             ["echo", command], stdout=subprocess.PIPE)
                         p2 = subprocess.Popen(
-                            ["qsub", "-l", "walltime=240:00:00,nodes=1:ppn=3", "-N", job_name], stdin=p1.stdout)
+                            ["qsub", "-l", "walltime=48:00:00", "-N", job_name], stdin=p1.stdout)
                         p1.stdout.close()
                         output = p2.communicate()[0]
     # MEMB
@@ -52,7 +53,7 @@ if __name__ == "__main__":
             job_name = "memb-" + graph_name.replace("'", "").replace(" ", "-")
             p1 = subprocess.Popen(["echo", command], stdout=subprocess.PIPE)
             p2 = subprocess.Popen(
-                ["qsub", "-l", "walltime=240:00:00,nodes=1:ppn=3", "-N", job_name], stdin=p1.stdout)
+                ["qsub", "-l", "walltime=48:00:00", "-N", job_name], stdin=p1.stdout)
             p1.stdout.close()
             output = p2.communicate()[0]
 

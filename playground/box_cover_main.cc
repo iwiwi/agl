@@ -119,8 +119,8 @@ int main(int argc, char** argv) {
       FLAGS_final_coverage = 1.0;
     }
     experiment_name.append("-k." + to_string(FLAGS_sketch_k));
-    experiment_name.append("-pass." + to_string(FLAGS_pass));
-    experiment_name.append("-coverage." + to_string(FLAGS_final_coverage));
+    // experiment_name.append("-pass." + to_string(FLAGS_pass));
+    // experiment_name.append("-coverage." + to_string(FLAGS_final_coverage));
 
     JLOG_PUT("name", experiment_name);
     string sk = to_string(FLAGS_sketch_k);
@@ -184,7 +184,6 @@ int main(int argc, char** argv) {
   string rad_str = to_string(FLAGS_rad_max);
   while (rad_str.size() < 3) rad_str = "0" + rad_str;
   JLOG_INSERT_FILENAME("-upper_bound." + to_string(FLAGS_size_upper) + "-");
-  JLOG_INSERT_FILENAME("-rad." + rad_str + "-");
   JLOG_INSERT_FILENAME("-" + graph_name);
   JLOG_INSERT_FILENAME(experiment_name);
 }

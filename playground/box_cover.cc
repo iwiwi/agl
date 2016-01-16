@@ -505,6 +505,7 @@ vector<vector<V>> build_sketch(const G &g, const W radius, const int k,
     ret.push_back(sketch);
   }
 
+  cerr << "total index " << total_size << endl;
   return ret;
 }
 
