@@ -188,7 +188,9 @@ int main(int argc, char** argv) {
   if (FLAGS_method == "test") {
     test(g);
   } else if (FLAGS_method == "gusfield") {
-    Gusfield3 gf(g);
+    JLOG_PUT_BENCHMARK("gusfield_time") {
+      Gusfield3 gf(g);
+    }
   } else if(FLAGS_method == "all_pair") {
     flow_all_ST_pair(g);
   } else {
