@@ -3,18 +3,19 @@
 template<class handler_t>
 class ConnectedComponentsFilter {
 public:
-  ConnectedComponentsFilter(const G& g) : n(g.num_vertices()), uf(n), local_indices(n), handlers_indices(n) {
+  ConnectedComponentsFilter(const G& g) 
+  : n(g.num_vertices()), uf(n), local_indices(n), handlers_indices(n), num_connected_components_(0) {
 
     FOR(v, n) for (auto e : g.edges(v)) {
       V u = to(e);
       uf.unite(u, v);
     }
-    int num_connected_components = 0;
+    num_connected_components_ = 0;
     FOR(v, n) {
       if (uf.root(v) != v) local_indices[v] = ++local_indices[uf.root(v)];
-      else handlers_indices[v] = num_connected_components++;
+      else handlers_indices[v] = num_connected_components_++;
     }
-    fprintf(stderr, "num_connected_components = %d\n", num_connected_components);
+    fprintf(stderr, "num_connected_components = %d\n", num_connected_components_);
 
     vector<bool> used(n);
     FOR(v, n) {
@@ -41,14 +42,14 @@ public:
       }
 
       fprintf(stderr, "root = %d num_vs = %d, edge_size = %d\n", v, num_vs, sz(edges));
-      handlers.emplace_back(edges, num_vs);
+      handlers_.emplace_back(edges, num_vs);
     }
   }
 
   int query(V u, V v) {
     if (!uf.is_same(u, v)) return 0;
     int lu = local_indices[u], lv = local_indices[v];
-    auto& handler = handlers[handlers_indices[uf.root(u)]];
+    auto& handler = handlers_[handlers_indices[uf.root(u)]];
     if (lu == lv) {
       printf("u = %d, lu = %d, v = %d, lv = %d\n", u, lu, v, lv);
       CHECK(false);
@@ -56,9 +57,18 @@ public:
     return handler.query(lu, lv);
   }
 
+  int num_connected_components() const {
+    return num_connected_components_;
+  }
+
+  const vector<handler_t>& handlers() const {
+    return handlers_;
+  }
+
 private:
-  int n;
+  const int n;
   union_find uf;
   vector<int> local_indices, handlers_indices;
-  vector<handler_t> handlers;
+  vector<handler_t> handlers_;
+  int num_connected_components_;
 };

@@ -116,6 +116,10 @@ public:
     return ans;
   }
 
+  const vector<pair<V,int>>& parent_weight() const {
+    return parent_weight_;
+  }
+
 private:
   const int num_vertices_;
   vector<pair<V, int>> parent_weight_;
@@ -172,6 +176,31 @@ public:
       else return 0;
     }
     return ans;
+  }
+
+  void aggregate_gomory_hu_tree_weight() const {
+    map<int,int> weight_num;
+    const int wight0_num = biconnected_graph_handler->num_connected_components() - sz(bridge) - 1;
+    weight_num[0] = wight0_num;
+    const int wight1_num = sz(bridge);
+    weight_num[1] = wight1_num;
+
+    //weight2以上
+    for(auto& gusfield_core : biconnected_graph_handler->handlers()) {
+      for(auto& kv : gusfield_core.parent_weight()) {
+        if(kv.first == -1) continue; // 親への辺が存在しない
+        int weight = kv.second;
+        CHECK(weight >= 2);
+        weight_num[weight]++;
+      }
+    }
+
+    for(const auto& wn : weight_num) {
+      JLOG_ADD_OPEN("gomory-hu_edge") {
+        JLOG_PUT("weight", wn.first);
+        JLOG_PUT("count", wn.second);
+      }
+    }
   }
 
 private:

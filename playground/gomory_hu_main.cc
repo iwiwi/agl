@@ -150,36 +150,9 @@ G to_directed_graph(G g) {
 using Gusfield2 = ConnectedComponentsFilter<OptimizedGusfield<dinic_twosided>>;
 using Gusfield3 = OptimizedGusfieldWith2ECC;
 
-bool check_min_cut_query(Gusfield2& gf2, Gusfield3& gf3, int s, int t, const G& g) {
-  // int naive_w = dc.max_flow(s, t);
-  int gf2_w = gf2.query(s, t);
-  int gf3_w = gf3.query(s, t);
-
-  if (gf2_w != gf3_w) {
-    fprintf(stderr, "unmatched. (S,T) = (%d,%d), naive = None, gf2_w = %d, gf3_w = %d\n", s, t, gf2_w, gf3_w);
-  }
-  return gf2_w == gf3_w;
-}
-
 void test(const G& g) {
   Gusfield3 gf3(g);
-  Gusfield2 gf2(g);
-  xorshift64star gen_node(FLAGS_node_pair_random_seed);
-
-  int unmatch = 0;
-  for (int counter = 0; counter < FLAGS_num_query; counter++) {
-    V s = gen_node() % g.num_vertices();
-    V t = gen_node() % (g.num_vertices() - 1);
-    if (s <= t) t++;
-    if (counter % 100 == 0) {
-      fprintf(stderr, "count/unmatch/all : %d/%d/%d, \n", counter, unmatch, FLAGS_num_query);
-    }
-    bool is_matched = check_min_cut_query(gf2, gf3, s, t, g);
-    if (!is_matched) unmatch++;
-  }
-  JLOG_PUT("result.all", FLAGS_num_query);
-  JLOG_PUT("result.match", (FLAGS_num_query - unmatch));
-  JLOG_PUT("result.unmatch", unmatch);
+  gf3.aggregate_gomory_hu_tree_weight();
 }
 
 DEFINE_string(validation_data_path, "validate.data", "");
