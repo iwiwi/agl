@@ -512,6 +512,8 @@ vector<vector<V>> build_sketch(const G &g, const W radius, const int k,
 void select_lazy_greedily(const G &g, const vector<vector<V>> &X,
                           vector<V> &centers, vector<bool> &centered,
                           coverage_manager &cm) {
+  cm.goal_coverage = 1.0;
+
   priority_queue<pair<V, V>> que;
   vector<V> box_size(X.size());
   for (size_t i = 0; i < X.size(); ++i) {

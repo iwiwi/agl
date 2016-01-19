@@ -8,10 +8,10 @@ class coverage_manager {
   vector<W> dist;
   V cnt = 0;
   W radius;
-  double goal_coverage;
   coverage_manager() {}
 
  public:
+  double goal_coverage;
   coverage_manager(const G &g, const W r, const double c) {
     num_v = g.num_vertices();
     dist.assign(num_v, num_v);
