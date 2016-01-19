@@ -16,6 +16,7 @@ DEFINE_string(method, "gusfield", "both, gomory_hu, gusfield");
 #include "ConnectedComponentsFilter.h"
 #include "OptimizedGusfield.h"
 #include "OptimizedGusfieldWith2ECC.h"
+#include "OptimizedGusfieldWith2ECC2.h"
 
 G to_directed_graph(G g) {
   vector<pair<V, V>> ret;
@@ -25,10 +26,10 @@ G to_directed_graph(G g) {
   return G(ret);
 }
 
-using Gusfield2 = ConnectedComponentsFilter<OptimizedGusfield<dinic_twosided>>;
 using Gusfield3 = OptimizedGusfieldWith2ECC;
+using Gusfield4 = OptimizedGusfieldWith2ECC2;
 
-void test(const G& g) {
+void aggregate_weight(const G& g) {
   Gusfield3 gf3(g);
   gf3.aggregate_gomory_hu_tree_weight();
 }
@@ -36,7 +37,7 @@ void test(const G& g) {
 DEFINE_string(validation_data_path, "validate.data", "");
 
 void flow_all_ST_pair(G& g) {
-  Gusfield3 gf(g);
+  Gusfield4 gf(g);
   
   FILE* fp = fopen(FLAGS_validation_data_path.c_str(), "w");
   int counter = 0;
@@ -52,7 +53,30 @@ void flow_all_ST_pair(G& g) {
   fclose(fp);
 }
 
+void test(G&& g) {
+  Gusfield3 gf3(g);
+  Gusfield4 gf4(g);
+
+  int counter = 0;
+  const int all = g.num_vertices() * (g.num_vertices() - 1) / 2;
+  FOR(s, g.num_vertices()) for (int t = s + 1; t < g.num_vertices(); t++) {
+    if (counter % 100 == 0) {
+      fprintf(stderr, "count/all = %d/%d\n", counter, all);
+    }
+    int flow3 = gf3.query(s, t);
+    int flow4 = gf4.query(s, t);
+    printf("(%d,%d) : gf3 = %d, gf4 = %d\n", s, t, flow3, flow4);
+    if (flow3 != flow4) {
+      puts("?");
+      int x; cin >> x;
+    }
+    counter++;
+  }
+}
+
 void tester() {
+  test(to_directed_graph(built_in_graph("karate_club")));
+  test(to_directed_graph(built_in_graph("dolphin")));
   test(to_directed_graph(built_in_graph("ca_grqc")));
   exit(0);
 }
@@ -60,11 +84,13 @@ void tester() {
 
 int main(int argc, char** argv) {
 
+  // tester();
+
   G g = easy_cui_init(argc, argv);
   g = to_directed_graph(g);
 
   if (FLAGS_method == "test") {
-    test(g);
+    test(std::move(g));
   } else if (FLAGS_method == "gusfield") {
     JLOG_PUT_BENCHMARK("gusfield_time") {
       Gusfield3 gf(g);

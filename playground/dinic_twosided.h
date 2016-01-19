@@ -28,6 +28,12 @@ class dinic_twosided {
     }
   };
 
+  // two sided bfsが終了した理由
+  enum reason_for_finishing_bfs_t {
+    kQsIsEmpty,
+    kQtIsEmpty,
+  };
+
   bool two_sided_bfs(int s, int t) {
     queue<int> qs, qt;
     qs.push(s); qt.push(t);
@@ -69,6 +75,8 @@ class dinic_twosided {
       }
       tlevel++;
     }
+
+  reason_for_finishing_bfs = (qs.empty()) ? kQsIsEmpty : kQtIsEmpty;
     return false;
   }
 
@@ -146,6 +154,17 @@ public:
     return flow;
   }
 
+  bool path_dont_exists_to_t(const int v) const {
+    if (reason_for_finishing_bfs == kQsIsEmpty) {
+      //sから到達可能な頂点のbfs_revisionには、必ずs_side_bfs_revisionが代入されている
+      return bfs_revision[v] == s_side_bfs_revision;
+    } else {
+      //上の逆
+      //tから到達不可能 <=>
+      return bfs_revision[v] != t_side_bfs_revision;
+    }
+  }
+
   //フローを流す前に実行する
   void reset_graph() {
     graph_revision++;
@@ -161,5 +180,6 @@ public:
   vector<vector<E>> e;
   int s_side_bfs_revision, t_side_bfs_revision;
   int graph_revision;
+  reason_for_finishing_bfs_t reason_for_finishing_bfs;
 
 };
