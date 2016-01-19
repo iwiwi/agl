@@ -10,7 +10,6 @@ import re
 
 
 def xy_from_json(json_data):
-    print str(json_data['graph_info'][0]['vertices']) + "\t" + str(json_data['graph_info'][0]['edges'])
     boxSizes = json_data['size']
     if 'radius' in json_data:
         radiuses = json_data['radius']
@@ -79,11 +78,37 @@ if __name__ == "__main__":
         expo_init = linearRegression(px, np.log(py))
         expo = scipy.optimize.leastsq(expoFit, expo_init, args=(px, py))
         expo_result = sum(expoFit(expo[0], px, py)**2)
-        
-        print frac_result
-        print expo_result
 
+        # Graph Information
+        graph_name = json_data['graph_info'][0]['graph']
+        edges = json_data['graph_info'][0]['edges']
+        vertices = json_data['graph_info'][0]['vertices']
 
-        g_name = json_data['graph_info'][0]['graph']
-        if 'size_upper' in json_data:
-            ub = str(json_data['size_upper'])
+        # General Results
+        time = json_data['run']['time']
+        method = json_data['name']
+
+        if method != 'MEMB':
+            method = 'Sketch'
+
+        if method not in data:
+            data[method] = {}
+
+        # Sketch
+        if 'k' in json_data:
+            k = int(json_data['k'])
+            if k not in data[method]:
+                data[method][k] = {}
+            ub = json_data['size_upper']
+            if ub not in data[method][k]:
+                data[method][k][ub] = {}
+            data[method][k][ub][graph_name] = {
+                "edges": edges,
+                "vertices": vertices,
+                "exponential": expo_result,
+                "fractal": frac_result,
+                "time": time
+            }
+
+    json_str = json.dumps(data, sort_keys=True, indent=4)
+    print json_str
