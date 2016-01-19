@@ -122,10 +122,68 @@ if __name__ == "__main__":
             }
             methods[method] = {}
 
+    sorted(methods.items(), key=lambda x: x[0])
     for key in data.keys():
         for method in methods.keys():
             if method not in data[key]:
                 data[key][method] = {}
     json_str = json.dumps(data, sort_keys=True, indent=4)
-    print json_str
-    # print methods
+
+    # Spreadsheat
+    sys.stdout.write(",graph,")
+    for graph_name in data.keys():
+        sys.stdout.write(graph_name + ",")
+    sys.stdout.write("\n")
+    sys.stdout.write(",vertices,")
+    for graph_name in data.keys():
+        sys.stdout.write(str(data[graph_name]['vertices']) + ",")
+    sys.stdout.write("\n")
+    sys.stdout.write(",edges,")
+    for graph_name in data.keys():
+        sys.stdout.write(str(data[graph_name]['edges']) + ",")
+    sys.stdout.write("\n")
+    for method in methods.keys():
+        sys.stdout.write(method + "," + "exp,")
+        for graph_name in data.keys():
+            if 'exponential' in data[graph_name][method]:
+                sys.stdout.write(
+                    str(data[graph_name][method]['exponential']) + ",")
+            else:
+                sys.stdout.write(",")
+        sys.stdout.write("\n")
+
+        sys.stdout.write(",frac,")
+        for graph_name in data.keys():
+            if 'fractal' in data[graph_name][method]:
+                sys.stdout.write(
+                    str(data[graph_name][method]['fractal']) + ",")
+            else:
+                sys.stdout.write(",")
+        sys.stdout.write("\n")
+
+        sys.stdout.write(",judge,")
+        for graph_name in data.keys():
+            if 'exponential' in data[graph_name][method] and 'fractal' in data[graph_name][method]:
+                e = data[graph_name][method]['exponential']
+                f = data[graph_name][method]['fractal']
+                pattern = r"^.*\-1\-[0-9]*$"
+                if re.search(pattern, graph_name):
+                    if f > e:
+                        sys.stdout.write("ok,")
+                    else:
+                        sys.stdout.write(",")
+                elif f < e:
+                    sys.stdout.write("ok,")
+                else:
+                    sys.stdout.write(",")
+            else:
+                sys.stdout.write(",")
+        sys.stdout.write("\n")
+
+        sys.stdout.write(",time,")
+        for graph_name in data.keys():
+            if 'time' in data[graph_name][method]:
+                sys.stdout.write(str(data[graph_name][method]['time']) + ",")
+            else:
+                sys.stdout.write(",")
+        sys.stdout.write("\n")
