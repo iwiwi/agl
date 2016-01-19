@@ -1,7 +1,7 @@
 #pragma once
 #include "ConnectedComponentsFilter.h"
 
-class OptimizedGusfieldWith2ECC2_core {
+class OptimizedGusfieldWith2ECC2 {
   void build_depth() {
     depth_[root_node_] = 0;
 
@@ -55,7 +55,7 @@ class OptimizedGusfieldWith2ECC2_core {
 
 public:
 
-  OptimizedGusfieldWith2ECC2_core(vector<pair<V, V>>& edges, int num_vs) :
+  OptimizedGusfieldWith2ECC2(vector<pair<V, V>>& edges, int num_vs) :
     num_vertices_(num_vs),
     parent_weight_(num_vs, make_pair(-1, -1)),
     depth_(num_vs, -1) {
@@ -195,87 +195,4 @@ private:
   vector<int> depth_;
 
   int root_node_;
-};
-
-// 2ECC = 2-edge connected components
-class OptimizedGusfieldWith2ECC2 {
-public:
-  const int n;
-  const G& g;
-
-  void lowlink_dfs(int v, int par, int& cur_ord) {
-    lowlink[v] = order[v] = cur_ord++;
-    FOR(dir, 2) for (auto to : g.edges(v, D(dir))) {
-      if (to == par) continue;
-      if (order[to] == -1) {
-        lowlink_dfs(to, v, cur_ord);
-        lowlink[v] = min(lowlink[v], lowlink[to]);
-        if (order[v] < lowlink[to]) bridge.emplace_back(v, to);
-        else biconnected_graphs_edges.emplace_back(v, to);
-      } else {
-        lowlink[v] = min(lowlink[v], lowlink[to]);
-        if (v < to) biconnected_graphs_edges.emplace_back(v, to);
-      }
-    }
-  }
-
-  OptimizedGusfieldWith2ECC2(const G& g) : n(g.num_vertices()), g(g), uf(n), lowlink(n, -1), order(n, -1) {
-    FOR(v, n) for (auto& e : g.edges(v)) {
-      uf.unite(v, to(e));
-    }
-
-    const int num_edges = g.num_edges();
-
-    FOR(v, n) if (uf.root(v) == v) {
-      int cur_ord = 0;
-      lowlink_dfs(v, -1, cur_ord);
-    }
-
-    CHECK(sz(bridge) + sz(biconnected_graphs_edges) == num_edges);
-
-    G new_g(biconnected_graphs_edges, n);
-    biconnected_graph_handler.reset(new ConnectedComponentsFilter<OptimizedGusfieldWith2ECC2_core>(new_g));
-  }
-
-public:
-  int query(V u, V v) {
-    int ans = biconnected_graph_handler->query(u, v);
-    if (ans == 0) {
-      if (uf.is_same(u, v)) return 1; // 橋で間接的につながっている
-      else return 0;
-    }
-    return ans;
-  }
-
-  void aggregate_gomory_hu_tree_weight() const {
-    map<int,int> weight_num;
-    const int wight0_num = biconnected_graph_handler->num_connected_components() - sz(bridge) - 1;
-    weight_num[0] = wight0_num;
-    const int wight1_num = sz(bridge);
-    weight_num[1] = wight1_num;
-
-    //weight2以上
-    for(auto& gusfield_core : biconnected_graph_handler->handlers()) {
-      for(auto& kv : gusfield_core.parent_weight()) {
-        if(kv.first == -1) continue; // 親への辺が存在しない
-        int weight = kv.second;
-        CHECK(weight >= 2);
-        weight_num[weight]++;
-      }
-    }
-
-    for(const auto& wn : weight_num) {
-      JLOG_ADD_OPEN("gomory-hu_edge") {
-        JLOG_PUT("weight", wn.first);
-        JLOG_PUT("count", wn.second);
-      }
-    }
-  }
-
-private:
-  union_find uf;
-  vector<int> lowlink, order;
-  vector<pair<V, V>> bridge, biconnected_graphs_edges;
-
-  unique_ptr<ConnectedComponentsFilter<OptimizedGusfieldWith2ECC2_core>> biconnected_graph_handler;
 };
