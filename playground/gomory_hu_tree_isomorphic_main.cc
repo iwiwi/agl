@@ -18,7 +18,6 @@ map<int, vector<pair<V, V>>> load(const string& path) {
 
 void check(map<int, vector<pair<V, V>>>& l, map<int, vector<pair<V, V>>>& r) {
   using ull = unsigned long long;
-
   int n = 1;
   for (auto& kv : l) n += sz(kv.second);
   vector<ull> zobrist_hash(n);
@@ -31,8 +30,48 @@ void check(map<int, vector<pair<V, V>>>& l, map<int, vector<pair<V, V>>>& r) {
   for (auto& kv : l) weight.push_back(kv.first);
   reverse(weight.begin(), weight.end());
 
-  for(const int w: weight) {
-    CHECK(sz(l[w]) == sz(r[w]));
+  auto on_mismatched = [&](V u) {
+    set<int> onlyl,onlyr,intersect;
+    FOR(a, n) if (ufl.is_same(u, a)) onlyl.insert(a);
+    FOR(a, n) if (ufr.is_same(u, a)) {
+      if(onlyl.count(a)) onlyl.erase(a), intersect.insert(a);
+      else onlyr.insert(a);
+    } 
+    int cnt;
+    printf("left: ");
+    cnt = 0;
+    for(auto x : onlyl) {
+      printf("%d, ",x);
+      cnt++;
+      if(cnt >= 10) break;
+    }
+    puts("");
+    printf("right: ");
+    cnt = 0;
+    for(auto x : onlyr) {
+      printf("%d, ",x);
+      cnt++;
+      if(cnt >= 10) break;
+    }
+    puts("");
+    printf("intersect: ");
+    cnt = 0;
+    for(auto x : intersect) {
+      printf("%d, ",x);
+      cnt++;
+      if(cnt >= 10) break;
+    }
+    puts("");
+  };
+
+  for (const int w : weight) {
+    if(sz(l[w]) != sz(r[w])) printf("*");
+    printf("w = %d, L : %d , R : %d", w, sz(l[w]), sz(r[w]));
+    puts("");
+  }
+
+  for (const int w : weight) {
+    // CHECK(sz(l[w]) == sz(r[w]));
     for (auto& uv : l[w]) {
       int u, v; tie(u, v) = uv;
       u = ufl.root(u), v = ufl.root(v);
@@ -53,15 +92,26 @@ void check(map<int, vector<pair<V, V>>>& l, map<int, vector<pair<V, V>>>& r) {
 
     for (auto& uv : l[w]) {
       int u, v; tie(u, v) = uv;
-      CHECK(hl[ufl.root(u)] == hr[ufr.root(u)]);
-      CHECK(hl[ufl.root(v)] == hr[ufr.root(v)]);
+      if (hl[ufl.root(u)] != hr[ufr.root(u)]) {
+        on_mismatched(u);
+        exit(-1);
+      }
+      if (hl[ufl.root(v)] != hr[ufr.root(v)]) {
+        on_mismatched(v);
+        exit(-1);
+      }
     }
     for (auto& uv : r[w]) {
       int u, v; tie(u, v) = uv;
-      CHECK(hl[ufl.root(u)] == hr[ufr.root(u)]);
-      CHECK(hl[ufl.root(v)] == hr[ufr.root(v)]);
+      if (hl[ufl.root(u)] != hr[ufr.root(u)]) {
+        on_mismatched(u);
+        exit(-1);
+      }
+      if (hl[ufl.root(v)] != hr[ufr.root(v)]) {
+        on_mismatched(v);
+        exit(-1);
+      }
     }
-
   }
 }
 
