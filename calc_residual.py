@@ -64,6 +64,7 @@ def expoFit(beta, x, y):
 
 if __name__ == "__main__":
     data = {}
+    methods = {}
     for ai in range(1, len(sys.argv)):
         log = open(sys.argv[ai], 'r')
         json_data = json.load(log)
@@ -91,24 +92,40 @@ if __name__ == "__main__":
         if method != 'MEMB':
             method = 'Sketch'
 
-        if method not in data:
-            data[method] = {}
+        if graph_name not in data:
+            data[graph_name] = {
+                "edges": edges,
+                "vertices": vertices
+            }
 
         # Sketch
         if 'k' in json_data:
-            k = int(json_data['k'])
-            if k not in data[method]:
-                data[method][k] = {}
-            ub = json_data['size_upper']
-            if ub not in data[method][k]:
-                data[method][k][ub] = {}
-            data[method][k][ub][graph_name] = {
-                "edges": edges,
-                "vertices": vertices,
-                "exponential": expo_result,
+            k = str(json_data['k']).zfill(4)
+            ub = str(json_data['size_upper']).zfill(8)
+            method = "Sketch-k." + k + "-upper_bound." + ub
+            data[graph_name][method] = {
+                "k": int(k),
+                "upper_bound": int(ub),
                 "fractal": frac_result,
+                "exponential": expo_result,
                 "time": time
             }
+            methods[method] = {
+                "k": int(k),
+                "upper_bound": int(ub)
+            }
+        else:
+            data[graph_name][method] = {
+                "fractal": frac_result,
+                "exponential": expo_result,
+                "time": time
+            }
+            methods[method] = {}
 
+    for key in data.keys():
+        for method in methods.keys():
+            if method not in data[key]:
+                data[key][method] = {}
     json_str = json.dumps(data, sort_keys=True, indent=4)
     print json_str
+    # print methods
