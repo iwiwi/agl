@@ -513,6 +513,7 @@ void select_lazy_greedily(const G &g, const vector<vector<V>> &X,
                           vector<V> &centers, vector<bool> &centered,
                           coverage_manager &cm) {
   cm.goal_coverage = 1.0;
+  vector<bool> rank_covered(X.size(), false);
 
   priority_queue<pair<V, V>> que;
   vector<V> box_size(X.size());
@@ -542,6 +543,8 @@ void select_lazy_greedily(const G &g, const vector<vector<V>> &X,
     if (cm.is_covered()) break;
 
     for (auto rank : X[v]) {
+      if (rank_covered[rank]) continue;
+      rank_covered[rank] = true;
       for (auto box : inverted[rank]) {
         box_size[box]--;
       }
