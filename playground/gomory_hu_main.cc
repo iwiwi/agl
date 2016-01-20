@@ -83,7 +83,7 @@ void main_(G&& g) {
     test(std::move(g));
   } else if (FLAGS_method == "gusfield") {
     JLOG_PUT_BENCHMARK("gusfield_time") {
-      Gusfield3 gf(g);
+      T gf(g);
     }
   } else if (FLAGS_method == "print_gomory_hu_tree") {
     print_gomory_hu_tree<T>(std::move(g));
