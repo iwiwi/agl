@@ -18,7 +18,10 @@ class dinic_twosided {
       return cap_;
     }
     void add_cap(int val, int currenct_revision) {
-      revision_ = currenct_revision;
+      if (revision_ != currenct_revision) {
+        revision_ = currenct_revision;
+        cap_ = init_cap_;
+      }
       cap_ += val;
     }
 
@@ -43,6 +46,7 @@ class dinic_twosided {
 
     int slevel = 0, tlevel = 0;
     while (sz(qs) != 0 && sz(qt) != 0) {
+      bool path_found = false;
       if (sz(qs) < sz(qt)) {
         int size = sz(qs);
         FOR(_, size) {
@@ -50,7 +54,8 @@ class dinic_twosided {
           for (auto t : e[v]) {
             if (t.cap(graph_revision) == 0 || bfs_revision[t.to] == s_side_bfs_revision) continue;
             if (bfs_revision[t.to] == t_side_bfs_revision) {
-              return true; // path was found.
+              path_found = true;
+              continue;
             }
             bfs_revision[t.to] = s_side_bfs_revision;
             level[t.to].first = slevel + 1;
@@ -65,15 +70,17 @@ class dinic_twosided {
           for (auto t : e[v]) {
             if (e[t.to][t.reverse].cap(graph_revision) == 0 || bfs_revision[t.to] == t_side_bfs_revision) continue;
             if (bfs_revision[t.to] == s_side_bfs_revision) {
-              return true; // path was found.
+              path_found = true;
+              continue;
             }
             bfs_revision[t.to] = t_side_bfs_revision;
             level[t.to].second = tlevel + 1;
             qt.push(t.to);
           }
         }
+        tlevel++;
       }
-      tlevel++;
+      if(path_found) return true;
     }
 
   reason_for_finishing_bfs = (qs.empty()) ? kQsIsEmpty : kQtIsEmpty;
