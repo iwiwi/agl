@@ -41,29 +41,132 @@ DEFINE_string(validation_data_path, "validate.data", "");
 template<class gomory_hu_tree_t>
 void print_gomory_hu_tree(G&& g) {
   gomory_hu_tree_t gf(g);
-  FILE* fp = fopen(FLAGS_validation_data_path.c_str(), "w");
-  gf.print_gomory_hu_tree(fp);
-  fclose(fp);
+  ofstream os(FLAGS_validation_data_path.c_str(), ios_base::out);
+  gf.print_gomory_hu_tree(os);
+}
+
+map<int, vector<pair<V, V>>> load(const string& path) {
+  ifstream is(path.c_str());
+  map<int, vector<pair<V, V>>> ret;
+  int s, v, weight;
+  while (is >> s >> v >> weight) {
+    ret[weight].emplace_back(s, v);
+  }
+  return ret;
+}
+
+template<class T>
+map<int, vector<pair<V, V>>> f(T& gf) {
+  stringstream ss;
+  gf.print_gomory_hu_tree(ss);
+  map<int, vector<pair<V, V>>> ret;
+  int s, v, weight;
+  while (ss >> s >> v >> weight) {
+    ret[weight].emplace_back(s, v);
+  }
+  return ret;
 }
 
 void test(G&& g) {
   Gusfield3 gf3(g);
   Gusfield4 gf4(g);
+  auto l = f(gf3);
+  auto r = f(gf4);
 
-  int counter = 0;
-  const int all = g.num_vertices() * (g.num_vertices() - 1) / 2;
-  FOR(s, g.num_vertices()) for (int t = s + 1; t < g.num_vertices(); t++) {
-    if (counter % 100 == 0) {
-      fprintf(stderr, "count/all = %d/%d\n", counter, all);
+  using ull = unsigned long long;
+  const int n = g.num_vertices();
+  vector<ull> zobrist_hash(n);
+  FOR(i, n) zobrist_hash[i] = (ull(agl::random()) << 32) | ull(agl::random());
+
+  union_find ufl(n), ufr(n);
+  vector<ull> hl = zobrist_hash, hr = zobrist_hash;
+
+  vector<int> weight;
+  for (auto& kv : l) weight.push_back(kv.first);
+  reverse(weight.begin(), weight.end());
+
+  auto on_mismatched = [&](V u) {
+    set<int> onlyl, onlyr, intersect;
+    FOR(a, n) if (ufl.is_same(u, a)) onlyl.insert(a);
+    FOR(a, n) if (ufr.is_same(u, a)) {
+      if (onlyl.count(a)) onlyl.erase(a), intersect.insert(a);
+      else onlyr.insert(a);
     }
-    int flow3 = gf3.query(s, t);
-    int flow4 = gf4.query(s, t);
-    printf("(%d,%d) : gf3 = %d, gf4 = %d\n", s, t, flow3, flow4);
-    if (flow3 != flow4) {
-      puts("?");
-      int x; cin >> x;
+    int cnt;
+    printf("left: ");
+    cnt = 0;
+    for (auto x : onlyl) {
+      printf("%d, ", x);
+      cnt++;
+      if (cnt >= 10) break;
     }
-    counter++;
+    puts("");
+    printf("right: ");
+    cnt = 0;
+    for (auto x : onlyr) {
+      printf("%d, ", x);
+      cnt++;
+      if (cnt >= 10) break;
+    }
+    puts("");
+    printf("intersect: ");
+    cnt = 0;
+    for (auto x : intersect) {
+      printf("%d, ", x);
+      cnt++;
+      if (cnt >= 10) break;
+    }
+    puts("");
+  };
+
+  for (const int w : weight) {
+    if (sz(l[w]) != sz(r[w])) printf("*");
+    printf("w = %d, L : %d , R : %d", w, sz(l[w]), sz(r[w]));
+    puts("");
+  }
+
+  for (const int w : weight) {
+    // CHECK(sz(l[w]) == sz(r[w]));
+    for (auto& uv : l[w]) {
+      int u, v; tie(u, v) = uv;
+      u = ufl.root(u), v = ufl.root(v);
+      CHECK(u != v);
+      ufl.unite(u, v);
+      ull new_hash = hl[u] ^ hl[v];
+      hl[ufl.root(u)] = new_hash;
+    }
+
+    for (auto& uv : r[w]) {
+      int u, v; tie(u, v) = uv;
+      u = ufr.root(u), v = ufr.root(v);
+      CHECK(u != v);
+      ufr.unite(u, v);
+      ull new_hash = hr[u] ^ hr[v];
+      hr[ufr.root(u)] = new_hash;
+    }
+
+    for (auto& uv : l[w]) {
+      int u, v; tie(u, v) = uv;
+      if (hl[ufl.root(u)] != hr[ufr.root(u)]) {
+        on_mismatched(u);
+        exit(-1);
+      }
+      if (hl[ufl.root(v)] != hr[ufr.root(v)]) {
+        on_mismatched(v);
+        exit(-1);
+      }
+    }
+    for (auto& uv : r[w]) {
+      int u, v; tie(u, v) = uv;
+      if (hl[ufl.root(u)] != hr[ufr.root(u)]) {
+        on_mismatched(u);
+        exit(-1);
+      }
+      if (hl[ufl.root(v)] != hr[ufr.root(v)]) {
+        on_mismatched(v);
+        exit(-1);
+      }
+    }
   }
 }
 

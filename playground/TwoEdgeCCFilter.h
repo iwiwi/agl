@@ -77,12 +77,12 @@ public:
     }
   }
 
-  void print_gomory_hu_tree(FILE* fp) {
+  void print_gomory_hu_tree(ostream& os) {
     const int n = sz(lowlink);
     vector<int> roots;
     FOR(v, n) if (uf.root(v) == v) roots.push_back(v);
-    FOR(i, sz(roots) - 1) fprintf(fp, "%d %d 0\n", roots[0], roots[i+1]);
-    for (auto& e : bridge) fprintf(fp, "%d %d 1\n", e.first, e.second);
+    FOR(i, sz(roots) - 1) os << roots[0] << " " << roots[i + 1] << " 0\n";
+    for (auto& e : bridge) os << e.first << " " << e.second << " 1\n";
 
     const int cc_size = sz(biconnected_graph_handler->handlers());
     vector<vector<int>> local_id2global_id(cc_size);
@@ -104,7 +104,7 @@ public:
         if (u == -1) continue; // 親への辺が存在しない
         int weight = kv.second;
         CHECK(weight >= 2);
-        fprintf(fp, "%d %d %d\n", l2g[v], l2g[u], weight);
+        os << l2g[v] << " " << l2g[u] << " " << weight << "\n";
       }
     }
   }
