@@ -4,6 +4,14 @@ DEFINE_int32(flow_iter, 1, "");
 
 
 class dinic_twosided {
+public:
+  // two sided bfsが終了した理由
+  enum reason_for_finishing_bfs_t {
+    kQsIsEmpty,
+    kQtIsEmpty,
+  };
+private:
+
   class E {
     const int init_cap_;
     int cap_, revision_;
@@ -32,12 +40,6 @@ class dinic_twosided {
       revision_ = 0;
       cap_ = init_cap_;
     }
-  };
-
-  // two sided bfsが終了した理由
-  enum reason_for_finishing_bfs_t {
-    kQsIsEmpty,
-    kQtIsEmpty,
   };
 
   bool two_sided_bfs(int s, int t) {
