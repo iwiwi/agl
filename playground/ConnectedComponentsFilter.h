@@ -41,7 +41,7 @@ public:
         }
       }
 
-      fprintf(stderr, "root = %d num_vs = %d, edge_size = %d\n", v, num_vs, sz(edges));
+      // fprintf(stderr, "root = %d num_vs = %d, edge_size = %d\n", v, num_vs, sz(edges));
       handlers_.emplace_back(edges, num_vs);
     }
   }
