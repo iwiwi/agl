@@ -1,5 +1,8 @@
 #pragma once
 
+DEFINE_int32(flow_iter, 1, "");
+
+
 class dinic_twosided {
   class E {
     const int init_cap_;
@@ -145,7 +148,7 @@ public:
 
   }
 
-  int max_flow(int s, int t) {
+  int max_flow_core(int s, int t) {
     assert(s != t);
     int flow = 0;
     s_side_bfs_revision += 2;
@@ -159,6 +162,15 @@ public:
       }
     }
     return flow;
+  }
+
+  int max_flow(int s,int t) {
+    int ans = max_flow_core(s, t);
+    FOR(_,FLAGS_flow_iter - 1) {
+      reset_graph();
+      max_flow_core(s, t);
+    }
+    return ans;
   }
 
   bool path_dont_exists_to_t(const int v) const {

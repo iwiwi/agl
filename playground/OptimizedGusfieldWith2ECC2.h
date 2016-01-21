@@ -1,6 +1,8 @@
 #pragma once
 #include "ConnectedComponentsFilter.h"
 
+DEFINE_int32(adjacents_max_deg, 10, "");
+
 class OptimizedGusfieldWith2ECC2 {
   void build_depth() {
     depth_[root_node_] = 0;
@@ -88,10 +90,13 @@ public:
 
   //phase2
   //隣接頂点同士を見る
-  for (auto e : edges) {
+  for (const auto& e : edges) {
     V s, t; tie(s, t) = e;
     bool same_component; V par; tie(same_component, par) = belong_to_same_component(s, t);
     if (!same_component) continue;
+
+    int min_deg = min(degree[s], degree[t]);
+    if(min_deg > FLAGS_adjacents_max_deg) continue;
 
     dc_base.reset_graph();
     const int cost = dc_base.max_flow(s, t);
