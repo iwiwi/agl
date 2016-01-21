@@ -5,14 +5,14 @@ import subprocess
 def torque_nageru():
     sketch_ks = [
         128,
-        32, 64, 256, 512
+        # 32, 64, 256, 512
     ]
     pass_nums = [1000]
     upper_params = [
         1.0,
-        # 0.25, 0.5,
-        # 2.0,
-        # 4.0,
+        0.25, 0.5,
+        2.0,
+        4.0,
     ]
     graph_names = [
         # "com-friendster.ungraph.agl",
@@ -111,7 +111,7 @@ def torque_nageru():
                     command = command + " --pass " + str(pass_num)
                     command = command + " --rad_max " + str(1000000)
                     command = command + " --upper_param " + str(upper_param)
-                    job_name = "exp02-sketch-" + graph_name.replace("'", "").replace(" ", "-") +\
+                    job_name = "exp01-sketch-" + graph_name.replace("'", "").replace(" ", "-") +\
                         "-k." + str(sketch_k) + \
                         "-pass." + str(pass_num) + \
                         "-upper_param." + str(upper_param)

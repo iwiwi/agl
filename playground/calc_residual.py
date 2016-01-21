@@ -169,13 +169,13 @@ if __name__ == "__main__":
                 pattern = r"^.*\-1\-[0-9]*$"
                 if re.search(pattern, graph_name):
                     if f > e:
-                        sys.stdout.write("ok,")
+                        sys.stdout.write(str(f - e) + ",")
                     else:
-                        sys.stdout.write(",")
+                        sys.stdout.write(str(f - e) + ",")
                 elif f < e:
-                    sys.stdout.write("ok,")
+                    sys.stdout.write(str(e - f) + ",")
                 else:
-                    sys.stdout.write(",")
+                    sys.stdout.write(str(e - f) + ",")
             else:
                 sys.stdout.write(",")
         sys.stdout.write("\n")

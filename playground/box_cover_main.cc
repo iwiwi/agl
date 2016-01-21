@@ -6,10 +6,10 @@ DEFINE_int32(rad_min, 1, "minimum radius");
 DEFINE_int32(rad_max, 10, "maximum radius");
 DEFINE_string(method, "sketch", "using method");
 DEFINE_double(final_coverage, 0.98, "coverage");
-DEFINE_int64(size_upper, 6144000000, "size_upper_bound");
 DEFINE_int32(pass, 1, "Number of multi-pass");
 DEFINE_int32(sketch_k, 1024, "sketch k");
 DEFINE_bool(rad_analytical, false, "Using analytical diameters as rads");
+DEFINE_double(upper_param, 1.0, "size_upper_bound=upper_param*n*k");
 
 unweighted_edge_list extract_maximal_connected(const G& g_pre) {
   unweighted_edge_list es;
@@ -127,14 +127,14 @@ int main(int argc, char** argv) {
     while (sk.size() < 4) sk = "0" + sk;
     JLOG_PUT("k", to_string(FLAGS_sketch_k));
     JLOG_PUT("pass", to_string(FLAGS_pass));
-    JLOG_PUT("size_upper", to_string(FLAGS_size_upper));
+    JLOG_PUT("upper_param", to_string(FLAGS_upper_param));
 
     for (W rad : rads) {
       vector<V> res;
       double coverage_bechmark = FLAGS_final_coverage;
       JLOG_ADD_BENCHMARK("time")
       res = box_cover_sketch(g, rad, FLAGS_sketch_k, FLAGS_pass,
-                             coverage_bechmark, FLAGS_size_upper);
+                             coverage_bechmark, FLAGS_upper_param);
       JLOG_ADD("size", res.size());
       JLOG_ADD("radius", rad);
       JLOG_ADD("coverage", coverage_bechmark);
@@ -183,7 +183,8 @@ int main(int argc, char** argv) {
 
   string rad_str = to_string(FLAGS_rad_max);
   while (rad_str.size() < 3) rad_str = "0" + rad_str;
-  JLOG_INSERT_FILENAME("-upper_bound." + to_string(FLAGS_size_upper) + "-");
+  JLOG_INSERT_FILENAME("-upper_param." + to_string(FLAGS_upper_param) + "-");
   JLOG_INSERT_FILENAME("-" + graph_name);
   JLOG_INSERT_FILENAME(experiment_name);
+  JLOG_INSERT_FILENAME("exp02-");
 }

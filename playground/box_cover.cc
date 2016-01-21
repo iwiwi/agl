@@ -792,7 +792,7 @@ void naive_select_greedily(const G &g, const vector<vector<V>> &X,
 
 vector<V> box_cover_sketch(const G &g, W radius, const int k,
                            const int pass_num, double &aim_coverage,
-                           size_t size_upper_bound) {
+                           double upper_param) {
   assert(k > 0);
 
   const V num_v = g.num_vertices();
@@ -821,7 +821,7 @@ vector<V> box_cover_sketch(const G &g, W radius, const int k,
     timer = -get_current_time_sec();
     cerr << pass_trial << "-th building..." << endl;
     vector<vector<V>> X = build_sketch(g, radius, k, rank, inv, is_covered,
-                                       use_memb, size_upper_bound);
+                                       use_memb, upper_param * num_v * k);
     timer += get_current_time_sec();
     cerr << timer << " sec built" << endl;
 
