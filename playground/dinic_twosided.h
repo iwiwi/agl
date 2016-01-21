@@ -178,9 +178,18 @@ public:
       //sから到達可能な頂点のbfs_revisionには、必ずs_side_bfs_revisionが代入されている
       return bfs_revision[v] == s_side_bfs_revision;
     } else {
-      //上の逆
-      //tから到達不可能 <=>
+      //tから到達不可能
       return bfs_revision[v] != t_side_bfs_revision;
+    }
+  }
+
+  bool path_dont_exists_from_s(const int v) const {
+    if (reason_for_finishing_bfs == kQsIsEmpty) {
+      //sから到達不可能
+      return bfs_revision[v] != s_side_bfs_revision;
+    } else {
+      //tから到達可能な頂点のbfs_revisionには、必ずt_side_bfs_revisionが代入されている
+      return bfs_revision[v] == t_side_bfs_revision;
     }
   }
 
