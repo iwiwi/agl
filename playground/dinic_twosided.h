@@ -2,6 +2,8 @@
 
 DEFINE_int32(flow_iter, 1, "");
 
+long long getcap_counter = 0;
+long long addcap_counter = 0;
 
 class dinic_twosided {
 public:
@@ -26,6 +28,7 @@ private:
         revision_ = currenct_revision;
         cap_ = init_cap_;
       }
+      getcap_counter++;
       return cap_;
     }
     void add_cap(int val, int currenct_revision) {
@@ -33,6 +36,7 @@ private:
         revision_ = currenct_revision;
         cap_ = init_cap_;
       }
+      addcap_counter++;
       cap_ += val;
     }
 
@@ -100,15 +104,16 @@ private:
     }
     for (int &i = iter[v]; i < sz(e[v]); i++) {
       E& _e = e[v][i];
-      if (_e.cap(graph_revision) == 0 || bfs_revision[_e.to] / 2 != s_side_bfs_revision / 2) continue;
+      const int cap = _e.cap(graph_revision);
+      if (cap == 0 || bfs_revision[_e.to] / 2 != s_side_bfs_revision / 2) continue;
 
       bool rec;
       if (use_slevel) rec = bfs_revision[_e.to] == t_side_bfs_revision || level[v].first < level[_e.to].first;
-      else rec = level[v].second > level[_e.to].second;
+      else rec = bfs_revision[_e.to] == t_side_bfs_revision && level[v].second > level[_e.to].second;
       if (!rec) continue;
 
       bool next_slevel = use_slevel && bfs_revision[_e.to] == s_side_bfs_revision;
-      int d = dfs(_e.to, t, next_slevel, min(f, _e.cap(graph_revision)));
+      int d = dfs(_e.to, t, next_slevel, min(f, cap));
       if (d > 0) {
         _e.add_cap(-d, graph_revision);
         e[_e.to][_e.reverse].add_cap(d, graph_revision);
@@ -158,8 +163,9 @@ public:
     for (; ; s_side_bfs_revision += 2, t_side_bfs_revision += 2) {
       bool path_found = two_sided_bfs(s, t);
       if (!path_found) return flow;
-      int f;
-      while ((f = dfs(s, t, true, numeric_limits<int>::max())) > 0) {
+      while (true) {
+        int f = dfs(s, t, true, numeric_limits<int>::max());
+        if(f == 0) break;
         flow += f;
       }
     }
@@ -167,10 +173,16 @@ public:
   }
 
   int max_flow(int s,int t) {
+    auto b1 = getcap_counter;
     int ans = max_flow_core(s, t);
+    auto b2 = getcap_counter;
     FOR(_,FLAGS_flow_iter - 1) {
       reset_graph();
       max_flow_core(s, t);
+      auto b3 = getcap_counter;
+      CHECK(b3 - b2 == b2 - b1);
+      b1 = b2;
+      b2 = b3;
     }
     return ans;
   }

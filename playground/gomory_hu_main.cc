@@ -187,7 +187,9 @@ void main_(G&& g) {
   } else if (FLAGS_method == "gusfield") {
     JLOG_PUT_BENCHMARK("gusfield_time") {
       T gf(g);
-    }
+      JLOG_ADD("getcap_counter", getcap_counter);
+      JLOG_ADD("addcap_counter", addcap_counter);
+}
   } else if (FLAGS_method == "print_gomory_hu_tree") {
     print_gomory_hu_tree<T>(std::move(g));
   } else {
