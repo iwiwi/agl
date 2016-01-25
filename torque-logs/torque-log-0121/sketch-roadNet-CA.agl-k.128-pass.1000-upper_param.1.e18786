@@ -1,0 +1,150 @@
+[0121 10:09:02] JLOG: box_cover.node01.jlog.160121-100902.7217
+[0121 10:09:02] run.program = box_cover
+[0121 10:09:02] run.args = /home/kenkoooo/fractal-dimension/agl/bin/box_cover
+[0121 10:09:02] run.args = --force_undirected
+[0121 10:09:02] run.args = --type
+[0121 10:09:02] run.args = agl
+[0121 10:09:02] run.args = --graph
+[0121 10:09:02] run.args = /data/snap.stanford.edu/roadNet-CA.agl
+[0121 10:09:02] run.args = --sketch_k
+[0121 10:09:02] run.args = 128
+[0121 10:09:02] run.args = --pass
+[0121 10:09:02] run.args = 1000
+[0121 10:09:02] run.args = --rad_max
+[0121 10:09:02] run.args = 1000000
+[0121 10:09:02] run.args = --upper_param
+[0121 10:09:02] run.args = 1
+[0121 10:09:02] run.machine = node01
+[0121 10:09:02] run.date = 2016/01/21 10:09:02
+[0121 10:09:02] run.user = kenkoooo
+[0121 10:09:02] run.pid = 7217
+=========
+  Vertices: 1965206
+  Edges: 5533214
+  Type: agl::basic_graph<int>
+----------
+  0 -> 1, 2, 468
+  1 -> 0, 6, 384
+  2 -> 0, 3
+  3 -> 2, 4, 418, 421
+  4 -> 3, 5, 97, 419
+  ...
+----------
+  0 <- 1, 2, 468
+  1 <- 0, 6, 384
+  2 <- 0, 3
+  3 <- 2, 4, 418, 421
+  4 <- 3, 5, 97, 419
+  ...
+=========
+=========
+  Vertices: 1957027
+  Edges: 5520776
+  Type: agl::basic_graph<int>
+----------
+  0 -> 1, 2, 466
+  1 -> 0, 6, 382
+  2 -> 0, 3
+  3 -> 2, 4, 416, 419
+  4 -> 3, 5, 97, 417
+  ...
+----------
+  0 <- 1, 2, 466
+  1 <- 0, 6, 382
+  2 <- 0, 3
+  3 <- 2, 4, 416, 419
+  4 <- 3, 5, 97, 417
+  ...
+=========
+[0121 10:09:13] vertices = 1957027
+[0121 10:09:13] edges = 5520776
+[0121 10:09:13] graph = /data/snap.stanford.edu/roadNet-CA.agl
+[0121 10:09:13] name = sketch-k.128
+[0121 10:09:13] k = 128
+[0121 10:09:13] pass = 1000
+[0121 10:09:13] upper_param = 1
+0-th building...
+total index 7477803
+7.24213 sec built
+0-th lazy selecting...
+5.94187 sec lazy selected
+[0121 10:09:27] time = 13.5228
+[0121 10:09:27] size = 652529
+[0121 10:09:27] radius = 1
+[0121 10:09:27] coverage = 1
+0-th building...
+total index 17711987
+20.7133 sec built
+0-th lazy selecting...
+9.42222 sec lazy selected
+[0121 10:09:58] time = 30.7527
+[0121 10:09:58] size = 313044
+[0121 10:09:58] radius = 2
+[0121 10:09:58] coverage = 1
+0-th building...
+total index 33847911
+47.8383 sec built
+0-th lazy selecting...
+13.8145 sec lazy selected
+[0121 10:11:00] time = 62.4078
+[0121 10:11:00] size = 179106
+[0121 10:11:00] radius = 3
+[0121 10:11:00] coverage = 1
+0-th building...
+total index 57156345
+96.6198 sec built
+0-th lazy selecting...
+20.6427 sec lazy selected
+[0121 10:12:58] time = 118.164
+[0121 10:12:58] size = 113402
+[0121 10:12:58] radius = 4
+[0121 10:12:58] coverage = 1
+0-th building...
+total index 89079021
+160.014 sec built
+0-th lazy selecting...
+24.6931 sec lazy selected
+[0121 10:16:04] time = 185.755
+[0121 10:16:04] size = 76590
+[0121 10:16:04] radius = 5
+[0121 10:16:04] coverage = 1
+0-th building...
+total index 131103067
+192.738 sec built
+0-th lazy selecting...
+27.5459 sec lazy selected
+[0121 10:19:46] time = 221.275
+[0121 10:19:46] size = 54124
+[0121 10:19:46] radius = 6
+[0121 10:19:46] coverage = 1
+0-th building...
+total index 184726123
+285.665 sec built
+0-th lazy selecting...
+43.6563 sec lazy selected
+[0121 10:25:16] time = 330.587
+[0121 10:25:16] size = 39674
+[0121 10:25:16] radius = 7
+[0121 10:25:16] coverage = 1
+0-th building...
+total index 250842649
+438.791 sec built
+0-th selecting...
+633.839 sec selected
+1-th building...
+total index 250845928
+559.953 sec built
+1-th selecting...
+553.013 sec selected
+2-th building...
+total index 250843589
+527.121 sec built
+2-th selecting...
+550.083 sec selected
+3-th building...
+total index 250847727
+483.773 sec built
+3-th selecting...
+terminate called after throwing an instance of 'std::bad_alloc'
+  what():  std::bad_alloc
+/var/spool/torque/mom_priv/jobs/18786.node00.SC: line 1:  7217 Aborted                 (core dumped) /home/kenkoooo/fractal-dimension/agl/bin/box_cover --force_undirected --type agl --graph /data/snap.stanford.edu/roadNet-CA.agl --sketch_k 128 --pass 1000 --rad_max 1000000 --upper_param 1

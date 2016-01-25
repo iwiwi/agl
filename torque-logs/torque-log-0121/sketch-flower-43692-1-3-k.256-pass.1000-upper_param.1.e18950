@@ -1,0 +1,156 @@
+[0121 10:28:04] JLOG: box_cover.node04.jlog.160121-102804.10222
+[0121 10:28:04] run.program = box_cover
+[0121 10:28:04] run.args = /home/kenkoooo/fractal-dimension/agl/bin/box_cover
+[0121 10:28:04] run.args = --force_undirected
+[0121 10:28:04] run.args = --type
+[0121 10:28:04] run.args = gen
+[0121 10:28:04] run.args = --graph
+[0121 10:28:04] run.args = flower 43692 1 3
+[0121 10:28:04] run.args = --sketch_k
+[0121 10:28:04] run.args = 256
+[0121 10:28:04] run.args = --pass
+[0121 10:28:04] run.args = 1000
+[0121 10:28:04] run.args = --rad_max
+[0121 10:28:04] run.args = 1000000
+[0121 10:28:04] run.args = --rad_analytical
+[0121 10:28:04] run.args = --upper_param
+[0121 10:28:04] run.args = 1
+[0121 10:28:04] run.machine = node04
+[0121 10:28:04] run.date = 2016/01/21 10:28:04
+[0121 10:28:04] run.user = kenkoooo
+[0121 10:28:04] run.pid = 10222
+=========
+  Vertices: 43692
+  Edges: 131072
+  Type: agl::basic_graph<int>
+----------
+  0 -> 1, 3, 5, 6, 13, 19, 20, 22, 45, 51, ...
+  1 -> 0, 2, 7, 8, 21, 27, 28, 30, 77, 83, ...
+  2 -> 1, 3, 9, 10, 29, 35, 36, 38, 109, 115, ...
+  3 -> 0, 2, 4, 11, 12, 14, 37, 43, 44, 46, ...
+  4 -> 3, 5, 15, 16, 53, 59, 60, 62, 205, 211, ...
+  ...
+----------
+  0 <- 1, 3, 5, 6, 13, 19, 20, 22, 45, 51, ...
+  1 <- 0, 2, 7, 8, 21, 27, 28, 30, 77, 83, ...
+  2 <- 1, 3, 9, 10, 29, 35, 36, 38, 109, 115, ...
+  3 <- 0, 2, 4, 11, 12, 14, 37, 43, 44, 46, ...
+  4 <- 3, 5, 15, 16, 53, 59, 60, 62, 205, 211, ...
+  ...
+=========
+=========
+  Vertices: 43692
+  Edges: 131072
+  Type: agl::basic_graph<int>
+----------
+  0 -> 1, 3, 5, 6, 13, 19, 20, 22, 45, 51, ...
+  1 -> 0, 2, 7, 8, 21, 27, 28, 30, 77, 83, ...
+  2 -> 1, 3, 9, 10, 29, 35, 36, 38, 109, 115, ...
+  3 -> 0, 2, 4, 11, 12, 14, 37, 43, 44, 46, ...
+  4 -> 3, 5, 15, 16, 53, 59, 60, 62, 205, 211, ...
+  ...
+----------
+  0 <- 1, 3, 5, 6, 13, 19, 20, 22, 45, 51, ...
+  1 <- 0, 2, 7, 8, 21, 27, 28, 30, 77, 83, ...
+  2 <- 1, 3, 9, 10, 29, 35, 36, 38, 109, 115, ...
+  3 <- 0, 2, 4, 11, 12, 14, 37, 43, 44, 46, ...
+  4 <- 3, 5, 15, 16, 53, 59, 60, 62, 205, 211, ...
+  ...
+=========
+[0121 10:28:04] vertices = 43692
+[0121 10:28:04] edges = 131072
+[0121 10:28:04] graph = flower-43692-1-3
+[0121 10:28:04] name = sketch-k.256
+[0121 10:28:04] k = 256
+[0121 10:28:04] pass = 1000
+[0121 10:28:04] upper_param = 1
+0-th building...
+total index 174764
+0.100082 sec built
+0-th lazy selecting...
+0.054625 sec lazy selected
+[0121 10:28:05] time = 0.15776
+[0121 10:28:05] size = 15020
+[0121 10:28:05] radius = 1
+[0121 10:28:05] coverage = 1
+0-th building...
+total index 1135960
+1.47403 sec built
+0-th lazy selecting...
+0.120679 sec lazy selected
+[0121 10:28:06] time = 1.60942
+[0121 10:28:06] size = 3756
+[0121 10:28:06] radius = 2
+[0121 10:28:06] coverage = 1
+0-th building...
+total index 7602176
+12.0786 sec built
+0-th lazy selecting...
+0.322641 sec lazy selected
+[0121 10:28:19] time = 12.4493
+[0121 10:28:19] size = 940
+[0121 10:28:19] radius = 3
+[0121 10:28:19] coverage = 1
+0-th building...
+total index 15046894
+34.6859 sec built
+0-th selecting...
+10.8793 sec selected
+1-th building...
+total index 15027901
+34.6011 sec built
+1-th selecting...
+10.5005 sec selected
+2-th building...
+total index 14997099
+34.297 sec built
+2-th selecting...
+10.6567 sec selected
+[0121 10:30:34] time = 135.773
+[0121 10:30:34] size = 129
+[0121 10:30:34] radius = 4
+[0121 10:30:34] coverage = 0.980225
+0-th building...
+total index 22837338
+53.9276 sec built
+0-th selecting...
+13.2829 sec selected
+1-th building...
+total index 22919902
+54.9505 sec built
+1-th selecting...
+0.318911 sec selected
+[0121 10:32:37] time = 122.54
+[0121 10:32:37] size = 21
+[0121 10:32:37] radius = 5
+[0121 10:32:37] coverage = 0.983155
+0-th building...
+total index 30408370
+71.028 sec built
+0-th selecting...
+13.7278 sec selected
+[0121 10:34:02] time = 84.7959
+[0121 10:34:02] size = 5
+[0121 10:34:02] radius = 6
+[0121 10:34:02] coverage = 0.988282
+0-th building...
+total index 36898376
+78.7972 sec built
+0-th selecting...
+9.84213 sec selected
+[0121 10:35:30] time = 88.679
+[0121 10:35:30] size = 2
+[0121 10:35:30] radius = 7
+[0121 10:35:30] coverage = 0.994141
+0-th building...
+total index 41965129
+77.3502 sec built
+0-th selecting...
+0.208354 sec selected
+[0121 10:36:48] time = 77.6239
+[0121 10:36:48] size = 1
+[0121 10:36:48] radius = 8
+[0121 10:36:48] coverage = 0.99707
+[0121 10:36:48] run.time = 523.998
+[0121 10:36:48] run.memory = 7430144
+[0121 10:36:48] JLOG: ./jlog/sketch-k.256-flower-43692-1-3-upper_param.1-box_cover.node04.jlog.160121-102804.10222

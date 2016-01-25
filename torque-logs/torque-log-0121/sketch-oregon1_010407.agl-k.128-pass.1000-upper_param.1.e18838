@@ -1,0 +1,134 @@
+[0121 10:09:22] JLOG: box_cover.node04.jlog.160121-100922.7593
+[0121 10:09:22] run.program = box_cover
+[0121 10:09:22] run.args = /home/kenkoooo/fractal-dimension/agl/bin/box_cover
+[0121 10:09:22] run.args = --force_undirected
+[0121 10:09:22] run.args = --type
+[0121 10:09:22] run.args = agl
+[0121 10:09:22] run.args = --graph
+[0121 10:09:22] run.args = /data/snap.stanford.edu/oregon1_010407.agl
+[0121 10:09:22] run.args = --sketch_k
+[0121 10:09:22] run.args = 128
+[0121 10:09:22] run.args = --pass
+[0121 10:09:22] run.args = 1000
+[0121 10:09:22] run.args = --rad_max
+[0121 10:09:22] run.args = 1000000
+[0121 10:09:22] run.args = --upper_param
+[0121 10:09:22] run.args = 1
+[0121 10:09:22] run.machine = node04
+[0121 10:09:22] run.date = 2016/01/21 10:09:22
+[0121 10:09:22] run.user = kenkoooo
+[0121 10:09:22] run.pid = 7593
+=========
+  Vertices: 10729
+  Edges: 43998
+  Type: agl::basic_graph<int>
+----------
+  0 -> 2, 22, 26, 32, 39, 41, 42, 53, 54, 61, ...
+  1 -> 5320
+  2 -> 0, 74, 127, 4633
+  3 -> 5206
+  4 -> 188, 265, 757, 896
+  ...
+----------
+  0 <- 2, 22, 26, 32, 39, 41, 42, 53, 54, 61, ...
+  1 <- 5320
+  2 <- 0, 74, 127, 4633
+  3 <- 5206
+  4 <- 188, 265, 757, 896
+  ...
+=========
+=========
+  Vertices: 10729
+  Edges: 43998
+  Type: agl::basic_graph<int>
+----------
+  0 -> 2, 22, 26, 32, 39, 41, 42, 53, 54, 61, ...
+  1 -> 5320
+  2 -> 0, 74, 127, 4633
+  3 -> 5206
+  4 -> 188, 265, 757, 896
+  ...
+----------
+  0 <- 2, 22, 26, 32, 39, 41, 42, 53, 54, 61, ...
+  1 <- 5320
+  2 <- 0, 74, 127, 4633
+  3 <- 5206
+  4 <- 188, 265, 757, 896
+  ...
+=========
+[0121 10:09:22] vertices = 10729
+[0121 10:09:22] edges = 43998
+[0121 10:09:22] graph = /data/snap.stanford.edu/oregon1_010407.agl
+[0121 10:09:22] name = sketch-k.128
+[0121 10:09:22] k = 128
+[0121 10:09:22] pass = 1000
+[0121 10:09:22] upper_param = 1
+0-th building...
+total index 54727
+0.0222061 sec built
+0-th lazy selecting...
+0.00637889 sec lazy selected
+[0121 10:09:22] time = 0.0292721
+[0121 10:09:22] size = 970
+[0121 10:09:22] radius = 1
+[0121 10:09:22] coverage = 1
+0-th building...
+total index 1722194
+2.64682 sec built
+0-th selecting...
+0.563261 sec selected
+1-th building...
+total index 1707379
+2.77063 sec built
+1-th selecting...
+0.606894 sec selected
+2-th building...
+total index 1710371
+2.87235 sec built
+2-th selecting...
+0.628378 sec selected
+3-th building...
+total index 1721566
+2.64425 sec built
+3-th selecting...
+0.574851 sec selected
+4-th building...
+total index 1725125
+2.42995 sec built
+4-th selecting...
+0.575967 sec selected
+5-th building...
+total index 1721224
+2.42718 sec built
+5-th selecting...
+0.557796 sec selected
+[0121 10:09:42] time = 19.3404
+[0121 10:09:42] size = 130
+[0121 10:09:42] radius = 2
+[0121 10:09:42] coverage = 0.98024
+0-th building...
+total index 2858296
+6.24072 sec built
+0-th selecting...
+0.634186 sec selected
+1-th building...
+total index 2853682
+5.13764 sec built
+1-th selecting...
+0.021574 sec selected
+[0121 10:09:54] time = 12.0472
+[0121 10:09:54] size = 3
+[0121 10:09:54] radius = 3
+[0121 10:09:54] coverage = 0.981732
+0-th building...
+total index 3509323
+5.0962 sec built
+0-th selecting...
+0.0154431 sec selected
+[0121 10:09:59] time = 5.11344
+[0121 10:09:59] size = 1
+[0121 10:09:59] radius = 4
+[0121 10:09:59] coverage = 0.995247
+[0121 10:09:59] run.time = 36.6029
+[0121 10:09:59] run.memory = 3493888
+[0121 10:09:59] JLOG: ./jlog/sketch-k.128-oregon1_010407.agl-upper_param.1-box_cover.node04.jlog.160121-100922.7593

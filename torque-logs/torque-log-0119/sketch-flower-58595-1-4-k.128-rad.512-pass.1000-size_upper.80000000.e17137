@@ -1,0 +1,133 @@
+[0119 20:06:30] JLOG: box_cover.node04.jlog.160119-200630.18943
+[0119 20:06:30] run.program = box_cover
+[0119 20:06:30] run.args = /home/kenkoooo/fractal-dimension/agl/bin/box_cover
+[0119 20:06:30] run.args = --force_undirected
+[0119 20:06:30] run.args = --type
+[0119 20:06:30] run.args = gen
+[0119 20:06:30] run.args = --graph
+[0119 20:06:30] run.args = flower 58595 1 4
+[0119 20:06:30] run.args = --rad_max
+[0119 20:06:30] run.args = 512
+[0119 20:06:30] run.args = --sketch_k
+[0119 20:06:30] run.args = 128
+[0119 20:06:30] run.args = --pass
+[0119 20:06:30] run.args = 1000
+[0119 20:06:30] run.args = --rad_analytical
+[0119 20:06:30] run.args = --size_upper
+[0119 20:06:30] run.args = 80000000
+[0119 20:06:30] run.machine = node04
+[0119 20:06:30] run.date = 2016/01/19 20:06:30
+[0119 20:06:30] run.user = kenkoooo
+[0119 20:06:30] run.pid = 18943
+=========
+  Vertices: 58595
+  Edges: 156250
+  Type: agl::basic_graph<int>
+----------
+  0 -> 1, 4, 7, 8, 22, 34, 35, 38, 97, 109, ...
+  1 -> 0, 2, 10, 11, 37, 49, 50, 53, 172, 184, ...
+  2 -> 1, 3, 13, 14, 52, 64, 65, 68, 247, 259, ...
+  3 -> 2, 4, 16, 17, 67, 79, 80, 83, 322, 334, ...
+  4 -> 0, 3, 5, 19, 20, 23, 82, 94, 95, 98, ...
+  ...
+----------
+  0 <- 1, 4, 7, 8, 22, 34, 35, 38, 97, 109, ...
+  1 <- 0, 2, 10, 11, 37, 49, 50, 53, 172, 184, ...
+  2 <- 1, 3, 13, 14, 52, 64, 65, 68, 247, 259, ...
+  3 <- 2, 4, 16, 17, 67, 79, 80, 83, 322, 334, ...
+  4 <- 0, 3, 5, 19, 20, 23, 82, 94, 95, 98, ...
+  ...
+=========
+=========
+  Vertices: 58595
+  Edges: 156250
+  Type: agl::basic_graph<int>
+----------
+  0 -> 1, 4, 7, 8, 22, 34, 35, 38, 97, 109, ...
+  1 -> 0, 2, 10, 11, 37, 49, 50, 53, 172, 184, ...
+  2 -> 1, 3, 13, 14, 52, 64, 65, 68, 247, 259, ...
+  3 -> 2, 4, 16, 17, 67, 79, 80, 83, 322, 334, ...
+  4 -> 0, 3, 5, 19, 20, 23, 82, 94, 95, 98, ...
+  ...
+----------
+  0 <- 1, 4, 7, 8, 22, 34, 35, 38, 97, 109, ...
+  1 <- 0, 2, 10, 11, 37, 49, 50, 53, 172, 184, ...
+  2 <- 1, 3, 13, 14, 52, 64, 65, 68, 247, 259, ...
+  3 <- 2, 4, 16, 17, 67, 79, 80, 83, 322, 334, ...
+  4 <- 0, 3, 5, 19, 20, 23, 82, 94, 95, 98, ...
+  ...
+=========
+[0119 20:06:30] vertices = 58595
+[0119 20:06:30] edges = 156250
+[0119 20:06:30] graph = flower-58595-1-4
+[0119 20:06:30] name = sketch-k.128
+[0119 20:06:30] k = 128
+[0119 20:06:30] pass = 1000
+[0119 20:06:30] size_upper = 80000000
+0-th building...
+total index 214845
+0.187733 sec built
+0-th lazy selecting...
+0.122559 sec lazy selected
+[0119 20:06:30] time = 0.317042
+[0119 20:06:30] size = 19770
+[0119 20:06:30] radius = 1
+[0119 20:06:30] coverage = 1
+0-th building...
+total index 3899875
+5.79246 sec built
+0-th lazy selecting...
+2.12969 sec lazy selected
+[0119 20:06:38] time = 7.95522
+[0119 20:06:38] size = 53609
+[0119 20:06:38] radius = 3
+[0119 20:06:38] coverage = 1
+0-th building...
+total index 16600165
+30.6977 sec built
+0-th lazy selecting...
+3.6711 sec lazy selected
+[0119 20:07:13] time = 34.4803
+[0119 20:07:13] size = 29992
+[0119 20:07:13] radius = 4
+[0119 20:07:13] coverage = 1
+0-th building...
+total index 80657099
+213.897 sec built
+0-th selecting...
+11.2204 sec selected
+1-th building...
+total index 80658505
+212.689 sec built
+1-th selecting...
+11.203 sec selected
+[0119 20:14:43] time = 450.091
+[0119 20:14:43] size = 31
+[0119 20:14:43] radius = 6
+[0119 20:14:43] coverage = 0.98034
+0-th building...
+total index 85324443
+257.749 sec built
+0-th selecting...
+10.192 sec selected
+1-th building...
+total index 85343514
+249.506 sec built
+1-th selecting...
+8.16248 sec selected
+[0119 20:23:29] time = 526.633
+[0119 20:23:29] size = 7
+[0119 20:23:29] radius = 7
+[0119 20:23:29] coverage = 0.983958
+0-th building...
+total index 93081319
+309.082 sec built
+0-th selecting...
+0.858944 sec selected
+[0119 20:28:40] time = 310.595
+[0119 20:28:40] size = 1
+[0119 20:28:40] radius = 9
+[0119 20:28:40] coverage = 0.991672
+[0119 20:28:40] run.time = 1330.43
+[0119 20:28:40] run.memory = 8560640
+[0119 20:28:40] JLOG: ./jlog/sketch-k.128-flower-58595-1-4-upper_bound.80000000-box_cover.node04.jlog.160119-200630.18943

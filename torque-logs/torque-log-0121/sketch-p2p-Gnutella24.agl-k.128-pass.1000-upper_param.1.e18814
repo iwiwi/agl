@@ -1,0 +1,158 @@
+[0121 10:09:04] JLOG: box_cover.node03.jlog.160121-100904.13267
+[0121 10:09:04] run.program = box_cover
+[0121 10:09:04] run.args = /home/kenkoooo/fractal-dimension/agl/bin/box_cover
+[0121 10:09:04] run.args = --force_undirected
+[0121 10:09:04] run.args = --type
+[0121 10:09:04] run.args = agl
+[0121 10:09:04] run.args = --graph
+[0121 10:09:04] run.args = /data/snap.stanford.edu/p2p-Gnutella24.agl
+[0121 10:09:04] run.args = --sketch_k
+[0121 10:09:04] run.args = 128
+[0121 10:09:04] run.args = --pass
+[0121 10:09:04] run.args = 1000
+[0121 10:09:04] run.args = --rad_max
+[0121 10:09:04] run.args = 1000000
+[0121 10:09:04] run.args = --upper_param
+[0121 10:09:04] run.args = 1
+[0121 10:09:04] run.machine = node03
+[0121 10:09:04] run.date = 2016/01/21 10:09:04
+[0121 10:09:04] run.user = kenkoooo
+[0121 10:09:04] run.pid = 13267
+=========
+  Vertices: 26518
+  Edges: 130738
+  Type: agl::basic_graph<int>
+----------
+  0 -> 1, 2, 3, 4, 5, 6, 7, 8, 9, 3002, ...
+  1 -> 0
+  2 -> 0
+  3 -> 0
+  4 -> 0, 1638, 1941, 2107, 3060, 5689, 8283, 9893, 16494, 22298, ...
+  ...
+----------
+  0 <- 1, 2, 3, 4, 5, 6, 7, 8, 9, 3002, ...
+  1 <- 0
+  2 <- 0
+  3 <- 0
+  4 <- 0, 1638, 1941, 2107, 3060, 5689, 8283, 9893, 16494, 22298, ...
+  ...
+=========
+=========
+  Vertices: 26498
+  Edges: 130718
+  Type: agl::basic_graph<int>
+----------
+  0 -> 1, 2, 3, 4, 5, 6, 7, 8, 9, 3000, ...
+  1 -> 0
+  2 -> 0
+  3 -> 0
+  4 -> 0, 1636, 1939, 2105, 3058, 5681, 8275, 9885, 16476, 22280, ...
+  ...
+----------
+  0 <- 1, 2, 3, 4, 5, 6, 7, 8, 9, 3000, ...
+  1 <- 0
+  2 <- 0
+  3 <- 0
+  4 <- 0, 1636, 1939, 2105, 3058, 5681, 8275, 9885, 16476, 22280, ...
+  ...
+=========
+[0121 10:09:04] vertices = 26498
+[0121 10:09:04] edges = 130718
+[0121 10:09:04] graph = /data/snap.stanford.edu/p2p-Gnutella24.agl
+[0121 10:09:04] name = sketch-k.128
+[0121 10:09:04] k = 128
+[0121 10:09:04] pass = 1000
+[0121 10:09:04] upper_param = 1
+0-th building...
+total index 157216
+0.087456 sec built
+0-th lazy selecting...
+0.024991 sec lazy selected
+[0121 10:09:05] time = 0.114793
+[0121 10:09:05] size = 5512
+[0121 10:09:05] radius = 1
+[0121 10:09:05] coverage = 1
+0-th building...
+total index 1568604
+1.33953 sec built
+0-th lazy selecting...
+0.0665081 sec lazy selected
+[0121 10:09:06] time = 1.41629
+[0121 10:09:06] size = 1084
+[0121 10:09:06] radius = 2
+[0121 10:09:06] coverage = 1
+0-th building...
+total index 4813501
+8.7017 sec built
+0-th selecting...
+2.46343 sec selected
+1-th building...
+total index 4812787
+13.4956 sec built
+1-th selecting...
+4.51662 sec selected
+2-th building...
+total index 4815255
+17.9948 sec built
+2-th selecting...
+4.49185 sec selected
+3-th building...
+total index 4815377
+18.5702 sec built
+3-th selecting...
+4.45932 sec selected
+4-th building...
+total index 4814266
+17.4281 sec built
+4-th selecting...
+4.32416 sec selected
+5-th building...
+total index 4809760
+16.5127 sec built
+5-th selecting...
+3.6054 sec selected
+6-th building...
+total index 4820495
+14.0354 sec built
+6-th selecting...
+2.70751 sec selected
+7-th building...
+total index 4813703
+9.48119 sec built
+7-th selecting...
+2.49511 sec selected
+8-th building...
+total index 4817676
+8.89763 sec built
+8-th selecting...
+2.57414 sec selected
+[0121 10:11:43] time = 156.923
+[0121 10:11:43] size = 216
+[0121 10:11:43] radius = 3
+[0121 10:11:43] coverage = 0.980112
+0-th building...
+total index 7783194
+19.5597 sec built
+0-th selecting...
+2.12434 sec selected
+1-th building...
+total index 7797233
+18.7131 sec built
+1-th selecting...
+0.069593 sec selected
+[0121 10:12:23] time = 40.4939
+[0121 10:12:23] size = 3
+[0121 10:12:23] radius = 4
+[0121 10:12:23] coverage = 0.982753
+0-th building...
+total index 10322862
+23.146 sec built
+0-th selecting...
+0.054276 sec selected
+[0121 10:12:47] time = 23.2075
+[0121 10:12:47] size = 1
+[0121 10:12:47] radius = 5
+[0121 10:12:47] coverage = 0.999736
+[0121 10:12:47] run.time = 222.314
+[0121 10:12:47] run.memory = 5849088
+[0121 10:12:47] JLOG: ./jlog/sketch-k.128-p2p-Gnutella24.agl-upper_param.1-box_cover.node03.jlog.160121-100904.13267

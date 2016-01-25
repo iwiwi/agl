@@ -1,0 +1,171 @@
+[0121 10:31:25] JLOG: box_cover.node08.jlog.160121-103125.3960
+[0121 10:31:25] run.program = box_cover
+[0121 10:31:25] run.args = /home/kenkoooo/fractal-dimension/agl/bin/box_cover
+[0121 10:31:25] run.args = --force_undirected
+[0121 10:31:25] run.args = --type
+[0121 10:31:25] run.args = agl
+[0121 10:31:25] run.args = --graph
+[0121 10:31:25] run.args = /data/snap.stanford.edu/ca-GrQc.agl
+[0121 10:31:25] run.args = --sketch_k
+[0121 10:31:25] run.args = 128
+[0121 10:31:25] run.args = --pass
+[0121 10:31:25] run.args = 1000
+[0121 10:31:25] run.args = --rad_max
+[0121 10:31:25] run.args = 1000000
+[0121 10:31:25] run.args = --upper_param
+[0121 10:31:25] run.args = 4
+[0121 10:31:25] run.machine = node08
+[0121 10:31:25] run.date = 2016/01/21 10:31:25
+[0121 10:31:25] run.user = kenkoooo
+[0121 10:31:25] run.pid = 3960
+=========
+  Vertices: 5242
+  Edges: 28980
+  Type: agl::basic_graph<int>
+----------
+  0 -> 0, 1547, 2232, 3851
+  1 -> 2768
+  2 -> 27, 2229, 3071, 3895, 4548, 4989
+  3 -> 770, 3068, 3921, 4656
+  4 -> 4604
+  ...
+----------
+  0 <- 0, 1547, 2232, 3851
+  1 <- 2768
+  2 <- 27, 2229, 3071, 3895, 4548, 4989
+  3 <- 770, 3068, 3921, 4656
+  4 <- 4604
+  ...
+=========
+=========
+  Vertices: 4158
+  Edges: 26850
+  Type: agl::basic_graph<int>
+----------
+  0 -> 18, 1750, 2407, 3077, 3608, 3957
+  1 -> 611, 2404, 3095, 3695
+  2 -> 221, 742, 1828, 2035, 2036
+  3 -> 1741, 3016, 3927, 4042
+  4 -> 3229
+  ...
+----------
+  0 <- 18, 1750, 2407, 3077, 3608, 3957
+  1 <- 611, 2404, 3095, 3695
+  2 <- 221, 742, 1828, 2035, 2036
+  3 <- 1741, 3016, 3927, 4042
+  4 <- 3229
+  ...
+=========
+[0121 10:31:25] vertices = 4158
+[0121 10:31:25] edges = 26850
+[0121 10:31:25] graph = /data/snap.stanford.edu/ca-GrQc.agl
+[0121 10:31:25] name = sketch-k.128
+[0121 10:31:25] k = 128
+[0121 10:31:25] pass = 1000
+[0121 10:31:25] upper_param = 4
+0-th building...
+total index 31002
+0.020159 sec built
+0-th lazy selecting...
+0.00440192 sec lazy selected
+[0121 10:31:25] time = 0.0250978
+[0121 10:31:25] size = 798
+[0121 10:31:25] radius = 1
+[0121 10:31:25] coverage = 1
+0-th building...
+total index 157578
+0.179521 sec built
+0-th lazy selecting...
+0.00906205 sec lazy selected
+[0121 10:31:25] time = 0.190128
+[0121 10:31:25] size = 286
+[0121 10:31:25] radius = 2
+[0121 10:31:25] coverage = 1
+0-th building...
+total index 707364
+1.18214 sec built
+0-th lazy selecting...
+0.0252681 sec lazy selected
+[0121 10:31:26] time = 1.21247
+[0121 10:31:26] size = 119
+[0121 10:31:26] radius = 3
+[0121 10:31:26] coverage = 1
+0-th building...
+total index 2138225
+4.46065 sec built
+0-th selecting...
+0.43881 sec selected
+1-th building...
+total index 2137912
+4.24626 sec built
+1-th selecting...
+0.472718 sec selected
+2-th building...
+total index 2138178
+4.44513 sec built
+2-th selecting...
+0.443965 sec selected
+3-th building...
+total index 2137939
+4.42157 sec built
+3-th selecting...
+0.445813 sec selected
+4-th building...
+total index 2137939
+4.32361 sec built
+4-th selecting...
+0.411523 sec selected
+5-th building...
+total index 2137782
+4.12158 sec built
+5-th selecting...
+0.341367 sec selected
+[0121 10:31:55] time = 28.6256
+[0121 10:31:55] size = 65
+[0121 10:31:55] radius = 4
+[0121 10:31:55] coverage = 0.98076
+0-th building...
+total index 2477564
+7.52395 sec built
+0-th selecting...
+0.442391 sec selected
+1-th building...
+total index 2475659
+7.27286 sec built
+1-th selecting...
+0.430934 sec selected
+2-th building...
+total index 2479411
+7.00613 sec built
+2-th selecting...
+0.447413 sec selected
+3-th building...
+total index 2483593
+6.83556 sec built
+3-th selecting...
+0.432008 sec selected
+[0121 10:32:25] time = 30.4331
+[0121 10:32:25] size = 21
+[0121 10:32:25] radius = 5
+[0121 10:32:25] coverage = 0.982443
+0-th building...
+total index 2742837
+7.63952 sec built
+0-th selecting...
+0.367873 sec selected
+[0121 10:32:33] time = 8.01334
+[0121 10:32:33] size = 2
+[0121 10:32:33] radius = 6
+[0121 10:32:33] coverage = 0.981241
+0-th building...
+total index 2890936
+8.31756 sec built
+0-th selecting...
+0.0106449 sec selected
+[0121 10:32:41] time = 8.33361
+[0121 10:32:41] size = 1
+[0121 10:32:41] radius = 7
+[0121 10:32:41] coverage = 0.992544
+[0121 10:32:41] run.time = 76.8806
+[0121 10:32:41] run.memory = 3936256
+[0121 10:32:41] JLOG: ./jlog/sketch-k.128-ca-GrQc.agl-upper_param.4-box_cover.node08.jlog.160121-103125.3960

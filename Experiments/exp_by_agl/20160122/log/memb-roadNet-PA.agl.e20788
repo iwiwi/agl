@@ -1,0 +1,276 @@
+[0123 15:48:39] JLOG: box_cover.node04.jlog.160123-154839.11626
+[0123 15:48:39] run.program = box_cover
+[0123 15:48:39] run.args = /home/kenkoooo/fractal-dimension/agl/bin/box_cover
+[0123 15:48:39] run.args = --force_undirected
+[0123 15:48:39] run.args = --type
+[0123 15:48:39] run.args = agl
+[0123 15:48:39] run.args = --graph
+[0123 15:48:39] run.args = /data/snap.stanford.edu/roadNet-PA.agl
+[0123 15:48:39] run.args = --rad_max
+[0123 15:48:39] run.args = 10000
+[0123 15:48:39] run.args = --method
+[0123 15:48:39] run.args = memb
+[0123 15:48:39] run.machine = node04
+[0123 15:48:39] run.date = 2016/01/23 15:48:39
+[0123 15:48:39] run.user = kenkoooo
+[0123 15:48:39] run.pid = 11626
+=========
+  Vertices: 1088092
+  Edges: 3083796
+  Type: agl::basic_graph<int>
+----------
+  0 -> 1, 6298, 6342
+  1 -> 0
+  2 -> 3, 4, 7
+  3 -> 2, 309
+  4 -> 2, 273, 274, 388
+  ...
+----------
+  0 <- 1, 6298, 6342
+  1 <- 0
+  2 <- 3, 4, 7
+  3 <- 2, 309
+  4 <- 2, 273, 274, 388
+  ...
+=========
+=========
+  Vertices: 1087562
+  Edges: 3083028
+  Type: agl::basic_graph<int>
+----------
+  0 -> 1, 6298, 6342
+  1 -> 0
+  2 -> 3, 4, 7
+  3 -> 2, 309
+  4 -> 2, 273, 274, 388
+  ...
+----------
+  0 <- 1, 6298, 6342
+  1 <- 0
+  2 <- 3, 4, 7
+  3 <- 2, 309
+  4 <- 2, 273, 274, 388
+  ...
+=========
+[0123 15:48:42] vertices = 1087562
+[0123 15:48:42] edges = 3083028
+[0123 15:48:42] graph = /data/snap.stanford.edu/roadNet-PA.agl
+[0123 15:48:42] name = MEMB
+9.62542sec MEMB built
+10762.1sec MEMB select
+[0123 18:48:14] time = 10772
+[0123 18:48:14] size = 370739
+[0123 18:48:14] radius = 1
+[0123 18:48:14] coverage = 1
+10.0662sec MEMB built
+5701.11sec MEMB select
+[0123 20:23:26] time = 5711.4
+[0123 20:23:26] size = 176141
+[0123 20:23:26] radius = 2
+[0123 20:23:28] coverage = 1
+10.7299sec MEMB built
+3239.3sec MEMB select
+[0123 21:17:39] time = 3250.31
+[0123 21:17:39] size = 99862
+[0123 21:17:39] radius = 3
+[0123 21:17:39] coverage = 1
+11.0261sec MEMB built
+2384.05sec MEMB select
+[0123 21:57:34] time = 2395.49
+[0123 21:57:34] size = 62531
+[0123 21:57:34] radius = 4
+[0123 21:57:35] coverage = 1
+11.6711sec MEMB built
+1890.21sec MEMB select
+[0123 22:29:17] time = 1902.32
+[0123 22:29:17] size = 41923
+[0123 22:29:17] radius = 5
+[0123 22:29:17] coverage = 1
+12.2519sec MEMB built
+1480.03sec MEMB select
+[0123 22:54:10] time = 1492.66
+[0123 22:54:10] size = 29471
+[0123 22:54:10] radius = 6
+[0123 22:54:10] coverage = 1
+12.8749sec MEMB built
+1247.74sec MEMB select
+[0123 23:15:11] time = 1261.13
+[0123 23:15:11] size = 21469
+[0123 23:15:11] radius = 7
+[0123 23:15:11] coverage = 1
+14.3919sec MEMB built
+1156.76sec MEMB select
+[0123 23:34:43] time = 1171.74
+[0123 23:34:43] size = 16015
+[0123 23:34:43] radius = 8
+[0123 23:34:43] coverage = 1
+16.1523sec MEMB built
+1048.29sec MEMB select
+[0123 23:52:28] time = 1065.1
+[0123 23:52:28] size = 12273
+[0123 23:52:28] radius = 9
+[0123 23:52:28] coverage = 1
+18.4216sec MEMB built
+931.918sec MEMB select
+[0124 00:08:20] time = 951.087
+[0124 00:08:20] size = 9553
+[0124 00:08:20] radius = 10
+[0124 00:08:20] coverage = 1
+21.7386sec MEMB built
+960.389sec MEMB select
+[0124 00:24:43] time = 982.98
+[0124 00:24:43] size = 7582
+[0124 00:24:43] radius = 11
+[0124 00:24:43] coverage = 1
+25.451sec MEMB built
+886.422sec MEMB select
+[0124 00:39:56] time = 912.852
+[0124 00:39:56] size = 6165
+[0124 00:39:56] radius = 12
+[0124 00:39:56] coverage = 1
+29.684sec MEMB built
+862.08sec MEMB select
+[0124 00:54:49] time = 892.65
+[0124 00:54:49] size = 5048
+[0124 00:54:49] radius = 13
+[0124 00:54:50] coverage = 1
+33.6504sec MEMB built
+895.502sec MEMB select
+[0124 01:10:20] time = 930.147
+[0124 01:10:20] size = 4194
+[0124 01:10:20] radius = 14
+[0124 01:10:20] coverage = 1
+38.6881sec MEMB built
+907.282sec MEMB select
+[0124 01:26:08] time = 947.717
+[0124 01:26:08] size = 3492
+[0124 01:26:08] radius = 15
+[0124 01:26:08] coverage = 1
+44.4194sec MEMB built
+965.333sec MEMB select
+[0124 01:43:00] time = 1010.83
+[0124 01:43:00] size = 2975
+[0124 01:43:00] radius = 16
+[0124 01:43:00] coverage = 1
+51.262sec MEMB built
+965.564sec MEMB select
+[0124 01:59:58] time = 1017.67
+[0124 01:59:58] size = 2524
+[0124 01:59:58] radius = 17
+[0124 01:59:58] coverage = 1
+59.0426sec MEMB built
+1054.89sec MEMB select
+[0124 02:18:34] time = 1115.15
+[0124 02:18:34] size = 2169
+[0124 02:18:34] radius = 18
+[0124 02:18:34] coverage = 1
+69.9755sec MEMB built
+1177.53sec MEMB select
+[0124 02:39:23] time = 1248.7
+[0124 02:39:23] size = 1879
+[0124 02:39:23] radius = 19
+[0124 02:39:23] coverage = 1
+79.3447sec MEMB built
+1257.86sec MEMB select
+[0124 03:01:43] time = 1338.26
+[0124 03:01:43] size = 1635
+[0124 03:01:43] radius = 20
+[0124 03:01:43] coverage = 1
+88.3271sec MEMB built
+1300.59sec MEMB select
+[0124 03:24:54] time = 1389.77
+[0124 03:24:54] size = 1449
+[0124 03:24:54] radius = 21
+[0124 03:24:54] coverage = 1
+101.659sec MEMB built
+1420.07sec MEMB select
+[0124 03:50:18] time = 1523.09
+[0124 03:50:18] size = 1275
+[0124 03:50:18] radius = 22
+[0124 03:50:18] coverage = 1
+114.283sec MEMB built
+1517.21sec MEMB select
+[0124 04:17:31] time = 1632.6
+[0124 04:17:31] size = 1114
+[0124 04:17:31] radius = 23
+[0124 04:17:32] coverage = 1
+125.505sec MEMB built
+1663.93sec MEMB select
+[0124 04:47:23] time = 1790.32
+[0124 04:47:23] size = 1012
+[0124 04:47:23] radius = 24
+[0124 04:47:23] coverage = 1
+139.456sec MEMB built
+1833.14sec MEMB select
+[0124 05:20:18] time = 1973.5
+[0124 05:20:18] size = 910
+[0124 05:20:18] radius = 25
+[0124 05:20:18] coverage = 1
+154.848sec MEMB built
+1916.67sec MEMB select
+[0124 05:54:53] time = 2073.58
+[0124 05:54:53] size = 808
+[0124 05:54:53] radius = 26
+[0124 05:54:53] coverage = 1
+171.756sec MEMB built
+2073.69sec MEMB select
+[0124 06:32:20] time = 2246.77
+[0124 06:32:20] size = 743
+[0124 06:32:20] radius = 27
+[0124 06:32:20] coverage = 1
+188.685sec MEMB built
+2426.99sec MEMB select
+[0124 07:15:58] time = 2617.07
+[0124 07:15:58] size = 688
+[0124 07:15:58] radius = 28
+[0124 07:15:58] coverage = 1
+210.92sec MEMB built
+2462.25sec MEMB select
+[0124 08:00:35] time = 2675.04
+[0124 08:00:35] size = 609
+[0124 08:00:35] radius = 29
+[0124 08:00:35] coverage = 1
+229.98sec MEMB built
+2713.96sec MEMB select
+[0124 08:49:43] time = 2946.65
+[0124 08:49:43] size = 571
+[0124 08:49:43] radius = 30
+[0124 08:49:43] coverage = 1
+245.464sec MEMB built
+3107.39sec MEMB select
+[0124 09:45:39] time = 3355.37
+[0124 09:45:39] size = 517
+[0124 09:45:39] radius = 31
+[0124 09:45:39] coverage = 1
+269.394sec MEMB built
+3327.67sec MEMB select
+[0124 10:45:40] time = 3599.93
+[0124 10:45:40] size = 479
+[0124 10:45:40] radius = 32
+[0124 10:45:40] coverage = 1
+297.054sec MEMB built
+3459.29sec MEMB select
+[0124 11:48:22] time = 3760.31
+[0124 11:48:22] size = 449
+[0124 11:48:22] radius = 33
+[0124 11:48:22] coverage = 1
+315.908sec MEMB built
+3750.7sec MEMB select
+[0124 12:56:13] time = 4070.04
+[0124 12:56:13] size = 418
+[0124 12:56:13] radius = 34
+[0124 12:56:13] coverage = 1
+342.517sec MEMB built
+3921.05sec MEMB select
+[0124 14:07:19] time = 4265.88
+[0124 14:07:19] size = 374
+[0124 14:07:19] radius = 35
+[0124 14:07:19] coverage = 1
+378sec MEMB built
+4374.8sec MEMB select
+[0124 15:26:37] time = 4754.86
+[0124 15:26:37] size = 362
+[0124 15:26:37] radius = 36
+[0124 15:26:37] coverage = 1
+408.964sec MEMB built
+=>> PBS: job killed: walltime 86418 exceeded limit 86400

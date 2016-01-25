@@ -1,0 +1,55 @@
+{
+  "run": {
+    "program": "box_cover",
+    "args": [
+      "/home/kenkoooo/fractal-dimension/agl/bin/box_cover",
+      "--force_undirected",
+      "--type",
+      "agl",
+      "--graph",
+      "/data/snap.stanford.edu/twitter_combined.agl",
+      "--rad_max",
+      "10000",
+      "--method",
+      "memb"
+    ],
+    "machine": "node08",
+    "date": "2016/01/23",
+    "user": "kenkoooo",
+    "pid": 6799,
+    "time": 1388.46,
+    "memory": 39321600
+  },
+  "graph_info": [
+    {
+      "vertices": 81306,
+      "edges": 2684606,
+      "graph": "/data/snap.stanford.edu/twitter_combined.agl"
+    }
+  ],
+  "name": "MEMB",
+  "time": [
+    2.63473,
+    67.5215,
+    741.138,
+    574.337
+  ],
+  "size": [
+    1035,
+    105,
+    9,
+    1
+  ],
+  "radius": [
+    1,
+    2,
+    3,
+    4
+  ],
+  "coverage": [
+    1,
+    1,
+    1,
+    1
+  ]
+}

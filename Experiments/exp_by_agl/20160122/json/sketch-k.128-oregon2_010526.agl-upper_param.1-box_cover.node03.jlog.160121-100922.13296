@@ -1,0 +1,62 @@
+{
+  "run": {
+    "program": "box_cover",
+    "args": [
+      "/home/kenkoooo/fractal-dimension/agl/bin/box_cover",
+      "--force_undirected",
+      "--type",
+      "agl",
+      "--graph",
+      "/data/snap.stanford.edu/oregon2_010526.agl",
+      "--sketch_k",
+      "128",
+      "--pass",
+      "1000",
+      "--rad_max",
+      "1000000",
+      "--upper_param",
+      "1"
+    ],
+    "machine": "node03",
+    "date": "2016/01/21",
+    "user": "kenkoooo",
+    "pid": 13296,
+    "time": 109.172,
+    "memory": 3792896
+  },
+  "graph_info": [
+    {
+      "vertices": 11461,
+      "edges": 65460,
+      "graph": "/data/snap.stanford.edu/oregon2_010526.agl"
+    }
+  ],
+  "name": "sketch-k.128",
+  "k": "128",
+  "pass": "1000",
+  "upper_param": "1",
+  "time": [
+    0.053221,
+    47.403,
+    43.945,
+    17.6984
+  ],
+  "size": [
+    963,
+    89,
+    2,
+    1
+  ],
+  "radius": [
+    1,
+    2,
+    3,
+    4
+  ],
+  "coverage": [
+    1,
+    0.980455,
+    0.981066,
+    0.997121
+  ]
+}

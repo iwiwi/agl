@@ -1,0 +1,138 @@
+[0121 10:30:47] JLOG: box_cover.node08.jlog.160121-103047.3851
+[0121 10:30:47] run.program = box_cover
+[0121 10:30:47] run.args = /home/kenkoooo/fractal-dimension/agl/bin/box_cover
+[0121 10:30:47] run.args = --force_undirected
+[0121 10:30:47] run.args = --type
+[0121 10:30:47] run.args = agl
+[0121 10:30:47] run.args = --graph
+[0121 10:30:47] run.args = /data/snap.stanford.edu/p2p-Gnutella06.agl
+[0121 10:30:47] run.args = --sketch_k
+[0121 10:30:47] run.args = 128
+[0121 10:30:47] run.args = --pass
+[0121 10:30:47] run.args = 1000
+[0121 10:30:47] run.args = --rad_max
+[0121 10:30:47] run.args = 1000000
+[0121 10:30:47] run.args = --upper_param
+[0121 10:30:47] run.args = 4
+[0121 10:30:47] run.machine = node08
+[0121 10:30:47] run.date = 2016/01/21 10:30:47
+[0121 10:30:47] run.user = kenkoooo
+[0121 10:30:47] run.pid = 3851
+=========
+  Vertices: 8717
+  Edges: 63050
+  Type: agl::basic_graph<int>
+----------
+  0 -> 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, ...
+  1 -> 0, 977, 3692, 5858
+  2 -> 0, 54, 2193, 4846, 7049
+  3 -> 0, 568, 1716, 1829, 2079, 2562, 3126, 3987, 4627, 5771, ...
+  4 -> 0, 2143, 3195, 4897, 6494, 8246
+  ...
+----------
+  0 <- 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, ...
+  1 <- 0, 977, 3692, 5858
+  2 <- 0, 54, 2193, 4846, 7049
+  3 <- 0, 568, 1716, 1829, 2079, 2562, 3126, 3987, 4627, 5771, ...
+  4 <- 0, 2143, 3195, 4897, 6494, 8246
+  ...
+=========
+=========
+  Vertices: 8717
+  Edges: 63050
+  Type: agl::basic_graph<int>
+----------
+  0 -> 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, ...
+  1 -> 0, 977, 3692, 5858
+  2 -> 0, 54, 2193, 4846, 7049
+  3 -> 0, 568, 1716, 1829, 2079, 2562, 3126, 3987, 4627, 5771, ...
+  4 -> 0, 2143, 3195, 4897, 6494, 8246
+  ...
+----------
+  0 <- 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, ...
+  1 <- 0, 977, 3692, 5858
+  2 <- 0, 54, 2193, 4846, 7049
+  3 <- 0, 568, 1716, 1829, 2079, 2562, 3126, 3987, 4627, 5771, ...
+  4 <- 0, 2143, 3195, 4897, 6494, 8246
+  ...
+=========
+[0121 10:30:48] vertices = 8717
+[0121 10:30:48] edges = 63050
+[0121 10:30:48] graph = /data/snap.stanford.edu/p2p-Gnutella06.agl
+[0121 10:30:48] name = sketch-k.128
+[0121 10:30:48] k = 128
+[0121 10:30:48] pass = 1000
+[0121 10:30:48] upper_param = 4
+0-th building...
+total index 71767
+0.065589 sec built
+0-th lazy selecting...
+0.0143058 sec lazy selected
+[0121 10:30:48] time = 0.0811801
+[0121 10:30:48] size = 1839
+[0121 10:30:48] radius = 1
+[0121 10:30:48] coverage = 1
+0-th building...
+total index 810251
+1.32143 sec built
+0-th lazy selecting...
+0.045857 sec lazy selected
+[0121 10:30:49] time = 1.37433
+[0121 10:30:49] size = 372
+[0121 10:30:49] radius = 2
+[0121 10:30:49] coverage = 1
+0-th building...
+total index 4535284
+13.0115 sec built
+0-th selecting...
+1.40446 sec selected
+1-th building...
+total index 4534267
+12.9031 sec built
+1-th selecting...
+1.40084 sec selected
+2-th building...
+total index 4533987
+12.9044 sec built
+2-th selecting...
+1.38538 sec selected
+3-th building...
+total index 4535297
+11.7753 sec built
+3-th selecting...
+1.32199 sec selected
+4-th building...
+total index 4533703
+11.6288 sec built
+4-th selecting...
+1.21042 sec selected
+5-th building...
+total index 4535221
+11.8279 sec built
+5-th selecting...
+1.27345 sec selected
+[0121 10:32:11] time = 82.1818
+[0121 10:32:11] size = 60
+[0121 10:32:11] radius = 3
+[0121 10:32:11] coverage = 0.980268
+0-th building...
+total index 5458217
+32.0539 sec built
+0-th selecting...
+1.00646 sec selected
+[0121 10:32:44] time = 33.0798
+[0121 10:32:44] size = 2
+[0121 10:32:44] radius = 4
+[0121 10:32:44] coverage = 0.988758
+0-th building...
+total index 5997964
+37.023 sec built
+0-th selecting...
+0.030776 sec selected
+[0121 10:33:21] time = 37.0658
+[0121 10:33:21] size = 1
+[0121 10:33:21] radius = 5
+[0121 10:33:21] coverage = 0.993346
+[0121 10:33:21] run.time = 153.865
+[0121 10:33:21] run.memory = 3461120
+[0121 10:33:21] JLOG: ./jlog/sketch-k.128-p2p-Gnutella06.agl-upper_param.4-box_cover.node08.jlog.160121-103047.3851

@@ -1,0 +1,68 @@
+[0123 07:32:58] JLOG: box_cover.node04.jlog.160123-073258.19006
+[0123 07:32:58] run.program = box_cover
+[0123 07:32:58] run.args = /home/kenkoooo/fractal-dimension/agl/bin/box_cover
+[0123 07:32:58] run.args = --force_undirected
+[0123 07:32:58] run.args = --type
+[0123 07:32:58] run.args = agl
+[0123 07:32:58] run.args = --graph
+[0123 07:32:58] run.args = /data/snap.stanford.edu/soc-pokec-relationships.agl
+[0123 07:32:58] run.args = --rad_max
+[0123 07:32:58] run.args = 10000
+[0123 07:32:58] run.args = --method
+[0123 07:32:58] run.args = memb
+[0123 07:32:58] run.machine = node04
+[0123 07:32:58] run.date = 2016/01/23 07:32:58
+[0123 07:32:58] run.user = kenkoooo
+[0123 07:32:58] run.pid = 19006
+=========
+  Vertices: 1632803
+  Edges: 44603928
+  Type: agl::basic_graph<int>
+----------
+  0 -> 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, ...
+  1 -> 0, 15, 17, 18, 19, 20, 21, 22, 23, 24, ...
+  2 -> 0, 807725, 956970, 1381343
+  3 -> 0
+  4 -> 0, 173, 174, 175, 176, 177, 178, 179, 180, 181, ...
+  ...
+----------
+  0 <- 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, ...
+  1 <- 0, 15, 17, 18, 19, 20, 21, 22, 23, 24, ...
+  2 <- 0, 807725, 956970, 1381343
+  3 <- 0
+  4 <- 0, 173, 174, 175, 176, 177, 178, 179, 180, 181, ...
+  ...
+=========
+=========
+  Vertices: 1632803
+  Edges: 44603928
+  Type: agl::basic_graph<int>
+----------
+  0 -> 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, ...
+  1 -> 0, 15, 17, 18, 19, 20, 21, 22, 23, 24, ...
+  2 -> 0, 807725, 956970, 1381343
+  3 -> 0
+  4 -> 0, 173, 174, 175, 176, 177, 178, 179, 180, 181, ...
+  ...
+----------
+  0 <- 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, ...
+  1 <- 0, 15, 17, 18, 19, 20, 21, 22, 23, 24, ...
+  2 <- 0, 807725, 956970, 1381343
+  3 <- 0
+  4 <- 0, 173, 174, 175, 176, 177, 178, 179, 180, 181, ...
+  ...
+=========
+[0123 07:33:26] vertices = 1632803
+[0123 07:33:26] edges = 44603928
+[0123 07:33:26] graph = /data/snap.stanford.edu/soc-pokec-relationships.agl
+[0123 07:33:26] name = MEMB
+20.2861sec MEMB built
+15374.4sec MEMB select
+[0123 11:50:01] time = 15395.3
+[0123 11:50:01] size = 222066
+[0123 11:50:01] radius = 1
+[0123 11:50:01] coverage = 1
+115.987sec MEMB built
+terminate called after throwing an instance of 'std::bad_alloc'
+  what():  std::bad_alloc
+/var/spool/torque/mom_priv/jobs/20779.node00.SC: line 1: 19006 Aborted                 (core dumped) /home/kenkoooo/fractal-dimension/agl/bin/box_cover --force_undirected --type agl --graph /data/snap.stanford.edu/soc-pokec-relationships.agl --rad_max 10000 --method memb

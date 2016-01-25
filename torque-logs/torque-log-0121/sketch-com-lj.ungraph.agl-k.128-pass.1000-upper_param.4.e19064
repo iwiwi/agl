@@ -1,0 +1,78 @@
+[0121 10:28:46] JLOG: box_cover.node09.jlog.160121-102846.23620
+[0121 10:28:46] run.program = box_cover
+[0121 10:28:46] run.args = /home/kenkoooo/fractal-dimension/agl/bin/box_cover
+[0121 10:28:46] run.args = --force_undirected
+[0121 10:28:46] run.args = --type
+[0121 10:28:46] run.args = agl
+[0121 10:28:46] run.args = --graph
+[0121 10:28:46] run.args = /data/snap.stanford.edu/com-lj.ungraph.agl
+[0121 10:28:46] run.args = --sketch_k
+[0121 10:28:46] run.args = 128
+[0121 10:28:46] run.args = --pass
+[0121 10:28:46] run.args = 1000
+[0121 10:28:46] run.args = --rad_max
+[0121 10:28:46] run.args = 1000000
+[0121 10:28:46] run.args = --upper_param
+[0121 10:28:46] run.args = 4
+[0121 10:28:46] run.machine = node09
+[0121 10:28:46] run.date = 2016/01/21 10:28:46
+[0121 10:28:46] run.user = kenkoooo
+[0121 10:28:46] run.pid = 23620
+=========
+  Vertices: 3997962
+  Edges: 69362378
+  Type: agl::basic_graph<int>
+----------
+  0 -> 1, 2, 31, 73, 80, 113619, 2468396, 2823480, 2823484, 2846482, ...
+  1 -> 0, 2, 3, 4, 5, 6, 7, 8, 9, 10, ...
+  2 -> 0, 1
+  3 -> 1, 11, 31, 32, 873, 1558, 1563, 3018, 4334, 4341, ...
+  4 -> 1, 5, 7, 9, 35, 41, 874, 916, 1274, 1339, ...
+  ...
+----------
+  0 <- 1, 2, 31, 73, 80, 113619, 2468396, 2823480, 2823484, 2846482, ...
+  1 <- 0, 2, 3, 4, 5, 6, 7, 8, 9, 10, ...
+  2 <- 0, 1
+  3 <- 1, 11, 31, 32, 873, 1558, 1563, 3018, 4334, 4341, ...
+  4 <- 1, 5, 7, 9, 35, 41, 874, 916, 1274, 1339, ...
+  ...
+=========
+=========
+  Vertices: 3997962
+  Edges: 69362378
+  Type: agl::basic_graph<int>
+----------
+  0 -> 1, 2, 31, 73, 80, 113619, 2468396, 2823480, 2823484, 2846482, ...
+  1 -> 0, 2, 3, 4, 5, 6, 7, 8, 9, 10, ...
+  2 -> 0, 1
+  3 -> 1, 11, 31, 32, 873, 1558, 1563, 3018, 4334, 4341, ...
+  4 -> 1, 5, 7, 9, 35, 41, 874, 916, 1274, 1339, ...
+  ...
+----------
+  0 <- 1, 2, 31, 73, 80, 113619, 2468396, 2823480, 2823484, 2846482, ...
+  1 <- 0, 2, 3, 4, 5, 6, 7, 8, 9, 10, ...
+  2 <- 0, 1
+  3 <- 1, 11, 31, 32, 873, 1558, 1563, 3018, 4334, 4341, ...
+  4 <- 1, 5, 7, 9, 35, 41, 874, 916, 1274, 1339, ...
+  ...
+=========
+[0121 10:30:13] vertices = 3997962
+[0121 10:30:13] edges = 69362378
+[0121 10:30:13] graph = /data/snap.stanford.edu/com-lj.ungraph.agl
+[0121 10:30:13] name = sketch-k.128
+[0121 10:30:13] k = 128
+[0121 10:30:13] pass = 1000
+[0121 10:30:13] upper_param = 4
+0-th building...
+total index 73360340
+137.258 sec built
+0-th lazy selecting...
+53.885 sec lazy selected
+[0121 10:33:27] time = 193.589
+[0121 10:33:27] size = 761815
+[0121 10:33:27] radius = 1
+[0121 10:33:27] coverage = 1
+0-th building...
+terminate called after throwing an instance of 'std::bad_alloc'
+  what():  std::bad_alloc
+/var/spool/torque/mom_priv/jobs/19064.node00.SC: line 1: 23620 Aborted                 (core dumped) /home/kenkoooo/fractal-dimension/agl/bin/box_cover --force_undirected --type agl --graph /data/snap.stanford.edu/com-lj.ungraph.agl --sketch_k 128 --pass 1000 --rad_max 1000000 --upper_param 4

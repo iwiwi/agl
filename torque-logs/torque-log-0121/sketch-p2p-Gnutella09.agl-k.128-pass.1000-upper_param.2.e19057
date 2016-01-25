@@ -1,0 +1,138 @@
+[0121 10:28:46] JLOG: box_cover.node09.jlog.160121-102846.23599
+[0121 10:28:46] run.program = box_cover
+[0121 10:28:46] run.args = /home/kenkoooo/fractal-dimension/agl/bin/box_cover
+[0121 10:28:46] run.args = --force_undirected
+[0121 10:28:46] run.args = --type
+[0121 10:28:46] run.args = agl
+[0121 10:28:46] run.args = --graph
+[0121 10:28:46] run.args = /data/snap.stanford.edu/p2p-Gnutella09.agl
+[0121 10:28:46] run.args = --sketch_k
+[0121 10:28:46] run.args = 128
+[0121 10:28:46] run.args = --pass
+[0121 10:28:46] run.args = 1000
+[0121 10:28:46] run.args = --rad_max
+[0121 10:28:46] run.args = 1000000
+[0121 10:28:46] run.args = --upper_param
+[0121 10:28:46] run.args = 2
+[0121 10:28:46] run.machine = node09
+[0121 10:28:46] run.date = 2016/01/21 10:28:46
+[0121 10:28:46] run.user = kenkoooo
+[0121 10:28:46] run.pid = 23599
+=========
+  Vertices: 8114
+  Edges: 52026
+  Type: agl::basic_graph<int>
+----------
+  0 -> 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, ...
+  1 -> 0, 1603, 3448, 3704, 4594, 6408, 7221, 7718, 7898
+  2 -> 0, 330, 1070, 1274, 1538, 2407, 2761, 4317
+  3 -> 0, 540, 581, 1009, 1356, 1544, 1666, 1879, 2044, 2045, ...
+  4 -> 0, 11
+  ...
+----------
+  0 <- 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, ...
+  1 <- 0, 1603, 3448, 3704, 4594, 6408, 7221, 7718, 7898
+  2 <- 0, 330, 1070, 1274, 1538, 2407, 2761, 4317
+  3 <- 0, 540, 581, 1009, 1356, 1544, 1666, 1879, 2044, 2045, ...
+  4 <- 0, 11
+  ...
+=========
+=========
+  Vertices: 8104
+  Edges: 52016
+  Type: agl::basic_graph<int>
+----------
+  0 -> 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, ...
+  1 -> 0, 1601, 3438, 3694, 4584, 6398, 7211, 7708, 7888
+  2 -> 0, 328, 1068, 1272, 1536, 2397, 2751, 4307
+  3 -> 0, 538, 579, 1007, 1354, 1542, 1662, 1873, 2036, 2037, ...
+  4 -> 0, 11
+  ...
+----------
+  0 <- 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, ...
+  1 <- 0, 1601, 3438, 3694, 4584, 6398, 7211, 7708, 7888
+  2 <- 0, 328, 1068, 1272, 1536, 2397, 2751, 4307
+  3 <- 0, 538, 579, 1007, 1354, 1542, 1662, 1873, 2036, 2037, ...
+  4 <- 0, 11
+  ...
+=========
+[0121 10:28:46] vertices = 8104
+[0121 10:28:46] edges = 52016
+[0121 10:28:46] graph = /data/snap.stanford.edu/p2p-Gnutella09.agl
+[0121 10:28:46] name = sketch-k.128
+[0121 10:28:46] k = 128
+[0121 10:28:46] pass = 1000
+[0121 10:28:46] upper_param = 2
+0-th building...
+total index 60120
+0.023643 sec built
+0-th lazy selecting...
+0.00775194 sec lazy selected
+[0121 10:28:46] time = 0.0320821
+[0121 10:28:46] size = 1729
+[0121 10:28:46] radius = 1
+[0121 10:28:46] coverage = 1
+0-th building...
+total index 709084
+0.701234 sec built
+0-th lazy selecting...
+0.021888 sec lazy selected
+[0121 10:28:47] time = 0.726531
+[0121 10:28:47] size = 370
+[0121 10:28:47] radius = 2
+[0121 10:28:47] coverage = 1
+0-th building...
+total index 2289707
+3.45171 sec built
+0-th selecting...
+0.615785 sec selected
+1-th building...
+total index 2290479
+3.50432 sec built
+1-th selecting...
+0.636367 sec selected
+2-th building...
+total index 2291490
+4.98928 sec built
+2-th selecting...
+1.03565 sec selected
+3-th building...
+total index 2291345
+6.19659 sec built
+3-th selecting...
+1.05755 sec selected
+4-th building...
+total index 2293436
+7.10561 sec built
+4-th selecting...
+1.1943 sec selected
+[0121 10:29:17] time = 29.8381
+[0121 10:29:17] size = 62
+[0121 10:29:17] radius = 3
+[0121 10:29:17] coverage = 0.980874
+0-th building...
+total index 3152241
+20.0107 sec built
+0-th selecting...
+0.978162 sec selected
+1-th building...
+total index 3145691
+18.0656 sec built
+1-th selecting...
+1.12026 sec selected
+[0121 10:29:57] time = 40.2025
+[0121 10:29:57] size = 4
+[0121 10:29:57] radius = 4
+[0121 10:29:57] coverage = 0.982848
+0-th building...
+total index 3705601
+21.9477 sec built
+0-th selecting...
+0.0325611 sec selected
+[0121 10:30:19] time = 21.9927
+[0121 10:30:19] size = 1
+[0121 10:30:19] radius = 5
+[0121 10:30:19] coverage = 0.995311
+[0121 10:30:19] run.time = 92.8391
+[0121 10:30:19] run.memory = 3305472
+[0121 10:30:19] JLOG: ./jlog/sketch-k.128-p2p-Gnutella09.agl-upper_param.2-box_cover.node09.jlog.160121-102846.23599

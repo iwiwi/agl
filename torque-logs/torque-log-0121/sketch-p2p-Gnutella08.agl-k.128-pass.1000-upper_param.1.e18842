@@ -1,0 +1,143 @@
+[0121 10:09:22] JLOG: box_cover.node04.jlog.160121-100922.7605
+[0121 10:09:22] run.program = box_cover
+[0121 10:09:22] run.args = /home/kenkoooo/fractal-dimension/agl/bin/box_cover
+[0121 10:09:22] run.args = --force_undirected
+[0121 10:09:22] run.args = --type
+[0121 10:09:22] run.args = agl
+[0121 10:09:22] run.args = --graph
+[0121 10:09:22] run.args = /data/snap.stanford.edu/p2p-Gnutella08.agl
+[0121 10:09:22] run.args = --sketch_k
+[0121 10:09:22] run.args = 128
+[0121 10:09:22] run.args = --pass
+[0121 10:09:22] run.args = 1000
+[0121 10:09:22] run.args = --rad_max
+[0121 10:09:22] run.args = 1000000
+[0121 10:09:22] run.args = --upper_param
+[0121 10:09:22] run.args = 1
+[0121 10:09:22] run.machine = node04
+[0121 10:09:22] run.date = 2016/01/21 10:09:22
+[0121 10:09:22] run.user = kenkoooo
+[0121 10:09:22] run.pid = 7605
+=========
+  Vertices: 6301
+  Edges: 41554
+  Type: agl::basic_graph<int>
+----------
+  0 -> 1, 2, 3, 4, 5, 6, 7, 8, 9, 10
+  1 -> 0
+  2 -> 0, 553, 2546, 3192, 3552, 4752
+  3 -> 0, 15, 30, 36, 120, 123, 174, 180, 366, 409, ...
+  4 -> 0, 144, 179, 195, 258, 263, 339, 352, 367, 371, ...
+  ...
+----------
+  0 <- 1, 2, 3, 4, 5, 6, 7, 8, 9, 10
+  1 <- 0
+  2 <- 0, 553, 2546, 3192, 3552, 4752
+  3 <- 0, 15, 30, 36, 120, 123, 174, 180, 366, 409, ...
+  4 <- 0, 144, 179, 195, 258, 263, 339, 352, 367, 371, ...
+  ...
+=========
+=========
+  Vertices: 6299
+  Edges: 41552
+  Type: agl::basic_graph<int>
+----------
+  0 -> 1, 2, 3, 4, 5, 6, 7, 8, 9, 10
+  1 -> 0
+  2 -> 0, 553, 2544, 3190, 3550, 4750
+  3 -> 0, 15, 30, 36, 120, 123, 174, 180, 366, 409, ...
+  4 -> 0, 144, 179, 195, 258, 263, 339, 352, 367, 371, ...
+  ...
+----------
+  0 <- 1, 2, 3, 4, 5, 6, 7, 8, 9, 10
+  1 <- 0
+  2 <- 0, 553, 2544, 3190, 3550, 4750
+  3 <- 0, 15, 30, 36, 120, 123, 174, 180, 366, 409, ...
+  4 <- 0, 144, 179, 195, 258, 263, 339, 352, 367, 371, ...
+  ...
+=========
+[0121 10:09:22] vertices = 6299
+[0121 10:09:22] edges = 41552
+[0121 10:09:22] graph = /data/snap.stanford.edu/p2p-Gnutella08.agl
+[0121 10:09:22] name = sketch-k.128
+[0121 10:09:22] k = 128
+[0121 10:09:22] pass = 1000
+[0121 10:09:22] upper_param = 1
+0-th building...
+total index 47851
+0.018019 sec built
+0-th lazy selecting...
+0.00557089 sec lazy selected
+[0121 10:09:22] time = 0.024056
+[0121 10:09:22] size = 1292
+[0121 10:09:22] radius = 1
+[0121 10:09:22] coverage = 1
+0-th building...
+total index 579217
+0.475025 sec built
+0-th lazy selecting...
+0.017575 sec lazy selected
+[0121 10:09:23] time = 0.496054
+[0121 10:09:23] size = 291
+[0121 10:09:23] radius = 2
+[0121 10:09:23] coverage = 1
+0-th building...
+total index 1243536
+2.08341 sec built
+0-th selecting...
+0.430035 sec selected
+1-th building...
+total index 1245534
+1.8305 sec built
+1-th selecting...
+0.406059 sec selected
+2-th building...
+total index 1242926
+1.81125 sec built
+2-th selecting...
+0.402124 sec selected
+3-th building...
+total index 1244007
+1.79736 sec built
+3-th selecting...
+0.406252 sec selected
+4-th building...
+total index 1242975
+1.78247 sec built
+4-th selecting...
+0.398938 sec selected
+5-th building...
+total index 1243095
+1.82539 sec built
+5-th selecting...
+0.399069 sec selected
+[0121 10:09:36] time = 13.5878
+[0121 10:09:36] size = 62
+[0121 10:09:36] radius = 3
+[0121 10:09:36] coverage = 0.980949
+0-th building...
+total index 1875592
+2.85527 sec built
+0-th selecting...
+0.368597 sec selected
+1-th building...
+total index 1884689
+2.88108 sec built
+1-th selecting...
+0.010128 sec selected
+[0121 10:09:43] time = 6.12235
+[0121 10:09:43] size = 4
+[0121 10:09:43] radius = 4
+[0121 10:09:43] coverage = 0.986188
+0-th building...
+total index 2289123
+3.85921 sec built
+0-th selecting...
+0.009161 sec selected
+[0121 10:09:46] time = 3.8719
+[0121 10:09:46] size = 1
+[0121 10:09:46] radius = 5
+[0121 10:09:46] coverage = 0.997777
+[0121 10:09:46] run.time = 24.1415
+[0121 10:09:46] run.memory = 13307904
+[0121 10:09:46] JLOG: ./jlog/sketch-k.128-p2p-Gnutella08.agl-upper_param.1-box_cover.node04.jlog.160121-100922.7605

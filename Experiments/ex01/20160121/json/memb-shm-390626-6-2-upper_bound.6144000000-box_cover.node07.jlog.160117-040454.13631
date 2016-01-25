@@ -1,0 +1,64 @@
+{
+  "run": {
+    "program": "box_cover",
+    "args": [
+      "/home/kenkoooo/fractal-dimension/agl/bin/box_cover",
+      "--force_undirected",
+      "--type",
+      "gen",
+      "--graph",
+      "shm",
+      "--rad_max",
+      "512",
+      "--method",
+      "memb",
+      "--rad_analytical"
+    ],
+    "machine": "node07",
+    "date": "2016/01/17",
+    "user": "kenkoooo",
+    "pid": 13631,
+    "time": 8168.25,
+    "memory": 54718464
+  },
+  "graph_info": [
+    {
+      "vertices": 390626,
+      "edges": 781250,
+      "graph": "shm-390626-6-2"
+    }
+  ],
+  "name": "MEMB",
+  "time": [
+    637.802,
+    78.9182,
+    38.7112,
+    61.4268,
+    262.441,
+    7080.58
+  ],
+  "size": [
+    78126,
+    15626,
+    3126,
+    626,
+    126,
+    26
+  ],
+  "radius": [
+    1,
+    4,
+    13,
+    40,
+    121,
+    364
+  ],
+  "coverage": [
+    1,
+    1,
+    1,
+    1,
+    1,
+    1
+  ]
+}

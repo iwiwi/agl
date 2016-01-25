@@ -1,0 +1,56 @@
+{
+  "run": {
+    "program": "box_cover",
+    "args": [
+      "/home/kenkoooo/fractal-dimension/agl/bin/box_cover",
+      "--force_undirected",
+      "--type",
+      "gen",
+      "--graph",
+      "flower",
+      "--method",
+      "analytical"
+    ],
+    "machine": "node01",
+    "date": "2016/01/14",
+    "user": "kenkoooo",
+    "pid": 722,
+    "time": 0.324705,
+    "memory": 31105024
+  },
+  "graph_info": [
+    {
+      "vertices": 223950,
+      "edges": 559872,
+      "graph": "flower-223950-3-3"
+    }
+  ],
+  "name": "analytical_solution_flower",
+  "size": [
+    37326,
+    6222,
+    1038,
+    174,
+    30,
+    6,
+    2
+  ],
+  "diameter": [
+    3,
+    9,
+    27,
+    81,
+    243,
+    729,
+    2187
+  ],
+  "radius": [
+    2,
+    5,
+    14,
+    41,
+    122,
+    365,
+    1094
+  ]
+}

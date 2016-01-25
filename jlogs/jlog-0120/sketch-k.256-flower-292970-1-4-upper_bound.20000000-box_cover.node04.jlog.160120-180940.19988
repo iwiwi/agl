@@ -1,0 +1,75 @@
+{
+  "run": {
+    "program": "box_cover",
+    "args": [
+      "/home/kenkoooo/fractal-dimension/agl/bin/box_cover",
+      "--force_undirected",
+      "--type",
+      "gen",
+      "--graph",
+      "flower",
+      "--sketch_k",
+      "256",
+      "--pass",
+      "1000",
+      "--rad_max",
+      "1000000",
+      "--rad_analytical",
+      "--size_upper",
+      "20000000"
+    ],
+    "machine": "node04",
+    "date": "2016/01/20",
+    "user": "kenkoooo",
+    "pid": 19988,
+    "time": 8175.54,
+    "memory": 35467264
+  },
+  "graph_info": [
+    {
+      "vertices": 292970,
+      "edges": 781250,
+      "graph": "flower-292970-1-4"
+    }
+  ],
+  "name": "sketch-k.256",
+  "k": "256",
+  "pass": "1000",
+  "size_upper": "20000000",
+  "time": [
+    1.91941,
+    1857.49,
+    2471.54,
+    1548.23,
+    984.418,
+    653.724,
+    656.297
+  ],
+  "size": [
+    105470,
+    11593,
+    3213,
+    140,
+    31,
+    2,
+    1
+  ],
+  "radius": [
+    1,
+    3,
+    4,
+    6,
+    7,
+    9,
+    10
+  ],
+  "coverage": [
+    1,
+    0.980012,
+    0.980005,
+    0.98008,
+    0.980121,
+    0.988559,
+    0.991617
+  ]
+}

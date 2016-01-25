@@ -1,0 +1,138 @@
+[0121 10:31:24] JLOG: box_cover.node08.jlog.160121-103124.3948
+[0121 10:31:24] run.program = box_cover
+[0121 10:31:24] run.args = /home/kenkoooo/fractal-dimension/agl/bin/box_cover
+[0121 10:31:24] run.args = --force_undirected
+[0121 10:31:24] run.args = --type
+[0121 10:31:24] run.args = agl
+[0121 10:31:24] run.args = --graph
+[0121 10:31:24] run.args = /data/snap.stanford.edu/p2p-Gnutella09.agl
+[0121 10:31:24] run.args = --sketch_k
+[0121 10:31:24] run.args = 128
+[0121 10:31:24] run.args = --pass
+[0121 10:31:24] run.args = 1000
+[0121 10:31:24] run.args = --rad_max
+[0121 10:31:24] run.args = 1000000
+[0121 10:31:24] run.args = --upper_param
+[0121 10:31:24] run.args = 4
+[0121 10:31:24] run.machine = node08
+[0121 10:31:24] run.date = 2016/01/21 10:31:24
+[0121 10:31:24] run.user = kenkoooo
+[0121 10:31:24] run.pid = 3948
+=========
+  Vertices: 8114
+  Edges: 52026
+  Type: agl::basic_graph<int>
+----------
+  0 -> 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, ...
+  1 -> 0, 1603, 3448, 3704, 4594, 6408, 7221, 7718, 7898
+  2 -> 0, 330, 1070, 1274, 1538, 2407, 2761, 4317
+  3 -> 0, 540, 581, 1009, 1356, 1544, 1666, 1879, 2044, 2045, ...
+  4 -> 0, 11
+  ...
+----------
+  0 <- 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, ...
+  1 <- 0, 1603, 3448, 3704, 4594, 6408, 7221, 7718, 7898
+  2 <- 0, 330, 1070, 1274, 1538, 2407, 2761, 4317
+  3 <- 0, 540, 581, 1009, 1356, 1544, 1666, 1879, 2044, 2045, ...
+  4 <- 0, 11
+  ...
+=========
+=========
+  Vertices: 8104
+  Edges: 52016
+  Type: agl::basic_graph<int>
+----------
+  0 -> 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, ...
+  1 -> 0, 1601, 3438, 3694, 4584, 6398, 7211, 7708, 7888
+  2 -> 0, 328, 1068, 1272, 1536, 2397, 2751, 4307
+  3 -> 0, 538, 579, 1007, 1354, 1542, 1662, 1873, 2036, 2037, ...
+  4 -> 0, 11
+  ...
+----------
+  0 <- 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, ...
+  1 <- 0, 1601, 3438, 3694, 4584, 6398, 7211, 7708, 7888
+  2 <- 0, 328, 1068, 1272, 1536, 2397, 2751, 4307
+  3 <- 0, 538, 579, 1007, 1354, 1542, 1662, 1873, 2036, 2037, ...
+  4 <- 0, 11
+  ...
+=========
+[0121 10:31:24] vertices = 8104
+[0121 10:31:24] edges = 52016
+[0121 10:31:24] graph = /data/snap.stanford.edu/p2p-Gnutella09.agl
+[0121 10:31:24] name = sketch-k.128
+[0121 10:31:24] k = 128
+[0121 10:31:24] pass = 1000
+[0121 10:31:24] upper_param = 4
+0-th building...
+total index 60120
+0.054558 sec built
+0-th lazy selecting...
+0.0125458 sec lazy selected
+[0121 10:31:24] time = 0.068238
+[0121 10:31:24] size = 1729
+[0121 10:31:24] radius = 1
+[0121 10:31:24] coverage = 1
+0-th building...
+total index 709084
+1.13618 sec built
+0-th lazy selecting...
+0.0376101 sec lazy selected
+[0121 10:31:25] time = 1.17959
+[0121 10:31:25] size = 370
+[0121 10:31:25] radius = 2
+[0121 10:31:25] coverage = 1
+0-th building...
+total index 4195901
+10.8151 sec built
+0-th selecting...
+1.19516 sec selected
+1-th building...
+total index 4196126
+10.1414 sec built
+1-th selecting...
+1.11326 sec selected
+2-th building...
+total index 4196715
+10.2678 sec built
+2-th selecting...
+1.17333 sec selected
+3-th building...
+total index 4195228
+10.1224 sec built
+3-th selecting...
+1.09729 sec selected
+4-th building...
+total index 4197422
+10.5207 sec built
+4-th selecting...
+0.980713 sec selected
+[0121 10:32:23] time = 57.531
+[0121 10:32:23] size = 62
+[0121 10:32:23] radius = 3
+[0121 10:32:23] coverage = 0.980874
+0-th building...
+total index 5054909
+28.3628 sec built
+0-th selecting...
+1.09633 sec selected
+1-th building...
+total index 5047311
+28.2323 sec built
+1-th selecting...
+0.894948 sec selected
+[0121 10:33:22] time = 58.6315
+[0121 10:33:22] size = 4
+[0121 10:33:22] radius = 4
+[0121 10:33:22] coverage = 0.982848
+0-th building...
+total index 5609558
+26.7551 sec built
+0-th selecting...
+0.0239248 sec selected
+[0121 10:33:48] time = 26.7877
+[0121 10:33:48] size = 1
+[0121 10:33:48] radius = 5
+[0121 10:33:48] coverage = 0.995311
+[0121 10:33:48] run.time = 144.264
+[0121 10:33:48] run.memory = 3305472
+[0121 10:33:48] JLOG: ./jlog/sketch-k.128-p2p-Gnutella09.agl-upper_param.4-box_cover.node08.jlog.160121-103124.3948

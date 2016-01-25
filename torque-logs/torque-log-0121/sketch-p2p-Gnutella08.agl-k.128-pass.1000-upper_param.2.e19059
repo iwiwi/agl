@@ -1,0 +1,143 @@
+[0121 10:28:46] JLOG: box_cover.node09.jlog.160121-102846.23604
+[0121 10:28:46] run.program = box_cover
+[0121 10:28:46] run.args = /home/kenkoooo/fractal-dimension/agl/bin/box_cover
+[0121 10:28:46] run.args = --force_undirected
+[0121 10:28:46] run.args = --type
+[0121 10:28:46] run.args = agl
+[0121 10:28:46] run.args = --graph
+[0121 10:28:46] run.args = /data/snap.stanford.edu/p2p-Gnutella08.agl
+[0121 10:28:46] run.args = --sketch_k
+[0121 10:28:46] run.args = 128
+[0121 10:28:46] run.args = --pass
+[0121 10:28:46] run.args = 1000
+[0121 10:28:46] run.args = --rad_max
+[0121 10:28:46] run.args = 1000000
+[0121 10:28:46] run.args = --upper_param
+[0121 10:28:46] run.args = 2
+[0121 10:28:46] run.machine = node09
+[0121 10:28:46] run.date = 2016/01/21 10:28:46
+[0121 10:28:46] run.user = kenkoooo
+[0121 10:28:46] run.pid = 23604
+=========
+  Vertices: 6301
+  Edges: 41554
+  Type: agl::basic_graph<int>
+----------
+  0 -> 1, 2, 3, 4, 5, 6, 7, 8, 9, 10
+  1 -> 0
+  2 -> 0, 553, 2546, 3192, 3552, 4752
+  3 -> 0, 15, 30, 36, 120, 123, 174, 180, 366, 409, ...
+  4 -> 0, 144, 179, 195, 258, 263, 339, 352, 367, 371, ...
+  ...
+----------
+  0 <- 1, 2, 3, 4, 5, 6, 7, 8, 9, 10
+  1 <- 0
+  2 <- 0, 553, 2546, 3192, 3552, 4752
+  3 <- 0, 15, 30, 36, 120, 123, 174, 180, 366, 409, ...
+  4 <- 0, 144, 179, 195, 258, 263, 339, 352, 367, 371, ...
+  ...
+=========
+=========
+  Vertices: 6299
+  Edges: 41552
+  Type: agl::basic_graph<int>
+----------
+  0 -> 1, 2, 3, 4, 5, 6, 7, 8, 9, 10
+  1 -> 0
+  2 -> 0, 553, 2544, 3190, 3550, 4750
+  3 -> 0, 15, 30, 36, 120, 123, 174, 180, 366, 409, ...
+  4 -> 0, 144, 179, 195, 258, 263, 339, 352, 367, 371, ...
+  ...
+----------
+  0 <- 1, 2, 3, 4, 5, 6, 7, 8, 9, 10
+  1 <- 0
+  2 <- 0, 553, 2544, 3190, 3550, 4750
+  3 <- 0, 15, 30, 36, 120, 123, 174, 180, 366, 409, ...
+  4 <- 0, 144, 179, 195, 258, 263, 339, 352, 367, 371, ...
+  ...
+=========
+[0121 10:28:46] vertices = 6299
+[0121 10:28:46] edges = 41552
+[0121 10:28:46] graph = /data/snap.stanford.edu/p2p-Gnutella08.agl
+[0121 10:28:46] name = sketch-k.128
+[0121 10:28:46] k = 128
+[0121 10:28:46] pass = 1000
+[0121 10:28:46] upper_param = 2
+0-th building...
+total index 47851
+0.0227609 sec built
+0-th lazy selecting...
+0.00670004 sec lazy selected
+[0121 10:28:46] time = 0.0302169
+[0121 10:28:46] size = 1292
+[0121 10:28:46] radius = 1
+[0121 10:28:46] coverage = 1
+0-th building...
+total index 579217
+0.57808 sec built
+0-th lazy selecting...
+0.0173519 sec lazy selected
+[0121 10:28:47] time = 0.598257
+[0121 10:28:47] size = 291
+[0121 10:28:47] radius = 2
+[0121 10:28:47] coverage = 1
+0-th building...
+total index 1772185
+2.64662 sec built
+0-th selecting...
+0.479546 sec selected
+1-th building...
+total index 1773606
+2.4522 sec built
+1-th selecting...
+0.468643 sec selected
+2-th building...
+total index 1770942
+2.58912 sec built
+2-th selecting...
+0.510054 sec selected
+3-th building...
+total index 1777451
+3.81174 sec built
+3-th selecting...
+0.739651 sec selected
+4-th building...
+total index 1775799
+4.85136 sec built
+4-th selecting...
+0.831283 sec selected
+5-th building...
+total index 1773316
+5.24946 sec built
+5-th selecting...
+0.816979 sec selected
+[0121 10:29:12] time = 25.4848
+[0121 10:29:12] size = 62
+[0121 10:29:12] radius = 3
+[0121 10:29:12] coverage = 0.980949
+0-th building...
+total index 2404953
+12.7596 sec built
+0-th selecting...
+0.870498 sec selected
+1-th building...
+total index 2414678
+13.2023 sec built
+1-th selecting...
+0.0253041 sec selected
+[0121 10:29:39] time = 26.8627
+[0121 10:29:39] size = 4
+[0121 10:29:39] radius = 4
+[0121 10:29:39] coverage = 0.986188
+0-th building...
+total index 2818436
+14.9705 sec built
+0-th selecting...
+0.0209901 sec selected
+[0121 10:29:54] time = 15.0002
+[0121 10:29:54] size = 1
+[0121 10:29:54] radius = 5
+[0121 10:29:54] coverage = 0.997777
+[0121 10:29:54] run.time = 68.0142
+[0121 10:29:54] run.memory = 16650240
+[0121 10:29:54] JLOG: ./jlog/sketch-k.128-p2p-Gnutella08.agl-upper_param.2-box_cover.node09.jlog.160121-102846.23604

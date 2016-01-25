@@ -1,0 +1,152 @@
+[0122 17:09:15] JLOG: box_cover.node08.jlog.160122-170915.32131
+[0122 17:09:15] run.program = box_cover
+[0122 17:09:15] run.args = /home/kenkoooo/fractal-dimension/agl/bin/box_cover
+[0122 17:09:15] run.args = --force_undirected
+[0122 17:09:15] run.args = --type
+[0122 17:09:15] run.args = agl
+[0122 17:09:15] run.args = --graph
+[0122 17:09:15] run.args = /data/snap.stanford.edu/cit-Patents.agl
+[0122 17:09:15] run.args = --sketch_k
+[0122 17:09:15] run.args = 128
+[0122 17:09:15] run.args = --pass
+[0122 17:09:15] run.args = 1000
+[0122 17:09:15] run.args = --rad_max
+[0122 17:09:15] run.args = 50
+[0122 17:09:15] run.args = --upper_param
+[0122 17:09:15] run.args = 1.0
+[0122 17:09:15] run.args = --exp_tag
+[0122 17:09:15] run.args = exp_agl
+[0122 17:09:15] run.machine = node08
+[0122 17:09:15] run.date = 2016/01/22 17:09:15
+[0122 17:09:15] run.user = kenkoooo
+[0122 17:09:15] run.pid = 32131
+=========
+  Vertices: 3774768
+  Edges: 33037895
+  Type: agl::basic_graph<int>
+----------
+  0 -> 1760390, 2439225
+  1 -> 1913823, 2625036
+  2 -> 1924675
+  3 -> 1768137
+  4 -> 3039288, 3284974
+  ...
+----------
+  0 <- 1760390, 2439225
+  1 <- 1913823, 2625036
+  2 <- 1924675
+  3 <- 1768137
+  4 <- 3039288, 3284974
+  ...
+=========
+=========
+  Vertices: 3764117
+  Edges: 33023481
+  Type: agl::basic_graph<int>
+----------
+  0 -> 1754005, 2431106
+  1 -> 1906836, 2616630
+  2 -> 1917658
+  3 -> 1761720
+  4 -> 3030252, 3275574
+  ...
+----------
+  0 <- 1754005, 2431106
+  1 <- 1906836, 2616630
+  2 <- 1917658
+  3 <- 1761720
+  4 <- 3030252, 3275574
+  ...
+=========
+[0122 17:09:49] vertices = 3764117
+[0122 17:09:49] edges = 33023481
+[0122 17:09:49] graph = /data/snap.stanford.edu/cit-Patents.agl
+[0122 17:09:49] name = sketch-k.128
+[0122 17:09:49] k = 128
+[0122 17:09:49] pass = 1000
+[0122 17:09:49] upper_param = 1.000000
+0-th building...
+total index 36787597
+34.3956 sec built
+0-th lazy selecting...
+19.0254 sec lazy selected
+[0122 17:10:44] time = 54.6091
+[0122 17:10:44] size = 663709
+[0122 17:10:44] radius = 1
+[0122 17:10:44] coverage = 1
+0-th building...
+total index 459935477
+915.742 sec built
+0-th lazy selecting...
+209.723 sec lazy selected
+[0122 17:29:31] time = 1127.64
+[0122 17:29:31] size = 169108
+[0122 17:29:31] radius = 2
+[0122 17:29:31] coverage = 1
+0-th building...
+total index 850174266
+6607.17 sec built
+0-th selecting...
+1186.99 sec selected
+1-th building...
+total index 850137353
+5965.42 sec built
+1-th selecting...
+1063.83 sec selected
+2-th building...
+total index 850158837
+5612.78 sec built
+2-th selecting...
+1007.35 sec selected
+3-th building...
+total index 850157725
+5479.3 sec built
+3-th selecting...
+993.557 sec selected
+4-th building...
+total index 850178774
+4473.87 sec built
+4-th selecting...
+913.974 sec selected
+5-th building...
+total index 850160585
+5759.33 sec built
+5-th selecting...
+1096.48 sec selected
+6-th building...
+total index 850163518
+5773.32 sec built
+6-th selecting...
+982.757 sec selected
+7-th building...
+total index 850150573
+5792.34 sec built
+7-th selecting...
+991.205 sec selected
+8-th building...
+total index 850134829
+5772.3 sec built
+8-th selecting...
+977.647 sec selected
+9-th building...
+total index 850135747
+5935.49 sec built
+9-th selecting...
+1036.24 sec selected
+10-th building...
+total index 850182525
+5271.39 sec built
+10-th selecting...
+1003.02 sec selected
+11-th building...
+total index 850152093
+4691.49 sec built
+11-th selecting...
+968.974 sec selected
+12-th building...
+total index 850126184
+4209.06 sec built
+12-th selecting...
+873.167 sec selected
+13-th building...
+=>> PBS: job killed: walltime 86429 exceeded limit 86400

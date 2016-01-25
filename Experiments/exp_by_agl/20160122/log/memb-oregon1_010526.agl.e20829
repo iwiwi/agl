@@ -1,0 +1,91 @@
+[0123 17:40:30] JLOG: box_cover.node10.jlog.160123-174030.31368
+[0123 17:40:30] run.program = box_cover
+[0123 17:40:30] run.args = /home/kenkoooo/fractal-dimension/agl/bin/box_cover
+[0123 17:40:30] run.args = --force_undirected
+[0123 17:40:30] run.args = --type
+[0123 17:40:30] run.args = agl
+[0123 17:40:30] run.args = --graph
+[0123 17:40:30] run.args = /data/snap.stanford.edu/oregon1_010526.agl
+[0123 17:40:30] run.args = --rad_max
+[0123 17:40:30] run.args = 10000
+[0123 17:40:30] run.args = --method
+[0123 17:40:30] run.args = memb
+[0123 17:40:30] run.machine = node10
+[0123 17:40:30] run.date = 2016/01/23 17:40:30
+[0123 17:40:30] run.user = kenkoooo
+[0123 17:40:30] run.pid = 31368
+=========
+  Vertices: 11174
+  Edges: 46818
+  Type: agl::basic_graph<int>
+----------
+  0 -> 2, 23, 27, 33, 40, 42, 43, 54, 55, 63, ...
+  1 -> 5319
+  2 -> 0, 129, 4632
+  3 -> 5204
+  4 -> 190, 265, 759, 900
+  ...
+----------
+  0 <- 2, 23, 27, 33, 40, 42, 43, 54, 55, 63, ...
+  1 <- 5319
+  2 <- 0, 129, 4632
+  3 <- 5204
+  4 <- 190, 265, 759, 900
+  ...
+=========
+=========
+  Vertices: 11174
+  Edges: 46818
+  Type: agl::basic_graph<int>
+----------
+  0 -> 2, 23, 27, 33, 40, 42, 43, 54, 55, 63, ...
+  1 -> 5319
+  2 -> 0, 129, 4632
+  3 -> 5204
+  4 -> 190, 265, 759, 900
+  ...
+----------
+  0 <- 2, 23, 27, 33, 40, 42, 43, 54, 55, 63, ...
+  1 <- 5319
+  2 <- 0, 129, 4632
+  3 <- 5204
+  4 <- 190, 265, 759, 900
+  ...
+=========
+[0123 17:40:30] vertices = 11174
+[0123 17:40:30] edges = 46818
+[0123 17:40:30] graph = /data/snap.stanford.edu/oregon1_010526.agl
+[0123 17:40:30] name = MEMB
+0.0122521sec MEMB built
+0.184384sec MEMB select
+[0123 17:40:30] time = 0.197995
+[0123 17:40:30] size = 993
+[0123 17:40:30] radius = 1
+[0123 17:40:30] coverage = 1
+0.315982sec MEMB built
+1.20548sec MEMB select
+[0123 17:40:32] time = 1.52343
+[0123 17:40:32] size = 157
+[0123 17:40:32] radius = 2
+[0123 17:40:32] coverage = 1
+1.88631sec MEMB built
+6.40288sec MEMB select
+[0123 17:40:40] time = 8.29846
+[0123 17:40:40] size = 26
+[0123 17:40:40] radius = 3
+[0123 17:40:40] coverage = 1
+4.54631sec MEMB built
+10.0957sec MEMB select
+[0123 17:40:55] time = 14.67
+[0123 17:40:55] size = 6
+[0123 17:40:55] radius = 4
+[0123 17:40:55] coverage = 1
+5.83148sec MEMB built
+0.0017159sec MEMB select
+[0123 17:41:00] time = 5.87205
+[0123 17:41:00] size = 1
+[0123 17:41:00] radius = 5
+[0123 17:41:00] coverage = 1
+[0123 17:41:00] run.time = 30.6522
+[0123 17:41:00] run.memory = 3584000
+[0123 17:41:00] JLOG: ./jlog/memb-oregon1_010526.agl-upper_param.1.000000-box_cover.node10.jlog.160123-174030.31368

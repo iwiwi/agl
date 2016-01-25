@@ -1,0 +1,159 @@
+[0121 10:28:51] JLOG: box_cover.node10.jlog.160121-102851.25422
+[0121 10:28:51] run.program = box_cover
+[0121 10:28:51] run.args = /home/kenkoooo/fractal-dimension/agl/bin/box_cover
+[0121 10:28:51] run.args = --force_undirected
+[0121 10:28:51] run.args = --type
+[0121 10:28:51] run.args = agl
+[0121 10:28:51] run.args = --graph
+[0121 10:28:51] run.args = /data/snap.stanford.edu/as-caida20071105.agl
+[0121 10:28:51] run.args = --sketch_k
+[0121 10:28:51] run.args = 128
+[0121 10:28:51] run.args = --pass
+[0121 10:28:51] run.args = 1000
+[0121 10:28:51] run.args = --rad_max
+[0121 10:28:51] run.args = 1000000
+[0121 10:28:51] run.args = --upper_param
+[0121 10:28:51] run.args = 4
+[0121 10:28:51] run.machine = node10
+[0121 10:28:51] run.date = 2016/01/21 10:28:51
+[0121 10:28:51] run.user = kenkoooo
+[0121 10:28:51] run.pid = 25422
+=========
+  Vertices: 26475
+  Edges: 106762
+  Type: agl::basic_graph<int>
+----------
+  0 -> 95, 275, 881, 4149, 15989
+  1 -> 111, 166, 275, 12507
+  2 -> 23231
+  3 -> 194, 195, 275, 794, 946
+  4 -> 219
+  ...
+----------
+  0 <- 95, 275, 881, 4149, 15989
+  1 <- 111, 166, 275, 12507
+  2 <- 23231
+  3 <- 194, 195, 275, 794, 946
+  4 <- 219
+  ...
+=========
+=========
+  Vertices: 26475
+  Edges: 106762
+  Type: agl::basic_graph<int>
+----------
+  0 -> 95, 275, 881, 4149, 15989
+  1 -> 111, 166, 275, 12507
+  2 -> 23231
+  3 -> 194, 195, 275, 794, 946
+  4 -> 219
+  ...
+----------
+  0 <- 95, 275, 881, 4149, 15989
+  1 <- 111, 166, 275, 12507
+  2 <- 23231
+  3 <- 194, 195, 275, 794, 946
+  4 <- 219
+  ...
+=========
+[0121 10:28:51] vertices = 26475
+[0121 10:28:51] edges = 106762
+[0121 10:28:51] graph = /data/snap.stanford.edu/as-caida20071105.agl
+[0121 10:28:52] name = sketch-k.128
+[0121 10:28:52] k = 128
+[0121 10:28:52] pass = 1000
+[0121 10:28:52] upper_param = 4
+0-th building...
+total index 133237
+0.101578 sec built
+0-th lazy selecting...
+0.0281138 sec lazy selected
+[0121 10:28:52] time = 0.132253
+[0121 10:28:52] size = 2405
+[0121 10:28:52] radius = 1
+[0121 10:28:52] coverage = 1
+0-th building...
+total index 13860912
+40.6864 sec built
+0-th selecting...
+3.43729 sec selected
+1-th building...
+total index 13855677
+39.6008 sec built
+1-th selecting...
+3.24915 sec selected
+2-th building...
+total index 13870477
+39.5584 sec built
+2-th selecting...
+3.30259 sec selected
+3-th building...
+total index 13850513
+39.8967 sec built
+3-th selecting...
+3.42678 sec selected
+4-th building...
+total index 13866406
+39.9648 sec built
+4-th selecting...
+3.38543 sec selected
+5-th building...
+total index 13865172
+40.4064 sec built
+5-th selecting...
+3.46196 sec selected
+6-th building...
+total index 13857291
+40.5805 sec built
+6-th selecting...
+3.43131 sec selected
+7-th building...
+total index 13860471
+38.4841 sec built
+7-th selecting...
+3.21572 sec selected
+8-th building...
+total index 13847069
+37.1717 sec built
+8-th selecting...
+3.08277 sec selected
+9-th building...
+total index 13862816
+36.9683 sec built
+9-th selecting...
+2.97157 sec selected
+10-th building...
+total index 13856876
+37.6084 sec built
+10-th selecting...
+2.93916 sec selected
+[0121 10:36:39] time = 467.371
+[0121 10:36:39] size = 383
+[0121 10:36:39] radius = 2
+[0121 10:36:39] coverage = 0.980132
+0-th building...
+total index 16889518
+163.056 sec built
+0-th selecting...
+4.26342 sec selected
+1-th building...
+total index 16880528
+163.515 sec built
+1-th selecting...
+3.4478 sec selected
+[0121 10:42:13] time = 334.366
+[0121 10:42:13] size = 7
+[0121 10:42:13] radius = 3
+[0121 10:42:13] coverage = 0.980472
+0-th building...
+total index 19041113
+162.062 sec built
+0-th selecting...
+0.0912859 sec selected
+[0121 10:44:56] time = 162.212
+[0121 10:44:56] size = 1
+[0121 10:44:56] radius = 4
+[0121 10:44:56] coverage = 0.996487
+[0121 10:44:56] run.time = 964.295
+[0121 10:44:56] run.memory = 9543680
+[0121 10:44:56] JLOG: ./jlog/sketch-k.128-as-caida20071105.agl-upper_param.4-box_cover.node10.jlog.160121-102851.25422

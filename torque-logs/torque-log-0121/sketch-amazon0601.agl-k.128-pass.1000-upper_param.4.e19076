@@ -1,0 +1,90 @@
+[0121 10:28:50] JLOG: box_cover.node09.jlog.160121-102850.23657
+[0121 10:28:50] run.program = box_cover
+[0121 10:28:50] run.args = /home/kenkoooo/fractal-dimension/agl/bin/box_cover
+[0121 10:28:50] run.args = --force_undirected
+[0121 10:28:50] run.args = --type
+[0121 10:28:50] run.args = agl
+[0121 10:28:50] run.args = --graph
+[0121 10:28:50] run.args = /data/snap.stanford.edu/amazon0601.agl
+[0121 10:28:50] run.args = --sketch_k
+[0121 10:28:50] run.args = 128
+[0121 10:28:50] run.args = --pass
+[0121 10:28:50] run.args = 1000
+[0121 10:28:50] run.args = --rad_max
+[0121 10:28:50] run.args = 1000000
+[0121 10:28:50] run.args = --upper_param
+[0121 10:28:50] run.args = 4
+[0121 10:28:50] run.machine = node09
+[0121 10:28:50] run.date = 2016/01/21 10:28:50
+[0121 10:28:50] run.user = kenkoooo
+[0121 10:28:50] run.pid = 23657
+=========
+  Vertices: 403394
+  Edges: 4886816
+  Type: agl::basic_graph<int>
+----------
+  0 -> 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, ...
+  1 -> 0, 2, 3, 4, 155, 185, 233, 234, 235, 3943
+  2 -> 0, 1, 3, 4, 6, 10, 47, 54, 118, 355
+  3 -> 0, 1, 2, 4, 5, 34, 44, 235, 4954, 4955
+  4 -> 0, 1, 2, 3, 5, 6, 8, 9, 32, 36, ...
+  ...
+----------
+  0 <- 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, ...
+  1 <- 0, 2, 3, 4, 155, 185, 233, 234, 235, 3943
+  2 <- 0, 1, 3, 4, 6, 10, 47, 54, 118, 355
+  3 <- 0, 1, 2, 4, 5, 34, 44, 235, 4954, 4955
+  4 <- 0, 1, 2, 3, 5, 6, 8, 9, 32, 36, ...
+  ...
+=========
+=========
+  Vertices: 403364
+  Edges: 4886622
+  Type: agl::basic_graph<int>
+----------
+  0 -> 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, ...
+  1 -> 0, 2, 3, 4, 155, 185, 233, 234, 235, 3943
+  2 -> 0, 1, 3, 4, 6, 10, 47, 54, 118, 355
+  3 -> 0, 1, 2, 4, 5, 34, 44, 235, 4954, 4955
+  4 -> 0, 1, 2, 3, 5, 6, 8, 9, 32, 36, ...
+  ...
+----------
+  0 <- 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, ...
+  1 <- 0, 2, 3, 4, 155, 185, 233, 234, 235, 3943
+  2 <- 0, 1, 3, 4, 6, 10, 47, 54, 118, 355
+  3 <- 0, 1, 2, 4, 5, 34, 44, 235, 4954, 4955
+  4 <- 0, 1, 2, 3, 5, 6, 8, 9, 32, 36, ...
+  ...
+=========
+[0121 10:28:59] vertices = 403364
+[0121 10:28:59] edges = 4886622
+[0121 10:28:59] graph = /data/snap.stanford.edu/amazon0601.agl
+[0121 10:28:59] name = sketch-k.128
+[0121 10:28:59] k = 128
+[0121 10:28:59] pass = 1000
+[0121 10:28:59] upper_param = 4
+0-th building...
+total index 5289986
+6.24453 sec built
+0-th lazy selecting...
+3.00503 sec lazy selected
+[0121 10:29:09] time = 9.40791
+[0121 10:29:09] size = 45754
+[0121 10:29:09] radius = 1
+[0121 10:29:09] coverage = 1
+0-th building...
+total index 99130294
+2981.8 sec built
+0-th lazy selecting...
+72.9889 sec lazy selected
+[0121 11:20:04] time = 3055.51
+[0121 11:20:04] size = 11110
+[0121 11:20:04] radius = 2
+[0121 11:20:04] coverage = 1
+0-th building...
+total index 216605077
+893.419 sec built
+0-th selecting...
+terminate called after throwing an instance of 'std::bad_alloc'
+  what():  std::bad_alloc
+/var/spool/torque/mom_priv/jobs/19076.node00.SC: line 1: 23657 Aborted                 (core dumped) /home/kenkoooo/fractal-dimension/agl/bin/box_cover --force_undirected --type agl --graph /data/snap.stanford.edu/amazon0601.agl --sketch_k 128 --pass 1000 --rad_max 1000000 --upper_param 4

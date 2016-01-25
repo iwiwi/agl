@@ -1,0 +1,137 @@
+[0121 10:28:51] JLOG: box_cover.node10.jlog.160121-102851.25419
+[0121 10:28:51] run.program = box_cover
+[0121 10:28:51] run.args = /home/kenkoooo/fractal-dimension/agl/bin/box_cover
+[0121 10:28:51] run.args = --force_undirected
+[0121 10:28:51] run.args = --type
+[0121 10:28:51] run.args = agl
+[0121 10:28:51] run.args = --graph
+[0121 10:28:51] run.args = /data/snap.stanford.edu/p2p-Gnutella31.agl
+[0121 10:28:51] run.args = --sketch_k
+[0121 10:28:51] run.args = 128
+[0121 10:28:51] run.args = --pass
+[0121 10:28:51] run.args = 1000
+[0121 10:28:51] run.args = --rad_max
+[0121 10:28:51] run.args = 1000000
+[0121 10:28:51] run.args = --upper_param
+[0121 10:28:51] run.args = 4
+[0121 10:28:51] run.machine = node10
+[0121 10:28:51] run.date = 2016/01/21 10:28:51
+[0121 10:28:51] run.user = kenkoooo
+[0121 10:28:51] run.pid = 25419
+=========
+  Vertices: 62586
+  Edges: 295784
+  Type: agl::basic_graph<int>
+----------
+  0 -> 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, ...
+  1 -> 0, 161, 1627, 5717, 6992, 7533, 7922, 8445, 10852, 11699, ...
+  2 -> 0, 161, 2628, 7500, 8062, 11699
+  3 -> 0, 161, 878, 991, 1374, 1929, 1930, 1931, 1932, 1933, ...
+  4 -> 0, 307, 1825, 3114, 3392, 3393, 3394, 3395, 3396, 3397, ...
+  ...
+----------
+  0 <- 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, ...
+  1 <- 0, 161, 1627, 5717, 6992, 7533, 7922, 8445, 10852, 11699, ...
+  2 <- 0, 161, 2628, 7500, 8062, 11699
+  3 <- 0, 161, 878, 991, 1374, 1929, 1930, 1931, 1932, 1933, ...
+  4 <- 0, 307, 1825, 3114, 3392, 3393, 3394, 3395, 3396, 3397, ...
+  ...
+=========
+=========
+  Vertices: 62561
+  Edges: 295756
+  Type: agl::basic_graph<int>
+----------
+  0 -> 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, ...
+  1 -> 0, 161, 1625, 5707, 6978, 7517, 7906, 8429, 10834, 11681, ...
+  2 -> 0, 161, 2626, 7484, 8046, 11681
+  3 -> 0, 161, 878, 991, 1372, 1927, 1928, 1929, 1930, 1931, ...
+  4 -> 0, 307, 1823, 3112, 3390, 3391, 3392, 3393, 3394, 3395, ...
+  ...
+----------
+  0 <- 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, ...
+  1 <- 0, 161, 1625, 5707, 6978, 7517, 7906, 8429, 10834, 11681, ...
+  2 <- 0, 161, 2626, 7484, 8046, 11681
+  3 <- 0, 161, 878, 991, 1372, 1927, 1928, 1929, 1930, 1931, ...
+  4 <- 0, 307, 1823, 3112, 3390, 3391, 3392, 3393, 3394, 3395, ...
+  ...
+=========
+[0121 10:28:52] vertices = 62561
+[0121 10:28:52] edges = 295756
+[0121 10:28:52] graph = /data/snap.stanford.edu/p2p-Gnutella31.agl
+[0121 10:28:52] name = sketch-k.128
+[0121 10:28:52] k = 128
+[0121 10:28:52] pass = 1000
+[0121 10:28:52] upper_param = 4
+0-th building...
+total index 358317
+0.428134 sec built
+0-th lazy selecting...
+0.1396 sec lazy selected
+[0121 10:28:52] time = 0.581453
+[0121 10:28:52] size = 12702
+[0121 10:28:52] radius = 1
+[0121 10:28:52] coverage = 1
+0-th building...
+total index 3389051
+6.13326 sec built
+0-th lazy selecting...
+0.416586 sec lazy selected
+[0121 10:28:59] time = 6.58411
+[0121 10:28:59] size = 2511
+[0121 10:28:59] radius = 2
+[0121 10:28:59] coverage = 1
+0-th building...
+total index 31009371
+90.82 sec built
+0-th lazy selecting...
+2.53864 sec lazy selected
+[0121 10:30:33] time = 93.5378
+[0121 10:30:33] size = 482
+[0121 10:30:33] radius = 3
+[0121 10:30:33] coverage = 1
+0-th building...
+total index 38095083
+376.004 sec built
+0-th selecting...
+14.3803 sec selected
+1-th building...
+total index 38095657
+340.117 sec built
+1-th selecting...
+13.6773 sec selected
+2-th building...
+total index 38097979
+338.954 sec built
+2-th selecting...
+13.3586 sec selected
+3-th building...
+total index 38095203
+324.212 sec built
+3-th selecting...
+12.9184 sec selected
+[0121 10:54:27] time = 1434.15
+[0121 10:54:27] size = 40
+[0121 10:54:27] radius = 4
+[0121 10:54:27] coverage = 0.982385
+0-th building...
+total index 44738462
+339.249 sec built
+0-th selecting...
+13.0006 sec selected
+[0121 11:00:19] time = 352.443
+[0121 11:00:19] size = 3
+[0121 11:00:19] radius = 5
+[0121 11:00:19] coverage = 0.980083
+0-th building...
+total index 49613562
+351.598 sec built
+0-th selecting...
+0.552853 sec selected
+[0121 11:06:12] time = 352.337
+[0121 11:06:12] size = 1
+[0121 11:06:12] radius = 6
+[0121 11:06:12] coverage = 0.994805
+[0121 11:06:12] run.time = 2240.27
+[0121 11:06:12] run.memory = 10969088
+[0121 11:06:12] JLOG: ./jlog/sketch-k.128-p2p-Gnutella31.agl-upper_param.4-box_cover.node10.jlog.160121-102851.25419

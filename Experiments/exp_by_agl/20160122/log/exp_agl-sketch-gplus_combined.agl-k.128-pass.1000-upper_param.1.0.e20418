@@ -1,0 +1,157 @@
+[0122 17:09:15] JLOG: box_cover.node09.jlog.160122-170915.19340
+[0122 17:09:15] run.program = box_cover
+[0122 17:09:15] run.args = /home/kenkoooo/fractal-dimension/agl/bin/box_cover
+[0122 17:09:15] run.args = --force_undirected
+[0122 17:09:15] run.args = --type
+[0122 17:09:15] run.args = agl
+[0122 17:09:15] run.args = --graph
+[0122 17:09:15] run.args = /data/snap.stanford.edu/gplus_combined.agl
+[0122 17:09:15] run.args = --sketch_k
+[0122 17:09:15] run.args = 128
+[0122 17:09:15] run.args = --pass
+[0122 17:09:15] run.args = 1000
+[0122 17:09:15] run.args = --rad_max
+[0122 17:09:15] run.args = 50
+[0122 17:09:15] run.args = --upper_param
+[0122 17:09:15] run.args = 1.0
+[0122 17:09:15] run.args = --exp_tag
+[0122 17:09:15] run.args = exp_agl
+[0122 17:09:15] run.machine = node09
+[0122 17:09:15] run.date = 2016/01/22 17:09:15
+[0122 17:09:15] run.user = kenkoooo
+[0122 17:09:15] run.pid = 19340
+=========
+  Vertices: 107614
+  Edges: 24476570
+  Type: agl::basic_graph<int>
+----------
+  0 -> 54835
+  1 -> 3243, 42423, 80034, 85297, 94454, 97244
+  2 -> 1391, 4246, 9309, 9743, 16568, 26519, 26643, 28276, 30237, 32050, ...
+  3 -> 32, 70, 102, 116, 149, 196, 215, 217, 236, 280, ...
+  4 -> 106, 127, 298, 406, 422, 471, 541, 724, 728, 832, ...
+  ...
+----------
+  0 <- 54835
+  1 <- 3243, 42423, 80034, 85297, 94454, 97244
+  2 <- 1391, 4246, 9309, 9743, 16568, 26519, 26643, 28276, 30237, 32050, ...
+  3 <- 32, 70, 102, 116, 149, 196, 215, 217, 236, 280, ...
+  4 <- 106, 127, 298, 406, 422, 471, 541, 724, 728, 832, ...
+  ...
+=========
+=========
+  Vertices: 107614
+  Edges: 24476570
+  Type: agl::basic_graph<int>
+----------
+  0 -> 54835
+  1 -> 3243, 42423, 80034, 85297, 94454, 97244
+  2 -> 1391, 4246, 9309, 9743, 16568, 26519, 26643, 28276, 30237, 32050, ...
+  3 -> 32, 70, 102, 116, 149, 196, 215, 217, 236, 280, ...
+  4 -> 106, 127, 298, 406, 422, 471, 541, 724, 728, 832, ...
+  ...
+----------
+  0 <- 54835
+  1 <- 3243, 42423, 80034, 85297, 94454, 97244
+  2 <- 1391, 4246, 9309, 9743, 16568, 26519, 26643, 28276, 30237, 32050, ...
+  3 <- 32, 70, 102, 116, 149, 196, 215, 217, 236, 280, ...
+  4 <- 106, 127, 298, 406, 422, 471, 541, 724, 728, 832, ...
+  ...
+=========
+[0122 17:09:26] vertices = 107614
+[0122 17:09:26] edges = 24476570
+[0122 17:09:26] graph = /data/snap.stanford.edu/gplus_combined.agl
+[0122 17:09:26] name = sketch-k.128
+[0122 17:09:26] k = 128
+[0122 17:09:26] pass = 1000
+[0122 17:09:26] upper_param = 1.000000
+0-th building...
+total index 15140069
+22.4235 sec built
+0-th selecting...
+6.42224 sec selected
+1-th building...
+total index 15158968
+22.8436 sec built
+1-th selecting...
+6.48622 sec selected
+2-th building...
+total index 15141425
+22.8226 sec built
+2-th selecting...
+6.43434 sec selected
+3-th building...
+total index 15153358
+25.1402 sec built
+3-th selecting...
+6.49799 sec selected
+4-th building...
+total index 15146268
+22.9775 sec built
+4-th selecting...
+6.47221 sec selected
+5-th building...
+total index 15169905
+22.881 sec built
+5-th selecting...
+6.42002 sec selected
+6-th building...
+total index 15141717
+27.654 sec built
+6-th selecting...
+6.55259 sec selected
+7-th building...
+total index 15131842
+23.7653 sec built
+7-th selecting...
+8.58288 sec selected
+8-th building...
+total index 15170171
+25.8718 sec built
+8-th selecting...
+8.90796 sec selected
+9-th building...
+total index 15131548
+27.6652 sec built
+9-th selecting...
+7.28868 sec selected
+10-th building...
+total index 15127042
+25.4934 sec built
+10-th selecting...
+6.66579 sec selected
+11-th building...
+total index 15145619
+25.3164 sec built
+11-th selecting...
+5.22378 sec selected
+[0122 17:15:43] time = 377.71
+[0122 17:15:43] size = 866
+[0122 17:15:43] radius = 1
+[0122 17:15:43] coverage = 0.98017
+0-th building...
+total index 28832744
+8322.7 sec built
+0-th selecting...
+14.0564 sec selected
+1-th building...
+total index 28810641
+6730.29 sec built
+1-th selecting...
+0.420825 sec selected
+[0122 21:26:51] time = 15067.5
+[0122 21:26:51] size = 5
+[0122 21:26:51] radius = 2
+[0122 21:26:51] coverage = 0.986675
+0-th building...
+total index 39028210
+7078.19 sec built
+0-th selecting...
+0.248441 sec selected
+[0122 23:24:49] time = 7078.48
+[0122 23:24:49] size = 1
+[0122 23:24:49] radius = 3
+[0122 23:24:49] coverage = 0.988068
+[0122 23:24:49] run.time = 22534.8
+[0122 23:24:49] run.memory = 294465536
+[0122 23:24:49] JLOG: ./jlog/exp_agl-sketch-k.128-gplus_combined.agl-upper_param.1.000000-box_cover.node09.jlog.160122-170915.19340

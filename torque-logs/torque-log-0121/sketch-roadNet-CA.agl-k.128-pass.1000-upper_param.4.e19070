@@ -1,0 +1,141 @@
+[0121 10:28:47] JLOG: box_cover.node09.jlog.160121-102847.23639
+[0121 10:28:47] run.program = box_cover
+[0121 10:28:47] run.args = /home/kenkoooo/fractal-dimension/agl/bin/box_cover
+[0121 10:28:47] run.args = --force_undirected
+[0121 10:28:47] run.args = --type
+[0121 10:28:47] run.args = agl
+[0121 10:28:47] run.args = --graph
+[0121 10:28:47] run.args = /data/snap.stanford.edu/roadNet-CA.agl
+[0121 10:28:47] run.args = --sketch_k
+[0121 10:28:47] run.args = 128
+[0121 10:28:47] run.args = --pass
+[0121 10:28:47] run.args = 1000
+[0121 10:28:47] run.args = --rad_max
+[0121 10:28:47] run.args = 1000000
+[0121 10:28:47] run.args = --upper_param
+[0121 10:28:47] run.args = 4
+[0121 10:28:47] run.machine = node09
+[0121 10:28:47] run.date = 2016/01/21 10:28:47
+[0121 10:28:47] run.user = kenkoooo
+[0121 10:28:47] run.pid = 23639
+=========
+  Vertices: 1965206
+  Edges: 5533214
+  Type: agl::basic_graph<int>
+----------
+  0 -> 1, 2, 468
+  1 -> 0, 6, 384
+  2 -> 0, 3
+  3 -> 2, 4, 418, 421
+  4 -> 3, 5, 97, 419
+  ...
+----------
+  0 <- 1, 2, 468
+  1 <- 0, 6, 384
+  2 <- 0, 3
+  3 <- 2, 4, 418, 421
+  4 <- 3, 5, 97, 419
+  ...
+=========
+=========
+  Vertices: 1957027
+  Edges: 5520776
+  Type: agl::basic_graph<int>
+----------
+  0 -> 1, 2, 466
+  1 -> 0, 6, 382
+  2 -> 0, 3
+  3 -> 2, 4, 416, 419
+  4 -> 3, 5, 97, 417
+  ...
+----------
+  0 <- 1, 2, 466
+  1 <- 0, 6, 382
+  2 <- 0, 3
+  3 <- 2, 4, 416, 419
+  4 <- 3, 5, 97, 417
+  ...
+=========
+[0121 10:29:04] vertices = 1957027
+[0121 10:29:04] edges = 5520776
+[0121 10:29:04] graph = /data/snap.stanford.edu/roadNet-CA.agl
+[0121 10:29:04] name = sketch-k.128
+[0121 10:29:04] k = 128
+[0121 10:29:04] pass = 1000
+[0121 10:29:04] upper_param = 4
+0-th building...
+total index 7477803
+7.50455 sec built
+0-th lazy selecting...
+6.12265 sec lazy selected
+[0121 10:29:18] time = 13.9691
+[0121 10:29:18] size = 652529
+[0121 10:29:18] radius = 1
+[0121 10:29:18] coverage = 1
+0-th building...
+total index 17711987
+22.4477 sec built
+0-th lazy selecting...
+9.74596 sec lazy selected
+[0121 10:29:51] time = 32.8177
+[0121 10:29:51] size = 313044
+[0121 10:29:51] radius = 2
+[0121 10:29:51] coverage = 1
+0-th building...
+total index 33847911
+49.7768 sec built
+0-th lazy selecting...
+13.9538 sec lazy selected
+[0121 10:30:55] time = 64.4439
+[0121 10:30:55] size = 179106
+[0121 10:30:55] radius = 3
+[0121 10:30:55] coverage = 1
+0-th building...
+total index 57156345
+91.7568 sec built
+0-th lazy selecting...
+90.025 sec lazy selected
+[0121 10:33:58] time = 182.571
+[0121 10:33:58] size = 113402
+[0121 10:33:58] radius = 4
+[0121 10:33:58] coverage = 1
+0-th building...
+total index 89079021
+126.182 sec built
+0-th lazy selecting...
+19.9979 sec lazy selected
+[0121 10:36:25] time = 146.957
+[0121 10:36:25] size = 76590
+[0121 10:36:25] radius = 5
+[0121 10:36:25] coverage = 1
+0-th building...
+total index 131103067
+208.687 sec built
+0-th lazy selecting...
+29.8502 sec lazy selected
+[0121 10:40:25] time = 239.602
+[0121 10:40:25] size = 54124
+[0121 10:40:25] radius = 6
+[0121 10:40:25] coverage = 1
+0-th building...
+total index 184726123
+275.584 sec built
+0-th lazy selecting...
+40.1195 sec lazy selected
+[0121 10:45:42] time = 316.899
+[0121 10:45:42] size = 39674
+[0121 10:45:42] radius = 7
+[0121 10:45:42] coverage = 1
+0-th building...
+total index 251422849
+395.581 sec built
+0-th lazy selecting...
+50.4808 sec lazy selected
+[0121 10:53:09] time = 447.46
+[0121 10:53:09] size = 29981
+[0121 10:53:09] radius = 8
+[0121 10:53:09] coverage = 1
+0-th building...
+terminate called after throwing an instance of 'std::bad_alloc'
+  what():  std::bad_alloc
+/var/spool/torque/mom_priv/jobs/19070.node00.SC: line 1: 23639 Aborted                 (core dumped) /home/kenkoooo/fractal-dimension/agl/bin/box_cover --force_undirected --type agl --graph /data/snap.stanford.edu/roadNet-CA.agl --sketch_k 128 --pass 1000 --rad_max 1000000 --upper_param 4

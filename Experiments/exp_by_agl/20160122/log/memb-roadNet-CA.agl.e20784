@@ -1,0 +1,84 @@
+[0123 10:13:33] JLOG: box_cover.node03.jlog.160123-101333.11927
+[0123 10:13:33] run.program = box_cover
+[0123 10:13:33] run.args = /home/kenkoooo/fractal-dimension/agl/bin/box_cover
+[0123 10:13:33] run.args = --force_undirected
+[0123 10:13:33] run.args = --type
+[0123 10:13:33] run.args = agl
+[0123 10:13:33] run.args = --graph
+[0123 10:13:33] run.args = /data/snap.stanford.edu/roadNet-CA.agl
+[0123 10:13:33] run.args = --rad_max
+[0123 10:13:33] run.args = 10000
+[0123 10:13:33] run.args = --method
+[0123 10:13:33] run.args = memb
+[0123 10:13:33] run.machine = node03
+[0123 10:13:33] run.date = 2016/01/23 10:13:33
+[0123 10:13:33] run.user = kenkoooo
+[0123 10:13:33] run.pid = 11927
+=========
+  Vertices: 1965206
+  Edges: 5533214
+  Type: agl::basic_graph<int>
+----------
+  0 -> 1, 2, 468
+  1 -> 0, 6, 384
+  2 -> 0, 3
+  3 -> 2, 4, 418, 421
+  4 -> 3, 5, 97, 419
+  ...
+----------
+  0 <- 1, 2, 468
+  1 <- 0, 6, 384
+  2 <- 0, 3
+  3 <- 2, 4, 418, 421
+  4 <- 3, 5, 97, 419
+  ...
+=========
+=========
+  Vertices: 1957027
+  Edges: 5520776
+  Type: agl::basic_graph<int>
+----------
+  0 -> 1, 2, 466
+  1 -> 0, 6, 382
+  2 -> 0, 3
+  3 -> 2, 4, 416, 419
+  4 -> 3, 5, 97, 417
+  ...
+----------
+  0 <- 1, 2, 466
+  1 <- 0, 6, 382
+  2 <- 0, 3
+  3 <- 2, 4, 416, 419
+  4 <- 3, 5, 97, 417
+  ...
+=========
+[0123 10:13:54] vertices = 1957027
+[0123 10:13:54] edges = 5520776
+[0123 10:13:54] graph = /data/snap.stanford.edu/roadNet-CA.agl
+[0123 10:13:54] name = MEMB
+29.0738sec MEMB built
+37762.6sec MEMB select
+[0123 20:43:46] time = 37792.1
+[0123 20:43:46] size = 663852
+[0123 20:43:46] radius = 1
+[0123 20:43:48] coverage = 1
+30.1972sec MEMB built
+21359.2sec MEMB select
+[0124 02:40:18] time = 21389.9
+[0124 02:40:18] size = 314953
+[0124 02:40:18] radius = 2
+[0124 02:40:18] coverage = 1
+30.6497sec MEMB built
+12928.8sec MEMB select
+[0124 06:16:18] time = 12960
+[0124 06:16:18] size = 179800
+[0124 06:16:18] radius = 3
+[0124 06:16:18] coverage = 1
+28.2967sec MEMB built
+9356.01sec MEMB select
+[0124 08:52:44] time = 9385.11
+[0124 08:52:44] size = 113580
+[0124 08:52:44] radius = 4
+[0124 08:52:44] coverage = 1
+28.2952sec MEMB built
+=>> PBS: job killed: walltime 86443 exceeded limit 86400

@@ -1,0 +1,78 @@
+[0121 10:28:42] JLOG: box_cover.node06.jlog.160121-102842.21216
+[0121 10:28:42] run.program = box_cover
+[0121 10:28:42] run.args = /home/kenkoooo/fractal-dimension/agl/bin/box_cover
+[0121 10:28:42] run.args = --force_undirected
+[0121 10:28:42] run.args = --type
+[0121 10:28:42] run.args = agl
+[0121 10:28:42] run.args = --graph
+[0121 10:28:42] run.args = /data/snap.stanford.edu/cit-Patents.agl
+[0121 10:28:42] run.args = --sketch_k
+[0121 10:28:42] run.args = 128
+[0121 10:28:42] run.args = --pass
+[0121 10:28:42] run.args = 1000
+[0121 10:28:42] run.args = --rad_max
+[0121 10:28:42] run.args = 1000000
+[0121 10:28:42] run.args = --upper_param
+[0121 10:28:42] run.args = 2
+[0121 10:28:42] run.machine = node06
+[0121 10:28:42] run.date = 2016/01/21 10:28:42
+[0121 10:28:42] run.user = kenkoooo
+[0121 10:28:42] run.pid = 21216
+=========
+  Vertices: 3774768
+  Edges: 33037895
+  Type: agl::basic_graph<int>
+----------
+  0 -> 1760390, 2439225
+  1 -> 1913823, 2625036
+  2 -> 1924675
+  3 -> 1768137
+  4 -> 3039288, 3284974
+  ...
+----------
+  0 <- 1760390, 2439225
+  1 <- 1913823, 2625036
+  2 <- 1924675
+  3 <- 1768137
+  4 <- 3039288, 3284974
+  ...
+=========
+=========
+  Vertices: 3764117
+  Edges: 33023481
+  Type: agl::basic_graph<int>
+----------
+  0 -> 1754005, 2431106
+  1 -> 1906836, 2616630
+  2 -> 1917658
+  3 -> 1761720
+  4 -> 3030252, 3275574
+  ...
+----------
+  0 <- 1754005, 2431106
+  1 <- 1906836, 2616630
+  2 <- 1917658
+  3 <- 1761720
+  4 <- 3030252, 3275574
+  ...
+=========
+[0121 10:29:39] vertices = 3764117
+[0121 10:29:39] edges = 33023481
+[0121 10:29:39] graph = /data/snap.stanford.edu/cit-Patents.agl
+[0121 10:29:39] name = sketch-k.128
+[0121 10:29:39] k = 128
+[0121 10:29:39] pass = 1000
+[0121 10:29:39] upper_param = 2
+0-th building...
+total index 36787597
+59.438 sec built
+0-th lazy selecting...
+32.3073 sec lazy selected
+[0121 10:31:13] time = 93.8509
+[0121 10:31:13] size = 663709
+[0121 10:31:13] radius = 1
+[0121 10:31:13] coverage = 1
+0-th building...
+terminate called after throwing an instance of 'std::bad_alloc'
+  what():  std::bad_alloc
+/var/spool/torque/mom_priv/jobs/18999.node00.SC: line 1: 21216 Aborted                 (core dumped) /home/kenkoooo/fractal-dimension/agl/bin/box_cover --force_undirected --type agl --graph /data/snap.stanford.edu/cit-Patents.agl --sketch_k 128 --pass 1000 --rad_max 1000000 --upper_param 2

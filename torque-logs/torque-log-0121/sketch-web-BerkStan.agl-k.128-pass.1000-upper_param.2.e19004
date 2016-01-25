@@ -1,0 +1,78 @@
+[0121 10:28:43] JLOG: box_cover.node06.jlog.160121-102843.21231
+[0121 10:28:43] run.program = box_cover
+[0121 10:28:43] run.args = /home/kenkoooo/fractal-dimension/agl/bin/box_cover
+[0121 10:28:43] run.args = --force_undirected
+[0121 10:28:43] run.args = --type
+[0121 10:28:43] run.args = agl
+[0121 10:28:43] run.args = --graph
+[0121 10:28:43] run.args = /data/snap.stanford.edu/web-BerkStan.agl
+[0121 10:28:43] run.args = --sketch_k
+[0121 10:28:43] run.args = 128
+[0121 10:28:43] run.args = --pass
+[0121 10:28:43] run.args = 1000
+[0121 10:28:43] run.args = --rad_max
+[0121 10:28:43] run.args = 1000000
+[0121 10:28:43] run.args = --upper_param
+[0121 10:28:43] run.args = 2
+[0121 10:28:43] run.machine = node06
+[0121 10:28:43] run.date = 2016/01/21 10:28:43
+[0121 10:28:43] run.user = kenkoooo
+[0121 10:28:43] run.pid = 21231
+=========
+  Vertices: 685230
+  Edges: 13298940
+  Type: agl::basic_graph<int>
+----------
+  0 -> 1, 2, 4, 6, 7, 8, 10, 15, 16, 17, ...
+  1 -> 0, 4, 6, 7, 8, 10, 12, 13, 14, 16, ...
+  2 -> 0, 6, 15
+  3 -> 6, 22
+  4 -> 0, 1, 6, 7, 8, 10, 13, 16, 18, 22, ...
+  ...
+----------
+  0 <- 1, 2, 4, 6, 7, 8, 10, 15, 16, 17, ...
+  1 <- 0, 4, 6, 7, 8, 10, 12, 13, 14, 16, ...
+  2 <- 0, 6, 15
+  3 <- 6, 22
+  4 <- 0, 1, 6, 7, 8, 10, 13, 16, 18, 22, ...
+  ...
+=========
+=========
+  Vertices: 654782
+  Edges: 13163742
+  Type: agl::basic_graph<int>
+----------
+  0 -> 1, 2, 4, 6, 7, 8, 10, 15, 16, 17, ...
+  1 -> 0, 4, 6, 7, 8, 10, 12, 13, 14, 16, ...
+  2 -> 0, 6, 15
+  3 -> 6, 22
+  4 -> 0, 1, 6, 7, 8, 10, 13, 16, 18, 22, ...
+  ...
+----------
+  0 <- 1, 2, 4, 6, 7, 8, 10, 15, 16, 17, ...
+  1 <- 0, 4, 6, 7, 8, 10, 12, 13, 14, 16, ...
+  2 <- 0, 6, 15
+  3 <- 6, 22
+  4 <- 0, 1, 6, 7, 8, 10, 13, 16, 18, 22, ...
+  ...
+=========
+[0121 10:28:57] vertices = 654782
+[0121 10:28:57] edges = 13163742
+[0121 10:28:57] graph = /data/snap.stanford.edu/web-BerkStan.agl
+[0121 10:28:57] name = sketch-k.128
+[0121 10:28:57] k = 128
+[0121 10:28:57] pass = 1000
+[0121 10:28:57] upper_param = 2
+0-th building...
+total index 13818524
+16.2393 sec built
+0-th lazy selecting...
+4.00177 sec lazy selected
+[0121 10:29:17] time = 20.5008
+[0121 10:29:17] size = 23846
+[0121 10:29:17] radius = 1
+[0121 10:29:17] coverage = 1
+0-th building...
+terminate called after throwing an instance of 'std::bad_alloc'
+  what():  std::bad_alloc
+/var/spool/torque/mom_priv/jobs/19004.node00.SC: line 1: 21231 Aborted                 (core dumped) /home/kenkoooo/fractal-dimension/agl/bin/box_cover --force_undirected --type agl --graph /data/snap.stanford.edu/web-BerkStan.agl --sketch_k 128 --pass 1000 --rad_max 1000000 --upper_param 2

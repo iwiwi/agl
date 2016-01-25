@@ -1,0 +1,85 @@
+[0123 17:09:40] JLOG: box_cover.node12.jlog.160123-170940.30082
+[0123 17:09:40] run.program = box_cover
+[0123 17:09:40] run.args = /home/kenkoooo/fractal-dimension/agl/bin/box_cover
+[0123 17:09:40] run.args = --force_undirected
+[0123 17:09:40] run.args = --type
+[0123 17:09:40] run.args = agl
+[0123 17:09:40] run.args = --graph
+[0123 17:09:40] run.args = /data/snap.stanford.edu/web-Stanford.agl
+[0123 17:09:40] run.args = --rad_max
+[0123 17:09:40] run.args = 10000
+[0123 17:09:40] run.args = --method
+[0123 17:09:40] run.args = memb
+[0123 17:09:40] run.machine = node12
+[0123 17:09:40] run.date = 2016/01/23 17:09:40
+[0123 17:09:40] run.user = kenkoooo
+[0123 17:09:40] run.pid = 30082
+=========
+  Vertices: 281903
+  Edges: 3985272
+  Type: agl::basic_graph<int>
+----------
+  0 -> 6547, 15408
+  1 -> 871, 1280, 12093, 17092, 17793, 19146, 20922, 25201, 31701, 35876, ...
+  2 -> 74360, 96492
+  3 -> 35715, 96511, 186749, 225871
+  4 -> 6544, 14394, 59744, 67502, 134374, 170451, 220512
+  ...
+----------
+  0 <- 6547, 15408
+  1 <- 871, 1280, 12093, 17092, 17793, 19146, 20922, 25201, 31701, 35876, ...
+  2 <- 74360, 96492
+  3 <- 35715, 96511, 186749, 225871
+  4 <- 6544, 14394, 59744, 67502, 134374, 170451, 220512
+  ...
+=========
+=========
+  Vertices: 255265
+  Edges: 3883852
+  Type: agl::basic_graph<int>
+----------
+  0 -> 5889, 13931
+  1 -> 769, 1134, 10940, 15441, 16079, 17308, 18903, 22784, 28622, 32415, ...
+  2 -> 67201, 87227
+  3 -> 32266, 87244, 169000, 204473
+  4 -> 5886, 13007, 53972, 61007, 121548, 154239, 199623
+  ...
+----------
+  0 <- 5889, 13931
+  1 <- 769, 1134, 10940, 15441, 16079, 17308, 18903, 22784, 28622, 32415, ...
+  2 <- 67201, 87227
+  3 <- 32266, 87244, 169000, 204473
+  4 <- 5886, 13007, 53972, 61007, 121548, 154239, 199623
+  ...
+=========
+[0123 17:09:42] vertices = 255265
+[0123 17:09:42] edges = 3883852
+[0123 17:09:42] graph = /data/snap.stanford.edu/web-Stanford.agl
+[0123 17:09:42] name = MEMB
+0.752186sec MEMB built
+36.8939sec MEMB select
+[0123 17:10:20] time = 37.7066
+[0123 17:10:20] size = 9137
+[0123 17:10:20] radius = 1
+[0123 17:10:20] coverage = 1
+68.4145sec MEMB built
+615.794sec MEMB select
+[0123 17:21:44] time = 684.288
+[0123 17:21:44] size = 2772
+[0123 17:21:44] radius = 2
+[0123 17:21:44] coverage = 1
+505.154sec MEMB built
+3951.13sec MEMB select
+[0123 18:39:09] time = 4643.54
+[0123 18:39:09] size = 1139
+[0123 18:39:09] radius = 3
+[0123 18:39:10] coverage = 1
+1341.65sec MEMB built
+6980.69sec MEMB select
+[0123 20:59:23] time = 8410.76
+[0123 20:59:23] size = 530
+[0123 20:59:23] radius = 4
+[0123 20:59:25] coverage = 1
+terminate called after throwing an instance of 'std::bad_alloc'
+  what():  std::bad_alloc
+/var/spool/torque/mom_priv/jobs/20793.node00.SC: line 1: 30082 Aborted                 (core dumped) /home/kenkoooo/fractal-dimension/agl/bin/box_cover --force_undirected --type agl --graph /data/snap.stanford.edu/web-Stanford.agl --rad_max 10000 --method memb

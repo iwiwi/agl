@@ -1,0 +1,115 @@
+[0123 17:41:49] JLOG: box_cover.node11.jlog.160123-174149.7581
+[0123 17:41:49] run.program = box_cover
+[0123 17:41:49] run.args = /home/kenkoooo/fractal-dimension/agl/bin/box_cover
+[0123 17:41:49] run.args = --force_undirected
+[0123 17:41:49] run.args = --type
+[0123 17:41:49] run.args = agl
+[0123 17:41:49] run.args = --graph
+[0123 17:41:49] run.args = /data/snap.stanford.edu/ca-GrQc.agl
+[0123 17:41:49] run.args = --rad_max
+[0123 17:41:49] run.args = 10000
+[0123 17:41:49] run.args = --method
+[0123 17:41:49] run.args = memb
+[0123 17:41:49] run.machine = node11
+[0123 17:41:49] run.date = 2016/01/23 17:41:49
+[0123 17:41:49] run.user = kenkoooo
+[0123 17:41:49] run.pid = 7581
+=========
+  Vertices: 5242
+  Edges: 28980
+  Type: agl::basic_graph<int>
+----------
+  0 -> 0, 1547, 2232, 3851
+  1 -> 2768
+  2 -> 27, 2229, 3071, 3895, 4548, 4989
+  3 -> 770, 3068, 3921, 4656
+  4 -> 4604
+  ...
+----------
+  0 <- 0, 1547, 2232, 3851
+  1 <- 2768
+  2 <- 27, 2229, 3071, 3895, 4548, 4989
+  3 <- 770, 3068, 3921, 4656
+  4 <- 4604
+  ...
+=========
+=========
+  Vertices: 4158
+  Edges: 26850
+  Type: agl::basic_graph<int>
+----------
+  0 -> 18, 1750, 2407, 3077, 3608, 3957
+  1 -> 611, 2404, 3095, 3695
+  2 -> 221, 742, 1828, 2035, 2036
+  3 -> 1741, 3016, 3927, 4042
+  4 -> 3229
+  ...
+----------
+  0 <- 18, 1750, 2407, 3077, 3608, 3957
+  1 <- 611, 2404, 3095, 3695
+  2 <- 221, 742, 1828, 2035, 2036
+  3 <- 1741, 3016, 3927, 4042
+  4 <- 3229
+  ...
+=========
+[0123 17:41:49] vertices = 4158
+[0123 17:41:49] edges = 26850
+[0123 17:41:49] graph = /data/snap.stanford.edu/ca-GrQc.agl
+[0123 17:41:49] name = MEMB
+0.00388002sec MEMB built
+0.0241621sec MEMB select
+[0123 17:41:49] time = 0.028616
+[0123 17:41:49] size = 805
+[0123 17:41:49] radius = 1
+[0123 17:41:49] coverage = 1
+0.009902sec MEMB built
+0.0448642sec MEMB select
+[0123 17:41:49] time = 0.0553451
+[0123 17:41:49] size = 287
+[0123 17:41:49] radius = 2
+[0123 17:41:49] coverage = 1
+0.0328898sec MEMB built
+0.198648sec MEMB select
+[0123 17:41:49] time = 0.232108
+[0123 17:41:49] size = 119
+[0123 17:41:49] radius = 3
+[0123 17:41:49] coverage = 1
+0.112617sec MEMB built
+0.737949sec MEMB select
+[0123 17:41:50] time = 0.851277
+[0123 17:41:50] size = 53
+[0123 17:41:50] radius = 4
+[0123 17:41:50] coverage = 1
+0.306364sec MEMB built
+1.37631sec MEMB select
+[0123 17:41:51] time = 1.6851
+[0123 17:41:51] size = 25
+[0123 17:41:51] radius = 5
+[0123 17:41:51] coverage = 1
+0.534776sec MEMB built
+1.95101sec MEMB select
+[0123 17:41:54] time = 2.48767
+[0123 17:41:54] size = 12
+[0123 17:41:54] radius = 6
+[0123 17:41:54] coverage = 1
+0.79389sec MEMB built
+1.71768sec MEMB select
+[0123 17:41:56] time = 2.51977
+[0123 17:41:56] size = 5
+[0123 17:41:56] radius = 7
+[0123 17:41:56] coverage = 1
+1.05453sec MEMB built
+1.52332sec MEMB select
+[0123 17:41:59] time = 2.58354
+[0123 17:41:59] size = 2
+[0123 17:41:59] radius = 8
+[0123 17:41:59] coverage = 1
+1.01766sec MEMB built
+0.000654936sec MEMB select
+[0123 17:42:00] time = 1.02836
+[0123 17:42:00] size = 1
+[0123 17:42:00] radius = 9
+[0123 17:42:00] coverage = 1
+[0123 17:42:00] run.time = 11.5256
+[0123 17:42:00] run.memory = 3923968
+[0123 17:42:00] JLOG: ./jlog/memb-ca-GrQc.agl-upper_param.1.000000-box_cover.node11.jlog.160123-174149.7581

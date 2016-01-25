@@ -1,0 +1,63 @@
+{
+  "run": {
+    "program": "box_cover",
+    "args": [
+      "/home/kenkoooo/fractal-dimension/agl/bin/box_cover",
+      "--force_undirected",
+      "--type",
+      "agl",
+      "--graph",
+      "/data/snap.stanford.edu/p2p-Gnutella09.agl",
+      "--rad_max",
+      "10000",
+      "--method",
+      "memb"
+    ],
+    "machine": "node10",
+    "date": "2016/01/23",
+    "user": "kenkoooo",
+    "pid": 31431,
+    "time": 25.4716,
+    "memory": 3457024
+  },
+  "graph_info": [
+    {
+      "vertices": 8104,
+      "edges": 52016,
+      "graph": "/data/snap.stanford.edu/p2p-Gnutella09.agl"
+    }
+  ],
+  "name": "MEMB",
+  "time": [
+    0.165653,
+    0.430036,
+    2.79288,
+    9.87067,
+    8.56063,
+    3.61018
+  ],
+  "size": [
+    1733,
+    372,
+    69,
+    15,
+    3,
+    1
+  ],
+  "radius": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6
+  ],
+  "coverage": [
+    1,
+    1,
+    1,
+    1,
+    1,
+    1
+  ]
+}
