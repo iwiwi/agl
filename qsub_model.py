@@ -3,152 +3,259 @@ import subprocess
 
 
 def torque_nageru():
-    sketch_ks = [
-        128,
-        32, 64, 256, 512
-    ]
-    pass_nums = [1000]
-    upper_params = [
-        1.0,
-        # 0.25, 0.5,
-        # 2.0,
-        # 4.0,
-    ]
     graph_names = [
-        # "com-friendster.ungraph.agl",
-        # "com-orkut.ungraph.agl",
-        # "soc-LiveJournal1.agl",
-        # "com-lj.ungraph.agl",
-        # "soc-pokec-relationships.agl",
-        # "cit-Patents.agl",
-        # "as-skitter.agl",
-        # "gplus_combined.agl",
-        # "wiki-Talk.agl",
-        # "roadNet-CA.agl",
-        # "web-BerkStan.agl",
-        # "web-Google.agl",
-        # "roadNet-TX.agl",
-        # "roadNet-PA.agl",
-        # "com-youtube.ungraph.agl",
-        # "amazon0601.agl",
-        # "amazon0505.agl",
-        # "amazon0312.agl",
-        # "web-Stanford.agl",
-        # "web-NotreDame.agl",
-        # "twitter_combined.agl",
-        # "amazon0302.agl",
-        # "com-dblp.ungraph.agl",
-        # "com-amazon.ungraph.agl",
-        # "soc-Slashdot0902.agl",
-        # "soc-Slashdot0811.agl",
-        # "email-EuAll.agl",
-        # "soc-Epinions1.agl",
-        # "cit-HepPh.agl",
-        # "email-Enron.agl",
-        # "ca-AstroPh.agl",
-        # "cit-HepTh.agl",
-        # "p2p-Gnutella31.agl",
-        # "ca-HepPh.agl",
-        # "ca-CondMat.agl",
-        # "p2p-Gnutella30.agl",
-        # "as-caida20071105.agl",
-        # "p2p-Gnutella24.agl",
-        # "wiki-Vote.agl",
-        # "p2p-Gnutella25.agl",
-        # "facebook_combined.agl",
-        # "ca-HepTh.agl",
-        # "p2p-Gnutella04.agl",
-        # "oregon2_010526.agl",
-        # "oregon2_010519.agl",
-        # "oregon2_010512.agl",
-        # "oregon2_010414.agl",
-        # "oregon2_010421.agl",
-        # "oregon2_010428.agl",
-        # "oregon2_010505.agl",
-        # "oregon2_010331.agl",
-        # "oregon2_010407.agl",
-        # "p2p-Gnutella05.agl",
-        # "p2p-Gnutella06.agl",
-        # "oregon1_010526.agl",
-        # "oregon1_010519.agl",
-        # "oregon1_010512.agl",
-        # "oregon1_010505.agl",
-        # "oregon1_010421.agl",
-        # "oregon1_010428.agl",
-        # "oregon1_010414.agl",
-        # "oregon1_010407.agl",
-        # "oregon1_010331.agl",
-        # "p2p-Gnutella09.agl",
-        # "ca-GrQc.agl",
-        # "p2p-Gnutella08.agl",
+        # 13895
         # "as20000102.agl",
 
-        # "'flower 265722 1 2'",
-        # "'flower 699052 1 3'",
-        # "'flower 292970 1 4'",
-        # "'flower 699052 2 2'",
-        # "'flower 292970 2 3'",
-        # "'flower 223950 2 4'",
-        # "'flower 223950 3 3'",
-        # "'flower 686287 3 4'",
-        # "'shm 312501 5 2'",
-        # "'shm 390626 6 2'",
+        # 20777
+        # "p2p-Gnutella08.agl",
 
-        # "'shm 156251 3 2'",
-        # "'shm 234376 4 2'",
-        # "'shm 470597 5 3'",
-        # "'shm 588246 6 3'",
-        # "'shm 468751 7 2'",
+        # 22000
+        # "oregon1_010407.agl",
+
+        # 22003
+        # "oregon1_010331.agl",
+
+        # 22470
+        # "oregon1_010414.agl",
+
+        # 22494
+        # "oregon1_010428.agl",
+
+        # 22608
+        # "oregon1_010505.agl",
+
+        # 22678
+        # "oregon1_010512.agl",
+
+        # 22725
+        # "oregon1_010519.agl",
+
+        # 22748
+        # "oregon1_010421.agl",
+
+        # 23410
+        # "oregon1_010526.agl",
+
+        # 26013
+        # "p2p-Gnutella09.agl",
+
+        # 28980
+        # "ca-GrQc.agl",
+
+        # 30856
+        # "oregon2_010407.agl",
+
+        # 30944
+        # "oregon2_010505.agl",
+
+        # 31181
+        # "oregon2_010331.agl",
+
+        # 31304
+        # "oregon2_010512.agl",
+
+        # 31435
+        # "oregon2_010428.agl",
+
+        # 31525
+        # "p2p-Gnutella06.agl",
+
+        # 31539
+        # "oregon2_010421.agl",
+
+        # 31762
+        # "oregon2_010414.agl",
+
+        # 31839
+        # "p2p-Gnutella05.agl",
+
+        # 32288
+        # "oregon2_010519.agl",
+
+        # 32731
+        # "oregon2_010526.agl",
+
+        # 39994
+        # "p2p-Gnutella04.agl",
+
+        # 51971
+        # "ca-HepTh.agl",
+
+        # 54705
+        # "p2p-Gnutella25.agl",
+
+        # 65369
+        # "p2p-Gnutella24.agl",
+
+        # 88234
+        # "facebook_combined.agl",
+
+        # 88328
+        # "p2p-Gnutella30.agl",
+
+        # 103689
+        # "wiki-Vote.agl",
+
+        # 106762
+        # "as-caida20071105.agl",
+
+        # 147892
+        # "p2p-Gnutella31.agl",
+
+        # 186936
+        # "ca-CondMat.agl",
+
+        # 237010
+        # "ca-HepPh.agl",
+
+        # 352807
+        # "cit-HepTh.agl",
+
+        # 367662
+        # "email-Enron.agl",
+
+        # 396160
+        # "ca-AstroPh.agl",
+
+        # 420045
+        # "email-EuAll.agl",
+
+        # 421578
+        # "cit-HepPh.agl",
+
+        # 508837
+        # "soc-Epinions1.agl",
+
+        # 905468
+        # "soc-Slashdot0811.agl",
+
+        # 925872
+        # "com-amazon.ungraph.agl",
+
+        # 948464
+        # "soc-Slashdot0902.agl",
+
+        # 1049866
+        # "com-dblp.ungraph.agl",
+
+        # 1234877
+        "amazon0302.agl",
+
+        # 1497134
+        "web-NotreDame.agl",
+
+        # 1768149
+        "twitter_combined.agl",
+
+        # 2312497
+        "web-Stanford.agl",
+
+        # 2987624
+        "com-youtube.ungraph.agl",
+
+        # 3083796
+        # "roadNet-PA.agl",
+
+        # 3200440
+        # "amazon0312.agl",
+
+        # 3356824
+        # "amazon0505.agl",
+
+        # 3387388
+        # "amazon0601.agl",
+
+        # 3843320
+        # "roadNet-TX.agl",
+
+        # 5021410
+        # "wiki-Talk.agl",
+
+        # 5105039
+        # "web-Google.agl",
+
+        # 5533214
+        # "roadNet-CA.agl",
+
+        # 7600595
+        # "web-BerkStan.agl",
+
+        # 11095298
+        # "as-skitter.agl",
+
+        # 13673453
+        # "gplus_combined.agl",
+
+        # 16518948
+        # "cit-Patents.agl",
+
+        # 30622564
+        # "soc-pokec-relationships.agl",
+
+        # 34681189
+        # "com-lj.ungraph.agl",
+
+        # 68993773
+        # "soc-LiveJournal1.agl",
+
+        # 117185083
+        # "com-orkut.ungraph.agl",
+
+        # 1806067135
+        # "com-friendster.ungraph.agl",
 
 
     ]
 
-    exp_tag = "exp02"
-    rad_max = 1000000
+    exp_tag = "real"
+    sketch_k = 128
+    pass_num = 1000
+    upper_param = 1.0
 
-    for upper_param in upper_params:
-        for sketch_k in sketch_ks:
-            for pass_num in pass_nums:
-                for graph_name in graph_names:
-                    command = "/home/kenkoooo/fractal-dimension/agl/bin/box_cover --force_undirected "
+    for rad in range(1, 26):
+        for graph_name in graph_names:
+            command = "/home/kenkoooo/fractal-dimension/agl/bin/box_cover --force_undirected "
 
-                    # command = command + " --type agl "
-                    # command = command + " --graph /data/snap.stanford.edu/" + graph_name
+            command = command + " --type agl "
+            command = command + " --graph /data/snap.stanford.edu/" + graph_name
 
-                    command = command + " --type gen "
-                    command = command + " --graph " + graph_name
-                    command = command + " --rad_analytical "
-
-                    command = command + " --sketch_k " + str(sketch_k)
-                    command = command + " --pass " + str(pass_num)
-                    command = command + " --rad_max " + str(rad_max)
-                    command = command + " --upper_param " + str(upper_param)
-                    command = command + " --exp_tag " + exp_tag
-                    job_name = exp_tag + "-sketch-" + graph_name.replace("'", "").replace(" ", "-") +\
-                        "-k." + str(sketch_k) + \
-                        "-pass." + str(pass_num) + \
-                        "-upper_param." + str(upper_param)
-                    p1 = subprocess.Popen(
-                        ["echo", command], stdout=subprocess.PIPE)
-                    p2 = subprocess.Popen(
-                        ["qsub", "-l", "walltime=24:00:00", "-N", job_name], stdin=p1.stdout)
-                    p1.stdout.close()
-                    output = p2.communicate()[0]
+            command = command + " --sketch_k " + str(sketch_k)
+            command = command + " --pass " + str(pass_num)
+            command = command + " --rad_min " + str(rad)
+            command = command + " --rad_max " + str(rad)
+            command = command + " --upper_param " + str(upper_param)
+            command = command + " --exp_tag " + exp_tag
+            job_name = exp_tag + "-sketch-" + graph_name.replace("'", "").replace(" ", "-") +\
+                "-k." + str(sketch_k) + \
+                "-rad." + str(rad) + \
+                "-upper_param." + str(upper_param)
+            p1 = subprocess.Popen(
+                ["echo", command], stdout=subprocess.PIPE)
+            p2 = subprocess.Popen(
+                ["qsub", "-l", "walltime=48:00:00", "-N", job_name], stdin=p1.stdout)
+            p1.stdout.close()
+            output = p2.communicate()[0]
     # MEMB
-    # for graph_name in graph_names:
-    #     command = "/home/kenkoooo/fractal-dimension/agl/bin/box_cover --force_undirected --type agl"
-    #     command = command + " --graph /data/snap.stanford.edu/" + graph_name
-    #     command = command + " --rad_max " + str(10000)
-    #     command = command + " --method " + "memb"
-    #     # method_name = "memb"
-    #     # command = command + " --method " + method_name
-    #     # job_name = method_name + "-" + graph_name.replace("'", "").replace(" ", "-")
-    #     job_name = "memb-" + graph_name.replace("'", "").replace(" ", "-")
-    #     p1 = subprocess.Popen(["echo", command], stdout=subprocess.PIPE)
-    #     p2 = subprocess.Popen(
-    #         ["qsub", "-l", "walltime=24:00:00,nodes=1:ppn=12", "-N", job_name], stdin=p1.stdout)
-    #     p1.stdout.close()
-    #     output = p2.communicate()[0]
+    for rad in range(1, 26):
+        for graph_name in graph_names:
+            command = "/home/kenkoooo/fractal-dimension/agl/bin/box_cover --force_undirected --type agl"
+            command = command + " --graph /data/snap.stanford.edu/" + graph_name
+            command = command + " --rad_min " + str(rad)
+            command = command + " --rad_max " + str(rad)
+            command = command + " --method " + "memb"
+            command = command + " --exp_tag " + exp_tag
+            # method_name = "memb"
+            # command = command + " --method " + method_name
+            # job_name = method_name + "-" + graph_name.replace("'", "").replace(" ", "-")
+            job_name = exp_tag + "-memb-" + \
+                graph_name.replace("'", "").replace(
+                    " ", "-") + "-rad." + str(rad)
+            p1 = subprocess.Popen(["echo", command], stdout=subprocess.PIPE)
+            p2 = subprocess.Popen(
+                ["qsub", "-l", "walltime=48:00:00", "-N", job_name], stdin=p1.stdout)
+            p1.stdout.close()
+            output = p2.communicate()[0]
 
     # Analytical
     # for graph_name in graph_names:

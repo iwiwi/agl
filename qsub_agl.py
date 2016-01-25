@@ -3,17 +3,9 @@ import subprocess
 
 
 def torque_nageru():
-    sketch_ks = [
-        128,
-        # 32, 64, 256, 512
-    ]
+    sketch_ks = [128]
     pass_nums = [1000]
-    upper_params = [
-        1.0,
-        0.25, 0.5,
-        2.0,
-        4.0,
-    ]
+    upper_params = [1.0]
     graph_names = [
         # "com-friendster.ungraph.agl",
         # "com-orkut.ungraph.agl",
