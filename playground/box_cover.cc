@@ -389,15 +389,15 @@ vector<V> box_cover_burning(const G &g, W radius) {
   return ret;
 }
 
-// vector<vector<V>> box_cover_coloring(const G &g, W diameter) {
-//   V N = g.num_vertices();
-//   vector<vector<V>> colors(N, vector<V>(diameter + 1, 0));
-//   for (V i = 1; i < N; ++i) {
-//     vector<W> dist = single_source_distance(g, i);
-//     for (V l_B = 1; l_B <= diameter; ++l_B) {
-//     }
-//   }
-// }
+vector<vector<V>> box_cover_coloring(const G &g, W diameter) {
+  V N = g.num_vertices();
+  vector<vector<V>> colors(N, vector<V>(diameter + 1, 0));
+  for (V i = 1; i < N; ++i) {
+    vector<W> dist = single_source_distance(g, i);
+    for (V l_B = 1; l_B <= diameter; ++l_B) {
+    }
+  }
+}
 
 // Naive BFS method of Build-Sketch
 vector<vector<V>> naive_build_sketch(const G &g, const W radius, const int k,
@@ -483,6 +483,9 @@ vector<vector<V>> build_sketch(const G &g, const W radius, const int k,
           V rv = rank[v];
           set<V> &xn = X[neighbor];
 
+          if (xn.size() >= using_k && *(xn.rbegin()) <= rv) {
+            continue;
+          }
           auto inserted = xn.insert(rv);
           while (xn.size() > using_k) {
             xn.erase(*xn.rbegin());
