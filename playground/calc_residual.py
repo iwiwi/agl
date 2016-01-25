@@ -69,6 +69,7 @@ if __name__ == "__main__":
         log = open(sys.argv[ai], 'r')
         json_data = json.load(log)
         log.close()
+        sys.stderr.write(sys.argv[ai] + "\n")
 
         px, py = xy_from_json(json_data)
 
@@ -101,18 +102,18 @@ if __name__ == "__main__":
         # Sketch
         if 'k' in json_data:
             k = str(json_data['k']).zfill(4)
-            ub = str(json_data['size_upper']).zfill(8)
-            method = "Sketch-k." + k + "-upper_bound." + ub
+            ub = str(json_data['upper_param'])
+            method = "Sketch (k=" + k + " u=" + ub + ")"
             data[graph_name][method] = {
                 "k": int(k),
-                "upper_bound": int(ub),
+                "upper_param": float(ub),
                 "fractal": frac_result,
                 "exponential": expo_result,
                 "time": time
             }
             methods[method] = {
                 "k": int(k),
-                "upper_bound": int(ub)
+                "upper_param": float(ub)
             }
         else:
             data[graph_name][method] = {
@@ -128,62 +129,91 @@ if __name__ == "__main__":
             if method not in data[key]:
                 data[key][method] = {}
     json_str = json.dumps(data, sort_keys=True, indent=4)
+    # print json_str
 
-    # Spreadsheat
-    sys.stdout.write(",graph,")
-    for graph_name in data.keys():
-        sys.stdout.write(graph_name + ",")
-    sys.stdout.write("\n")
-    sys.stdout.write(",vertices,")
-    for graph_name in data.keys():
-        sys.stdout.write(str(data[graph_name]['vertices']) + ",")
-    sys.stdout.write("\n")
-    sys.stdout.write(",edges,")
-    for graph_name in data.keys():
-        sys.stdout.write(str(data[graph_name]['edges']) + ",")
-    sys.stdout.write("\n")
+    sys.stdout.write(",,,")
     for method in methods.keys():
-        sys.stdout.write(method + "," + "exp,")
-        for graph_name in data.keys():
-            if 'exponential' in data[graph_name][method]:
-                sys.stdout.write(
-                    str(data[graph_name][method]['exponential']) + ",")
-            else:
-                sys.stdout.write(",")
-        sys.stdout.write("\n")
-
-        sys.stdout.write(",frac,")
-        for graph_name in data.keys():
+        sys.stdout.write(method + ",,,")
+    sys.stdout.write("\n")
+    sys.stdout.write("model,vertices,edges,")
+    for method in methods.keys():
+        sys.stdout.write("fractal,exponential,time,")
+    sys.stdout.write("\n")
+    for graph_name in data.keys():
+        if re.match(r"^flower\-", graph_name) or re.match(r"^shm\-", graph_name):
+            u = re.sub(r'^.*\-(\d+)\-\d+$', r"\1", graph_name)
+            v = re.sub(r'^.*\-(\d+)$',  r"\1", graph_name)
+            model = re.sub(r'^([a-z]*)\-.*$',  r"\1", graph_name)
+            model = "(" + u + " " + v + ")-" + model
+            sys.stdout.write(model + ",")
+        sys.stdout.write(str(data[graph_name]["vertices"]) + ",")
+        sys.stdout.write(str(data[graph_name]["edges"]) + ",")
+        for method in methods.keys():
             if 'fractal' in data[graph_name][method]:
                 sys.stdout.write(
-                    str(data[graph_name][method]['fractal']) + ",")
+                    str(data[graph_name][method]["fractal"]) + ",")
+                sys.stdout.write(
+                    str(data[graph_name][method]["exponential"]) + ",")
+                sys.stdout.write(str(data[graph_name][method]["time"]) + ",")
             else:
-                sys.stdout.write(",")
+                sys.stdout.write(",,,")
         sys.stdout.write("\n")
 
-        sys.stdout.write(",judge,")
-        for graph_name in data.keys():
-            if 'exponential' in data[graph_name][method] and 'fractal' in data[graph_name][method]:
-                e = data[graph_name][method]['exponential']
-                f = data[graph_name][method]['fractal']
-                pattern = r"^.*\-1\-[0-9]*$"
-                if re.search(pattern, graph_name):
-                    if f > e:
-                        sys.stdout.write(str(f - e) + ",")
-                    else:
-                        sys.stdout.write(str(f - e) + ",")
-                elif f < e:
-                    sys.stdout.write(str(e - f) + ",")
-                else:
-                    sys.stdout.write(str(e - f) + ",")
-            else:
-                sys.stdout.write(",")
-        sys.stdout.write("\n")
+    # Spreadsheat
+    # sys.stdout.write(",graph,")
+    # for graph_name in data.keys():
+    #     sys.stdout.write(graph_name + ",")
+    # sys.stdout.write("\n")
+    # sys.stdout.write(",vertices,")
+    # for graph_name in data.keys():
+    #     sys.stdout.write(str(data[graph_name]['vertices']) + ",")
+    # sys.stdout.write("\n")
+    # sys.stdout.write(",edges,")
+    # for graph_name in data.keys():
+    #     sys.stdout.write(str(data[graph_name]['edges']) + ",")
+    # sys.stdout.write("\n")
+    # for method in methods.keys():
+    #     sys.stdout.write(method + "," + "exp,")
+    #     for graph_name in data.keys():
+    #         if 'exponential' in data[graph_name][method]:
+    #             sys.stdout.write(
+    #                 str(data[graph_name][method]['exponential']) + ",")
+    #         else:
+    #             sys.stdout.write(",")
+    #     sys.stdout.write("\n")
 
-        sys.stdout.write(",time,")
-        for graph_name in data.keys():
-            if 'time' in data[graph_name][method]:
-                sys.stdout.write(str(data[graph_name][method]['time']) + ",")
-            else:
-                sys.stdout.write(",")
-        sys.stdout.write("\n")
+    #     sys.stdout.write(",frac,")
+    #     for graph_name in data.keys():
+    #         if 'fractal' in data[graph_name][method]:
+    #             sys.stdout.write(
+    #                 str(data[graph_name][method]['fractal']) + ",")
+    #         else:
+    #             sys.stdout.write(",")
+    #     sys.stdout.write("\n")
+
+    # sys.stdout.write(",judge,")
+    # for graph_name in data.keys():
+    #     if 'exponential' in data[graph_name][method] and 'fractal' in data[graph_name][method]:
+    #         e = data[graph_name][method]['exponential']
+    #         f = data[graph_name][method]['fractal']
+    #         pattern = r"^.*\-1\-[0-9]*$"
+    #         if re.search(pattern, graph_name):
+    #             if f > e:
+    #                 sys.stdout.write(str(f - e) + ",")
+    #             else:
+    #                 sys.stdout.write(str(f - e) + ",")
+    #         elif f < e:
+    #             sys.stdout.write(str(e - f) + ",")
+    #         else:
+    #             sys.stdout.write(str(e - f) + ",")
+    #     else:
+    #         sys.stdout.write(",")
+    # sys.stdout.write("\n")
+
+    # sys.stdout.write(",time,")
+    # for graph_name in data.keys():
+    #     if 'time' in data[graph_name][method]:
+    #         sys.stdout.write(str(data[graph_name][method]['time']) + ",")
+    #     else:
+    #         sys.stdout.write(",")
+    # sys.stdout.write("\n")

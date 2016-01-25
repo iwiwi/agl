@@ -5,7 +5,7 @@ import numpy as np
 import scipy.optimize
 import matplotlib.pyplot as plt
 import statsmodels.api as sm
-import seaborn as sns
+# import seaborn as sns
 import json
 import sys
 import re
@@ -39,9 +39,27 @@ def xy_from_json(json_data):
 
 
 def plotLine(beta):
-    qx = np.linspace(0.5, 1000, 10000)
-    plt.plot(qx, theoreticalValue(beta, qx), label="x^" +
-             str(beta[1]) + " * e^" + str(beta[0]))
+    qx = np.linspace(0.5, 1000000, 1000000)
+    plt.plot(qx, theoreticalValue(beta, qx), label="$x^{" +
+             re.sub(
+        r'^(\-*[0-9]*\.[0-9]{0,3})[0-9]*$',
+        r"\1",
+        str(beta[1])
+    )
+        + "} e^{" + re.sub(
+                 r'^(\-*[0-9]*\.[0-9]{0,3})[0-9]*$',
+                 r"\1",
+        str(beta[0])
+    ) + "}$", color="#FF0000")
+
+
+def plotExpo(beta):
+    qx = np.linspace(0.5, 1000000, 1000000)
+    plt.plot(qx, expoValue(beta, qx), label="$e^{ " +
+             re.sub(r'^(\-*[0-9]*\.[0-9]{0,3})[0-9]*$',  r"\1", str(beta[1])) +
+             " x + " +
+             re.sub(r'^(\-*[0-9]*\.[0-9]{0,3})[0-9]*$',
+                    r"\1", str(beta[0])) + "}$", linestyle="--",  color="#000000")
 
 
 def linearRegression(x, y):
@@ -53,6 +71,8 @@ def linearRegression(x, y):
 
 
 def saveFig(jsonData):
+    plt.xlabel("$\it{l_{B}}$", fontsize=18)
+    plt.ylabel("$\it{N_{B}}$", fontsize=18)
     graph_name = jsonData['graph_info'][0]['graph'].replace(" ", "_")
     if '/' in graph_name:
         r = re.compile("/([a-zA-Z0-9_\-\.]*)$")
@@ -64,13 +84,13 @@ def saveFig(jsonData):
     name = jsonData['name']
 
     plt.xlim(xmin=0.5)
-    plt.xlim(xmax=1000)
+    # plt.xlim(xmax=100000)
     plt.ylim(ymin=1)
     plt.ylim(ymax=10000000)
     plt.xscale("log")
     plt.yscale("log")
-    plt.legend(loc='best')
-    plt.savefig(graph_name + "_" + str(vertices) + "_" + name + ".png")
+    plt.legend(loc='best', fontsize=18)
+    plt.savefig(graph_name + "_" + str(vertices) + "_" + name + ".pdf")
 
 
 def theoreticalValue(beta, x):
@@ -81,6 +101,17 @@ def theoreticalValue(beta, x):
 
 def fitFunc(beta, x, y):
     residual = y - theoreticalValue(beta, x)
+    return residual
+
+
+def expoValue(beta, x):
+    a = beta[0]
+    b = beta[1]
+    return (np.exp(1)**(b * x)) * (np.exp(1)**a)
+
+
+def expoFit(beta, x, y):
+    residual = y - expoValue(beta, x)
     return residual
 
 
@@ -123,11 +154,15 @@ if __name__ == "__main__":
         log.close()
 
         px, py, pname = xy_from_json(json_data)
-        plt.plot(px, py, 'o', label=pname)
+        # plt.plot(px, py, 'o', label=pname)
+        plt.plot(px, py, 'o', label="$(3,4)-flower$")
 
         initialValue = linearRegression(px, py)
         result = scipy.optimize.leastsq(fitFunc, initialValue, args=(px, py))
-        # plotLine(result[0])
+        expoResult = scipy.optimize.leastsq(
+            expoFit, initialValue, args=(px, py))
+        plotLine(result[0])
+        plotExpo(expoResult[0])
         # plotAnalytical(json_data)
         saveFig(json_data)
         # plt.close()

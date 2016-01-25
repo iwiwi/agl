@@ -10,6 +10,7 @@ DEFINE_int32(pass, 1, "Number of multi-pass");
 DEFINE_int32(sketch_k, 1024, "sketch k");
 DEFINE_bool(rad_analytical, false, "Using analytical diameters as rads");
 DEFINE_double(upper_param, 1.0, "size_upper_bound=upper_param*n*k");
+DEFINE_string(exp_tag, "", "experiment name");
 
 unweighted_edge_list extract_maximal_connected(const G& g_pre) {
   unweighted_edge_list es;
@@ -150,6 +151,16 @@ int main(int argc, char** argv) {
       JLOG_ADD("coverage", coverage(g, res, rad));
       if (res.size() == 1) break;
     }
+  } else if (FLAGS_method == "coloring") {
+    JLOG_PUT("name", "Coloring");
+    W rad_max = rads[rads.size() - 1];
+    vector<pair<W, size_t>> res;
+
+    JLOG_ADD_BENCHMARK("time") res = box_cover_coloring(g, rad_max * 2);
+    for (auto p : res) {
+      JLOG_ADD("size", p.second);
+      JLOG_ADD("diameter", p.first);
+    }
   } else if (FLAGS_method == "analytical") {
     istringstream iss(FLAGS_graph);
     string family;
@@ -186,5 +197,7 @@ int main(int argc, char** argv) {
   JLOG_INSERT_FILENAME("-upper_param." + to_string(FLAGS_upper_param) + "-");
   JLOG_INSERT_FILENAME("-" + graph_name);
   JLOG_INSERT_FILENAME(experiment_name);
-  JLOG_INSERT_FILENAME("exp02-");
+  if (FLAGS_exp_tag.size() != 0) {
+    JLOG_INSERT_FILENAME(FLAGS_exp_tag + "-");
+  }
 }
