@@ -3,41 +3,6 @@
 
 DEFINE_string(gusfield_choice_stpair_strategy, "sequential", "sequential, sort_by_degree_ascending, sort_by_degree_desending, random");
 
-class parent_tree_set {
-  const int root;
-  vector<int> data, datainv, ref;
-
-public:
-  parent_tree_set(const int n, const int root) : root(root), data(n), datainv(n), ref(n, root) {
-    FOR(i, n) datainv[i] = data[i] = i;
-  }
-
-  void set_parent(int v, int par) {
-    ref[v] = datainv[par];
-  }
-
-  void change_parent(int cur_parent, int new_parent) {
-    int ci = datainv[cur_parent];
-    int ni = datainv[new_parent];
-    swap(data[ci], data[ni]);
-    swap(datainv[cur_parent], datainv[new_parent]);
-  }
-
-  int get_parent(int v) const {
-    return data[ref[v]];
-  }
-
-  void debug() const {
-    FOR(v, sz(data)) {
-      printf("%d, ", get_parent(v));
-      if (v != root && v == get_parent(v)) {
-        puts("?");
-      }
-    }
-    puts("");
-  }
-};
-
 class OptimizedGusfieldWith2ECC {
   void build_depth() {
     depth_[root_node_] = 0;
@@ -57,24 +22,23 @@ class OptimizedGusfieldWith2ECC {
   }
 
   void gusfield_choice_stpair(vector<int>& mincut_order, const vector<int>& degree) {
-    if (FLAGS_gusfield_choice_stpair_strategy == "sequential") {
-      return;
-    } else if (FLAGS_gusfield_choice_stpair_strategy == "sort_by_degree_ascending") {
-      sort(mincut_order.begin(), mincut_order.end(), [&degree](const int l, const int r) {
-        return degree[l] < degree[r];
-      });
-    } else if (FLAGS_gusfield_choice_stpair_strategy == "sort_by_degree_desending") {
-      sort(mincut_order.begin(), mincut_order.end(), [&degree](const int l, const int r) {
-        return degree[l] > degree[r];
-      });
-    } else if (FLAGS_gusfield_choice_stpair_strategy == "random") {
-      random_shuffle(mincut_order.begin(), mincut_order.end());
+    if(FLAGS_gusfield_choice_stpair_strategy == "sequential"){
+      return ;
+    } else if(FLAGS_gusfield_choice_stpair_strategy == "sort_by_degree_ascending") {
+        sort(mincut_order.begin(),mincut_order.end(),[&degree](const int l,const int r) {
+          return degree[l] < degree[r];
+        });
+    } else if(FLAGS_gusfield_choice_stpair_strategy == "sort_by_degree_desending") {
+        sort(mincut_order.begin(),mincut_order.end(),[&degree](const int l,const int r) {
+          return degree[l] > degree[r];
+        });
+    } else if(FLAGS_gusfield_choice_stpair_strategy == "random") {
+      random_shuffle(mincut_order.begin(),mincut_order.end());
     } else {
       fprintf(stderr, "unrecognized option '-gusfield_choice_stpair_strategy=%s'\n", FLAGS_gusfield_choice_stpair_strategy.c_str());
       exit(-1);
     }
   }
-
 
 public:
 
@@ -91,18 +55,18 @@ public:
       root_node_ = v; break;
     }
     if (root_node_ == -1) root_node_ = 0;
-    parent_tree_set pts(num_vs, root_node_);
-
 
     vector<int> mincut_order;
     FOR(v, num_vertices_) {
       if (v == root_node_) continue;
+      parent_weight_[v].first = root_node_;
       if (degree[v] == 2) {
         parent_weight_[v].second = 2;
       } else {
         mincut_order.push_back(v);
       }
     }
+    parent_weight_[root_node_].first = -1;
 
     gusfield_choice_stpair(mincut_order, degree);
 
@@ -110,7 +74,7 @@ public:
     vector<int> used(num_vertices_);
     queue<int> q;
     for (V s : mincut_order) {
-      V t = pts.get_parent(s);
+      V t = parent_weight_[s].first;
 
       dc_base.reset_graph();
       int cost = dc_base.max_flow(s, t);
@@ -119,45 +83,19 @@ public:
 
       if (degree[s] == cost) continue;
 
+      q.push(s);
       const int F = s + 1;
-      if (dc_base.reason_for_finishing_bfs == dinic_twosided::kQsIsEmpty) {
-        q.push(s);
-        used[s] = F;
-        while (!q.empty()) {
-          V v = q.front(); q.pop();
-          for (auto& e : dc_base.e[v]) {
-            if (e.cap(dc_base.graph_revision) == 0 || used[e.to] == F) continue;
-            used[e.to] = F;
-            q.push(e.to);
-            int tpar = pts.get_parent(e.to);
-            if (tpar == t) pts.set_parent(e.to, s);
-          }
-        }
-      } else {
-        pts.change_parent(s, t);
-        pts.set_parent(s, t);
-        q.push(t);
-        used[t] = F;
-        while (!q.empty()) {
-          V v = q.front(); q.pop();
-          for (auto& e : dc_base.e[v]) {
-            const int cap = dc_base.e[e.to][e.reverse].cap(dc_base.graph_revision);
-            if (cap == 0 || used[e.to] == F) continue;
-            used[e.to] = F;
-            q.push(e.to);
-            int tpar = pts.get_parent(e.to);
-            if (tpar == s) pts.set_parent(e.to, t);
-          }
+      used[s] = F;
+      while (!q.empty()) {
+        V v = q.front(); q.pop();
+        for (auto& e : dc_base.e[v]) {
+          if (e.cap(dc_base.graph_revision) == 0 || used[e.to] == F) continue;
+          used[e.to] = F;
+          q.push(e.to);
+          if (parent_weight_[e.to].first == t) parent_weight_[e.to].first = s;
         }
       }
-
-      // pts.debug();
     }
-
-    FOR(v, num_vs) {
-      parent_weight_[v].first = pts.get_parent(v);
-    }
-    parent_weight_[root_node_].first = -1;
 
     build_depth();
   }
@@ -178,7 +116,7 @@ public:
     return ans;
   }
 
-  const vector<pair<V, int>>& parent_weight() const {
+  const vector<pair<V,int>>& parent_weight() const {
     return parent_weight_;
   }
 
