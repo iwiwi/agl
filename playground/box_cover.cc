@@ -389,6 +389,16 @@ vector<V> box_cover_burning(const G &g, W radius) {
   return ret;
 }
 
+// vector<vector<V>> box_cover_coloring(const G &g, W diameter) {
+//   V N = g.num_vertices();
+//   vector<vector<V>> colors(N, vector<V>(diameter + 1, 0));
+//   for (V i = 1; i < N; ++i) {
+//     vector<W> dist = single_source_distance(g, i);
+//     for (V l_B = 1; l_B <= diameter; ++l_B) {
+//     }
+//   }
+// }
+
 // Naive BFS method of Build-Sketch
 vector<vector<V>> naive_build_sketch(const G &g, const W radius, const int k,
                                      const vector<V> &rank,
@@ -472,19 +482,12 @@ vector<vector<V>> build_sketch(const G &g, const W radius, const int k,
           // Merge & Purify
           V rv = rank[v];
           set<V> &xn = X[neighbor];
-          if (xn.find(rv) != xn.end()) continue;
+
+          auto inserted = xn.insert(rv);
           while (xn.size() > using_k) {
             xn.erase(*xn.rbegin());
           }
-          if (xn.size() >= using_k) {
-            V max_rank = *(xn.rbegin());
-            if (max_rank <= rv) continue;
-            xn.erase(max_rank);
-            xn.insert(rv);
-            next.push_back(neighbor);
-            total_size++;
-          } else {
-            xn.insert(rv);
+          if (inserted.second && *xn.rbegin() >= rv) {
             next.push_back(neighbor);
             total_size++;
           }
@@ -838,6 +841,8 @@ vector<V> box_cover_sketch(const G &g, W radius, const int k,
       timer += get_current_time_sec();
       cerr << timer << " sec selected" << endl;
     }
+
+    cerr << "size: " << centers.size() << endl;
 
     if (cm.is_covered()) break;
   }
