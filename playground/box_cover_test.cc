@@ -350,3 +350,21 @@ TEST(box_cover, lazy_greedily) {
     cerr << p.second << endl;
   }
 }
+
+TEST(box_cover, coloring) {
+  V u = 2, v = 2;
+  auto es = generate_uv_flower(1000, u, v);
+  G g(make_undirected(es));
+  pretty_print(g);
+
+  vector<pair<W, V>> pairs = find_analytical_solution("flower", u, v, g);
+  for (auto p : pairs) {
+    cerr << p << endl;
+  }
+
+  W largest = pairs.rbegin()->first;
+  vector<pair<W, size_t>> coloring = box_cover_coloring(g, largest);
+  for (auto c : coloring) {
+    cerr << c << endl;
+  }
+}

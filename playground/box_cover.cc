@@ -389,14 +389,37 @@ vector<V> box_cover_burning(const G &g, W radius) {
   return ret;
 }
 
-vector<vector<V>> box_cover_coloring(const G &g, W diameter) {
+vector<pair<W, size_t>> box_cover_coloring(const G &g, W diameter) {
   V N = g.num_vertices();
   vector<vector<V>> colors(N, vector<V>(diameter + 1, 0));
-  for (V i = 1; i < N; ++i) {
-    vector<W> dist = single_source_distance(g, i);
-    for (V l_B = 1; l_B <= diameter; ++l_B) {
+
+  for (V i = 1; i < N; ++i) {                       //(iii)
+    vector<W> dist = single_source_distance(g, i);  //(a)
+    multimap<W, V> dict;
+    for (V v = 0; v < N; ++v) dict.insert({dist[v], v});
+
+    for (W l_B = 1; l_B <= diameter; ++l_B) {  //(b)
+      vector<bool> color_used(N, false);
+      for (auto it = dict.lower_bound(l_B); it != dict.end(); it++) {
+        V j = it->second;
+        if (j >= i) continue;
+        color_used[colors[j][l_B]] = true;
+      }
+      for (int c = 0; c < N; ++c)
+        if (!color_used[c]) {
+          colors[i][l_B] = c;
+          break;
+        }
     }
   }
+
+  vector<pair<W, size_t>> ret;
+  for (W l_B = 1; l_B <= diameter; ++l_B) {
+    set<V> s;
+    for (int i = 0; i < N; ++i) s.insert(colors[i][l_B]);
+    ret.push_back({l_B, s.size()});
+  }
+  return ret;
 }
 
 // Naive BFS method of Build-Sketch
