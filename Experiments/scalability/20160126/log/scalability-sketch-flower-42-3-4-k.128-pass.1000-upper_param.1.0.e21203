@@ -1,0 +1,91 @@
+[0125 17:55:31] JLOG: box_cover.node01.jlog.160125-175531.6318
+[0125 17:55:31] run.program = box_cover
+[0125 17:55:31] run.args = /home/kenkoooo/fractal-dimension/agl/bin/box_cover
+[0125 17:55:31] run.args = --force_undirected
+[0125 17:55:31] run.args = --type
+[0125 17:55:31] run.args = gen
+[0125 17:55:31] run.args = --graph
+[0125 17:55:31] run.args = flower 42 3 4
+[0125 17:55:31] run.args = --rad_analytical
+[0125 17:55:31] run.args = --sketch_k
+[0125 17:55:31] run.args = 128
+[0125 17:55:31] run.args = --pass
+[0125 17:55:31] run.args = 1000
+[0125 17:55:31] run.args = --rad_max
+[0125 17:55:31] run.args = 1000000
+[0125 17:55:31] run.args = --upper_param
+[0125 17:55:31] run.args = 1.0
+[0125 17:55:31] run.args = --exp_tag
+[0125 17:55:31] run.args = scalability
+[0125 17:55:31] run.machine = node01
+[0125 17:55:31] run.date = 2016/01/25 17:55:31
+[0125 17:55:31] run.user = kenkoooo
+[0125 17:55:31] run.pid = 6318
+=========
+  Vertices: 42
+  Edges: 98
+  Type: agl::basic_graph<int>
+----------
+  0 -> 8, 11, 12, 14
+  1 -> 13, 16, 17, 19
+  2 -> 18, 21, 22, 24
+  3 -> 23, 26, 27, 29
+  4 -> 28, 31, 32, 34
+  ...
+----------
+  0 <- 8, 11, 12, 14
+  1 <- 13, 16, 17, 19
+  2 <- 18, 21, 22, 24
+  3 <- 23, 26, 27, 29
+  4 <- 28, 31, 32, 34
+  ...
+=========
+=========
+  Vertices: 42
+  Edges: 98
+  Type: agl::basic_graph<int>
+----------
+  0 -> 8, 11, 12, 14
+  1 -> 13, 16, 17, 19
+  2 -> 18, 21, 22, 24
+  3 -> 23, 26, 27, 29
+  4 -> 28, 31, 32, 34
+  ...
+----------
+  0 <- 8, 11, 12, 14
+  1 <- 13, 16, 17, 19
+  2 <- 18, 21, 22, 24
+  3 <- 23, 26, 27, 29
+  4 <- 28, 31, 32, 34
+  ...
+=========
+[0125 17:55:31] vertices = 42
+[0125 17:55:31] edges = 98
+[0125 17:55:31] graph = flower-42-3-4
+[0125 17:55:31] name = sketch-k.128
+[0125 17:55:31] k = 128
+[0125 17:55:31] pass = 1000
+[0125 17:55:31] upper_param = 1.000000
+0-th building...
+total index 294
+8.29697e-05 sec built
+0-th lazy selecting...
+3.29018e-05 sec lazy selected
+size: 7
+[0125 17:55:31] time = 0.000145912
+[0125 17:55:31] size = 7
+[0125 17:55:31] radius = 2
+[0125 17:55:31] coverage = 1
+0-th building...
+total index 840
+0.000227213 sec built
+0-th lazy selecting...
+4.29153e-05 sec lazy selected
+size: 3
+[0125 17:55:31] time = 0.000283957
+[0125 17:55:31] size = 3
+[0125 17:55:31] radius = 5
+[0125 17:55:31] coverage = 1
+[0125 17:55:31] run.time = 0.0011189
+[0125 17:55:31] run.memory = 1937408
+[0125 17:55:31] JLOG: ./jlog/scalability-sketch-k.128-flower-42-3-4-upper_param.1.000000-box_cover.node01.jlog.160125-175531.6318

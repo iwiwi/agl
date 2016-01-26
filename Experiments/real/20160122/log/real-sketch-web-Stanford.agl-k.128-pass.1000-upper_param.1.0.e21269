@@ -1,0 +1,268 @@
+[0125 18:38:01] JLOG: box_cover.node02.jlog.160125-183801.17306
+[0125 18:38:01] run.program = box_cover
+[0125 18:38:01] run.args = /home/kenkoooo/fractal-dimension/agl/bin/box_cover
+[0125 18:38:01] run.args = --force_undirected
+[0125 18:38:01] run.args = --type
+[0125 18:38:01] run.args = agl
+[0125 18:38:01] run.args = --graph
+[0125 18:38:01] run.args = /data/snap.stanford.edu/web-Stanford.agl
+[0125 18:38:01] run.args = --sketch_k
+[0125 18:38:01] run.args = 128
+[0125 18:38:01] run.args = --pass
+[0125 18:38:01] run.args = 1000
+[0125 18:38:01] run.args = --rad_min
+[0125 18:38:01] run.args = 4
+[0125 18:38:01] run.args = --rad_max
+[0125 18:38:01] run.args = 4
+[0125 18:38:01] run.args = --upper_param
+[0125 18:38:01] run.args = 1.0
+[0125 18:38:01] run.args = --exp_tag
+[0125 18:38:01] run.args = real
+[0125 18:38:01] run.machine = node02
+[0125 18:38:01] run.date = 2016/01/25 18:38:01
+[0125 18:38:01] run.user = kenkoooo
+[0125 18:38:01] run.pid = 17306
+=========
+  Vertices: 281903
+  Edges: 3985272
+  Type: agl::basic_graph<int>
+----------
+  0 -> 6547, 15408
+  1 -> 871, 1280, 12093, 17092, 17793, 19146, 20922, 25201, 31701, 35876, ...
+  2 -> 74360, 96492
+  3 -> 35715, 96511, 186749, 225871
+  4 -> 6544, 14394, 59744, 67502, 134374, 170451, 220512
+  ...
+----------
+  0 <- 6547, 15408
+  1 <- 871, 1280, 12093, 17092, 17793, 19146, 20922, 25201, 31701, 35876, ...
+  2 <- 74360, 96492
+  3 <- 35715, 96511, 186749, 225871
+  4 <- 6544, 14394, 59744, 67502, 134374, 170451, 220512
+  ...
+=========
+=========
+  Vertices: 255265
+  Edges: 3883852
+  Type: agl::basic_graph<int>
+----------
+  0 -> 5889, 13931
+  1 -> 769, 1134, 10940, 15441, 16079, 17308, 18903, 22784, 28622, 32415, ...
+  2 -> 67201, 87227
+  3 -> 32266, 87244, 169000, 204473
+  4 -> 5886, 13007, 53972, 61007, 121548, 154239, 199623
+  ...
+----------
+  0 <- 5889, 13931
+  1 <- 769, 1134, 10940, 15441, 16079, 17308, 18903, 22784, 28622, 32415, ...
+  2 <- 67201, 87227
+  3 <- 32266, 87244, 169000, 204473
+  4 <- 5886, 13007, 53972, 61007, 121548, 154239, 199623
+  ...
+=========
+[0125 18:38:05] vertices = 255265
+[0125 18:38:05] edges = 3883852
+[0125 18:38:05] graph = /data/snap.stanford.edu/web-Stanford.agl
+[0125 18:38:05] name = sketch-k.128
+[0125 18:38:05] k = 128
+[0125 18:38:05] pass = 1000
+[0125 18:38:05] upper_param = 1.000000
+0-th building...
+total index 78254675
+1693 sec built
+0-th selecting...
+41.0036 sec selected
+size: 17
+1-th building...
+total index 78291663
+576.03 sec built
+1-th selecting...
+48.4986 sec selected
+size: 39
+2-th building...
+total index 78520720
+654.291 sec built
+2-th selecting...
+44.5186 sec selected
+size: 66
+3-th building...
+total index 78269287
+728.435 sec built
+3-th selecting...
+41.9009 sec selected
+size: 84
+4-th building...
+total index 77758900
+651.5 sec built
+4-th selecting...
+35.8146 sec selected
+size: 106
+5-th building...
+total index 78357030
+664.825 sec built
+5-th selecting...
+58.2207 sec selected
+size: 135
+6-th building...
+total index 78492016
+769.415 sec built
+6-th selecting...
+40.5975 sec selected
+size: 150
+7-th building...
+total index 77436953
+635.667 sec built
+7-th selecting...
+43.4191 sec selected
+size: 170
+8-th building...
+total index 78814396
+653.127 sec built
+8-th selecting...
+35.7425 sec selected
+size: 193
+9-th building...
+total index 77934343
+647.933 sec built
+9-th selecting...
+40.8114 sec selected
+size: 221
+10-th building...
+total index 78432305
+609.359 sec built
+10-th selecting...
+35.7297 sec selected
+size: 243
+11-th building...
+total index 78650194
+565.266 sec built
+11-th selecting...
+36.7173 sec selected
+size: 267
+12-th building...
+total index 78129992
+619.525 sec built
+12-th selecting...
+35.4836 sec selected
+size: 287
+13-th building...
+total index 78286316
+587.817 sec built
+13-th selecting...
+35.8444 sec selected
+size: 313
+14-th building...
+total index 78304580
+629.538 sec built
+14-th selecting...
+37.9854 sec selected
+size: 339
+15-th building...
+total index 78140034
+592.352 sec built
+15-th selecting...
+47.7762 sec selected
+size: 364
+16-th building...
+total index 77550324
+557.553 sec built
+16-th selecting...
+50.8227 sec selected
+size: 395
+17-th building...
+total index 77987400
+594.161 sec built
+17-th selecting...
+39.1668 sec selected
+size: 415
+18-th building...
+total index 78969379
+585.607 sec built
+18-th selecting...
+36.0504 sec selected
+size: 436
+19-th building...
+total index 77911873
+467.188 sec built
+19-th selecting...
+37.6873 sec selected
+size: 456
+20-th building...
+total index 78482625
+456.894 sec built
+20-th selecting...
+35.0951 sec selected
+size: 486
+21-th building...
+total index 77542322
+484.602 sec built
+21-th selecting...
+36.142 sec selected
+size: 517
+22-th building...
+total index 78404707
+478.545 sec built
+22-th selecting...
+42.8852 sec selected
+size: 540
+23-th building...
+total index 78231791
+480.221 sec built
+23-th selecting...
+40.3323 sec selected
+size: 569
+24-th building...
+total index 77373797
+488.258 sec built
+24-th selecting...
+43.4858 sec selected
+size: 597
+25-th building...
+total index 78693933
+510.634 sec built
+25-th selecting...
+40.3283 sec selected
+size: 625
+26-th building...
+total index 78085370
+486.698 sec built
+26-th selecting...
+43.1751 sec selected
+size: 652
+27-th building...
+total index 78293525
+477.58 sec built
+27-th selecting...
+36.5303 sec selected
+size: 673
+28-th building...
+total index 78370493
+455.486 sec built
+28-th selecting...
+37.9499 sec selected
+size: 696
+29-th building...
+total index 78645167
+471.224 sec built
+29-th selecting...
+35.1118 sec selected
+size: 721
+30-th building...
+total index 78370878
+419.526 sec built
+30-th selecting...
+41.5192 sec selected
+size: 746
+31-th building...
+total index 77930123
+454.636 sec built
+31-th selecting...
+39.8702 sec selected
+size: 760
+[0126 00:18:55] time = 20449.9
+[0126 00:18:55] size = 760
+[0126 00:18:55] radius = 4
+[0126 00:18:55] coverage = 0.980017
+[0126 00:18:55] run.time = 20453.9
+[0126 00:18:55] run.memory = 63586304
+[0126 00:18:55] JLOG: ./jlog/real-sketch-k.128-web-Stanford.agl-upper_param.1.000000-box_cover.node02.jlog.160125-183801.17306

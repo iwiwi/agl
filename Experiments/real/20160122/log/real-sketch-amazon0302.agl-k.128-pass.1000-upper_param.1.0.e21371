@@ -1,0 +1,82 @@
+[0125 18:38:05] JLOG: box_cover.node08.jlog.160125-183805.26586
+[0125 18:38:05] run.program = box_cover
+[0125 18:38:05] run.args = /home/kenkoooo/fractal-dimension/agl/bin/box_cover
+[0125 18:38:05] run.args = --force_undirected
+[0125 18:38:05] run.args = --type
+[0125 18:38:05] run.args = agl
+[0125 18:38:05] run.args = --graph
+[0125 18:38:05] run.args = /data/snap.stanford.edu/amazon0302.agl
+[0125 18:38:05] run.args = --sketch_k
+[0125 18:38:05] run.args = 128
+[0125 18:38:05] run.args = --pass
+[0125 18:38:05] run.args = 1000
+[0125 18:38:05] run.args = --rad_min
+[0125 18:38:05] run.args = 25
+[0125 18:38:05] run.args = --rad_max
+[0125 18:38:05] run.args = 25
+[0125 18:38:05] run.args = --upper_param
+[0125 18:38:05] run.args = 1.0
+[0125 18:38:05] run.args = --exp_tag
+[0125 18:38:05] run.args = real
+[0125 18:38:05] run.machine = node08
+[0125 18:38:05] run.date = 2016/01/25 18:38:05
+[0125 18:38:05] run.user = kenkoooo
+[0125 18:38:05] run.pid = 26586
+=========
+  Vertices: 262111
+  Edges: 1799584
+  Type: agl::basic_graph<int>
+----------
+  0 -> 1, 2, 3, 4, 5
+  1 -> 0, 2, 4, 5, 15
+  2 -> 0, 1, 11, 12, 13, 14
+  3 -> 0, 63, 64, 65, 66, 67
+  4 -> 0, 1, 7, 16, 17, 18, 19, 73, 74, 75, ...
+  ...
+----------
+  0 <- 1, 2, 3, 4, 5
+  1 <- 0, 2, 4, 5, 15
+  2 <- 0, 1, 11, 12, 13, 14
+  3 <- 0, 63, 64, 65, 66, 67
+  4 <- 0, 1, 7, 16, 17, 18, 19, 73, 74, 75, ...
+  ...
+=========
+=========
+  Vertices: 262111
+  Edges: 1799584
+  Type: agl::basic_graph<int>
+----------
+  0 -> 1, 2, 3, 4, 5
+  1 -> 0, 2, 4, 5, 15
+  2 -> 0, 1, 11, 12, 13, 14
+  3 -> 0, 63, 64, 65, 66, 67
+  4 -> 0, 1, 7, 16, 17, 18, 19, 73, 74, 75, ...
+  ...
+----------
+  0 <- 1, 2, 3, 4, 5
+  1 <- 0, 2, 4, 5, 15
+  2 <- 0, 1, 11, 12, 13, 14
+  3 <- 0, 63, 64, 65, 66, 67
+  4 <- 0, 1, 7, 16, 17, 18, 19, 73, 74, 75, ...
+  ...
+=========
+[0125 18:38:07] vertices = 262111
+[0125 18:38:07] edges = 1799584
+[0125 18:38:07] graph = /data/snap.stanford.edu/amazon0302.agl
+[0125 18:38:07] name = sketch-k.128
+[0125 18:38:07] k = 128
+[0125 18:38:07] pass = 1000
+[0125 18:38:07] upper_param = 1.000000
+0-th building...
+total index 182521186
+1471.19 sec built
+0-th selecting...
+1.03723 sec selected
+size: 1
+[0125 19:02:40] time = 1472.43
+[0125 19:02:40] size = 1
+[0125 19:02:40] radius = 25
+[0125 19:02:40] coverage = 1
+[0125 19:02:40] run.time = 1475.48
+[0125 19:02:40] run.memory = 43745280
+[0125 19:02:40] JLOG: ./jlog/real-sketch-k.128-amazon0302.agl-upper_param.1.000000-box_cover.node08.jlog.160125-183805.26586

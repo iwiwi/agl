@@ -1,0 +1,54 @@
+{
+  "run": {
+    "program": "box_cover",
+    "args": [
+      "/home/kenkoooo/fractal-dimension/agl/bin/box_cover",
+      "--force_undirected",
+      "--type",
+      "agl",
+      "--graph",
+      "/data/snap.stanford.edu/amazon0302.agl",
+      "--sketch_k",
+      "128",
+      "--pass",
+      "1000",
+      "--rad_min",
+      "10",
+      "--rad_max",
+      "10",
+      "--upper_param",
+      "1.0",
+      "--exp_tag",
+      "real"
+    ],
+    "machine": "node04",
+    "date": "2016/01/25",
+    "user": "kenkoooo",
+    "pid": 5352,
+    "time": 1606.47,
+    "memory": 43737088
+  },
+  "graph_info": [
+    {
+      "vertices": 262111,
+      "edges": 1799584,
+      "graph": "/data/snap.stanford.edu/amazon0302.agl"
+    }
+  ],
+  "name": "sketch-k.128",
+  "k": "128",
+  "pass": "1000",
+  "upper_param": "1.000000",
+  "time": [
+    1602.9
+  ],
+  "size": [
+    1
+  ],
+  "radius": [
+    10
+  ],
+  "coverage": [
+    0.980806
+  ]
+}

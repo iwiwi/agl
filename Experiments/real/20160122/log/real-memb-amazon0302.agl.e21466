@@ -1,0 +1,65 @@
+[0125 18:45:40] JLOG: box_cover.node04.jlog.160125-184540.6490
+[0125 18:45:40] run.program = box_cover
+[0125 18:45:40] run.args = /home/kenkoooo/fractal-dimension/agl/bin/box_cover
+[0125 18:45:40] run.args = --force_undirected
+[0125 18:45:40] run.args = --type
+[0125 18:45:40] run.args = agl
+[0125 18:45:40] run.args = --graph
+[0125 18:45:40] run.args = /data/snap.stanford.edu/amazon0302.agl
+[0125 18:45:40] run.args = --rad_min
+[0125 18:45:40] run.args = 19
+[0125 18:45:40] run.args = --rad_max
+[0125 18:45:40] run.args = 19
+[0125 18:45:40] run.args = --method
+[0125 18:45:40] run.args = memb
+[0125 18:45:40] run.args = --exp_tag
+[0125 18:45:40] run.args = real
+[0125 18:45:40] run.machine = node04
+[0125 18:45:40] run.date = 2016/01/25 18:45:40
+[0125 18:45:40] run.user = kenkoooo
+[0125 18:45:40] run.pid = 6490
+=========
+  Vertices: 262111
+  Edges: 1799584
+  Type: agl::basic_graph<int>
+----------
+  0 -> 1, 2, 3, 4, 5
+  1 -> 0, 2, 4, 5, 15
+  2 -> 0, 1, 11, 12, 13, 14
+  3 -> 0, 63, 64, 65, 66, 67
+  4 -> 0, 1, 7, 16, 17, 18, 19, 73, 74, 75, ...
+  ...
+----------
+  0 <- 1, 2, 3, 4, 5
+  1 <- 0, 2, 4, 5, 15
+  2 <- 0, 1, 11, 12, 13, 14
+  3 <- 0, 63, 64, 65, 66, 67
+  4 <- 0, 1, 7, 16, 17, 18, 19, 73, 74, 75, ...
+  ...
+=========
+=========
+  Vertices: 262111
+  Edges: 1799584
+  Type: agl::basic_graph<int>
+----------
+  0 -> 1, 2, 3, 4, 5
+  1 -> 0, 2, 4, 5, 15
+  2 -> 0, 1, 11, 12, 13, 14
+  3 -> 0, 63, 64, 65, 66, 67
+  4 -> 0, 1, 7, 16, 17, 18, 19, 73, 74, 75, ...
+  ...
+----------
+  0 <- 1, 2, 3, 4, 5
+  1 <- 0, 2, 4, 5, 15
+  2 <- 0, 1, 11, 12, 13, 14
+  3 <- 0, 63, 64, 65, 66, 67
+  4 <- 0, 1, 7, 16, 17, 18, 19, 73, 74, 75, ...
+  ...
+=========
+[0125 18:45:42] vertices = 262111
+[0125 18:45:42] edges = 1799584
+[0125 18:45:42] graph = /data/snap.stanford.edu/amazon0302.agl
+[0125 18:45:42] name = MEMB
+terminate called after throwing an instance of 'std::bad_alloc'
+  what():  std::bad_alloc
+/var/spool/torque/mom_priv/jobs/21466.node00.SC: line 1:  6490 Aborted                 (core dumped) /home/kenkoooo/fractal-dimension/agl/bin/box_cover --force_undirected --type agl --graph /data/snap.stanford.edu/amazon0302.agl --rad_min 19 --rad_max 19 --method memb --exp_tag real

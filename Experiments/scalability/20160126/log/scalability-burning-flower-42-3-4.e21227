@@ -1,0 +1,72 @@
+[0125 17:59:19] JLOG: box_cover.node01.jlog.160125-175919.6531
+[0125 17:59:19] run.program = box_cover
+[0125 17:59:19] run.args = /home/kenkoooo/fractal-dimension/agl/bin/box_cover
+[0125 17:59:19] run.args = --force_undirected
+[0125 17:59:19] run.args = --type
+[0125 17:59:19] run.args = gen
+[0125 17:59:19] run.args = --graph
+[0125 17:59:19] run.args = flower 42 3 4
+[0125 17:59:19] run.args = --rad_analytical
+[0125 17:59:19] run.args = --rad_max
+[0125 17:59:19] run.args = 1000000
+[0125 17:59:19] run.args = --method
+[0125 17:59:19] run.args = burning
+[0125 17:59:19] run.args = --exp_tag
+[0125 17:59:19] run.args = scalability
+[0125 17:59:19] run.machine = node01
+[0125 17:59:19] run.date = 2016/01/25 17:59:19
+[0125 17:59:19] run.user = kenkoooo
+[0125 17:59:19] run.pid = 6531
+=========
+  Vertices: 42
+  Edges: 98
+  Type: agl::basic_graph<int>
+----------
+  0 -> 8, 11, 12, 14
+  1 -> 13, 16, 17, 19
+  2 -> 18, 21, 22, 24
+  3 -> 23, 26, 27, 29
+  4 -> 28, 31, 32, 34
+  ...
+----------
+  0 <- 8, 11, 12, 14
+  1 <- 13, 16, 17, 19
+  2 <- 18, 21, 22, 24
+  3 <- 23, 26, 27, 29
+  4 <- 28, 31, 32, 34
+  ...
+=========
+=========
+  Vertices: 42
+  Edges: 98
+  Type: agl::basic_graph<int>
+----------
+  0 -> 8, 11, 12, 14
+  1 -> 13, 16, 17, 19
+  2 -> 18, 21, 22, 24
+  3 -> 23, 26, 27, 29
+  4 -> 28, 31, 32, 34
+  ...
+----------
+  0 <- 8, 11, 12, 14
+  1 <- 13, 16, 17, 19
+  2 <- 18, 21, 22, 24
+  3 <- 23, 26, 27, 29
+  4 <- 28, 31, 32, 34
+  ...
+=========
+[0125 17:59:19] vertices = 42
+[0125 17:59:19] edges = 98
+[0125 17:59:19] graph = flower-42-3-4
+[0125 17:59:19] name = Burning
+[0125 17:59:19] time = 0.00923705
+[0125 17:59:19] size = 7
+[0125 17:59:19] radius = 2
+[0125 17:59:19] coverage = 1
+[0125 17:59:19] time = 0.000944138
+[0125 17:59:19] size = 3
+[0125 17:59:19] radius = 5
+[0125 17:59:19] coverage = 1
+[0125 17:59:19] run.time = 0.011344
+[0125 17:59:19] run.memory = 1667072
+[0125 17:59:19] JLOG: ./jlog/scalability-burning-flower-42-3-4-upper_param.1.000000-box_cover.node01.jlog.160125-175919.6531

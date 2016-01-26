@@ -1,0 +1,61 @@
+{
+  "run": {
+    "program": "box_cover",
+    "args": [
+      "/home/kenkoooo/fractal-dimension/agl/bin/box_cover",
+      "--force_undirected",
+      "--type",
+      "gen",
+      "--graph",
+      "flower",
+      "--rad_analytical",
+      "--rad_max",
+      "1000000",
+      "--method",
+      "coloring",
+      "--exp_tag",
+      "scalability"
+    ],
+    "machine": "node01",
+    "date": "2016/01/25",
+    "user": "kenkoooo",
+    "pid": 7188,
+    "time": 0.00299406,
+    "memory": 1662976
+  },
+  "graph_info": [
+    {
+      "vertices": 42,
+      "edges": 98,
+      "graph": "flower-42-3-4"
+    }
+  ],
+  "name": "Coloring",
+  "time": [
+    0.000793934
+  ],
+  "size": [
+    42,
+    27,
+    15,
+    7,
+    7,
+    6,
+    4,
+    4,
+    4,
+    4
+  ],
+  "diameter": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10
+  ]
+}

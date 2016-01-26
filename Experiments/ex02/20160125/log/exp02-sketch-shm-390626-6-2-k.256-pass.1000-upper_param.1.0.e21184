@@ -1,0 +1,211 @@
+[0125 13:22:08] JLOG: box_cover.node03.jlog.160125-132208.5638
+[0125 13:22:08] run.program = box_cover
+[0125 13:22:08] run.args = /home/kenkoooo/fractal-dimension/agl/bin/box_cover
+[0125 13:22:08] run.args = --force_undirected
+[0125 13:22:08] run.args = --type
+[0125 13:22:08] run.args = gen
+[0125 13:22:08] run.args = --graph
+[0125 13:22:08] run.args = shm 390626 6 2
+[0125 13:22:08] run.args = --rad_analytical
+[0125 13:22:08] run.args = --sketch_k
+[0125 13:22:08] run.args = 256
+[0125 13:22:08] run.args = --pass
+[0125 13:22:08] run.args = 1000
+[0125 13:22:08] run.args = --rad_max
+[0125 13:22:08] run.args = 1000000
+[0125 13:22:08] run.args = --upper_param
+[0125 13:22:08] run.args = 1.0
+[0125 13:22:08] run.args = --exp_tag
+[0125 13:22:08] run.args = exp02
+[0125 13:22:08] run.machine = node03
+[0125 13:22:08] run.date = 2016/01/25 13:22:08
+[0125 13:22:08] run.user = kenkoooo
+[0125 13:22:08] run.pid = 5638
+=========
+  Vertices: 390626
+  Edges: 781250
+  Type: agl::basic_graph<int>
+----------
+  0 -> 78126, 78127, 78128, 78129, 78130, 78131, 78132, 78133, 78134, 78135, ...
+  1 -> 78766, 78767, 78768, 78769, 78770, 78771, 78772, 78773, 78774, 78775, ...
+  2 -> 78894, 78895, 78896, 78897, 78898, 78899, 78900, 78901, 78902, 78903, ...
+  3 -> 79022, 79023, 79024, 79025, 79026, 79027, 79028, 79029, 79030, 79031, ...
+  4 -> 79150, 79151, 79152, 79153, 79154, 79155, 79156, 79157, 79158, 79159, ...
+  ...
+----------
+  0 <- 78126, 78127, 78128, 78129, 78130, 78131, 78132, 78133, 78134, 78135, ...
+  1 <- 78766, 78767, 78768, 78769, 78770, 78771, 78772, 78773, 78774, 78775, ...
+  2 <- 78894, 78895, 78896, 78897, 78898, 78899, 78900, 78901, 78902, 78903, ...
+  3 <- 79022, 79023, 79024, 79025, 79026, 79027, 79028, 79029, 79030, 79031, ...
+  4 <- 79150, 79151, 79152, 79153, 79154, 79155, 79156, 79157, 79158, 79159, ...
+  ...
+=========
+=========
+  Vertices: 390626
+  Edges: 781250
+  Type: agl::basic_graph<int>
+----------
+  0 -> 78126, 78127, 78128, 78129, 78130, 78131, 78132, 78133, 78134, 78135, ...
+  1 -> 78766, 78767, 78768, 78769, 78770, 78771, 78772, 78773, 78774, 78775, ...
+  2 -> 78894, 78895, 78896, 78897, 78898, 78899, 78900, 78901, 78902, 78903, ...
+  3 -> 79022, 79023, 79024, 79025, 79026, 79027, 79028, 79029, 79030, 79031, ...
+  4 -> 79150, 79151, 79152, 79153, 79154, 79155, 79156, 79157, 79158, 79159, ...
+  ...
+----------
+  0 <- 78126, 78127, 78128, 78129, 78130, 78131, 78132, 78133, 78134, 78135, ...
+  1 <- 78766, 78767, 78768, 78769, 78770, 78771, 78772, 78773, 78774, 78775, ...
+  2 <- 78894, 78895, 78896, 78897, 78898, 78899, 78900, 78901, 78902, 78903, ...
+  3 <- 79022, 79023, 79024, 79025, 79026, 79027, 79028, 79029, 79030, 79031, ...
+  4 <- 79150, 79151, 79152, 79153, 79154, 79155, 79156, 79157, 79158, 79159, ...
+  ...
+=========
+[0125 13:22:09] vertices = 390626
+[0125 13:22:09] edges = 781250
+[0125 13:22:09] graph = shm-390626-6-2
+[0125 13:22:09] name = sketch-k.256
+[0125 13:22:09] k = 256
+[0125 13:22:09] pass = 1000
+[0125 13:22:09] upper_param = 1.000000
+0-th building...
+total index 1171876
+1.93969 sec built
+0-th lazy selecting...
+0.543301 sec lazy selected
+size: 78126
+[0125 13:22:12] time = 2.5157
+[0125 13:22:12] size = 78126
+[0125 13:22:12] radius = 1
+[0125 13:22:12] coverage = 1
+0-th building...
+total index 9638166
+18.7172 sec built
+0-th lazy selecting...
+0.999819 sec lazy selected
+size: 15626
+[0125 13:22:32] time = 19.8299
+[0125 13:22:32] size = 15626
+[0125 13:22:32] radius = 4
+[0125 13:22:32] coverage = 1
+0-th building...
+total index 56818376
+139.018 sec built
+0-th lazy selecting...
+3.76503 sec lazy selected
+size: 3126
+[0125 13:24:55] time = 143.185
+[0125 13:24:55] size = 3126
+[0125 13:24:55] radius = 13
+[0125 13:24:55] coverage = 1
+0-th building...
+total index 187573040
+470.13 sec built
+0-th selecting...
+302.185 sec selected
+size: 216
+1-th building...
+total index 187683647
+372.204 sec built
+1-th selecting...
+110.006 sec selected
+size: 456
+2-th building...
+total index 187744507
+517.402 sec built
+2-th selecting...
+144.814 sec selected
+size: 693
+3-th building...
+total index 187511460
+329.017 sec built
+3-th selecting...
+163.168 sec selected
+size: 925
+4-th building...
+total index 187564838
+350.427 sec built
+4-th selecting...
+173.504 sec selected
+size: 1150
+5-th building...
+total index 187408306
+317.71 sec built
+5-th selecting...
+386.454 sec selected
+size: 1384
+6-th building...
+total index 187676720
+338.106 sec built
+6-th selecting...
+101.795 sec selected
+size: 1620
+7-th building...
+total index 187793869
+319.423 sec built
+7-th selecting...
+174.877 sec selected
+size: 1858
+8-th building...
+total index 187415799
+309.01 sec built
+8-th selecting...
+146.059 sec selected
+size: 1990
+[0125 14:48:45] time = 5030.21
+[0125 14:48:45] size = 1990
+[0125 14:48:45] radius = 40
+[0125 14:48:45] coverage = 0.980073
+0-th building...
+total index 344815595
+603.454 sec built
+0-th selecting...
+120.9 sec selected
+size: 98
+1-th building...
+total index 345208909
+617.509 sec built
+1-th selecting...
+160.791 sec selected
+size: 202
+2-th building...
+total index 344374917
+644.429 sec built
+2-th selecting...
+123.339 sec selected
+size: 279
+[0125 15:26:36] time = 2270.73
+[0125 15:26:36] size = 279
+[0125 15:26:36] radius = 121
+[0125 15:26:36] coverage = 0.981658
+0-th building...
+total index 504018828
+948.239 sec built
+0-th selecting...
+101.523 sec selected
+size: 26
+[0125 15:44:06] time = 1049.9
+[0125 15:44:06] size = 26
+[0125 15:44:06] radius = 364
+[0125 15:44:06] coverage = 0.993907
+0-th building...
+total index 661033077
+1212.18 sec built
+0-th selecting...
+105.977 sec selected
+size: 6
+[0125 16:06:05] time = 1318.37
+[0125 16:06:05] size = 6
+[0125 16:06:05] radius = 1093
+[0125 16:06:05] coverage = 1
+0-th building...
+total index 814508382
+1474.24 sec built
+0-th selecting...
+1.23866 sec selected
+size: 1
+[0125 16:30:41] time = 1475.56
+[0125 16:30:41] size = 1
+[0125 16:30:41] radius = 3280
+[0125 16:30:41] coverage = 1
+[0125 16:31:02] run.time = 11333.7
+[0125 16:31:02] run.memory = 46190592
+[0125 16:31:02] JLOG: ./jlog/exp02-sketch-k.256-shm-390626-6-2-upper_param.1.000000-box_cover.node03.jlog.160125-132208.5638
