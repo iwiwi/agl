@@ -56,18 +56,16 @@ TEST(box_cover, build_sketch_check) {
       rank[inv[i]] = i;
     }
 
-    vector<bool> covered(g.num_vertices(), false);
+    coverage_manager cm(g, radius, 1.0);
     for (int cover_trial = 0; cover_trial < 10; ++cover_trial) {
+      vector<bool> covered(g.num_vertices());
+      for (int i = 0; i < g.num_vertices(); ++i) covered[i] = cm.v_covered(i);
+
       vector<vector<V>> naive_x =
           naive_build_sketch(g, radius, k, rank, inv, covered);
-      vector<vector<V>> x = build_sketch(g, radius, k, rank, inv, covered);
+      vector<vector<V>> x = build_sketch(g, radius, k, rank, inv, cm);
       for (V v = 0; v < g.num_vertices(); v++) {
         ASSERT_EQ(naive_x[v], x[v]) << v;
-      }
-
-      for (int i = 0; i < 100; ++i) {
-        int target = agl::random(g.num_vertices());
-        covered[target] = true;
       }
     }
   }
@@ -94,8 +92,9 @@ TEST(box_cover, greedy_small) {
     for (int i = 0; i < g.num_vertices(); ++i) {
       rank[inv[i]] = i;
     }
-    vector<bool> covered(g.num_vertices(), false);
-    vector<vector<V>> X = build_sketch(g, radius, k, rank, inv, covered);
+
+    coverage_manager cm(g, radius, 1.0);
+    vector<vector<V>> X = build_sketch(g, radius, k, rank, inv, cm);
 
     vector<V> centers2;
     {
@@ -138,8 +137,9 @@ TEST(box_cover, greedy_big) {
     for (int i = 0; i < g.num_vertices(); ++i) {
       rank[inv[i]] = i;
     }
-    vector<bool> covered(g.num_vertices(), false);
-    vector<vector<V>> X = build_sketch(g, radius, k, rank, inv, covered);
+
+    coverage_manager cm(g, radius, 1.0);
+    vector<vector<V>> X = build_sketch(g, radius, k, rank, inv, cm);
     // pretty_print(g);
     cerr << "radius: " << radius << endl;
     vector<V> centers1;
@@ -183,8 +183,9 @@ TEST(box_cover, greedy_huge) {
   for (int i = 0; i < g.num_vertices(); ++i) {
     rank[inv[i]] = i;
   }
-  vector<bool> covered(g.num_vertices(), false);
-  vector<vector<V>> X = build_sketch(g, radius, k, rank, inv, covered);
+
+  coverage_manager cm(g, radius, 1.0);
+  vector<vector<V>> X = build_sketch(g, radius, k, rank, inv, cm);
   pretty_print(g);
   cerr << "radius: " << radius << endl;
   vector<V> centers1;
@@ -227,8 +228,9 @@ TEST(box_cover, coverage_management) {
     for (int i = 0; i < g.num_vertices(); ++i) {
       rank[inv[i]] = i;
     }
-    vector<bool> covered(g.num_vertices(), false);
-    vector<vector<V>> X = build_sketch(g, radius, k, rank, inv, covered);
+
+    coverage_manager cmtmp(g, radius, 1.0);
+    vector<vector<V>> X = build_sketch(g, radius, k, rank, inv, cmtmp);
     pretty_print(g);
     cerr << "radius: " << radius << endl;
     vector<V> centers;
@@ -259,8 +261,9 @@ TEST(box_cover, coverage_break) {
     for (int i = 0; i < g.num_vertices(); ++i) {
       rank[inv[i]] = i;
     }
-    vector<bool> covered(g.num_vertices(), false);
-    vector<vector<V>> X = build_sketch(g, radius, k, rank, inv, covered);
+
+    coverage_manager cmtmp(g, radius, 1.0);
+    vector<vector<V>> X = build_sketch(g, radius, k, rank, inv, cmtmp);
     pretty_print(g);
     vector<bool> centered(g.num_vertices(), false);
 
@@ -325,8 +328,8 @@ TEST(box_cover, lazy_greedily) {
     cerr << rad << endl;
 
     timer = -get_current_time_sec();
-    vector<bool> centered(g.num_vertices(), false);
-    auto X = build_sketch(g, rad, k, rank, inv, centered);
+    coverage_manager cm(g, rad, 0.98);
+    auto X = build_sketch(g, rad, k, rank, inv, cm);
     timer += get_current_time_sec();
     cerr << timer << endl;
     timer = -get_current_time_sec();
@@ -335,8 +338,8 @@ TEST(box_cover, lazy_greedily) {
       if (x.size() == k) cnt += 1.0;
     cnt /= X.size();
 
-    coverage_manager cm(g, rad, 0.98);
     vector<V> centers;
+    vector<bool> centered(g.num_vertices(), false);
     select_lazy_greedily(g, X, centers, centered, cm);
     timer += get_current_time_sec();
     cerr << cnt << endl;
@@ -366,5 +369,54 @@ TEST(box_cover, coloring) {
   vector<pair<W, size_t>> coloring = box_cover_coloring(g, largest);
   for (auto c : coloring) {
     cerr << c << endl;
+  }
+}
+
+TEST(box_cover, fast_build_sketch) {
+  for (int trial = 0; trial < 10; ++trial) {
+    const W radius = agl::random(6) + 2;
+    const int k = agl::random(512) + 128;
+    V u = 2, v = 2;
+    auto es = generate_uv_flower(10000, u, v);
+    G g(make_undirected(es));
+    pretty_print(g);
+
+    vector<V> rank(g.num_vertices());
+    vector<V> inv(g.num_vertices());
+    for (V i = 0; i < g.num_vertices(); ++i) {
+      inv[i] = i;
+    }
+    random_shuffle(inv.begin(), inv.end());
+    for (int i = 0; i < g.num_vertices(); ++i) {
+      rank[inv[i]] = i;
+    }
+    coverage_manager cm(g, radius, 1.0);
+
+    double timer = -get_current_time_sec();
+    vector<vector<V>> bX = build_sketch(g, radius, k, rank, inv, cm);
+    timer += get_current_time_sec();
+    cerr << timer << " sec" << endl;
+    bool use_memb = false;
+
+    timer = -get_current_time_sec();
+    vector<vector<V>> fX =
+        fast_build_sketch(g, radius, k, rank, cm, use_memb, 1000000000);
+    timer += get_current_time_sec();
+    cerr << timer << " sec" << endl;
+
+    if (bX != fX) {
+      int N = bX.size();
+      for (int i = 0; i < N; ++i) {
+        if (bX[i].size() != fX[i].size()) {
+          cerr << i << endl;
+          cerr << bX[i].size() << " " << fX[i].size() << endl;
+          V mi = min(bX[i].size(), fX[i].size());
+          for (int v = 0; v < mi; ++v) {
+            cerr << bX[i][v] << " " << fX[i][v] << endl;
+          }
+        }
+      }
+    }
+    ASSERT_EQ(bX, fX);
   }
 }

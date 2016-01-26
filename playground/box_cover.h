@@ -44,6 +44,8 @@ class coverage_manager {
   double get_current_coverage() { return (double)cnt / num_v; }
 
   bool is_covered() { return get_current_coverage() >= goal_coverage; }
+
+  bool v_covered(V v) const { return dist[v] <= radius; }
 };
 
 vector<pair<W, V>> find_analytical_solution(const string &type, V u, V v,
@@ -61,11 +63,15 @@ vector<vector<V>> naive_build_sketch(const G &g, const W radius, const int k,
                                      const vector<bool> &is_covered);
 vector<vector<V>> build_sketch(const G &g, const W radius, const int k,
                                const vector<V> &rank, const vector<V> &inv,
-                               const vector<bool> &is_covered);
+                               const coverage_manager &cm);
 vector<vector<V>> build_sketch(const G &g, const W radius, const int k,
                                const vector<V> &rank, const vector<V> &inv,
-                               const vector<bool> &is_covered, bool &use_memb,
+                               const coverage_manager &cm, bool &use_memb,
                                size_t size_upper_bound);
+vector<vector<V>> fast_build_sketch(const G &g, const W radius, const int k,
+                                    const vector<V> &rank,
+                                    const coverage_manager &cm, bool &use_memb,
+                                    size_t size_upper_bound);
 
 void naive_select_greedily(const G &g, const vector<vector<V>> &X,
                            vector<V> &centers, vector<bool> &centered,
@@ -106,4 +112,4 @@ vector<vector<V>> box_cover_original(const G &g, W diameter);
 vector<vector<V>> box_cover_cbb(const G &g, W diameter);
 
 //! Song et al. 2007 (Section 2)
-vector<pair<W, size_t>>  box_cover_coloring(const G &g, W diameter);
+vector<pair<W, size_t>> box_cover_coloring(const G &g, W diameter);

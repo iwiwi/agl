@@ -463,9 +463,9 @@ vector<vector<V>> naive_build_sketch(const G &g, const W radius, const int k,
 
 vector<vector<V>> build_sketch(const G &g, const W radius, const int k,
                                const vector<V> &rank, const vector<V> &inv,
-                               const vector<bool> &is_covered) {
+                               const coverage_manager &cm) {
   bool t = false;
-  return build_sketch(g, radius, k, rank, inv, is_covered, t, rank.size() * k);
+  return build_sketch(g, radius, k, rank, inv, cm, t, rank.size() * k);
 }
 
 /**
@@ -477,7 +477,7 @@ vector<vector<V>> build_sketch(const G &g, const W radius, const int k,
  */
 vector<vector<V>> build_sketch(const G &g, const W radius, const int k,
                                const vector<V> &rank, const vector<V> &inv,
-                               const vector<bool> &is_covered, bool &use_memb,
+                               const coverage_manager &cm, bool &use_memb,
                                size_t size_upper_bound) {
   V num_v = g.num_vertices();
   vector<set<V>> X(num_v);
@@ -491,7 +491,7 @@ vector<vector<V>> build_sketch(const G &g, const W radius, const int k,
   size_t total_size = 0;
 
   for (V i = 0; i < num_v; ++i) {
-    if (is_covered[i]) continue;
+    if (cm.v_covered(i)) continue;
     X[i].insert(rank[i]);
     previous_added[i].push_back(i);
     total_size++;
@@ -536,6 +536,59 @@ vector<vector<V>> build_sketch(const G &g, const W radius, const int k,
 
   cerr << "total index " << total_size << endl;
   return ret;
+}
+
+vector<vector<V>> fast_build_sketch(const G &g, const W radius, const int k,
+                                    const vector<V> &rank,
+                                    const coverage_manager &cm, bool &use_memb,
+                                    size_t size_upper_bound) {
+  V N = g.num_vertices();
+  size_t using_k = use_memb ? N * N : k;
+  size_t total_size = 0;
+
+  vector<vector<V>> X;
+  for (V v = 0; v < N; ++v) {
+    set<V> xv;
+    if (cm.v_covered(v)) continue;
+
+    // BFS
+    vector<bool> used(N, false);
+    queue<V> que;
+    que.push(v);
+    xv.insert(rank[v]);
+    used[v] = true;
+    for (W d = 0; d < radius; ++d) {
+      size_t s = que.size();
+      for (size_t t = 0; t < s; ++t) {
+        V u = que.front();
+        que.pop();
+        for (const auto &w : g.neighbors(u)) {
+          if (used[w]) continue;
+          que.push(w);
+          used[w] = true;
+
+          // Merge & Purify
+          auto inserted = xv.insert(rank[w]);
+          if (inserted.second) {
+            if (xv.size() > using_k) xv.erase(*xv.rbegin());
+            total_size++;
+          }
+
+          // Size Change
+          if (!use_memb || total_size <= size_upper_bound) continue;
+          use_memb = false;
+          using_k = k;
+          for (V tv = 0; tv < v; ++tv)
+            while (X[tv].size() > using_k) X[tv].pop_back();
+          while (xv.size() > using_k) xv.erase(*xv.rbegin());
+        }
+      }
+    }
+    //--BFS
+    vector<V> vxv(xv.begin(), xv.end());
+    X.push_back(vxv);
+  }
+  return X;
 }
 
 void select_lazy_greedily(const G &g, const vector<vector<V>> &X,
@@ -827,7 +880,6 @@ vector<V> box_cover_sketch(const G &g, W radius, const int k,
   const V num_v = g.num_vertices();
 
   vector<V> centers;
-  vector<bool> is_covered(num_v, false);
   vector<bool> centered(num_v, false);
   vector<V> rank(num_v);
   vector<V> inv(num_v);
@@ -849,8 +901,8 @@ vector<V> box_cover_sketch(const G &g, W radius, const int k,
 
     timer = -get_current_time_sec();
     cerr << pass_trial << "-th building..." << endl;
-    vector<vector<V>> X = build_sketch(g, radius, k, rank, inv, is_covered,
-                                       use_memb, upper_param * num_v * k);
+    vector<vector<V>> X = fast_build_sketch(g, radius, k, rank, cm, use_memb,
+                                            upper_param * num_v * k);
     timer += get_current_time_sec();
     cerr << timer << " sec built" << endl;
 
