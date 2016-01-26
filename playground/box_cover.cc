@@ -547,25 +547,28 @@ vector<vector<V>> fast_build_sketch(const G &g, const W radius, const int k,
   size_t total_size = 0;
 
   vector<vector<V>> X;
+  vector<int> used(N, -1);
   for (V v = 0; v < N; ++v) {
     set<V> xv;
-    if (cm.v_covered(v)) continue;
+    if (cm.v_covered(v)) {
+      X.push_back(vector<V>());
+      continue;
+    }
 
     // BFS
-    vector<bool> used(N, false);
     queue<V> que;
     que.push(v);
     xv.insert(rank[v]);
-    used[v] = true;
+    used[v] = v;
     for (W d = 0; d < radius; ++d) {
       size_t s = que.size();
       for (size_t t = 0; t < s; ++t) {
         V u = que.front();
         que.pop();
         for (const auto &w : g.neighbors(u)) {
-          if (used[w]) continue;
+          if (used[w] == v) continue;
           que.push(w);
-          used[w] = true;
+          used[w] = v;
 
           // Merge & Purify
           auto inserted = xv.insert(rank[w]);
@@ -688,7 +691,7 @@ void select_greedily(const G &g, const vector<vector<V>> &X, vector<V> &centers,
   // Initialization
   //
   for (V p = 0; p < num_v; ++p) {
-    if (centered[p]) continue;
+    if (centered[p] || X[p].empty()) continue;
     k1[p] = X[p].size();
     k2[p] = k - k1[p];
     if (X[p].size() == (size_t)k) {
@@ -923,6 +926,7 @@ vector<V> box_cover_sketch(const G &g, W radius, const int k,
     cerr << "size: " << centers.size() << endl;
 
     if (cm.is_covered()) break;
+    cerr << cm.get_current_coverage() << endl;
   }
 
   aim_coverage = cm.get_current_coverage();
