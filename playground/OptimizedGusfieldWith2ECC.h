@@ -1,5 +1,6 @@
 #pragma once
 #include "ConnectedComponentsFilter.h"
+#include "dinic_using_ma_ordering.h"
 
 DEFINE_string(gusfield_choice_stpair_strategy, "sequential", "sequential, sort_by_degree_ascending, sort_by_degree_desending, random");
 
@@ -40,12 +41,37 @@ class OptimizedGusfieldWith2ECC {
     }
   }
 
+  void test(vector<pair<V, V>>& edges, int num_vs) {
+    dinic_twosided dt(edges, num_vs);
+    dinic_using_ma_ordering dumo(edges, num_vs);
+
+    for (auto ab : edges) {
+      printf("%d -- %d\n", ab.first, ab.second);
+    }
+
+    FOR(i, num_vs) {
+      for (int j = i + 1; j < num_vs; j++) {
+        dt.reset_graph();
+        int a = dt.max_flow(i, j);
+        dumo.reset_graph();
+        int b = dumo.max_flow(i, j);
+        printf("(%d, %d) : %d , %d ",i, j, a, b);
+        if (a != b) {
+          printf("?");
+        }
+        printf("\n");
+      }
+    }
+  }
+
 public:
 
   OptimizedGusfieldWith2ECC(vector<pair<V, V>>& edges, int num_vs) :
     num_vertices_(num_vs),
     parent_weight_(num_vs, make_pair(-1, 0)),
     depth_(num_vs, -1) {
+
+  //test(edges, num_vs);
 
     vector<int> degree(num_vertices_);
     for (auto& e : edges) degree[e.first]++, degree[e.second]++;
@@ -70,7 +96,7 @@ public:
 
     gusfield_choice_stpair(mincut_order, degree);
 
-    dinic_twosided dc_base(edges, num_vs);
+  dinic_using_ma_ordering dc_base(edges, num_vs);
     vector<int> used(num_vertices_);
     queue<int> q;
     for (V s : mincut_order) {
@@ -88,11 +114,12 @@ public:
       used[s] = F;
       while (!q.empty()) {
         V v = q.front(); q.pop();
-        for (auto& e : dc_base.e[v]) {
-          if (e.cap(dc_base.graph_revision) == 0 || used[e.to] == F) continue;
-          used[e.to] = F;
-          q.push(e.to);
-          if (parent_weight_[e.to].first == t) parent_weight_[e.to].first = s;
+        for (auto& e : dc_base.eref[v]) {
+      const int to = e->to(v);
+          if (e->cap(v, dc_base.graph_revision) == 0 || used[to] == F) continue;
+          used[to] = F;
+          q.push(to);
+          if (parent_weight_[to].first == t) parent_weight_[to].first = s;
         }
       }
     }
