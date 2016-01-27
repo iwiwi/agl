@@ -79,46 +79,58 @@ class OptimizedGusfieldWith2ECC {
   }
 
   void prune_obvious_mincut(greedy_treepacking& packing, parent_tree_set& pts, vector<int>& mincut_order, const vector<int>& degree) {
+    vector<int> current_parent(num_vertices_, -1);
 
-    //次数の高い頂点から順に、 一定回数 greedy tree packingを行って、flowの下界を求める
-
-
-    vector<bool> used(num_vertices_);
     if(FLAGS_enable_greedy_tree_packing) {
+      //次数の高い頂点から順に、 一定回数 greedy tree packingを行って、flowの下界を求める
       const int iteration = min(FLAGS_try_greedy_tree_packing, num_vertices_);
       vector<int> idx(num_vertices_);
       FOR(i, num_vertices_) idx[i] = i;
       partial_sort(idx.begin(), idx.end(), idx.begin() + iteration, [&degree](int l, int r) {
         return degree[l] > degree[r];
       });
+
       FOR(trying, iteration) {
         const V v = idx[trying];
         packing.arborescence_packing(v);
+        if(current_parent[v] != -1) {
+          current_parent[v] = v; // 閉路が出来上がるのを防ぐために、親を自分自身であると登録しておく
+        }
         FOR(to, num_vertices_) {
           if (to == v) continue;
-          if (used[to]) continue;
+          if (current_parent[to] != -1) continue;
           //tree packingの結果がdegreeと一致するなら、flowは流さなくてよい
           if (packing.inedge_count(to) == degree[to]) {
-            used[to] = true;
-            if (to == root_node_) {
-              // root nodeの差し替え
-              pts.change_parent(root_node_, v);
-              root_node_ = v;
-            }
-            pts.set_parent(to, v);
+            current_parent[to] = v;
+          // pts.set_parent(to, v);
             parent_weight_[to].second = packing.inedge_count(to);
 
             // fprintf(stderr, "(%d, %d), cost = %d\n",v, to, packing.inedge_count(to));
           }
         }
       }
+
+      //閉路が出来上がるのを防ぐためcurrent_parentに代入していた値を、元に戻す
+      FOR(trying, iteration) {
+        const V v = idx[trying];
+        if(current_parent[v] == v) current_parent[v] = -1;
+      }
+
+    }
+
+    // root nodeの差し替え
+    if(current_parent[root_node_] != -1) {
+      pts.change_parent(root_node_, current_parent[root_node_]);
+      root_node_ = current_parent[root_node_];
     }
 
     // cutの求まっていない頂点達について、gusfieldでcutを求める
     FOR(v, num_vertices_) {
       if (v == root_node_) continue;
-      if (used[v]) continue;
-      if (degree[v] == 2) {
+      if (current_parent[v] != -1) {
+        pts.set_parent(v, current_parent[v]);
+      } else if (degree[v] == 2) {
+        pts.set_parent(v, root_node_);
         parent_weight_[v].second = 2; //ついでに自明なcutを求める
       } else {
         mincut_order.push_back(v);
