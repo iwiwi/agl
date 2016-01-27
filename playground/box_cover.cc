@@ -490,7 +490,7 @@ vector<vector<V>> build_sketch(const G &g, const W radius, const int k,
   size_t total_size = 0;
 
   for (V i = 0; i < num_v; ++i) {
-    if (cm.is_center(i)) continue;
+    if (cm.v_covered(i)) continue;
     X[i].insert(rank[i]);
     previous_added[i].push_back(i);
     total_size++;
@@ -558,7 +558,7 @@ vector<vector<V>> fast_build_sketch(const G &g, const W radius, const int k,
   vector<int> used(N, -1);
   for (V v = 0; v < N; ++v) {
     set<V> xv;
-    if (cm.is_center(v)) {
+    if (cm.v_covered(v)) {
       X.push_back(vector<V>());
       continue;
     }
