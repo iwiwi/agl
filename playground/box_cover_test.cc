@@ -338,9 +338,18 @@ TEST(box_cover, lazy_greedily) {
       if (x.size() == k) cnt += 1.0;
     cnt /= X.size();
 
+    vector<V> rank(g.num_vertices());
+    vector<V> inv(g.num_vertices());
+    for (V i = 0; i < g.num_vertices(); ++i) {
+      inv[i] = i;
+    }
+    random_shuffle(inv.begin(), inv.end());
+    for (int i = 0; i < g.num_vertices(); ++i) {
+      rank[inv[i]] = i;
+    }
     vector<V> centers;
     vector<bool> centered(g.num_vertices(), false);
-    select_lazy_greedily(g, X, centers, centered, cm);
+    select_lazy_greedily(g, X, rank, inv, centers, centered, cm);
     timer += get_current_time_sec();
     cerr << cnt << endl;
     cerr << centers.size() << " " << timer << endl;

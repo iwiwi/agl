@@ -491,7 +491,7 @@ vector<vector<V>> build_sketch(const G &g, const W radius, const int k,
   size_t total_size = 0;
 
   for (V i = 0; i < num_v; ++i) {
-    if (cm.v_covered(i)) continue;
+    if (cm.is_center(i)) continue;
     X[i].insert(rank[i]);
     previous_added[i].push_back(i);
     total_size++;
@@ -550,7 +550,7 @@ vector<vector<V>> fast_build_sketch(const G &g, const W radius, const int k,
   vector<int> used(N, -1);
   for (V v = 0; v < N; ++v) {
     set<V> xv;
-    if (cm.v_covered(v)) {
+    if (cm.is_center(v)) {
       X.push_back(vector<V>());
       continue;
     }
@@ -595,17 +595,19 @@ vector<vector<V>> fast_build_sketch(const G &g, const W radius, const int k,
 }
 
 void select_lazy_greedily(const G &g, const vector<vector<V>> &X,
+                          const vector<V> &rank, const vector<V> &inv,
                           vector<V> &centers, vector<bool> &centered,
                           coverage_manager &cm) {
   cm.goal_coverage = 1.0;
+  // cerr << "lazy goal: " << cm.goal_coverage << endl;
   vector<bool> rank_covered(X.size(), false);
 
   priority_queue<pair<V, V>> que;
   vector<V> box_size(X.size());
-  for (size_t i = 0; i < X.size(); ++i) {
-    if (X[i].size() == 0 || centered[i]) continue;
-    box_size[i] = X[i].size();
-    que.push({box_size[i], i});
+  for (size_t box = 0; box < X.size(); ++box) {
+    if (X[box].size() == 0 || centered[box]) continue;
+    box_size[box] = X[box].size();
+    que.push({box_size[box], rank[box]});
   }
 
   vector<vector<V>> inverted(X.size());
@@ -614,11 +616,12 @@ void select_lazy_greedily(const G &g, const vector<vector<V>> &X,
 
   while (!que.empty() && !cm.is_covered()) {
     V s = que.top().first;
-    V v = que.top().second;
+    V rank_box = que.top().second;
+    V v = inv[rank_box];
     que.pop();
     if (centered[v]) continue;
     if (box_size[v] != s) {
-      que.push({box_size[v], v});
+      que.push({box_size[v], rank[v]});
       continue;
     }
 
@@ -912,7 +915,7 @@ vector<V> box_cover_sketch(const G &g, W radius, const int k,
     if (use_memb) {
       timer = -get_current_time_sec();
       cerr << pass_trial << "-th lazy selecting..." << endl;
-      select_lazy_greedily(g, X, centers, centered, cm);
+      select_lazy_greedily(g, X, rank, inv, centers, centered, cm);
       timer += get_current_time_sec();
       cerr << timer << " sec lazy selected" << endl;
     } else {

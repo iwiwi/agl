@@ -46,6 +46,8 @@ class coverage_manager {
   bool is_covered() { return get_current_coverage() >= goal_coverage; }
 
   bool v_covered(V v) const { return dist[v] <= radius; }
+
+  bool is_center(V v) const { return dist[v] == 0; }
 };
 
 vector<pair<W, V>> find_analytical_solution(const string &type, V u, V v,
@@ -79,6 +81,7 @@ void naive_select_greedily(const G &g, const vector<vector<V>> &X,
 void select_greedily(const G &g, const vector<vector<V>> &X, vector<V> &centers,
                      vector<bool> &centered, const int k, coverage_manager &cm);
 void select_lazy_greedily(const G &g, const vector<vector<V>> &X,
+                          const vector<V> &rank, const vector<V> &inv,
                           vector<V> &centers, vector<bool> &centered,
                           coverage_manager &cm);
 

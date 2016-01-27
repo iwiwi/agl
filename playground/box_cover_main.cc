@@ -195,6 +195,7 @@ int main(int argc, char** argv) {
   string rad_str = to_string(FLAGS_rad_max);
   while (rad_str.size() < 3) rad_str = "0" + rad_str;
   JLOG_INSERT_FILENAME("-upper_param." + to_string(FLAGS_upper_param) + "-");
+  JLOG_INSERT_FILENAME("-coverage." + to_string(FLAGS_final_coverage) + "-");
   JLOG_INSERT_FILENAME("-" + graph_name);
   JLOG_INSERT_FILENAME(experiment_name);
   if (FLAGS_exp_tag.size() != 0) {
