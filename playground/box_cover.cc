@@ -486,7 +486,6 @@ vector<vector<V>> build_sketch(const G &g, const W radius, const int k,
   //
   // Build-Sketches O((n+m)*rad)
   //
-
   size_t using_k = use_memb ? num_v * num_v : k;
   size_t total_size = 0;
 
@@ -511,16 +510,25 @@ vector<vector<V>> build_sketch(const G &g, const W radius, const int k,
           }
           auto inserted = xn.insert(rv);
           while (xn.size() > using_k) {
-            xn.erase(*xn.rbegin());
+            auto it = xn.end();
+            it--;
+            xn.erase(it);
           }
           if (inserted.second && *xn.rbegin() >= rv) {
             next.push_back(neighbor);
             total_size++;
           }
         }
-        if (total_size >= size_upper_bound) {
+
+        if (use_memb && total_size >= size_upper_bound) {
           using_k = k;
           use_memb = false;
+          for (V i = 0; i < num_v; ++i)
+            while (X[i].size() > using_k) {
+              auto it = X[i].end();
+              it--;
+              X[i].erase(it);
+            }
         }
       }
       previous_added[v].swap(next);
@@ -905,11 +913,13 @@ vector<V> box_cover_sketch(const G &g, W radius, const int k,
     }
     bool use_memb = true;
 
-    timer = -get_current_time_sec();
     cerr << pass_trial << "-th building..." << endl;
-    vector<vector<V>> X = fast_build_sketch(g, radius, k, rank, cm, use_memb,
-                                            upper_param * num_v * k);
+
+    timer = -get_current_time_sec();
+    vector<vector<V>> X = build_sketch(g, radius, k, rank, inv, cm, use_memb,
+                                       num_v * k * upper_param);
     timer += get_current_time_sec();
+    cerr << "build_sketch():" << endl;
     cerr << timer << " sec built" << endl;
 
     if (use_memb) {
