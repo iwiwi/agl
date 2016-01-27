@@ -15,6 +15,7 @@ DEFINE_string(method, "gusfield", "test, gusfield, print_gomory_hu_tree");
 #include "dinic_twosided.h"
 #include "ConnectedComponentsFilter.h"
 #include "TwoEdgeCCFilter.h"
+#include "OptimizedGusfield.h"
 #include "OptimizedGusfieldWith2ECC.h"
 #include "OptimizedGusfieldWith2ECC2.h"
 
@@ -67,7 +68,6 @@ map<int, vector<pair<V, V>>> f(T& gf) {
 }
 
 void test(G&& g) {
-
   Gusfield3 gf3(g);
   Gusfield4 gf4(g);
   auto l = f(gf3);
@@ -171,11 +171,10 @@ void test(G&& g) {
 }
 
 void tester() {
-  //FLAGS_validation_data_path = "Gusfield3.data";
-  //print_gomory_hu_tree<Gusfield3>(to_directed_graph(built_in_graph("karate_club")));
-  //FLAGS_validation_data_path = "Gusfield4.data";
-  //print_gomory_hu_tree<Gusfield4>(to_directed_graph(built_in_graph("karate_club")));
-  test(to_directed_graph(built_in_graph("karate_club")));
+  FLAGS_validation_data_path = "Gusfield3.data";
+  print_gomory_hu_tree<Gusfield3>(to_directed_graph(built_in_graph("karate_club")));
+  FLAGS_validation_data_path = "Gusfield4.data";
+  print_gomory_hu_tree<Gusfield4>(to_directed_graph(built_in_graph("karate_club")));
   test(to_directed_graph(built_in_graph("dolphin")));
   test(to_directed_graph(built_in_graph("ca_grqc")));
   exit(0);
@@ -200,6 +199,8 @@ void main_(G&& g) {
 }
 
 int main(int argc, char** argv) {
+
+  // tester();
 
   G g = easy_cui_init(argc, argv);
   g = to_directed_graph(g);
