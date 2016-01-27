@@ -81,19 +81,19 @@ class OptimizedGusfieldWith2ECC {
   void prune_obvious_mincut(greedy_treepacking& packing, parent_tree_set& pts, vector<int>& mincut_order, const vector<int>& degree) {
     vector<int> current_parent(num_vertices_, -1);
 
-    if(FLAGS_enable_greedy_tree_packing) {
+    if (FLAGS_enable_greedy_tree_packing) {
       //次数の高い頂点から順に、 一定回数 greedy tree packingを行って、flowの下界を求める
       const int iteration = min(FLAGS_try_greedy_tree_packing, num_vertices_);
       vector<int> idx(num_vertices_);
       FOR(i, num_vertices_) idx[i] = i;
-      partial_sort(idx.begin(), idx.end(), idx.begin() + iteration, [&degree](int l, int r) {
+      partial_sort(idx.begin(), idx.begin() + iteration, idx.end(), [&degree](int l, int r) {
         return degree[l] > degree[r];
       });
 
       FOR(trying, iteration) {
         const V v = idx[trying];
         packing.arborescence_packing(v);
-        if(current_parent[v] != -1) {
+        if (current_parent[v] != -1) {
           current_parent[v] = v; // 閉路が出来上がるのを防ぐために、親を自分自身であると登録しておく
         }
         FOR(to, num_vertices_) {
@@ -102,7 +102,7 @@ class OptimizedGusfieldWith2ECC {
           //tree packingの結果がdegreeと一致するなら、flowは流さなくてよい
           if (packing.inedge_count(to) == degree[to]) {
             current_parent[to] = v;
-          // pts.set_parent(to, v);
+            // pts.set_parent(to, v);
             parent_weight_[to].second = packing.inedge_count(to);
 
             // fprintf(stderr, "(%d, %d), cost = %d\n",v, to, packing.inedge_count(to));
@@ -113,13 +113,13 @@ class OptimizedGusfieldWith2ECC {
       //閉路が出来上がるのを防ぐためcurrent_parentに代入していた値を、元に戻す
       FOR(trying, iteration) {
         const V v = idx[trying];
-        if(current_parent[v] == v) current_parent[v] = -1;
+        if (current_parent[v] == v) current_parent[v] = -1;
       }
 
     }
 
     // root nodeの差し替え
-    if(current_parent[root_node_] != -1) {
+    if (current_parent[root_node_] != -1) {
       pts.change_parent(root_node_, current_parent[root_node_]);
       root_node_ = current_parent[root_node_];
     }
@@ -137,10 +137,10 @@ class OptimizedGusfieldWith2ECC {
       }
     }
 
-    if(num_vertices_ > 50) {
+    if (num_vertices_ > 50) {
       JLOG_OPEN("prune") {
-        JLOG_ADD("num_vs",num_vertices_);
-        JLOG_ADD("pruned",num_vertices_ - 1 - sz(mincut_order));
+        JLOG_ADD("num_vs", num_vertices_);
+        JLOG_ADD("pruned", num_vertices_ - 1 - sz(mincut_order));
       }
     }
 
