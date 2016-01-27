@@ -185,6 +185,7 @@ void main_(G&& g) {
   } else if (FLAGS_method == "gusfield") {
     JLOG_PUT_BENCHMARK("gusfield_time") {
       T gf(g);
+      JLOG_ADD("try_greedy_tree_packing", FLAGS_try_greedy_tree_packing);
       JLOG_ADD("getcap_counter", getcap_counter);
       JLOG_ADD("addcap_counter", addcap_counter);
 }
