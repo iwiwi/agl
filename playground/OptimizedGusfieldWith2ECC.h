@@ -125,7 +125,7 @@ class OptimizedGusfieldWith2ECC {
       }
     }
 
-    if(num_vertices_ > 10) {
+    if(num_vertices_ > 50) {
       JLOG_OPEN("prune") {
         JLOG_ADD("num_vs",num_vertices_);
         JLOG_ADD("pruned",num_vertices_ - 1 - sz(mincut_order));
