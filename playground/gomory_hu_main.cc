@@ -18,6 +18,7 @@ DEFINE_string(method, "gusfield", "test, gusfield, print_gomory_hu_tree");
 #include "OptimizedGusfield.h"
 #include "OptimizedGusfieldWith2ECC.h"
 #include "OptimizedGusfieldWith2ECC2.h"
+#include "greedy_treepacking.h"
 
 G to_directed_graph(G g) {
   vector<pair<V, V>> ret;
@@ -171,10 +172,7 @@ void test(G&& g) {
 }
 
 void tester() {
-  FLAGS_validation_data_path = "Gusfield3.data";
-  print_gomory_hu_tree<Gusfield3>(to_directed_graph(built_in_graph("karate_club")));
-  FLAGS_validation_data_path = "Gusfield4.data";
-  print_gomory_hu_tree<Gusfield4>(to_directed_graph(built_in_graph("karate_club")));
+  test(to_directed_graph(built_in_graph("karate_club")));
   test(to_directed_graph(built_in_graph("dolphin")));
   test(to_directed_graph(built_in_graph("ca_grqc")));
   exit(0);
