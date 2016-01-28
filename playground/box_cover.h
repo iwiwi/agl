@@ -80,10 +80,11 @@ void naive_select_greedily(const G &g, const vector<vector<V>> &X,
                            const int k);
 void select_greedily(const G &g, const vector<vector<V>> &X, vector<V> &centers,
                      vector<bool> &centered, const int k, coverage_manager &cm);
+void select_greedily(const G &g, const vector<vector<V>> &X, vector<V> &centers,
+                     const int k, coverage_manager &cm);
 void select_lazy_greedily(const G &g, const vector<vector<V>> &X,
                           const vector<V> &rank, const vector<V> &inv,
-                          vector<V> &centers, vector<bool> &centered,
-                          coverage_manager &cm);
+                          vector<V> &centers, coverage_manager &cm);
 
 //
 // Radius-based Methods:
