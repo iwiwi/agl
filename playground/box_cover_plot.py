@@ -84,13 +84,13 @@ def saveFig(jsonData):
     name = jsonData['name']
 
     plt.xlim(xmin=0.5)
-    # plt.xlim(xmax=100000)
+    plt.xlim(xmax=10000)
     plt.ylim(ymin=1)
-    plt.ylim(ymax=10000000)
+    plt.ylim(ymax=100000)
     plt.xscale("log")
     plt.yscale("log")
     plt.legend(loc='best', fontsize=18)
-    plt.savefig(graph_name + "_" + str(vertices) + "_" + name + ".pdf")
+    plt.savefig(graph_name + "_" + str(vertices) + "_" + name + ".png")
 
 
 def theoreticalValue(beta, x):
@@ -155,7 +155,7 @@ if __name__ == "__main__":
 
         px, py, pname = xy_from_json(json_data)
         # plt.plot(px, py, 'o', label=pname)
-        plt.plot(px, py, 'o', label="$(3,4)-flower$")
+        plt.plot(px, py, 'o', label=json_data['name'])
 
         initialValue = linearRegression(px, py)
         result = scipy.optimize.leastsq(fitFunc, initialValue, args=(px, py))
@@ -163,6 +163,8 @@ if __name__ == "__main__":
             expoFit, initialValue, args=(px, py))
         plotLine(result[0])
         plotExpo(expoResult[0])
+        print fitFunc(result[0], px, py)
+        print expoFit(expoResult[0], px, py)
         # plotAnalytical(json_data)
         saveFig(json_data)
         # plt.close()
