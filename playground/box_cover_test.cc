@@ -348,8 +348,7 @@ TEST(box_cover, lazy_greedily) {
       rank[inv[i]] = i;
     }
     vector<V> centers;
-    vector<bool> centered(g.num_vertices(), false);
-    select_lazy_greedily(g, X, rank, inv, centers, centered, cm);
+    select_lazy_greedily(g, X, rank, inv, centers, cm);
     timer += get_current_time_sec();
     cerr << cnt << endl;
     cerr << centers.size() << " " << timer << endl;
@@ -382,9 +381,9 @@ TEST(box_cover, coloring) {
 }
 
 TEST(box_cover, fast_build_sketch) {
-  for (int trial = 0; trial < 10; ++trial) {
-    const W radius = agl::random(6) + 2;
-    const int k = agl::random(512) + 128;
+  for (int trial = 0; trial < 5; ++trial) {
+    const W radius = 256;
+    const int k = 128;
     V u = 2, v = 2;
     auto es = generate_uv_flower(10000, u, v);
     G g(make_undirected(es));
@@ -401,17 +400,19 @@ TEST(box_cover, fast_build_sketch) {
     }
     coverage_manager cm(g, radius, 1.0);
 
+    cerr << "k: " << k << endl;
+    cerr << "radius: " << radius << endl;
     double timer = -get_current_time_sec();
     vector<vector<V>> bX = build_sketch(g, radius, k, rank, inv, cm);
     timer += get_current_time_sec();
-    cerr << timer << " sec" << endl;
+    cerr << "build_sketch():" << timer << " sec" << endl;
     bool use_memb = false;
 
     timer = -get_current_time_sec();
     vector<vector<V>> fX =
         fast_build_sketch(g, radius, k, rank, cm, use_memb, 1000000000);
     timer += get_current_time_sec();
-    cerr << timer << " sec" << endl;
+    cerr << "fast_build_sketch():" << timer << " sec" << endl;
 
     if (bX != fX) {
       int N = bX.size();
@@ -427,5 +428,25 @@ TEST(box_cover, fast_build_sketch) {
       }
     }
     ASSERT_EQ(bX, fX);
+  }
+}
+
+TEST(box_cover, covered_check) {
+  for (int trial = 0; trial < 10; ++trial) {
+    V N = agl::random(1000) + 1000;
+    W radius = agl::random(10) + 10;
+    int k = 128;
+    auto es = generate_uv_flower(N, 2, 2);
+    G g(make_undirected(es));
+    coverage_manager cm(g, radius, 1.0);
+    vector<V> rank(g.num_vertices());
+    vector<V> inv(g.num_vertices());
+    for (V i = 0; i < g.num_vertices(); ++i) inv[i] = i;
+    random_shuffle(inv.begin(), inv.end());
+    for (int i = 0; i < g.num_vertices(); ++i) rank[inv[i]] = i;
+
+    cm.add(g, 0);
+    vector<vector<V>> X = build_sketch(g, radius, k, rank, inv, cm);
+    ASSERT_TRUE(X[0].empty());
   }
 }
