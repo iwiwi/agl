@@ -491,6 +491,7 @@ vector<vector<V>> build_sketch(const G &g, const W radius, const int k,
 
   for (V i = 0; i < num_v; ++i) {
     if (cm.v_covered(i)) continue;
+    // if (cm.is_center(i)) continue;
     X[i].insert(rank[i]);
     previous_added[i].push_back(i);
     total_size++;
@@ -604,46 +605,44 @@ vector<vector<V>> fast_build_sketch(const G &g, const W radius, const int k,
 
 void select_lazy_greedily(const G &g, const vector<vector<V>> &X,
                           const vector<V> &rank, const vector<V> &inv,
-                          vector<V> &centers, vector<bool> &centered,
-                          coverage_manager &cm) {
+                          vector<V> &centers, coverage_manager &cm) {
   cm.goal_coverage = 1.0;
-  // cerr << "lazy goal: " << cm.goal_coverage << endl;
   vector<bool> rank_covered(X.size(), false);
 
   priority_queue<pair<V, V>> que;
   vector<V> box_size(X.size());
   for (size_t box = 0; box < X.size(); ++box) {
-    if (X[box].size() == 0 || centered[box]) continue;
+    if (X[box].size() == 0 || cm.is_center(box)) continue;
     box_size[box] = X[box].size();
     que.push({box_size[box], rank[box]});
+    // que.push({box_size[box], box});
   }
 
   vector<vector<V>> inverted(X.size());
   for (size_t box = 0; box < X.size(); ++box)
-    for (V rank : X[box]) inverted[rank].push_back(box);
+    for (V rank_b : X[box]) inverted[rank_b].push_back(box);
 
   while (!que.empty() && !cm.is_covered()) {
     V s = que.top().first;
     V rank_box = que.top().second;
     V v = inv[rank_box];
+    // V v = rank_box;
     que.pop();
-    if (centered[v]) continue;
+    if (cm.is_center(v)) continue;
     if (box_size[v] != s) {
       que.push({box_size[v], rank[v]});
+      // que.push({box_size[v], v});
       continue;
     }
 
     centers.push_back(v);
-    centered[v] = true;
     cm.add(g, v);
     if (cm.is_covered()) break;
 
-    for (auto rank : X[v]) {
-      if (rank_covered[rank]) continue;
-      rank_covered[rank] = true;
-      for (auto box : inverted[rank]) {
-        box_size[box]--;
-      }
+    for (auto rank_v : X[v]) {
+      if (rank_covered[rank_v]) continue;
+      rank_covered[rank_v] = true;
+      for (auto box : inverted[rank_v]) box_size[box]--;
     }
   }
 }
@@ -651,6 +650,12 @@ void select_lazy_greedily(const G &g, const vector<vector<V>> &X,
 void select_greedily(const G &g, const vector<vector<V>> &X, vector<V> &centers,
                      vector<bool> &centered, const int k,
                      coverage_manager &cm) {
+  select_greedily(g, X, centers, k, cm);
+  for (int i = 0; i < centered.size(); ++i) centered[i] = cm.is_center(i);
+}
+
+void select_greedily(const G &g, const vector<vector<V>> &X, vector<V> &centers,
+                     const int k, coverage_manager &cm) {
   assert(g.num_vertices() > k);
   //
   // Variables
@@ -702,7 +707,7 @@ void select_greedily(const G &g, const vector<vector<V>> &X, vector<V> &centers,
   // Initialization
   //
   for (V p = 0; p < num_v; ++p) {
-    if (centered[p] || X[p].empty()) continue;
+    if (cm.is_center(p) || X[p].empty()) continue;
     k1[p] = X[p].size();
     k2[p] = k - k1[p];
     if (X[p].size() == (size_t)k) {
@@ -733,7 +738,7 @@ void select_greedily(const G &g, const vector<vector<V>> &X, vector<V> &centers,
         V top_key = que[q].top().first;
         V top_v = que[q].top().second;
 
-        if (top_key == num_v && Xs.size() < (size_t)k && !centered[top_v]) {
+        if (top_key == num_v && Xs.size() < (size_t)k && !cm.is_center(top_v)) {
           break;  // Fit to Naive Method
         } else if (removed[top_v] || q != is_type1[top_v]) {
           que[q].pop();
@@ -756,14 +761,13 @@ void select_greedily(const G &g, const vector<vector<V>> &X, vector<V> &centers,
       }
     }
     if (select < 0) break;
-    assert(!centered[select]);
+    assert(!cm.is_center(select));
 
     //
     // Merge and Remove
     //
     vector<V> delta = merge_and_purify(Xs, X[select], k);
     centers.push_back(select);
-    centered[select] = true;
     removed[select] = true;
     remove_multimap_pair(k2[select], {last_element(select), select});
     cm.add(g, select);
@@ -894,7 +898,6 @@ vector<V> box_cover_sketch(const G &g, W radius, const int k,
   const V num_v = g.num_vertices();
 
   vector<V> centers;
-  vector<bool> centered(num_v, false);
   vector<V> rank(num_v);
   vector<V> inv(num_v);
   coverage_manager cm(g, radius, aim_coverage);
@@ -919,27 +922,25 @@ vector<V> box_cover_sketch(const G &g, W radius, const int k,
     vector<vector<V>> X = build_sketch(g, radius, k, rank, inv, cm, use_memb,
                                        num_v * k * upper_param);
     timer += get_current_time_sec();
-    cerr << "build_sketch():" << endl;
     cerr << timer << " sec built" << endl;
 
     if (use_memb) {
       timer = -get_current_time_sec();
       cerr << pass_trial << "-th lazy selecting..." << endl;
-      select_lazy_greedily(g, X, rank, inv, centers, centered, cm);
+      select_lazy_greedily(g, X, rank, inv, centers, cm);
       timer += get_current_time_sec();
       cerr << timer << " sec lazy selected" << endl;
     } else {
       timer = -get_current_time_sec();
       cerr << pass_trial << "-th selecting..." << endl;
-      select_greedily(g, X, centers, centered, k, cm);
+      select_greedily(g, X, centers, k, cm);
       timer += get_current_time_sec();
       cerr << timer << " sec selected" << endl;
     }
 
     cerr << "size: " << centers.size() << endl;
-
     if (cm.is_covered()) break;
-    cerr << cm.get_current_coverage() << endl;
+    cerr << "coverage: " << cm.get_current_coverage() << endl;
   }
 
   aim_coverage = cm.get_current_coverage();
