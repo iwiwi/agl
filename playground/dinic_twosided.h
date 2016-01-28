@@ -60,7 +60,7 @@ private:
         int size = sz(qs);
         FOR(_, size) {
           const int v = qs.front(); qs.pop();
-          for (auto t : e[v]) {
+          for (auto& t : e[v]) {
             if (t.cap(graph_revision) == 0 || bfs_revision[t.to] == s_side_bfs_revision) continue;
             if (bfs_revision[t.to] == t_side_bfs_revision) {
               path_found = true;
@@ -76,7 +76,7 @@ private:
         int size = sz(qt);
         FOR(_, size) {
           const int v = qt.front(); qt.pop();
-          for (auto t : e[v]) {
+          for (auto& t : e[v]) {
             if (e[t.to][t.reverse].cap(graph_revision) == 0 || bfs_revision[t.to] == t_side_bfs_revision) continue;
             if (bfs_revision[t.to] == s_side_bfs_revision) {
               path_found = true;
