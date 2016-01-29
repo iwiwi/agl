@@ -38,6 +38,9 @@ if __name__ == "__main__":
         log.close()
 
         px, py = xy_from_json(json_data)
-        print json_data['name']
+        sys.stdout.write(str(json_data['graph_info'][0]['graph']) + "\t")
+        sys.stdout.write(str(json_data['k']) +
+                         "\t" + str(json_data['upper_param']) + "\t")
         for i in range(len(px)):
-            print str(px[i]) + "\t" + str(py[i])
+            sys.stdout.write(str(py[i]) + "\t")
+        sys.stdout.write("\n")

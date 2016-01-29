@@ -41,7 +41,7 @@ if __name__ == "__main__":
     print json_str
     graph_name = graph_info[0]['graph'].replace(" ", "_")
     if '/' in graph_name:
-        r = re.compile("/([a-zA-Z0-9_\-\.]*)$")
+        r = re.compile("/([a-zA-Z0-9_\-\.@]*)$")
         m = r.search(graph_name)
         graph_name = m.group(1)
     f = open(graph_name + ".json", 'w')

@@ -18,8 +18,6 @@ def xy_from_json(json_data):
     x = []
     y = []
     for i in range(0, len(boxSizes)):
-        if radiuses[i] == 0:
-            continue
         if 'diameter' in json_data:
             x.append(diameters[i])
         else:
@@ -81,11 +79,11 @@ if __name__ == "__main__":
         expo = scipy.optimize.leastsq(expoFit, expo_init, args=(px, py))
         expo_result = sum(expoFit(expo[0], px, py)**2)
 
-        # print fractalFit(fractal[0], px, py)
-        # print expoFit(expo[0], px, py)
-        # print fractalFit(fractal[0], px, py)**2
-        # print expoFit(expo[0], px, py)**2
-        # print frac_result, expo_result
+        print fractalFit(fractal[0], px, py)
+        print expoFit(expo[0], px, py)
+        print fractalFit(fractal[0], px, py)**2
+        print expoFit(expo[0], px, py)**2
+        print frac_result, expo_result
 
         # Graph Information
         graph_name = json_data['graph_info'][0]['graph']
@@ -94,12 +92,11 @@ if __name__ == "__main__":
 
         # General Results
         time = 0
-        for t in json_data['time']:
-            time += t
+        for x in xrange(len(json_data['time'])):
+            if x > 0 and json_data['size'][x - 1] == 1:
+                break
+            time += json_data['time'][x]
         method = json_data['name']
-
-        if method != 'MEMB':
-            method = 'Sketch'
 
         if graph_name not in data:
             data[graph_name] = {

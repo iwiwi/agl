@@ -7,28 +7,51 @@ def torque_nageru():
     pass_num = 1000
     upper_param = 1.0
     graph_names = [
-        # "'flower 4 2 2'",
-        # "'flower 12 2 2'",
-        # "'flower 44 2 2'",
-        # "'flower 172 2 2'",
-        # "'flower 684 2 2'",
-        # "'flower 2732 2 2'",
-        # "'flower 10924 2 2'",
-        # "'flower 43692 2 2'",
-        # "'flower 174764 2 2'",
-        "'flower 699052 2 2'",
-        # "'flower 2796204 2 2'",
-        # "'flower 11184812 2 2'",
+        # "'flower 265722 1 2'",
+        # "'flower 699052 1 3'",
+        # "'flower 292970 1 4'",
+        # "'flower 699052 2 2'",
+        # "'flower 292970 2 3'",
+        # "'flower 223950 2 4'",
+        # "'flower 223950 3 3'",
+        # "'flower 686287 3 4'",
+        # "'shm 312501 5 2'",
+        # "'shm 390626 6 2'",
+        # "'shm 156251 3 2'",
+        # "'shm 234376 4 2'",
+        # # "'shm 470597 5 3'",
+        # # "'shm 588246 6 3'",
+        # # "'shm 468751 7 2'",
+
+        "'flower 29526 1 2'",
+        "'flower 10924 1 3'",
+        "'flower 43692 1 3'",
+        "'flower 11720 1 4'",
+        "'flower 58595 1 4'",
+        "'flower 11720 2 3'",
+        "'flower 58595 2 3'",
+        "'flower 37326 2 4'",
+        "'flower 37326 3 3'",
+        "'flower 14007 3 4'",
+        "'shm 12501 5 2'",
+        "'shm 15626 6 2'",
+        "'shm 46876 4 2'",
+        "'shm 31251 3 2'",
+        "'shm 67229 5 3'",
+        "'shm 12006 6 3'",
+        "'shm 18751 7 2'",
+        "'flower 88575 1 2'",
+        "'flower 43692 2 2'",
     ]
 
     methods = [
-        # "sketch",
-        # "coloring",
+        "sketch",
+        "coloring",
         "memb",
         # "burning",
     ]
 
-    exp_tag = "96G-scalability"
+    exp_tag = "96G-main_table"
     rad_max = 1000000
 
     # # MEMB

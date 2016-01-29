@@ -5,30 +5,34 @@ import subprocess
 def torque_nageru():
     sketch_ks = [
         128,
-        # 32,
-        # 64,
-        # 256,
-        # 512,
+        16,
+        8,
+        4,
+        32,
+        64,
+        256,
+        512,
     ]
     pass_nums = [1000]
     upper_params = [
         1.0,
-        0.25,
-        0.5, 2.0, 4.0
+        # 0.25,
+        # 0.5, 2.0, 4.0,
+        # 0.125, 0.0625,
     ]
     graph_names = [
         # "'flower 265722 1 2'",
         # "'flower 699052 1 3'",
         # "'flower 292970 1 4'",
         # "'flower 699052 2 2'",
-        # "'flower 292970 2 3'",
-        # "'flower 223950 2 4'",
-        # "'flower 223950 3 3'",
+        "'flower 292970 2 3'",
+        "'flower 223950 2 4'",
+        "'flower 223950 3 3'",
         # "'flower 686287 3 4'",
-        # "'shm 312501 5 2'",
+        "'shm 312501 5 2'",
         # "'shm 390626 6 2'",
         # "'shm 156251 3 2'",
-        # "'shm 234376 4 2'",
+        "'shm 234376 4 2'",
         # "'shm 470597 5 3'",
         # "'shm 588246 6 3'",
         # "'shm 468751 7 2'",
@@ -51,11 +55,11 @@ def torque_nageru():
         # "'shm 12006 6 3'",
         # "'shm 18751 7 2'",
         # "'flower 88575 1 2'",
-        "'flower 43692 2 2'",
+        # "'flower 43692 2 2'",
 
     ]
 
-    exp_tag = "error-by-u"
+    exp_tag = "error-by-p"
     rad_max = 1000000
     coverage = 0.98
 
