@@ -61,7 +61,7 @@ private:
         FOR(_, size) {
           const int v = qs.front(); qs.pop();
           for (auto& t : e[v]) {
-            if (t.cap(graph_revision) == 0 || bfs_revision[t.to] == s_side_bfs_revision) continue;
+            if (bfs_revision[t.to] == s_side_bfs_revision || t.cap(graph_revision) == 0) continue;
             if (bfs_revision[t.to] == t_side_bfs_revision) {
               path_found = true;
               continue;
@@ -77,7 +77,7 @@ private:
         FOR(_, size) {
           const int v = qt.front(); qt.pop();
           for (auto& t : e[v]) {
-            if (e[t.to][t.reverse].cap(graph_revision) == 0 || bfs_revision[t.to] == t_side_bfs_revision) continue;
+            if (bfs_revision[t.to] == t_side_bfs_revision || e[t.to][t.reverse].cap(graph_revision) == 0) continue;
             if (bfs_revision[t.to] == s_side_bfs_revision) {
               path_found = true;
               continue;
@@ -104,8 +104,9 @@ private:
     }
     for (int &i = iter[v]; i < sz(e[v]); i++) {
       E& _e = e[v][i];
+      if(bfs_revision[_e.to] / 2 != s_side_bfs_revision / 2) continue;
       const int cap = _e.cap(graph_revision);
-      if (cap == 0 || bfs_revision[_e.to] / 2 != s_side_bfs_revision / 2) continue;
+      if (cap == 0) continue;
 
       bool rec;
       if (use_slevel) rec = bfs_revision[_e.to] == t_side_bfs_revision || level[v].first < level[_e.to].first;
