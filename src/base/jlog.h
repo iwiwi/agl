@@ -194,6 +194,18 @@ class jlog {
     ja->children.push_back(jl);
   }
 
+  // temporarily added by kenkoooo
+  template <typename value_t>
+  static void jlog_add_filename(value_t additional_name) {
+    instance_.filename_.append(additional_name);
+  }
+
+  // temporarily added by kenkoooo
+  template <typename value_t>
+  static void jlog_insert_filename(value_t additional_name) {
+    instance_.filename_.insert(0, additional_name);
+  }
+
   static void init(int argc, char **argv) {
     const char *slash = strrchr(argv[0], '/');
     instance_.program_name_ = slash ? slash + 1 : argv[0];
@@ -445,6 +457,18 @@ inline void JLOG_PUT(const char *path, value_t value) {
 template<typename value_t>
 inline void JLOG_ADD(const char *path, value_t value) {
   jlog_internal::jlog::jlog_add(path, value);
+}
+
+// temporarily added by kenkoooo
+template <typename value_t>
+inline void JLOG_ADD_FILENAME(value_t additional_name) {
+  jlog_internal::jlog::jlog_add_filename(additional_name);
+}
+
+// temporarily added by kenkoooo
+template <typename value_t>
+inline void JLOG_INSERT_FILENAME(value_t additional_name) {
+  jlog_internal::jlog::jlog_insert_filename(additional_name);
 }
 
 void JLOG_INIT(int *argc, char **argv);
