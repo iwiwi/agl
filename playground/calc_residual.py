@@ -70,6 +70,18 @@ if __name__ == "__main__":
         sys.stderr.write(sys.argv[ai] + "\n")
 
         px, py = xy_from_json(json_data)
+        if(len(px) < 3):
+            continue
+
+        # Real_data
+        ok = True
+        for i in xrange(1, len(px)):
+            if px[i] > px[i - 1] + 2:
+                ok = False
+            if i is len(px) - 1 and len(px) < 9 and py[i] > 1:
+                ok = False
+        if not ok:
+            continue
 
         frac_init = linearRegression(np.log(px), np.log(py))
         fractal = scipy.optimize.leastsq(fractalFit, frac_init, args=(px, py))

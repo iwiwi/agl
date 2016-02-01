@@ -4,6 +4,7 @@ import subprocess
 
 def torque_nageru():
     graph_names = [
+        # /law.di.unimi.it/
         # "uk-2002.agl",
         # "hollywood-2011.agl",
         # "indochina-2004.agl",
@@ -21,6 +22,30 @@ def torque_nageru():
         # "amazon-2008.agl",
         # "cnr-2000.agl",
 
+        # /snap.stanford.edu/
+        "com-lj.ungraph.agl",
+        "soc-pokec-relationships.agl",
+        "cit-Patents.agl",
+        "as-skitter.agl",
+        "gplus_combined.agl",
+        # "wiki-Talk.agl",
+        # "roadNet-CA.agl",
+        # "web-BerkStan.agl",
+        # "web-Google.agl",
+        # "roadNet-TX.agl",
+        # "roadNet-PA.agl",
+        # "com-youtube.ungraph.agl",
+        # "amazon0601.agl",
+        # "amazon0505.agl",
+        # "amazon0312.agl",
+        # "web-Stanford.agl",
+        # "web-NotreDame.agl",
+        # "twitter_combined.agl",
+        # "amazon0302.agl",
+        # "com-dblp.ungraph.agl",
+        # "com-amazon.ungraph.agl",
+        # "soc-Slashdot0902.agl",
+        # "soc-Slashdot0811.agl",
     ]
 
     exp_tag = "real"
@@ -33,7 +58,7 @@ def torque_nageru():
             command = "/home/kenkoooo/fractal-dimension/agl/bin/box_cover --force_undirected "
 
             command = command + " --type agl "
-            command = command + " --graph /data/law.di.unimi.it/" + graph_name
+            command = command + " --graph /data/snap.stanford.edu/" + graph_name
 
             command = command + " --sketch_k " + str(sketch_k)
             command = command + " --pass " + str(pass_num)

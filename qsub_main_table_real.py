@@ -51,12 +51,12 @@ def torque_nageru():
 
     methods = [
         # "sketch",
-        "coloring",
+        # "coloring",
         # "memb",
-        # "burning",
+        "burning",
     ]
 
-    exp_tag = "96G-main_table-real"
+    exp_tag = "main_table-real"
     rad_max = 1000000
 
     for method in methods:
@@ -79,7 +79,7 @@ def torque_nageru():
                 p1 = subprocess.Popen(
                     ["echo", command], stdout=subprocess.PIPE)
                 p2 = subprocess.Popen(
-                    ["qsub", "-l", "walltime=24:00:00,nodes=1:ppn=24", "-N", job_name], stdin=p1.stdout)
+                    ["qsub", "-l", "walltime=24:00:00", "-N", job_name], stdin=p1.stdout)
                 p1.stdout.close()
                 output = p2.communicate()[0]
 

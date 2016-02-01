@@ -75,7 +75,7 @@ def saveFig(jsonData):
     plt.ylabel("$\it{N_{B}}$", fontsize=18)
     graph_name = jsonData['graph_info'][0]['graph'].replace(" ", "_")
     if '/' in graph_name:
-        r = re.compile("/([a-zA-Z0-9_\-\.]*)$")
+        r = re.compile("/([a-zA-Z0-9_\-\.@]*)$")
         m = r.search(graph_name)
         graph_name = m.group(1)
     print graph_name
@@ -167,4 +167,4 @@ if __name__ == "__main__":
         print expoFit(expoResult[0], px, py)
         # plotAnalytical(json_data)
         saveFig(json_data)
-        # plt.close()
+        plt.close()
