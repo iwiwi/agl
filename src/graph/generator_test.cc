@@ -234,7 +234,6 @@ TEST(gen_kronecker, random_trial) {
     pretty_print(g);
 
     V num_v = 1 << scale;
-    ASSERT_TRUE(g.num_vertices() == num_v);
 
     for (int i : make_irange(2)) {
       for (int j : make_irange(2)) {
@@ -245,7 +244,6 @@ TEST(gen_kronecker, random_trial) {
     size_t avg_deg = 16;
     G h(generate_kronecker(scale, avg_deg, mat));
     pretty_print(h);
-    ASSERT_TRUE(h.num_vertices() == num_v);
     ASSERT_TRUE(h.num_edges() <= avg_deg * num_v);
   }
 }
@@ -356,5 +354,30 @@ TEST(gen_shm, random_trial) {
       while (deg % t == 0) deg /= t;
       ASSERT_TRUE(deg == initial_num - 1 || deg == 1 || deg == 2);
     }
+  }
+}
+
+TEST(gen_shm, small_world) {
+  for (int trial = 0; trial < 10; ++trial) {
+    V initial_num = 5;
+    V required_num = initial_num;
+    int t = 2;
+    int generation = agl::random(5) + 1;
+    size_t max_deg = initial_num - 1;
+    size_t expected_edge_num = initial_num - 1;
+    for (int i = 1; i < generation; ++i) {
+      required_num = required_num + 2 * t * expected_edge_num;
+      expected_edge_num = expected_edge_num * (2 * t + 2);
+      max_deg *= t + 1;
+    }
+    auto es = generate_shm(required_num, initial_num, t, 1.0);
+
+    // Number of edges
+    ASSERT_EQ(es.size(), expected_edge_num);
+    G g(make_undirected(es));
+    pretty_print(g);
+    ASSERT_TRUE(is_connected(g));
+    ASSERT_EQ(g.num_vertices(), required_num);
+    ASSERT_EQ(g.degree(0), max_deg);
   }
 }

@@ -17,7 +17,7 @@ unweighted_edge_list generate_config(V num_vertices, const std::vector<size_t> &
 unweighted_edge_list generate_kronecker(int scale, const std::vector<std::vector<double>> &matrix);
 unweighted_edge_list generate_kronecker(int scale, size_t avg_deg, const std::vector<std::vector<double>> &matrix);
 unweighted_edge_list generate_uv_flower(V required_num, V u, V v);
-unweighted_edge_list generate_shm(V required_num, V initial_num, int t);
+unweighted_edge_list generate_shm(V required_num, V initial_num, int t, double P = 0.0);
 
 unweighted_edge_list generate_random_spanning_tree(V num_vertices);
 

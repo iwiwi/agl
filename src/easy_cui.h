@@ -25,14 +25,38 @@
 using namespace std;
 using namespace agl;
 
-DEFINE_string(type, "tsv", "tsv, agl, built_in");
+DEFINE_string(type, "auto", "auto, tsv, agl, built_in, gen");
 DEFINE_string(graph, "-", "input graph");
 DEFINE_bool(force_undirected, false, "Automatically add reverse edges?");
+
+template<typename GraphType = G>
+string guess_type() {
+  FILE* fp = fopen(FLAGS_graph.c_str(), "r");
+  if(fp == NULL) return "built_in";
+  
+  char buf[20];
+  if(fgets(buf, sizeof(buf), fp) == NULL){
+    string mes = "An error occured on read '" + FLAGS_graph + "'.";
+    FAIL_MSG(mes.c_str());
+  }
+  fclose(fp);
+
+  string header(buf);
+  if(header == "AGL_BINARY\n") {
+    return "agl";
+  } else {
+    return "tsv";
+  }
+
+}
 
 template<typename GraphType = G>
 GraphType easy_cui_init(int argc, char **argv) {
   JLOG_INIT(&argc, argv);
   google::ParseCommandLineFlags(&argc, &argv, true);
+
+  if(FLAGS_type == "auto")
+    FLAGS_type = guess_type();
 
   //agl形式は隣接リストを介すると効率が悪いため、直接GraphTypeを生成する
   if (FLAGS_type == "agl") {
@@ -130,10 +154,12 @@ GraphType easy_cui_init(int argc, char **argv) {
     } else if (family == "shm") {
       V required_num, initial_num;
       int t;
+      double P;
       if (!(iss >> required_num)) required_num = 101;
       if (!(iss >> initial_num)) initial_num = 5;
       if (!(iss >> t)) t = 2;
-      es = generate_shm(required_num, initial_num, t);
+      if (!(iss >> P)) P = 0.0;
+      es = generate_shm(required_num, initial_num, t, P);
     } else {
       FAIL_MSG("Unknown generator family: " + family);
     }
