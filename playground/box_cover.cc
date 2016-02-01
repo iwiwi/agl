@@ -422,6 +422,59 @@ vector<pair<W, size_t>> box_cover_coloring(const G &g, W diameter) {
   return ret;
 }
 
+vector<V> box_cover_cbb(const G &g, W diameter) {
+  auto bfs = [](const G &g, W diameter, V center) -> set<V> {
+    set<V> ret;
+    queue<pair<V, W>> que;
+    que.push({center, 0});
+    vector<bool> used(g.num_vertices(), false);
+    used[center] = true;
+    ret.insert(center);
+    while (!que.empty()) {
+      V v = que.front().first;
+      W d = que.front().second;
+      que.pop();
+      if (d == diameter) break;
+      for (V u : g.neighbors(v)) {
+        if (used[u]) continue;
+        que.push({u, d + 1});
+        used[u] = true;
+        ret.insert(u);
+      }
+    }
+    return ret;
+  };
+
+  vector<V> centers;
+  set<V> uncovered;
+  for (int i = 0; i < g.num_vertices(); ++i) uncovered.insert(i);
+
+  while (!uncovered.empty()) {
+    V center = -1;
+    {
+      vector<V> tmp(uncovered.begin(), uncovered.end());
+      random_shuffle(tmp.begin(), tmp.end());
+      center = tmp[0];
+    }
+    assert(center >= 0);
+
+    uncovered.erase(center);
+    centers.push_back(center);
+    set<V> box = bfs(g, diameter, center);
+    vector<V> candidate(box.begin(), box.end());
+    for (const auto &v : candidate) {
+      if (!box.count(v)) continue;
+      set<V> next;
+      auto b = bfs(g, diameter, v);
+      for (const auto &u : b)
+        if (box.count(u)) next.insert(u);
+      box.swap(next);
+    }
+    for (const auto &v : box) uncovered.erase(v);
+  }
+  return centers;
+}
+
 // Naive BFS method of Build-Sketch
 vector<vector<V>> naive_build_sketch(const G &g, const W radius, const int k,
                                      const vector<V> &rank,

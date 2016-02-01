@@ -151,16 +151,34 @@ int main(int argc, char** argv) {
       JLOG_ADD("coverage", coverage(g, res, rad));
       if (res.size() == 1) break;
     }
+  } else if (FLAGS_method == "cbb") {
+    JLOG_PUT("name", "CBB");
+    for (W rad : rads) {
+      vector<V> res;
+      JLOG_ADD_BENCHMARK("time") res = box_cover_cbb(g, rad * 2);
+      JLOG_ADD("size", res.size());
+      JLOG_ADD("diameter", rad * 2);
+      JLOG_ADD("coverage", coverage(g, res, rad));
+      if (res.size() == 1) break;
+    }
   } else if (FLAGS_method == "coloring") {
     JLOG_PUT("name", "Coloring");
     W rad_max = rads[rads.size() - 1];
     vector<pair<W, size_t>> res;
 
     JLOG_ADD_BENCHMARK("time") res = box_cover_coloring(g, rad_max * 2);
-    for (auto p : res) {
-      JLOG_ADD("size", p.second);
-      JLOG_ADD("diameter", p.first);
-    }
+    if (FLAGS_rad_analytical) {
+      for (auto p : res)
+        if (p.first % 2 == 0 &&
+            find(rads.begin(), rads.end(), p.first / 2) != rads.end()) {
+          JLOG_ADD("size", p.second);
+          JLOG_ADD("diameter", p.first);
+        }
+    } else
+      for (auto p : res) {
+        JLOG_ADD("size", p.second);
+        JLOG_ADD("diameter", p.first);
+      }
   } else if (FLAGS_method == "analytical") {
     istringstream iss(FLAGS_graph);
     string family;

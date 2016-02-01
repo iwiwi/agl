@@ -450,3 +450,15 @@ TEST(box_cover, covered_check) {
     ASSERT_TRUE(X[0].empty());
   }
 }
+
+TEST(box_cover, cbb) {
+  for (int trial = 0; trial < 10; ++trial) {
+    auto es = generate_uv_flower(agl::random(1000) + 1000, 2, 2);
+    G g(make_undirected(es));
+    W d = 2 + agl::random(10);
+
+    auto cbb = box_cover_cbb(g, d);
+    auto memb = box_cover_memb(g, d / 2);
+    ASSERT_TRUE(cbb.size() * 10 > memb.size() && memb.size() * 10 > cbb.size());
+  }
+}

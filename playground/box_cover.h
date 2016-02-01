@@ -109,11 +109,8 @@ vector<V> box_cover_sketch(const G &g, W radius, const int k,
 //   Any vertex is covered by a set.
 //
 
-//! Song et al. 2005
-vector<vector<V>> box_cover_original(const G &g, W diameter);
-
 //! Song et al. 2007 (Section 3.1)
-vector<vector<V>> box_cover_cbb(const G &g, W diameter);
+vector<V> box_cover_cbb(const G &g, W diameter);
 
 //! Song et al. 2007 (Section 2)
 vector<pair<W, size_t>> box_cover_coloring(const G &g, W diameter);
