@@ -157,7 +157,7 @@ int main(int argc, char** argv) {
       vector<V> res;
       JLOG_ADD_BENCHMARK("time") res = box_cover_cbb(g, rad * 2);
       JLOG_ADD("size", res.size());
-      JLOG_ADD("diameter", rad * 2);
+      JLOG_ADD("radius", rad);
       JLOG_ADD("coverage", coverage(g, res, rad));
       if (res.size() == 1) break;
     }
