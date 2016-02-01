@@ -442,6 +442,7 @@ unweighted_edge_list generate_uv_flower(V required_num, V u, V v) {
  * of this graph will be D = log(2t + 1) / log3
  */
 unweighted_edge_list generate_shm(V required_num, V initial_num, int t, double P) {
+  assert(P >= 0.0 && P <= 1.0);
   std::uniform_real_distribution<> p_rng(0.0, 1.0);
   assert(t >= 2 && initial_num >= 3);
   unweighted_edge_list es;
