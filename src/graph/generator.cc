@@ -79,16 +79,11 @@ unweighted_edge_list generate_ba(V final_num, V initial_num) {
   }
 
   for (int v = initial_num; v < final_num; ++v) {
-    if (initial_num == 2 && v == 2) {
-      es.emplace_back(0, 1);
-      es.emplace_back(0, 2);
-      continue;
-    }
     set<V> next;
     std::uniform_int_distribution<size_t> rng(0, es.size() - 1);
     while (next.size() < (size_t)initial_num) {
       size_t e = rng(agl::random);
-      V u = rng(agl::random) % 2 ? es[e].first : es[e].second;
+      V u = agl::random() % 2 ? es[e].first : es[e].second;
       next.insert(u);
     }
     for (auto u : next) {
