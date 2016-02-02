@@ -113,9 +113,7 @@ public:
       used[s] = F;
       while (!q.empty()) {
         V v = q.front(); q.pop();
-    const int size = sz(dc_base.e[v].to_);
-    FOR(i,size) {
-      auto& e = dc_base.e[v][i];
+        for (auto& e : dc_base.e[v]) {
           const int cap = e.cap(dc_base.graph_revision);
           if (cap == 0 || used[e.to] == F) continue;
           used[e.to] = F;
@@ -131,9 +129,7 @@ public:
       used[t] = F;
       while (!q.empty()) {
         V v = q.front(); q.pop();
-    const int size = sz(dc_base.e[v].to_);
-    FOR(i, size) {
-      auto& e = dc_base.e[v][i];
+        for (auto& e : dc_base.e[v]) {
           const int cap = dc_base.e[e.to][e.reverse].cap(dc_base.graph_revision);
           if (cap == 0 || used[e.to] == F) continue;
           used[e.to] = F;
@@ -166,9 +162,7 @@ public:
       used[s] = F;
       while (!q.empty()) {
         V v = q.front(); q.pop();
-    const int size = sz(dc_base.e[v].to_);
-    FOR(i, size) {
-      auto& e = dc_base.e[v][i];
+        for (auto& e : dc_base.e[v]) {
           if (e.cap(dc_base.graph_revision) == 0 || used[e.to] == F) continue;
           used[e.to] = F;
           q.push(e.to);

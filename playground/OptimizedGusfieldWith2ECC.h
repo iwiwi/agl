@@ -192,17 +192,11 @@ public:
       const int F = s + 1;
       used[s] = F;
       while (!q.empty()) {
-        V v = q.front(); q.pop();
-        if (!dc_base.e[v].match_revision(dc_base.graph_revision)) {
-          dc_base.e[v].reset_graph(dc_base.graph_revision);
-        }
-        const int size = dc_base.e[v].size();
-        FOR(i,size) {
-          auto& e = dc_base.e[v][i];
-          const int to = e.to;
-          if (used[to] == F) continue;
-          used[to] = F;
-          q.push(to);
+        const V v = q.front(); q.pop();
+        for (auto& e : dc_base.e[v]) {
+          if (e.cap(dc_base.graph_revision) == 0 || used[e.to] == F) continue;
+          used[e.to] = F;
+          q.push(e.to);
           const int tpar = pts.get_parent(e.to);
           if (tpar == t) pts.set_parent(e.to, s); //mincut後のe.toはs側に属する
         }
