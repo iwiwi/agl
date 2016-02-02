@@ -178,6 +178,30 @@ void tester() {
   exit(0);
 }
 
+DEFINE_string(single_source_mincut_output, "greedy_tree_packing_ssm.data", "");
+void single_source_mincut(G&& g) {
+    size_t max_deg = 0;
+    int max_deg_v = -1;
+    FOR(v, g.num_vertices()) {
+      if(g.degree(v) > max_deg) {
+        max_deg = g.degree(v);
+        max_deg_v = v;
+      }
+    }
+
+    auto e = g.edge_list();
+    greedy_treepacking gt(e, g.num_vertices());
+    gt.arborescence_packing(max_deg_v);
+
+    FILE* fp = fopen(FLAGS_single_source_mincut_output.c_str(), "w");
+    FOR(v,g.num_vertices()) {
+      if(v == max_deg_v) continue;
+      int mc = gt.inedge_count(v);
+      fprintf(fp, "%d %d %d\n",max_deg_v, v, mc);
+    }  
+    fclose(fp);
+}
+
 template<class T>
 void main_(G&& g) {
   if (FLAGS_method == "test") {
@@ -191,6 +215,8 @@ void main_(G&& g) {
 }
   } else if (FLAGS_method == "print_gomory_hu_tree") {
     print_gomory_hu_tree<T>(std::move(g));
+  } else if (FLAGS_method == "single_source_mincut") {
+    single_source_mincut(std::move(g));
   } else {
     fprintf(stderr, "unrecognized option '%s'\n", FLAGS_method.c_str());
     exit(-1);

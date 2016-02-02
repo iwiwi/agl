@@ -296,7 +296,7 @@ void test(G&& g) {
   JLOG_PUT("result.unmatch", unmatch);
 }
 
-DEFINE_string(single_source_mincut_output, "min_cut_query_ssm.data", "");
+DEFINE_string(single_source_mincut_output, "random_contraction_ssm.data", "");
 void single_source_mincut(G&& g) {
     min_cut_query mcq(g);
     size_t max_deg = 0;
@@ -312,10 +312,34 @@ void single_source_mincut(G&& g) {
     FOR(v,g.num_vertices()) {
       if(v == max_deg_v) continue;
       int mc = mcq.query(max_deg_v, v);
+      int xx = g.degree(v, D(0)) + g.degree(v, D(1));
+      if(mc != xx){
+        // printf("%d %d : mc = %d, deg = %d\n",max_deg_v,v,mc,xx);
+      }
       fprintf(fp, "%d %d %d\n",max_deg_v, v, mc);
     }  
     fclose(fp);
 }
+
+void single_source_mincut_with_deg(G&& g) {
+    size_t max_deg = 0;
+    int max_deg_v = -1;
+    FOR(v, g.num_vertices()) {
+      if(g.degree(v) > max_deg) {
+        max_deg = g.degree(v);
+        max_deg_v = v;
+      }
+    }
+
+    FILE* fp = fopen(FLAGS_single_source_mincut_output.c_str(), "w");
+    FOR(v,g.num_vertices()) {
+      if(v == max_deg_v) continue;
+      int xx = g.degree(v, D(0)) + g.degree(v, D(1));
+      fprintf(fp, "%d %d %d\n",max_deg_v, v, xx);
+    }  
+    fclose(fp);
+}
+
 
 int main(int argc, char **argv) {
   // JLOG_INIT(&argc, argv); called in "easy_cui_init"
@@ -326,6 +350,8 @@ int main(int argc, char **argv) {
     test(move(g));
   } else if(FLAGS_method == "single_source_mincut") {
     single_source_mincut(move(g));
+  } else if(FLAGS_method == "single_source_mincut_with_deg") {
+    single_source_mincut_with_deg(move(g));
   } else {
       fprintf(stderr, "unrecognized option '-method=%s'\n", FLAGS_method.c_str());
       exit(-1);
