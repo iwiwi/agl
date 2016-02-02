@@ -356,3 +356,28 @@ TEST(gen_shm, random_trial) {
     }
   }
 }
+
+TEST(gen_shm, small_world) {
+  for (int trial = 0; trial < 10; ++trial) {
+    V initial_num = 5;
+    V required_num = initial_num;
+    int t = 2;
+    int generation = agl::random(5) + 1;
+    size_t max_deg = initial_num - 1;
+    size_t expected_edge_num = initial_num - 1;
+    for (int i = 1; i < generation; ++i) {
+      required_num = required_num + 2 * t * expected_edge_num;
+      expected_edge_num = expected_edge_num * (2 * t + 2);
+      max_deg *= t + 1;
+    }
+    auto es = generate_shm(required_num, initial_num, t, 1.0);
+
+    // Number of edges
+    ASSERT_EQ(es.size(), expected_edge_num);
+    G g(make_undirected(es));
+    pretty_print(g);
+    ASSERT_TRUE(is_connected(g));
+    ASSERT_EQ(g.num_vertices(), required_num);
+    ASSERT_EQ(g.degree(0), max_deg);
+  }
+}
