@@ -70,7 +70,7 @@ unweighted_edge_list generate_cycle(V num_vertices) {
  * \param final_num is a number of finally generated network.
  */
 unweighted_edge_list generate_ba(V final_num, V initial_num) {
-  CHECK(initial_num > 2);
+  CHECK(initial_num >= 2);
   unweighted_edge_list es;
   for (int v = 0; v < initial_num; ++v) {
     for (int u = 0; u < v; ++u) {
@@ -83,7 +83,7 @@ unweighted_edge_list generate_ba(V final_num, V initial_num) {
     std::uniform_int_distribution<size_t> rng(0, es.size() - 1);
     while (next.size() < (size_t)initial_num) {
       size_t e = rng(agl::random);
-      V u = rng(agl::random) % 2 ? es[e].first : es[e].second;
+      V u = agl::random() % 2 ? es[e].first : es[e].second;
       next.insert(u);
     }
     for (auto u : next) {
