@@ -5,8 +5,12 @@ DEFINE_int32(solver_iter, 50, "");
 DEFINE_int32(num_query, 1000, "");
 DEFINE_int64(node_pair_random_seed, 922337203685477583LL, "");
 
+#define FOR(i,n) for(int i = 0; i < (n); i++)
+#define sz(c) ((int)(c).size())
+
+#include "dinic_twosided.h"
+
 class naive {
-  #define sz(c) ((int)c.size())
 
   struct E {
     int to, rev, cap;
@@ -213,6 +217,149 @@ private:
   vector<vector<pair<V,int>>> binary_tree_edges_;
 };
 
+class min_cut_query_with_random_contraction2 {
+
+  void build_depth() {
+    depth_.resize(sz(binary_tree_edges_), -1);
+    parent_weight_.resize(sz(binary_tree_edges_), make_pair(-2, -2));
+
+    FOR(v, num_vertices_) {
+      if(depth_[v] >= 0) continue;
+
+      depth_[v] = 0;
+      parent_weight_[v] = make_pair(-1, -1);
+      queue<int> q;
+      q.push(v);
+      while (!q.empty()) {
+        int u = q.front(); q.pop();
+        for(auto& to_weight : binary_tree_edges_[u]) {
+          int to, weight; tie(to,weight) = to_weight;
+          if(depth_[to] >= 0) continue;
+          depth_[to] = depth_[u] + 1;
+          parent_weight_[to].first = u;
+          parent_weight_[to].second = weight;
+          // printf("%d - %d\n",u, to);
+          q.push(to);
+        }
+      }
+    }
+  }
+
+  void contraction(vector<int>& ancestor,vector<unordered_set<pair<V,V>>>& contraction_graph_edges , V u, V v) {
+      assert(!uf_.is_same(u, v));
+      V new_vertex = (V)binary_tree_edges_.size();
+      u = uf_.root(u), v = uf_.root(v);
+      int uw = (int)contraction_graph_edges[u].size(), vw = (int)contraction_graph_edges[v].size();
+      int ua = ancestor[u] , va = ancestor[v];
+      uf_.unite(u, v);
+      if(uf_.root(u) != u) swap(u, v);
+      ancestor[u] = new_vertex;
+
+      // 縮約した結果を元にbinary treeの構築を進める
+      binary_tree_edges_.emplace_back(); // new_vertex分の確保
+      binary_tree_edges_[new_vertex].emplace_back(ua, uw);
+      binary_tree_edges_[ua].emplace_back(new_vertex, uw);
+      binary_tree_edges_[new_vertex].emplace_back(va, vw);
+      binary_tree_edges_[va].emplace_back(new_vertex, vw);
+
+      //縮約した頂点の辺をまとめる
+      auto& uset = contraction_graph_edges[u];
+      auto& vset = contraction_graph_edges[v];
+      if(uset.size() < vset.size()) uset.swap(vset);
+      for(const auto& edge : vset) {
+        V from, to; tie(from, to) = edge;
+        if(uf_.is_same(from, to)){
+          auto it = uset.find(make_pair(to, from));
+          assert(it != uset.end());
+          uset.erase(it);
+        } else {
+          uset.insert(edge);
+        }
+      }
+      vset.clear();
+    }
+
+ public:
+  // g の辺を使い、グラフを作成する(勝手にundirectedとして読み替えている)
+  min_cut_query_with_random_contraction2(G& g) :
+    num_vertices_(g.num_vertices()),
+    uf_(g.num_vertices()),
+    binary_tree_edges_(g.num_vertices()) {
+    //unordered -> weight = 1なので、shuffleでよい
+    //重みがあるならBITで。(stochastic acceptanceはupdateありだと使えない)
+    vector<unordered_set<pair<V,V>>> contraction_graph_edges(g.num_vertices());
+    typename G::edge_list_type initial_edges(g.edge_list());
+    std::shuffle(initial_edges.begin(),initial_edges.end(), agl::random);
+    vector<int> ancestor(g.num_vertices());
+    std::iota(ancestor.begin(),ancestor.end(), 0);
+
+    for(auto edge : initial_edges) {
+      V u = edge.first, v = to(edge.second);
+      contraction_graph_edges[u].emplace(u, v);
+      contraction_graph_edges[v].emplace(v, u);
+    }
+
+    // 次数1の頂点を先に縮約する
+    if(FLAGS_prune_if_degree_eq_1){
+      cerr << "First, prune node which degree eq 1." << endl;
+      int pruned = 0;
+      queue<int> q;
+      for(V v : make_irange(g.num_vertices())) {
+        if(contraction_graph_edges[v].size() == 1) q.push(v);
+      }
+      while(!q.empty()) {
+        V v = q.front(); q.pop();
+        pruned++;
+        V u;
+        if(contraction_graph_edges[v].size() == 0) continue;
+        tie(std::ignore, u) = *contraction_graph_edges[v].begin();
+        contraction(ancestor, contraction_graph_edges, u, v);
+        if(contraction_graph_edges[u].size() == 1) q.push(u);
+      }
+      cerr << pruned << " node(s) was pruned." << endl;
+    }
+
+    //O(E log(E))
+    for(const auto& edge : initial_edges) {
+      V u = edge.first, v = to(edge.second);
+      if(uf_.is_same(u,v)) continue;
+        contraction(ancestor, contraction_graph_edges, u, v);
+    }
+    // gが連結とは限らないので、uv_costs.size() == g.num_vertices() - 1ではない
+    assert(int(binary_tree_edges_.size() - g.num_vertices()) <= g.num_vertices() - 1);
+
+    build_depth();
+  }
+
+
+  int query(V u, V v) {
+    CHECK(u != v);
+    CHECK(u < num_vertices_ && v < num_vertices_);
+    int ans = numeric_limits<int>::max();
+    while (u != v) {
+      if(u == -1 || v == -1) return 0; // disconnect
+      if (depth_[u] > depth_[v]) {
+        ans = min(ans, parent_weight_[u].second);
+        u = parent_weight_[u].first;
+      } else {
+        ans = min(ans, parent_weight_[v].second);
+        v = parent_weight_[v].first;
+      }
+    }
+    return ans;
+  }
+
+private:
+  const int num_vertices_;
+  union_find uf_;
+
+  vector<vector<pair<V,int>>> binary_tree_edges_;
+  vector<pair<V, int>> parent_weight_;
+  vector<int> depth_;
+
+  int root_node_;
+};
+
 class min_cut_query {
  public:
   min_cut_query(G& g) {
@@ -262,16 +409,15 @@ bool check_min_cut_query(const min_cut_query& mcq,int s,int t,G& g){
   return naive_w == mcq_w;
 }
 
-int main(int argc, char **argv) {
-  // JLOG_INIT(&argc, argv); called in "easy_cui_init"
-  xorshift64star gen_node(FLAGS_node_pair_random_seed);
-  G g = easy_cui_init(argc, argv);
-  g = to_directed_graph(g);
-  min_cut_query mcq(g);
+DEFINE_string(method,"test","test, single_source_mincut");
+
+void test(G&& g) {
+    min_cut_query mcq(g);
   // mcq.debug_output_graph();
 
   JLOG_PUT("argv.mincut_tree_iter", FLAGS_solver_iter);
 
+  xorshift64star gen_node(FLAGS_node_pair_random_seed);
   int unmatch = 0;
   for(int counter = 0; counter < FLAGS_num_query; counter++) {
     V s = gen_node() % g.num_vertices();
@@ -286,6 +432,63 @@ int main(int argc, char **argv) {
   JLOG_PUT("result.all", FLAGS_num_query);
   JLOG_PUT("result.match", (FLAGS_num_query - unmatch));
   JLOG_PUT("result.unmatch", unmatch);
+}
+
+void test2(G&& g) {
+  auto copied_random = agl::random;
+  min_cut_query_with_random_contraction mcq(g);
+  agl::random = copied_random;
+  min_cut_query_with_random_contraction2 mcq2(g);
+// mcq.debug_output_graph();
+  int n = g.num_vertices();
+  FOR(i,n) {
+    for(int j = i+1; j < n; j++) {
+        int a = mcq.query(i, j);
+        int b = mcq2.query(i, j);
+        printf("%d %d : %d = %d\n",i,j, a,b);
+        CHECK(a == b);
+    }
+  }
+}
+
+
+DEFINE_string(single_source_mincut_output, "min_cut_query_ssm.data", "");
+void single_source_mincut(G&& g) {
+    min_cut_query mcq(g);
+    size_t max_deg = 0;
+    int max_deg_v = -1;
+    FOR(v, g.num_vertices()) {
+      if(g.degree(v) > max_deg) {
+        max_deg = g.degree(v);
+        max_deg_v = v;
+      }
+    }
+
+    FILE* fp = fopen(FLAGS_single_source_mincut_output.c_str(), "w");
+    FOR(v,g.num_vertices()) {
+      if(v == max_deg_v) continue;
+      int mc = mcq.query(max_deg_v, v);
+      fprintf(fp, "%d %d %d\n",max_deg_v, v, mc);
+    }  
+    fclose(fp);
+}
+
+int main(int argc, char **argv) {
+  // JLOG_INIT(&argc, argv); called in "easy_cui_init"
+  G g = easy_cui_init(argc, argv);
+  g = to_directed_graph(g);
+
+  test2(G(g));
+
+  if(FLAGS_method == "test") {
+    test(move(g));
+  } else if(FLAGS_method == "single_source_mincut") {
+    single_source_mincut(move(g));
+  } else {
+      fprintf(stderr, "unrecognized option '-method=%s'\n", FLAGS_method.c_str());
+      exit(-1);
+  }
+
   
   return 0;
 }
