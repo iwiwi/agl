@@ -195,8 +195,7 @@ class min_cut_query_with_random_contraction {
     build_depth();
   }
 
-
-  int query(V u, V v) const {
+    int query(V u, V v) const {
     CHECK(u != v);
     CHECK(u < num_vertices_ && v < num_vertices_);
     int ans = numeric_limits<int>::max();
@@ -210,6 +209,24 @@ class min_cut_query_with_random_contraction {
         v = parent_weight_[v].first;
       }
     }
+    return ans;
+  }
+
+  void single_source_mincut_dfs(V v,V par,int mn, vector<int>& ans) const {
+    if(v < num_vertices_) {
+      ans[v] = mn;
+    }
+    for(auto& to : binary_tree_edges_[v]) {
+      if(to.first == par) continue;
+      int nmn = min(mn, to.second);
+      single_source_mincut_dfs(to.first, v, nmn, ans);
+    }
+  }
+
+
+  vector<int> single_source_mincut(V u) const {
+    vector<int> ans(num_vertices_, numeric_limits<int>::max());
+    single_source_mincut_dfs(u,-1,numeric_limits<int>::max(), ans);
     return ans;
   }
 
@@ -239,6 +256,18 @@ class min_cut_query {
       ans = min(ans, solver.query(u, v));
     }
     return ans;
+  }
+
+  vector<int> single_source_mincut(V v) const {
+    vector<int> ret;
+    for(const auto& solver : solvers_){
+      auto cur_ans = solver.single_source_mincut(v);
+      if(sz(ret) == 0) ret = move(cur_ans);
+      else {
+        FOR(i,sz(ret)) ret[i] = min(ret[i], cur_ans[i]);
+      }
+    }
+    return ret;
   }
  private:
   vector<min_cut_query_with_random_contraction> solvers_;
@@ -296,27 +325,35 @@ void test(G&& g) {
   JLOG_PUT("result.unmatch", unmatch);
 }
 
+string graph_name() {
+  string x = FLAGS_graph;
+  string ret;
+  for(int i = sz(x) - 1; i >= 0; i--) {
+   if(x[i] == '/' || x[i] == '\\') break;
+    ret.push_back(x[i]);
+  }
+  reverse(ret.begin(),ret.end());
+  return ret;
+}
+
 DEFINE_string(single_source_mincut_output, "random_contraction_ssm.data", "");
 void single_source_mincut(G&& g) {
     min_cut_query mcq(g);
     size_t max_deg = 0;
     int max_deg_v = -1;
     FOR(v, g.num_vertices()) {
-      if(g.degree(v) > max_deg) {
-        max_deg = g.degree(v);
+      if(g.degree(v, D(0)) + g.degree(D(1)) > max_deg) {
+        max_deg = g.degree(v, D(0)) + g.degree(D(1));
         max_deg_v = v;
       }
     }
 
+    auto anses = mcq.single_source_mincut(max_deg_v);
     FILE* fp = fopen(FLAGS_single_source_mincut_output.c_str(), "w");
     FOR(v,g.num_vertices()) {
       if(v == max_deg_v) continue;
-      int mc = mcq.query(max_deg_v, v);
-      int xx = g.degree(v, D(0)) + g.degree(v, D(1));
-      if(mc != xx){
-        // printf("%d %d : mc = %d, deg = %d\n",max_deg_v,v,mc,xx);
-      }
-      fprintf(fp, "%d %d %d\n",max_deg_v, v, mc);
+      
+      fprintf(fp, "%d %d %d\n",max_deg_v, v, anses[v]);
     }  
     fclose(fp);
 }

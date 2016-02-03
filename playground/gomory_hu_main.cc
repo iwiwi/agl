@@ -183,8 +183,8 @@ void single_source_mincut(G&& g) {
   size_t max_deg = 0;
   int max_deg_v = -1;
   FOR(v, g.num_vertices()) {
-    if(g.degree(v) > max_deg) {
-      max_deg = g.degree(v);
+    if(g.degree(v, D(0)) + g.degree(D(1)) > max_deg) {
+      max_deg = g.degree(v, D(0)) + g.degree(D(1));
       max_deg_v = v;
     }
   }
