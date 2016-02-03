@@ -539,7 +539,7 @@ vector<vector<V>> build_sketch(const G &g, const W radius, const int k,
   //
   // Build-Sketches O((n+m)*rad)
   //
-  size_t using_k = use_memb ? num_v * num_v : k;
+  size_t using_k = use_memb ? X[0].max_size() - 1 : k;
   size_t total_size = 0;
 
   for (V i = 0; i < num_v; ++i) {
@@ -963,6 +963,7 @@ vector<V> box_cover_sketch(const G &g, W radius, const int k,
     //
     // Build-Sketches O((n+m)*rad)
     //
+    srand(static_cast<unsigned int>(std::time(nullptr)));
     random_shuffle(inv.begin(), inv.end());
     for (int i = 0; i < num_v; ++i) {
       rank[inv[i]] = i;
