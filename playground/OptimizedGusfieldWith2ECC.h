@@ -78,8 +78,22 @@ class OptimizedGusfieldWith2ECC {
     }
   }
 
-  void prune_obvious_mincut(greedy_treepacking& packing, parent_tree_set& pts, vector<int>& mincut_order, const vector<int>& degree) {
+  void prune_obvious_mincut(parent_tree_set& pts, vector<int>& mincut_order, const vector<int>& degree) {
     vector<int> current_parent(num_vertices_, -1);
+    vector<bool> mincut_solved(num_vertices_);
+    greedy_treepacking packing_base(edges_, num_vertices_, mincut_solved);
+
+    auto set_solved = [&](V v,V parent, int weight) {
+      current_parent[v] = parent;
+      parent_weight_[v].second = weight;
+      mincut_solved[v] = true;
+    };
+
+    FOR(v, num_vertices_) {
+      if (v == root_node_) continue;
+      if (degree[v] == 2) set_solved(v, root_node_, 2); //二重連結成分分解後なので自明なcut
+    }
+
 
     if (FLAGS_enable_greedy_tree_packing) {
       //次数の高い頂点から順に、 一定回数 greedy tree packingを行って、flowの下界を求める
@@ -92,6 +106,7 @@ class OptimizedGusfieldWith2ECC {
 
       FOR(trying, iteration) {
         const V v = idx[trying];
+        auto packing = packing_base;
         packing.arborescence_packing(v);
         if (current_parent[v] != -1) {
           current_parent[v] = v; // 閉路が出来上がるのを防ぐために、親を自分自身であると登録しておく
@@ -101,10 +116,7 @@ class OptimizedGusfieldWith2ECC {
           if (current_parent[to] != -1) continue;
           //tree packingの結果がdegreeと一致するなら、flowは流さなくてよい
           if (packing.inedge_count(to) == degree[to]) {
-            current_parent[to] = v;
-            // pts.set_parent(to, v);
-            parent_weight_[to].second = packing.inedge_count(to);
-
+            set_solved(to, v, packing.inedge_count(to));
             // fprintf(stderr, "(%d, %d), cost = %d\n",v, to, packing.inedge_count(to));
           }
         }
@@ -128,12 +140,9 @@ class OptimizedGusfieldWith2ECC {
     FOR(v, num_vertices_) {
       if (v == root_node_) continue;
       if (current_parent[v] != -1) {
-        pts.set_parent(v, current_parent[v]);
-      } else if (degree[v] == 2) {
-        pts.set_parent(v, root_node_);
-        parent_weight_[v].second = 2; //ついでに自明なcutを求める
+        pts.set_parent(v, current_parent[v]); // cutがもとまっている
       } else {
-        mincut_order.push_back(v);
+        mincut_order.push_back(v); //gusfieldで求める
       }
     }
 
@@ -149,6 +158,7 @@ class OptimizedGusfieldWith2ECC {
 public:
 
   OptimizedGusfieldWith2ECC(vector<pair<V, V>>& edges, int num_vs) :
+    edges_(edges), 
     num_vertices_(num_vs),
     parent_weight_(num_vs, make_pair(-1, 0)),
     depth_(num_vs, -1) {
@@ -165,11 +175,8 @@ public:
     parent_tree_set pts(num_vs, root_node_);
 
     vector<int> mincut_order;
-    {
-      greedy_treepacking packing(edges, num_vs);
-      //枝刈りしつつ、まだmincutが求まってない頂点達を見つける
-      prune_obvious_mincut(packing, pts, mincut_order, degree);
-    }
+    //枝刈りしつつ、まだmincutが求まってない頂点達を見つける
+    prune_obvious_mincut(pts, mincut_order, degree);
     //gusfieldのアルゴリズムでcutしていく頂点の順番を決定
     gusfield_choice_stpair(mincut_order, degree);
 
@@ -231,6 +238,7 @@ public:
   }
 
 private:
+  const vector<pair<V, V>>& edges_;
   const int num_vertices_;
   vector<pair<V, int>> parent_weight_;
   vector<int> depth_;

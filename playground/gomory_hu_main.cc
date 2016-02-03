@@ -189,8 +189,9 @@ void single_source_mincut(G&& g) {
     }
   }
 
+  vector<bool> solved(g.num_vertices());
   auto e = g.edge_list();
-  greedy_treepacking gt(e, g.num_vertices());
+  greedy_treepacking gt(e, g.num_vertices(), solved);
   gt.arborescence_packing(max_deg_v);
 
   FILE* fp = fopen(FLAGS_single_source_mincut_output.c_str(), "w");
