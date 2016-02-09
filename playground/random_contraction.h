@@ -89,7 +89,7 @@ class random_contraction {
     }
   }
 
-  void contraction(vector<int>& ancestor, vector<unordered_map<V, int>>& contraction_graph_edges, V u, V v) {
+  void contraction(vector<int>& ancestor, vector<unordered_map<V, int>>& contraction_graph_edges, V u, V v, queue<int>& degree_eq_1) {
     assert(!uf_.is_same(u, v));
     V new_vertex = (V)binary_tree_edges_.size();
     u = uf_.root(u), v = uf_.root(v);
@@ -128,6 +128,9 @@ class random_contraction {
         auto it = toset.find(v);
         toset.erase(it);
         toset[u] += w;
+        if (FLAGS_prune_if_degree_eq_1 && sz(toset) == 1) {
+          degree_eq_1.push(to);
+        }
       }
     }
     vset.clear();
@@ -156,31 +159,32 @@ public:
     }
     FOR(v, num_vertices_) uf_.add_weight(v, degree_weight(sz(contraction_graph_edges[v]), sz(contraction_graph_edges[v])));
 
-    // 次数1の頂点を先に縮約する
+    queue<int> degree_eq_1;
+    int pruned_degree_eq_1 = 0;
     if (FLAGS_prune_if_degree_eq_1) {
-      cerr << "First, prune node which degree eq 1." << endl;
-      int pruned = 0;
-      queue<int> q;
-      for (V v : make_irange(g.num_vertices())) {
-        if (contraction_graph_edges[v].size() == 1) q.push(v);
+      FOR(v, num_vertices_) {
+        if (sz(contraction_graph_edges[v]) == 1) degree_eq_1.push(v);
       }
-      while (!q.empty()) {
-        V v = q.front(); q.pop();
-        pruned++;
-        V u;
-        if (contraction_graph_edges[v].size() == 0) continue;
-        tie(std::ignore, u) = *contraction_graph_edges[v].begin();
-        contraction(ancestor, contraction_graph_edges, u, v);
-        if (contraction_graph_edges[u].size() == 1) q.push(u);
-      }
-      cerr << pruned << " node(s) was pruned." << endl;
     }
 
-    //O(E log(E))
     for (const auto& edge : initial_edges) {
+      if (FLAGS_prune_if_degree_eq_1) {
+        // 次数1の頂点があればそれを縮約する
+        while (!degree_eq_1.empty()) {
+          V v = degree_eq_1.front(); degree_eq_1.pop();
+          if (contraction_graph_edges[v].size() == 0) continue;
+          V u;
+          tie(u, std::ignore) = *contraction_graph_edges[v].begin();
+          contraction(ancestor, contraction_graph_edges, u, v, degree_eq_1);
+          if (contraction_graph_edges[u].size() == 1) degree_eq_1.push(u);
+          
+          pruned_degree_eq_1++;
+        }
+      }
+
       V u = edge.first, v = to(edge.second);
       if (uf_.is_same(u, v)) continue;
-      contraction(ancestor, contraction_graph_edges, u, v);
+      contraction(ancestor, contraction_graph_edges, u, v, degree_eq_1);
     }
     // gが連結とは限らないので、uv_costs.size() == g.num_vertices() - 1ではない
     assert(int(binary_tree_edges_.size() - g.num_vertices()) <= g.num_vertices() - 1);
