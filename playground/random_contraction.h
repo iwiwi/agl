@@ -3,6 +3,64 @@
 DEFINE_bool(prune_if_degree_eq_1, true, "");
 DEFINE_int32(solver_iter, 50, "");
 
+struct degree_weight {
+  int degree, weight;
+  degree_weight() : degree(0), weight(0) {}
+  degree_weight(int degree, int weight) : degree(degree), weight(weight) {}
+  bool operator<(const degree_weight& r) const {
+    return degree < r.degree;
+  }
+  degree_weight& operator+=(const degree_weight& r) {
+    degree += r.degree;
+    weight += r.weight;
+    return *this;
+  }
+  degree_weight operator+(const degree_weight& r) const {
+    degree_weight ret = *this;
+    return ret += r;
+  }
+};
+
+
+class weighted_union_find {
+  using weight_t = degree_weight;
+public:
+  weighted_union_find(int n) : n_(n), uf_(n_), par_(n_), weight_(n_) {
+    FOR(i, n_) par_[i] = i;
+  }
+  int root(int x) {
+    int uf_root = uf_.root(x);
+    return par_[uf_root];
+  }
+
+  void unite(int x, int y) {
+    x = root(x), y = root(y);
+    if (x == y) return;
+    uf_.unite(x, y);
+    const int more_heavily_v = weight_[x] < weight_[y] ? y : x;
+    const int uf_root = uf_.root(more_heavily_v);
+    par_[uf_root] = more_heavily_v;
+    weight_[root(x)] = weight_[x] + weight_[y];
+  }
+
+  bool is_same(int x, int y) {
+    return uf_.root(x) == uf_.root(y);
+  }
+
+  void add_weight(int x, weight_t dec) {
+    weight_[root(x)] += dec;
+  }
+
+  weight_t weight(int x) {
+    return weight_[root(x)];
+  }
+private:
+  int n_;
+  union_find uf_;
+  vector<int> par_;
+  vector<weight_t> weight_;
+};
+
 class random_contraction {
 
   void build_depth() {
@@ -10,7 +68,7 @@ class random_contraction {
     parent_weight_.resize(sz(binary_tree_edges_), make_pair(-2, -2));
 
     FOR(v, num_vertices_) {
-      if(depth_[v] >= 0) continue;
+      if (depth_[v] >= 0) continue;
 
       depth_[v] = 0;
       parent_weight_[v] = make_pair(-1, -1);
@@ -18,9 +76,9 @@ class random_contraction {
       q.push(v);
       while (!q.empty()) {
         int u = q.front(); q.pop();
-        for(auto& to_weight : binary_tree_edges_[u]) {
-          int to, weight; tie(to,weight) = to_weight;
-          if(depth_[to] >= 0) continue;
+        for (auto& to_weight : binary_tree_edges_[u]) {
+          int to, weight; tie(to, weight) = to_weight;
+          if (depth_[to] >= 0) continue;
           depth_[to] = depth_[u] + 1;
           parent_weight_[to].first = u;
           parent_weight_[to].second = weight;
@@ -31,41 +89,52 @@ class random_contraction {
     }
   }
 
-  void contraction(vector<int>& ancestor,vector<unordered_set<pair<V,V>>>& contraction_graph_edges , V u, V v) {
-      assert(!uf_.is_same(u, v));
-      V new_vertex = (V)binary_tree_edges_.size();
-      u = uf_.root(u), v = uf_.root(v);
-      int uw = (int)contraction_graph_edges[u].size(), vw = (int)contraction_graph_edges[v].size();
-      int ua = ancestor[u] , va = ancestor[v];
-      uf_.unite(u, v);
-      if(uf_.root(u) != u) swap(u, v);
-      ancestor[u] = new_vertex;
-
-      // 縮約した結果を元にbinary treeの構築を進める
-      binary_tree_edges_.emplace_back(); // new_vertex分の確保
-      binary_tree_edges_[new_vertex].emplace_back(ua, uw);
-      binary_tree_edges_[ua].emplace_back(new_vertex, uw);
-      binary_tree_edges_[new_vertex].emplace_back(va, vw);
-      binary_tree_edges_[va].emplace_back(new_vertex, vw);
-
-      //縮約した頂点の辺をまとめる
-      auto& uset = contraction_graph_edges[u];
-      auto& vset = contraction_graph_edges[v];
-      if(uset.size() < vset.size()) uset.swap(vset);
-      for(const auto& edge : vset) {
-        V from, to; tie(from, to) = edge;
-        if(uf_.is_same(from, to)){
-          auto it = uset.find(make_pair(to, from));
-          assert(it != uset.end());
-          uset.erase(it);
-        } else {
-          uset.insert(edge);
-        }
-      }
-      vset.clear();
+  void contraction(vector<int>& ancestor, vector<unordered_map<V, int>>& contraction_graph_edges, V u, V v) {
+    assert(!uf_.is_same(u, v));
+    V new_vertex = (V)binary_tree_edges_.size();
+    u = uf_.root(u), v = uf_.root(v);
+    degree_weight uw = uf_.weight(u), vw = uf_.weight(v);
+    uf_.unite(u, v);
+    if (u != uf_.root(u)) {
+      swap(u, v);
+      swap(uw, vw);
     }
 
- public:
+    int ua = ancestor[u], va = ancestor[v];
+    ancestor[u] = new_vertex;
+
+    // 縮約した結果を元にbinary treeの構築を進める
+    binary_tree_edges_.emplace_back(); // new_vertex分の確保
+    binary_tree_edges_[new_vertex].emplace_back(ua, uw.weight);
+    binary_tree_edges_[ua].emplace_back(new_vertex, uw.weight);
+    binary_tree_edges_[new_vertex].emplace_back(va, vw.weight);
+    binary_tree_edges_[va].emplace_back(new_vertex, vw.weight);
+
+    //縮約した頂点の辺をまとめる
+    auto& uset = contraction_graph_edges[u];
+    auto& vset = contraction_graph_edges[v];
+    int dec_weight = 0;
+    for (const auto& edge : vset) {
+      V to; int w; tie(to, w) = edge;
+      if (to == u) {
+        auto it = uset.find(v);
+        assert(it != uset.end());
+        assert(it->second == w);
+        uset.erase(it);
+        dec_weight += w * 2;
+      } else {
+        uset[to] += w;
+        auto& toset = contraction_graph_edges[to];
+        auto it = toset.find(v);
+        toset.erase(it);
+        toset[u] += w;
+      }
+    }
+    vset.clear();
+    uf_.add_weight(u, degree_weight(-2, -dec_weight));
+  }
+
+public:
   // g の辺を使い、グラフを作成する(勝手にundirectedとして読み替えている)
   random_contraction(G& g) :
     num_vertices_(g.num_vertices()),
@@ -73,43 +142,45 @@ class random_contraction {
     binary_tree_edges_(g.num_vertices()) {
     //unordered -> weight = 1なので、shuffleでよい
     //重みがあるならBITで。(stochastic acceptanceはupdateありだと使えない)
-    vector<unordered_set<pair<V,V>>> contraction_graph_edges(g.num_vertices());
+    vector<unordered_map<V, int>> contraction_graph_edges(g.num_vertices());
     typename G::edge_list_type initial_edges(g.edge_list());
-    std::shuffle(initial_edges.begin(),initial_edges.end(), agl::random);
+    std::shuffle(initial_edges.begin(), initial_edges.end(), agl::random);
     vector<int> ancestor(g.num_vertices());
-    std::iota(ancestor.begin(),ancestor.end(), 0);
 
-    for(auto edge : initial_edges) {
+    FOR(i, num_vertices_) ancestor[i] = i;
+
+    for (auto edge : initial_edges) {
       V u = edge.first, v = to(edge.second);
-      contraction_graph_edges[u].emplace(u, v);
-      contraction_graph_edges[v].emplace(v, u);
+      contraction_graph_edges[u].emplace(v, 1);
+      contraction_graph_edges[v].emplace(u, 1);
     }
+    FOR(v, num_vertices_) uf_.add_weight(v, degree_weight(sz(contraction_graph_edges[v]), sz(contraction_graph_edges[v])));
 
     // 次数1の頂点を先に縮約する
-    if(FLAGS_prune_if_degree_eq_1){
+    if (FLAGS_prune_if_degree_eq_1) {
       cerr << "First, prune node which degree eq 1." << endl;
       int pruned = 0;
       queue<int> q;
-      for(V v : make_irange(g.num_vertices())) {
-        if(contraction_graph_edges[v].size() == 1) q.push(v);
+      for (V v : make_irange(g.num_vertices())) {
+        if (contraction_graph_edges[v].size() == 1) q.push(v);
       }
-      while(!q.empty()) {
+      while (!q.empty()) {
         V v = q.front(); q.pop();
         pruned++;
         V u;
-        if(contraction_graph_edges[v].size() == 0) continue;
+        if (contraction_graph_edges[v].size() == 0) continue;
         tie(std::ignore, u) = *contraction_graph_edges[v].begin();
         contraction(ancestor, contraction_graph_edges, u, v);
-        if(contraction_graph_edges[u].size() == 1) q.push(u);
+        if (contraction_graph_edges[u].size() == 1) q.push(u);
       }
       cerr << pruned << " node(s) was pruned." << endl;
     }
 
     //O(E log(E))
-    for(const auto& edge : initial_edges) {
+    for (const auto& edge : initial_edges) {
       V u = edge.first, v = to(edge.second);
-      if(uf_.is_same(u,v)) continue;
-        contraction(ancestor, contraction_graph_edges, u, v);
+      if (uf_.is_same(u, v)) continue;
+      contraction(ancestor, contraction_graph_edges, u, v);
     }
     // gが連結とは限らないので、uv_costs.size() == g.num_vertices() - 1ではない
     assert(int(binary_tree_edges_.size() - g.num_vertices()) <= g.num_vertices() - 1);
@@ -117,12 +188,12 @@ class random_contraction {
     build_depth();
   }
 
-    int query(V u, V v) const {
+  int query(V u, V v) const {
     CHECK(u != v);
     CHECK(u < num_vertices_ && v < num_vertices_);
     int ans = numeric_limits<int>::max();
     while (u != v) {
-      if(u == -1 || v == -1) return 0; // disconnect
+      if (u == -1 || v == -1) return 0; // disconnect
       if (depth_[u] > depth_[v]) {
         ans = min(ans, parent_weight_[u].second);
         u = parent_weight_[u].first;
@@ -134,12 +205,12 @@ class random_contraction {
     return ans;
   }
 
-  void single_source_mincut_dfs(V v,V par,int mn, vector<int>& ans) const {
-    if(v < num_vertices_) {
+  void single_source_mincut_dfs(V v, V par, int mn, vector<int>& ans) const {
+    if (v < num_vertices_) {
       ans[v] = mn;
     }
-    for(auto& to : binary_tree_edges_[v]) {
-      if(to.first == par) continue;
+    for (auto& to : binary_tree_edges_[v]) {
+      if (to.first == par) continue;
       int nmn = min(mn, to.second);
       single_source_mincut_dfs(to.first, v, nmn, ans);
     }
@@ -148,33 +219,33 @@ class random_contraction {
 
   vector<int> single_source_mincut(V u) const {
     vector<int> ans(num_vertices_, numeric_limits<int>::max());
-    single_source_mincut_dfs(u,-1,numeric_limits<int>::max(), ans);
+    single_source_mincut_dfs(u, -1, numeric_limits<int>::max(), ans);
     return ans;
   }
 
 private:
   const int num_vertices_;
-  union_find uf_;
+  weighted_union_find uf_;
 
-  vector<vector<pair<V,int>>> binary_tree_edges_;
+  vector<vector<pair<V, int>>> binary_tree_edges_;
   vector<pair<V, int>> parent_weight_;
   vector<int> depth_;
 };
 
 class min_cut_query {
- public:
+public:
   min_cut_query(G& g) {
     fprintf(stderr, "initialize mincut-query tree ...\n");
-    for(int i = 0; i < FLAGS_solver_iter; i++) {
-      if(i % 10 == 0) fprintf(stderr, "trees .. %d/%d\n",i,FLAGS_solver_iter);
+    for (int i = 0; i < FLAGS_solver_iter; i++) {
+      if (i % 10 == 0) fprintf(stderr, "trees .. %d/%d\n", i, FLAGS_solver_iter);
       solvers_.emplace_back(g);
     }
     fprintf(stderr, "completed.\n");
   }
 
-  int query(int u,int v) const {
+  int query(int u, int v) const {
     int ans = numeric_limits<int>::max();
-    for(const auto& solver : solvers_){
+    for (const auto& solver : solvers_) {
       ans = min(ans, solver.query(u, v));
     }
     return ans;
@@ -182,16 +253,15 @@ class min_cut_query {
 
   vector<int> single_source_mincut(V v) const {
     vector<int> ret;
-    for(const auto& solver : solvers_){
+    for (const auto& solver : solvers_) {
       auto cur_ans = solver.single_source_mincut(v);
-      if(sz(ret) == 0) ret = move(cur_ans);
+      if (sz(ret) == 0) ret = move(cur_ans);
       else {
-        FOR(i,sz(ret)) ret[i] = min(ret[i], cur_ans[i]);
+        FOR(i, sz(ret)) ret[i] = min(ret[i], cur_ans[i]);
       }
     }
     return ret;
   }
- private:
+private:
   vector<random_contraction> solvers_;
 };
-
