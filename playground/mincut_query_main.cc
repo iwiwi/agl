@@ -77,7 +77,7 @@ string graph_name() {
 
 DEFINE_string(single_source_mincut_output, "random_contraction_ssm.data", "");
 void single_source_mincut(G&& g) {
-  min_cut_query mcq(g);
+  min_cut_query2 mcq(g);
   size_t max_deg = 0;
   int max_deg_v = -1;
   FOR(v, g.num_vertices()) {
@@ -90,6 +90,7 @@ void single_source_mincut(G&& g) {
   FILE* fp = fopen(FLAGS_single_source_mincut_output.c_str(), "w");
   FOR(v, g.num_vertices()) {
     if (v == max_deg_v) continue;
+    if (v % 10000 == 0) cerr << v << endl;
     auto ans = mcq.query(max_deg_v, v);
     fprintf(fp, "%d %d %d\n", max_deg_v, v, ans);
   }
