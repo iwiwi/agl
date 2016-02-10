@@ -20,11 +20,14 @@ DEFINE_string(method, "gusfield", "test, gusfield, print_gomory_hu_tree");
 #include "OptimizedGusfieldWith2ECC2.h"
 #include "greedy_treepacking.h"
 
-G to_directed_graph(G g) {
+G to_directed_graph(G&& g) {
   vector<pair<V, V>> ret;
   for (auto& e : g.edge_list()) {
-    if (e.first < to(e.second)) ret.emplace_back(e.first, to(e.second));
+    if(e.first < to(e.second)) ret.emplace_back(e.first, to(e.second));
+    else if( to(e.second) < e.first) ret.emplace_back(to(e.second), e.first);
   }
+  sort(ret.begin(),ret.end());
+  ret.erase(unique(ret.begin(),ret.end()), ret.end());
   return G(ret);
 }
 
@@ -254,7 +257,7 @@ int main(int argc, char** argv) {
   // tester();
 
   G g = easy_cui_init(argc, argv);
-  g = to_directed_graph(g);
+  g = to_directed_graph(std::move(g));
 
   if (FLAGS_gomory_fu_builder == "Gusfield3") {
     main_<Gusfield3>(std::move(g));
