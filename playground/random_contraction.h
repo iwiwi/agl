@@ -1,5 +1,7 @@
 #pragma once
 
+#include "TwoEdgeCCFilter.h"
+
 DEFINE_bool(prune_if_degree_eq_1, true, "");
 DEFINE_int32(solver_iter, 50, "");
 
@@ -20,7 +22,6 @@ struct degree_weight {
     return ret += r;
   }
 };
-
 
 class weighted_union_find {
   using weight_t = degree_weight;
@@ -138,24 +139,23 @@ class random_contraction {
   }
 
 public:
+  random_contraction(G& g) : random_contraction(g.edge_list(), g.num_vertices()) {}
   // g の辺を使い、グラフを作成する(勝手にundirectedとして読み替えている)
-  random_contraction(G& g) :
-    num_vertices_(g.num_vertices()),
-    uf_(g.num_vertices()),
-    binary_tree_edges_(g.num_vertices()) {
+  random_contraction(vector<pair<V,V>> initial_edges, int num_vs) :
+    num_vertices_(num_vs), uf_(num_vs), binary_tree_edges_(num_vs) {
     //unordered -> weight = 1なので、shuffleでよい
     //重みがあるならBITで。(stochastic acceptanceはupdateありだと使えない)
-    vector<unordered_map<V, int>> contraction_graph_edges(g.num_vertices());
-    typename G::edge_list_type initial_edges(g.edge_list());
+    vector<unordered_map<V, int>> contraction_graph_edges(num_vertices_);
+
     std::shuffle(initial_edges.begin(), initial_edges.end(), agl::random);
-    vector<int> ancestor(g.num_vertices());
+    vector<int> ancestor(num_vs);
 
     FOR(i, num_vertices_) ancestor[i] = i;
 
     for (auto edge : initial_edges) {
       V u = edge.first, v = to(edge.second);
-      contraction_graph_edges[u].emplace(v, 1);
-      contraction_graph_edges[v].emplace(u, 1);
+      contraction_graph_edges[u][v]++;
+      contraction_graph_edges[v][u]++;
     }
     FOR(v, num_vertices_) uf_.add_weight(v, degree_weight(sz(contraction_graph_edges[v]), sz(contraction_graph_edges[v])));
 
@@ -177,7 +177,7 @@ public:
           tie(u, std::ignore) = *contraction_graph_edges[v].begin();
           contraction(ancestor, contraction_graph_edges, u, v, degree_eq_1);
           if (contraction_graph_edges[u].size() == 1) degree_eq_1.push(u);
-          
+
           pruned_degree_eq_1++;
         }
       }
@@ -187,7 +187,7 @@ public:
       contraction(ancestor, contraction_graph_edges, u, v, degree_eq_1);
     }
     // gが連結とは限らないので、uv_costs.size() == g.num_vertices() - 1ではない
-    assert(int(binary_tree_edges_.size() - g.num_vertices()) <= g.num_vertices() - 1);
+    assert(int(binary_tree_edges_.size() - num_vs) <= num_vs - 1);
 
     build_depth();
   }
@@ -239,6 +239,7 @@ private:
 class min_cut_query {
 public:
   min_cut_query(G& g) {
+    if (g.num_vertices() == 1) return;
     fprintf(stderr, "initialize mincut-query tree ...\n");
     for (int i = 0; i < FLAGS_solver_iter; i++) {
       if (i % 10 == 0) fprintf(stderr, "trees .. %d/%d\n", i, FLAGS_solver_iter);
@@ -247,7 +248,18 @@ public:
     fprintf(stderr, "completed.\n");
   }
 
+  min_cut_query(vector<pair<V,V>>& edges, int num_vs) {
+    if (num_vs == 1) return;
+    fprintf(stderr, "initialize mincut-query tree ...\n");
+    for (int i = 0; i < FLAGS_solver_iter; i++) {
+      if (i % 10 == 0) fprintf(stderr, "trees .. %d/%d\n", i, FLAGS_solver_iter);
+      solvers_.emplace_back(edges, num_vs);
+    }
+    fprintf(stderr, "completed.\n");
+  }
+
   int query(int u, int v) const {
+    CHECK(!solvers_.empty());
     int ans = numeric_limits<int>::max();
     for (const auto& solver : solvers_) {
       ans = min(ans, solver.query(u, v));
@@ -256,6 +268,7 @@ public:
   }
 
   vector<int> single_source_mincut(V v) const {
+    CHECK(!solvers_.empty());
     vector<int> ret;
     for (const auto& solver : solvers_) {
       auto cur_ans = solver.single_source_mincut(v);
@@ -269,3 +282,5 @@ public:
 private:
   vector<random_contraction> solvers_;
 };
+
+using min_cut_query2 = TwoEdgeCCFilter<min_cut_query>;

@@ -11,10 +11,10 @@ DEFINE_int32(num_query, 1000, "");
 DEFINE_int64(node_pair_random_seed, 922337203685477583LL, "");
 DEFINE_string(method, "test", "test, single_source_mincut");
 
-bool check_min_cut_query(const min_cut_query& mcq, dinic_twosided& dc, int s, int t, G& g) {
+bool check_min_cut_query(min_cut_query2& mcq2, dinic_twosided& dc, int s, int t, G& g) {
   dc.reset_graph();
   int naive_w = dc.max_flow(s, t);
-  int mcq_w = mcq.query(s, t);
+  int mcq_w = mcq2.query(s, t);
   CHECK(naive_w <= mcq_w);
 
   JLOG_ADD_OPEN("query") {
@@ -30,7 +30,7 @@ bool check_min_cut_query(const min_cut_query& mcq, dinic_twosided& dc, int s, in
 }
 
 void test(G&& g) {
-  min_cut_query mcq(g);
+  min_cut_query2 mcq2(g);
   dinic_twosided dc(g);
   // mcq.debug_output_graph();
 
@@ -45,7 +45,7 @@ void test(G&& g) {
     if (counter % 100 == 0) {
       fprintf(stderr, "count/unmatch/all : %d/%d/%d, \n", counter, unmatch, FLAGS_num_query);
     }
-    bool is_matched = check_min_cut_query(mcq, dc, s, t, g);
+    bool is_matched = check_min_cut_query(mcq2, dc, s, t, g);
     if (!is_matched) unmatch++;
   }
   JLOG_PUT("result.all", FLAGS_num_query);
@@ -53,14 +53,14 @@ void test(G&& g) {
   JLOG_PUT("result.unmatch", unmatch);
 }
 
-G to_directed_graph(G& g) {
+G to_directed_graph(G&& g) {
   vector<pair<V, V>> ret;
   for (auto& e : g.edge_list()) {
-    if(e.first < to(e.second)) ret.emplace_back(e.first, to(e.second));
-    else if( to(e.second) < e.first) ret.emplace_back(to(e.second), e.first);
+    if (e.first < to(e.second)) ret.emplace_back(e.first, to(e.second));
+    else if (to(e.second) < e.first) ret.emplace_back(to(e.second), e.first);
   }
-  sort(ret.begin(),ret.end());
-  ret.erase(unique(ret.begin(),ret.end()), ret.end());
+  sort(ret.begin(), ret.end());
+  ret.erase(unique(ret.begin(), ret.end()), ret.end());
   return G(ret);
 }
 
@@ -87,12 +87,11 @@ void single_source_mincut(G&& g) {
     }
   }
 
-  auto anses = mcq.single_source_mincut(max_deg_v);
   FILE* fp = fopen(FLAGS_single_source_mincut_output.c_str(), "w");
   FOR(v, g.num_vertices()) {
     if (v == max_deg_v) continue;
-
-    fprintf(fp, "%d %d %d\n", max_deg_v, v, anses[v]);
+    auto ans = mcq.query(max_deg_v, v);
+    fprintf(fp, "%d %d %d\n", max_deg_v, v, ans);
   }
   fclose(fp);
 }
@@ -116,11 +115,18 @@ void single_source_mincut_with_deg(G&& g) {
   fclose(fp);
 }
 
+void tester() {
+  test(to_directed_graph(built_in_graph("karate_club")));
+  test(to_directed_graph(built_in_graph("dolphin")));
+  test(to_directed_graph(built_in_graph("ca_grqc")));
+  exit(0);
+}
 
 int main(int argc, char **argv) {
+  // tester();
   // JLOG_INIT(&argc, argv); called in "easy_cui_init"
   G g = easy_cui_init(argc, argv);
-  g = to_directed_graph(g);
+  g = to_directed_graph(move(g));
   pretty_print(g);
 
   if (FLAGS_method == "test") {
