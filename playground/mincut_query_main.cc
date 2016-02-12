@@ -75,8 +75,13 @@ string graph_name() {
   return ret;
 }
 
-DEFINE_string(single_source_mincut_output, "random_contraction_ssm.data", "");
+DEFINE_string(single_source_mincut_output, "", "");
 void single_source_mincut(G&& g) {
+  if(FLAGS_single_source_mincut_output == "") {
+    auto gname = graph_name();
+    auto iter = to_string(FLAGS_solver_iter);
+    FLAGS_single_source_mincut_output = "rc_" + gname + "-" + iter + ".data";
+  }
   min_cut_query2 mcq(g);
   size_t max_deg = 0;
   int max_deg_v = -1;
