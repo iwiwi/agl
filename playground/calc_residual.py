@@ -74,14 +74,14 @@ if __name__ == "__main__":
             continue
 
         # Real_data
-        ok = True
-        for i in xrange(1, len(px)):
-            if px[i] > px[i - 1] + 2:
-                ok = False
-            if i is len(px) - 1 and len(px) < 9 and py[i] > 1:
-                ok = False
-        if not ok:
-            continue
+        # ok = True
+        # for i in xrange(1, len(px)):
+        #     if px[i] > px[i - 1] + 2:
+        #         ok = False
+        #     if i is len(px) - 1 and len(px) < 9 and py[i] > 1:
+        #         ok = False
+        # if not ok:
+        #     continue
 
         frac_init = linearRegression(np.log(px), np.log(py))
         fractal = scipy.optimize.leastsq(fractalFit, frac_init, args=(px, py))
@@ -110,6 +110,10 @@ if __name__ == "__main__":
             time += json_data['time'][x]
         method = json_data['name']
 
+        memory = -1
+        if "run" in json_data and "memory" in json_data["run"]:
+            memory = json_data["run"]["memory"]
+
         if graph_name not in data:
             data[graph_name] = {
                 "edges": edges,
@@ -126,17 +130,21 @@ if __name__ == "__main__":
                 "upper_param": float(ub),
                 "fractal": frac_result,
                 "exponential": expo_result,
-                "time": time
+                "time": time,
+                "memory": memory
             }
             methods[method] = {
                 "k": int(k),
                 "upper_param": float(ub)
             }
         else:
+            if method in data[graph_name] and data[graph_name][method]["time"] < time:
+                continue
             data[graph_name][method] = {
                 "fractal": frac_result,
                 "exponential": expo_result,
-                "time": time
+                "time": time,
+                "memory": memory
             }
             methods[method] = {}
 
@@ -155,7 +163,7 @@ if __name__ == "__main__":
     sys.stdout.write("\n")
     sys.stdout.write("model\tvertices\tedges\t")
     for method in methods.keys():
-        sys.stdout.write("log10(P/E)\ttime\t")
+        sys.stdout.write("log10(P/E)\ttime\tmemory\t")
     sys.stdout.write("\n")
     for graph_name in data.keys():
         if re.match(r"^flower\-", graph_name) or re.match(r"^shm\-", graph_name):
@@ -173,6 +181,10 @@ if __name__ == "__main__":
                 sys.stdout.write(
                     str(np.log10(data[graph_name][method]["fractal"] / data[graph_name][method]["exponential"])) + "\t")
                 sys.stdout.write(str(data[graph_name][method]["time"]) + "\t")
+                sys.stdout.write(
+                    str(data[graph_name][method]["memory"]) + "\t")
             else:
-                sys.stdout.write("\t\t")
+                sys.stdout.write("\t")
+                sys.stdout.write("\t")
+                sys.stdout.write("\t")
         sys.stdout.write("\n")

@@ -70,6 +70,14 @@ def linearRegression(x, y):
     return np.array([a, b])
 
 
+def linearExpo(x, y):
+    X = np.column_stack((np.repeat(1, x.size), x))
+    model = sm.OLS(np.log(y), X)
+    results = model.fit()
+    a, b = results.params
+    return np.array([a, b])
+
+
 def saveFig(jsonData):
     plt.xlabel("$\it{l_{B}}$", fontsize=18)
     plt.ylabel("$\it{N_{B}}$", fontsize=18)
@@ -86,11 +94,12 @@ def saveFig(jsonData):
     plt.xlim(xmin=0.5)
     plt.xlim(xmax=10000)
     plt.ylim(ymin=1)
-    plt.ylim(ymax=100000)
+    plt.ylim(ymax=10000000)
     plt.xscale("log")
     plt.yscale("log")
     plt.legend(loc='best', fontsize=18)
     plt.savefig(graph_name + "_" + str(vertices) + "_" + name + ".png")
+    plt.savefig(graph_name + "_" + str(vertices) + "_" + name + ".pdf")
 
 
 def theoreticalValue(beta, x):
@@ -157,13 +166,17 @@ if __name__ == "__main__":
         # plt.plot(px, py, 'o', label=pname)
         plt.plot(px, py, 'o', label=json_data['name'])
 
-        initialValue = linearRegression(px, py)
-        result = scipy.optimize.leastsq(fitFunc, initialValue, args=(px, py))
+        # px = px[4:]
+        # py = py[4:]
+
         expoResult = scipy.optimize.leastsq(
-            expoFit, initialValue, args=(px, py))
-        plotLine(result[0])
+            expoFit, linearExpo(px, py), args=(px, py))
+        fracResult = scipy.optimize.leastsq(
+            fitFunc, linearRegression(px, py), args=(px, py))
+
+        plotLine(fracResult[0])
         plotExpo(expoResult[0])
-        print fitFunc(result[0], px, py)
+        print fitFunc(fracResult[0], px, py)
         print expoFit(expoResult[0], px, py)
         # plotAnalytical(json_data)
         saveFig(json_data)

@@ -963,8 +963,7 @@ vector<V> box_cover_sketch(const G &g, W radius, const int k,
     //
     // Build-Sketches O((n+m)*rad)
     //
-    srand(static_cast<unsigned int>(std::time(nullptr)));
-    random_shuffle(inv.begin(), inv.end());
+    shuffle(inv.begin(), inv.end(), agl::random);
     for (int i = 0; i < num_v; ++i) {
       rank[inv[i]] = i;
     }

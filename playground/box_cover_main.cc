@@ -5,7 +5,7 @@ using namespace std;
 DEFINE_int32(rad_min, 1, "minimum radius");
 DEFINE_int32(rad_max, 10, "maximum radius");
 DEFINE_string(method, "sketch", "using method");
-DEFINE_double(final_coverage, 0.98, "coverage");
+DEFINE_double(final_coverage, 1.0, "coverage");
 DEFINE_int32(pass, 1, "Number of multi-pass");
 DEFINE_int32(sketch_k, 1024, "sketch k");
 DEFINE_bool(rad_analytical, false, "Using analytical diameters as rads");

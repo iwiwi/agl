@@ -5,9 +5,14 @@ import subprocess
 def torque_nageru():
     graph_names = [
         # /law.di.unimi.it/
+        # "cnr-2000.agl",
+        # "amazon-2008.agl",
+        # "dblp-2011.agl",
+        # "eu-2005.agl",
+        # "in-2004.agl",
         # "uk-2002.agl",
         # "hollywood-2011.agl",
-        # "indochina-2004.agl",
+        "indochina-2004.agl",
         # "hollywood-2009.agl",
         # "enwiki-2013.agl",
         # "ljournal-2008.agl",
@@ -16,18 +21,13 @@ def torque_nageru():
         # "frwiki-2013.agl",
         # "itwiki-2013.agl",
         # "eswiki-2013.agl",
-        # "eu-2005.agl",
-        # "in-2004.agl",
-        # "dblp-2011.agl",
-        # "amazon-2008.agl",
-        # "cnr-2000.agl",
 
         # /snap.stanford.edu/
-        "com-lj.ungraph.agl",
-        "soc-pokec-relationships.agl",
-        "cit-Patents.agl",
-        "as-skitter.agl",
-        "gplus_combined.agl",
+        # "com-lj.ungraph.agl",
+        # "soc-pokec-relationships.agl",
+        # "cit-Patents.agl",
+        # "as-skitter.agl",
+        # "gplus_combined.agl",
         # "wiki-Talk.agl",
         # "roadNet-CA.agl",
         # "web-BerkStan.agl",
@@ -46,20 +46,24 @@ def torque_nageru():
         # "com-amazon.ungraph.agl",
         # "soc-Slashdot0902.agl",
         # "soc-Slashdot0811.agl",
+        # "web-NotreDame.agl",
+
     ]
 
-    exp_tag = "real"
+    exp_tag = "96G_real"
     sketch_k = 128
     pass_num = 1000
     upper_param = 1.0
+    coverage = 1.0
+    rad = 30
 
-    for rad in range(1, 10):
-        for graph_name in graph_names:
+    for graph_name in graph_names:
+        for rad in xrange(30, 35):
             command = "/home/kenkoooo/fractal-dimension/agl/bin/box_cover --force_undirected "
-
             command = command + " --type agl "
-            command = command + " --graph /data/snap.stanford.edu/" + graph_name
+            command = command + " --graph /data/law.di.unimi.it/" + graph_name
 
+            command = command + " --final_coverage " + str(coverage)
             command = command + " --sketch_k " + str(sketch_k)
             command = command + " --pass " + str(pass_num)
             command = command + " --rad_min " + str(rad)
@@ -73,7 +77,7 @@ def torque_nageru():
             p1 = subprocess.Popen(
                 ["echo", command], stdout=subprocess.PIPE)
             p2 = subprocess.Popen(
-                ["qsub", "-l", "walltime=48:00:00", "-N", job_name], stdin=p1.stdout)
+                ["qsub", "-l", "walltime=48:00:00,nodes=1:ppn=24", "-N", job_name], stdin=p1.stdout)
             p1.stdout.close()
             output = p2.communicate()[0]
 
