@@ -24,6 +24,20 @@ public:
     }
   }
 
+  vector<vector<int>> get_local_id2global_id() const {
+    const int cc_size = sz(biconnected_graph_handler->handlers());
+    vector<vector<int>> local_id2global_id(cc_size);
+
+    const auto& local_indices = biconnected_graph_handler->local_indices();
+    FOR(v, n) {
+      auto& l2g = local_id2global_id[biconnected_graph_handler->handlers_index(v)];
+      if (sz(l2g) < local_indices[v] + 1) l2g.resize(local_indices[v] + 1);
+      l2g[local_indices[v]] = v;
+    }
+
+    return local_id2global_id;
+  }
+
   TwoEdgeCCFilter(const G& g) : n(g.num_vertices()), g(g), uf(n), lowlink(n, -1), order(n, -1) {
     FOR(v, n) for (auto& e : g.edges(v)) {
       uf.unite(v, to(e));
@@ -84,15 +98,7 @@ public:
     FOR(i, sz(roots) - 1) os << roots[0] << " " << roots[i + 1] << " 0\n";
     for (auto& e : bridge) os << e.first << " " << e.second << " 1\n";
 
-    const int cc_size = sz(biconnected_graph_handler->handlers());
-    vector<vector<int>> local_id2global_id(cc_size);
-
-    const auto& local_indices = biconnected_graph_handler->local_indices();
-    FOR(v, n) {
-      auto& l2g = local_id2global_id[biconnected_graph_handler->handlers_index(v)];
-      if (sz(l2g) < local_indices[v] + 1) l2g.resize(local_indices[v] + 1);
-      l2g[local_indices[v]] = v;
-    }
+  vector<vector<int>> local_id2global_id = get_local_id2global_id();
 
     //weight2以上
     FOR(i,sz(biconnected_graph_handler->handlers())) {
@@ -107,6 +113,31 @@ public:
         os << l2g[v] << " " << l2g[u] << " " << weight << "\n";
       }
     }
+  }
+
+  vector<int> single_source_mincut(int s) {
+    const int n = sz(lowlink);
+    vector<int> global_ans(n);
+
+    vector<vector<int>> local_id2global_id = get_local_id2global_id();
+    FOR(i, sz(biconnected_graph_handler->handlers())) {
+      const auto& l2g = local_id2global_id[i];
+      if (!uf.is_same(s, l2g[0])) continue; // mincut = 0
+      auto it = find(l2g.begin(), l2g.end(), s);
+      if (it == l2g.end()) {
+        for (auto v : l2g) global_ans[v] = 1;
+        continue;
+      } else {
+        const int local_id = it - l2g.begin();
+        const auto& handler = biconnected_graph_handler->handlers()[i];
+        vector<int> local_ans = handler.single_source_mincut(local_id);
+        FOR(v, sz(local_ans)) {
+          global_ans[l2g[v]] = local_ans[v];
+        }
+      }
+    }
+
+    return global_ans;
   }
 
 private:

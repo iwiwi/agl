@@ -88,10 +88,10 @@ void single_source_mincut(G&& g) {
   }
 
   FILE* fp = fopen(FLAGS_single_source_mincut_output.c_str(), "w");
+  auto anses = mcq.single_source_mincut(max_deg_v);
   FOR(v, g.num_vertices()) {
     if (v == max_deg_v) continue;
-    if (v % 10000 == 0) cerr << v << endl;
-    auto ans = mcq.query(max_deg_v, v);
+    auto ans = anses[v];
     fprintf(fp, "%d %d %d\n", max_deg_v, v, ans);
   }
   fclose(fp);
@@ -110,6 +110,7 @@ void single_source_mincut_with_deg(G&& g) {
   FILE* fp = fopen(FLAGS_single_source_mincut_output.c_str(), "w");
   FOR(v, g.num_vertices()) {
     if (v == max_deg_v) continue;
+    if (v % 10000 == 0) cerr << v << endl;
     int xx = g.degree(v, D(0)) + g.degree(v, D(1));
     fprintf(fp, "%d %d %d\n", max_deg_v, v, xx);
   }

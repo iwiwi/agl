@@ -220,7 +220,6 @@ public:
     }
   }
 
-
   vector<int> single_source_mincut(V u) const {
     vector<int> ans(num_vertices_, numeric_limits<int>::max());
     single_source_mincut_dfs(u, -1, numeric_limits<int>::max(), ans);
@@ -268,7 +267,6 @@ public:
   }
 
   vector<int> single_source_mincut(V v) const {
-    CHECK(!solvers_.empty());
     vector<int> ret;
     for (const auto& solver : solvers_) {
       auto cur_ans = solver.single_source_mincut(v);

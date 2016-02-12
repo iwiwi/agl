@@ -33,7 +33,7 @@ G to_directed_graph(G&& g) {
 
 using Gusfield3 = TwoEdgeCCFilter<OptimizedGusfieldWith2ECC>;
 using Gusfield4 = TwoEdgeCCFilter<OptimizedGusfieldWith2ECC2>;
-DEFINE_string(gomory_fu_builder, "Gusfield4", "Gusfield3, Gusfield4");
+DEFINE_string(gomory_fu_builder, "Gusfield3", "Gusfield3, Gusfield4");
 
 void aggregate_weight(const G& g) {
   Gusfield3 gf3(g);
