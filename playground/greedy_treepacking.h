@@ -1,5 +1,8 @@
 #pragma once
 
+DEFINE_bool(gtp_shuffle, false, "");
+
+
 // ある頂点からdfsをして、貪欲にtree packingを求める
 class greedy_treepacking {
   
@@ -28,7 +31,7 @@ class greedy_treepacking {
     void shuffle() {
       random_shuffle(to_.begin(),to_.end(), agl::random);
     }
-  private:
+  public:
     int rem_size_, idx_;
     vector<V> to_;
   };
@@ -58,10 +61,19 @@ public:
       edges_[e.first].add(e.second);
       edges_[e.second].add(e.first);
     }
+
+    for(auto& e : edges_) {
+      sort(e.to_.begin(), e.to_.end(), [&edges_ = this->edges_](const V l,const V r) {
+        int a = edges_[l].size();
+        int b = edges_[r].size();
+        return a < b;
+      });
+      // e.shuffle();
+    }
   }
 
   void arborescence_packing(int from) {
-    for(auto& e : edges_) e.shuffle();
+    if(FLAGS_gtp_shuffle) for(auto& e : edges_) e.shuffle();
     FOR(_, sz(edges_[from])) {
       dfs(from);
       vertices_revision_++;
@@ -73,7 +85,7 @@ public:
   }
 
 private:
-  const int n_;
+  int n_;
   vector<vecE> edges_;
   vector<int> inedge_count_; // dfs tree packingで、その頂点に何本のin-edgeがあるか
   vector<int> used_revision_;
