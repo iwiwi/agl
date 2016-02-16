@@ -6,6 +6,8 @@ DEFINE_string(s2, "s2.txt", "gomory-hu tree 2");
 #define FOR(i,n) for(int i = 0; i < (n); i++)
 #define sz(c) ((int)(c).size())
 
+#include "dinic_twosided.h"
+
 map<int, vector<pair<V, V>>> load(const string& path) {
   FILE* fp = fopen(path.c_str(), "r");
   map<int, vector<pair<V, V>>> ret;
@@ -16,7 +18,7 @@ map<int, vector<pair<V, V>>> load(const string& path) {
   return ret;
 }
 
-void check(map<int, vector<pair<V, V>>>& l, map<int, vector<pair<V, V>>>& r) {
+void check(G& g, map<int, vector<pair<V, V>>>& l, map<int, vector<pair<V, V>>>& r) {
   using ull = unsigned long long;
   int n = 1;
   for (auto& kv : l) n += sz(kv.second);
@@ -43,7 +45,7 @@ void check(map<int, vector<pair<V, V>>>& l, map<int, vector<pair<V, V>>>& r) {
     for(auto x : onlyl) {
       printf("%d, ",x);
       cnt++;
-      if(cnt >= 10) break;
+      if(cnt >= 10) { printf("..."); break; }
     }
     puts("");
     printf("right: ");
@@ -51,7 +53,7 @@ void check(map<int, vector<pair<V, V>>>& l, map<int, vector<pair<V, V>>>& r) {
     for(auto x : onlyr) {
       printf("%d, ",x);
       cnt++;
-      if(cnt >= 10) break;
+      if(cnt >= 10) { printf("..."); break; }
     }
     puts("");
     printf("intersect: ");
@@ -59,9 +61,36 @@ void check(map<int, vector<pair<V, V>>>& l, map<int, vector<pair<V, V>>>& r) {
     for(auto x : intersect) {
       printf("%d, ",x);
       cnt++;
-      if(cnt >= 10) break;
+      if(cnt >= 10) { printf("..."); break; }
     }
     puts("");
+
+    auto check_cost = [&](int x,map<int,vector<pair<int,int>>>& mp,string name) {
+      dinic_twosided dc(g);
+      for (auto& kv : mp){
+        int w = kv.first;
+        for (auto& uv : kv.second) {
+          int u, v; tie(u, v) = uv;
+          if (u != x && v != x) continue;
+          dc.reset_graph();
+          int cost = dc.max_flow(u, v);
+          if (cost != w) {
+            printf("(%d,%d) invalid cost. answer = %d, but '%s' indicate %d\n", u, v, cost, name.c_str(), w);
+            exit(0);
+          }
+        }
+      }
+    };
+
+    for (auto x : onlyl) {
+      check_cost(x, l, FLAGS_s1);
+      check_cost(x, r, FLAGS_s2);
+    }
+
+    for (auto y : onlyr) {
+      check_cost(y, l, FLAGS_s1);
+      check_cost(y, r, FLAGS_s2);
+    }
   };
 
   for (const int w : weight) {
@@ -115,12 +144,24 @@ void check(map<int, vector<pair<V, V>>>& l, map<int, vector<pair<V, V>>>& r) {
   }
 }
 
+G to_directed_graph(G&& g) {
+  vector<pair<V, V>> ret;
+  for (auto& e : g.edge_list()) {
+    if (e.first < to(e.second)) ret.emplace_back(e.first, to(e.second));
+    else if (to(e.second) < e.first) ret.emplace_back(to(e.second), e.first);
+  }
+  sort(ret.begin(), ret.end());
+  ret.erase(unique(ret.begin(), ret.end()), ret.end());
+  return G(ret);
+}
+
 int main(int argc, char** argv) {
   gflags::ParseCommandLineFlags(&argc, &argv, true);
 
+  auto g = to_directed_graph(read_graph_binary<G>(FLAGS_graph.c_str()));
   auto gomory_hu1 = load(FLAGS_s1);
   auto gomory_hu2 = load(FLAGS_s2);
-  check(gomory_hu1, gomory_hu2);
+  check(g, gomory_hu1, gomory_hu2);
 
   fprintf(stderr, "ok. %s == %s\n", FLAGS_s1.c_str(), FLAGS_s2.c_str());
   return 0;
