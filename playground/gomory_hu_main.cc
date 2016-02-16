@@ -33,7 +33,7 @@ G to_directed_graph(G&& g) {
 
 using Gusfield3 = TwoEdgeCCFilter<OptimizedGusfieldWith2ECC>;
 using Gusfield4 = TwoEdgeCCFilter<OptimizedGusfieldWith2ECC2>;
-DEFINE_string(gomory_fu_builder, "Gusfield3", "Gusfield3, Gusfield4");
+DEFINE_string(gomory_hu_builder, "Gusfield3", "Gusfield3, Gusfield4");
 
 void aggregate_weight(const G& g) {
   Gusfield3 gf3(g);
@@ -338,7 +338,7 @@ void from_file(G&& g) {
     }
     sort(vp.rbegin(),vp.rend());
     set<int> st;
-    const int top_degs = 50;
+    const int top_degs = 10;
     FOR(i,top_degs) {
       auto v = vp[i].second;
       auto ssm = query.single_source_mincut(v);
@@ -352,6 +352,13 @@ void from_file(G&& g) {
       }
       fprintf(stderr, "%d(deg = %d) : degree tree packing can be able to find %d vertices.\n", v, vp[i].first, able_to_find);
       fprintf(stderr,"top_degs = %d, can be able to find %d vertices.\n ",i + 1, sz(st) );
+
+      if(i == 0){
+        stringstream ss;
+        ss << "|" << graph_name() <<"(V=" <<g.num_vertices() << ")|" << able_to_find << "|";
+
+        JLOG_ADD("greedy_tree_packing_upperbound",ss.str());
+      }
     }
 
   }
@@ -395,17 +402,17 @@ int main(int argc, char** argv) {
   G g = easy_cui_init(argc, argv);
   g = to_directed_graph(std::move(g));
 
-  if (FLAGS_gomory_fu_builder == "fromfile") {
+  if (FLAGS_gomory_hu_builder == "fromfile") {
     from_file(std::move(g));
     exit(0);
   }
 
-  if (FLAGS_gomory_fu_builder == "Gusfield3") {
+  if (FLAGS_gomory_hu_builder == "Gusfield3") {
     main_<Gusfield3>(std::move(g));
-  } else if (FLAGS_gomory_fu_builder == "Gusfield4") {
+  } else if (FLAGS_gomory_hu_builder == "Gusfield4") {
     main_<Gusfield4>(std::move(g));
   } else {
-    fprintf(stderr, "unrecognized option -gomory_fu_builder='%s'\n", FLAGS_gomory_fu_builder.c_str());
+    fprintf(stderr, "unrecognized option -gomory_hu_builder='%s'\n", FLAGS_gomory_hu_builder.c_str());
     exit(-1);
   }
 }
