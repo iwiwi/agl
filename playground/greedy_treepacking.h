@@ -47,16 +47,13 @@ class greedy_treepacking {
         inedge_count_[to]++; // in-edgeの本数が増える
         dfs(to);
 
-        if(solved_[v] && solved_[to]) {
-          edges_[to].add(v); // v,to両方、解が欲しい頂点ではないならば、残余グラフを作る容量で、逆辺を追加する
-        }
       }
     }
   }
 
 public:
   greedy_treepacking(const vector<pair<V, V>>& edges, int num_vs, vector<bool>& solved) :
-    n_(num_vs), edges_(n_), inedge_count_(n_), used_revision_(n_), vertices_revision_(1), solved_(solved) {
+    n_(num_vs), edges_(n_), inedge_count_(n_), used_revision_(n_), vertices_revision_(1) {
     for (auto& e : edges) {
       edges_[e.first].add(e.second);
       edges_[e.second].add(e.first);
@@ -75,15 +72,10 @@ public:
     return inedge_count_[v];
   }
 
-  void set_solved(int v) {
-    solved_[v] = true;
-  }
-
 private:
   const int n_;
   vector<vecE> edges_;
   vector<int> inedge_count_; // dfs tree packingで、その頂点に何本のin-edgeがあるか
   vector<int> used_revision_;
   int vertices_revision_;
-  vector<bool>& solved_;
 };
