@@ -296,7 +296,6 @@ void main_(G&& g) {
   }
 }
 
-
 void from_file(G&& g) {
   if (FLAGS_single_source_mincut_output == "") {
     auto gname = graph_name();
@@ -309,6 +308,68 @@ void from_file(G&& g) {
   }
 
   tree_query query = tree_query::from_file(FLAGS_validation_data_path);
+  {
+    set<int> sta;
+    int deg1count = 0;
+    int cnt = 0;
+    FOR(v,g.num_vertices()) {
+      int hoge = 0;
+      int t = -1;
+      for(auto& e : query.edges_[v]) {
+        int w = e.second;
+        hoge = max(hoge,w);
+        if(w == hoge) t = e.first;
+      }
+      int deg = g.degree(v,D(0)) + g.degree(v, D(1));
+      if(hoge == deg){
+        cnt++;
+        sta.insert(t);
+      }
+      if(deg == 1) deg1count++;
+    }
+    fprintf(stderr, "mincut eq degree count : %d\n",cnt);
+    fprintf(stderr, "|sta| : %d\n",sz(sta));
+    fprintf(stderr, "deg1count : %d\n",deg1count);
+
+    vector<pair<int,V>> vp;
+    FOR(v,g.num_vertices()) {
+      int deg = g.degree(v,D(0)) + g.degree(v, D(1));
+      vp.emplace_back(deg, v);
+    }
+    sort(vp.rbegin(),vp.rend());
+    set<int> st;
+    const int top_degs = 50;
+    FOR(i,top_degs) {
+      auto v = vp[i].second;
+      auto ssm = query.single_source_mincut(v);
+      int able_to_find = 0;
+      FOR(to, g.num_vertices()){
+        int deg = g.degree(to,D(0)) + g.degree(to, D(1));
+        if(ssm[to] == deg) {
+          able_to_find++;
+          st.insert(to);
+        }
+      }
+      fprintf(stderr, "%d(deg = %d) : degree tree packing can be able to find %d vertices.\n", v, vp[i].first, able_to_find);
+      fprintf(stderr,"top_degs = %d, can be able to find %d vertices.\n ",i + 1, sz(st) );
+    }
+
+  }
+
+  {
+    // (s,t) mincutした後の両側の両側の頂点数を求める
+    auto st_count = query.child_num();
+    map<int,int> bias;
+    for(auto& itr : st_count) {
+        V s,t; int st_mincut_bias;
+        tie(s,t,st_mincut_bias) = itr;
+        bias[st_mincut_bias]++;
+    }
+    for(auto& kv : bias) {
+      fprintf(stderr, "  %d : %d\n",kv.first, kv.second);
+    }
+  }
+
   size_t max_deg = 0;
   int max_deg_v = -1;
   FOR(v, g.num_vertices()) {
