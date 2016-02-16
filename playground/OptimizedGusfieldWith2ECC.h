@@ -2,7 +2,7 @@
 #include "ConnectedComponentsFilter.h"
 #include "greedy_treepacking.h"
 
-DEFINE_string(gusfield_choice_stpair_strategy, "sequential", "sequential, sort_by_degree_ascending, sort_by_degree_desending, random");
+DEFINE_string(gusfield_choice_stpair_strategy, "sort_by_degree_desending", "sequential, sort_by_degree_ascending, sort_by_degree_desending, random");
 DEFINE_int32(try_greedy_tree_packing, 10, "");
 DEFINE_bool(enable_greedy_tree_packing, true, "");
 
@@ -59,7 +59,7 @@ class OptimizedGusfieldWith2ECC {
     }
   }
 
-  void gusfield_choice_stpair(vector<int>& mincut_order, const vector<int>& degree) {
+  void gusfield_choice_stpair(parent_tree_set& pts, vector<int>& mincut_order, const vector<int>& degree) {
     if (FLAGS_gusfield_choice_stpair_strategy == "sequential") {
       return;
     } else if (FLAGS_gusfield_choice_stpair_strategy == "sort_by_degree_ascending") {
@@ -178,17 +178,21 @@ public:
     //枝刈りしつつ、まだmincutが求まってない頂点達を見つける
     prune_obvious_mincut(pts, mincut_order, degree);
     //gusfieldのアルゴリズムでcutしていく頂点の順番を決定
-    gusfield_choice_stpair(mincut_order, degree);
+    gusfield_choice_stpair(pts, mincut_order, degree);
 
     //フローを流す gusfieldのアルゴリズム
     dinic_twosided dc_base(edges, num_vs);
     vector<int> used(num_vertices_);
     queue<int> q;
+    int max_flow_times = 0;
+    int mx = 0;
+
     for (V s : mincut_order) {
       const V t = pts.get_parent(s);
 
       dc_base.reset_graph();
       int cost = dc_base.max_flow(s, t);
+      max_flow_times++;
       // fprintf(stderr, "(%d,%d) cost = %d\n", s, t, cost);
       parent_weight_[s].second = cost;
 
@@ -198,8 +202,10 @@ public:
       q.push(s);
       const int F = s + 1;
       used[s] = F;
+      int sside = 0;
       while (!q.empty()) {
         const V v = q.front(); q.pop();
+        sside++;
         for (auto& e : dc_base.e[v]) {
           if (e.cap(dc_base.graph_revision) == 0 || used[e.to] == F) continue;
           used[e.to] = F;
@@ -207,6 +213,13 @@ public:
           const int tpar = pts.get_parent(e.to);
           if (tpar == t) pts.set_parent(e.to, s); //mincut後のe.toはs側に属する
         }
+      }
+      int tside = num_vs - sside;
+      const int x = min(tside,sside);
+      if(x > mx) {
+        mx = x;
+        fprintf(stderr, "(%d,%d), cut = %d, sside_num = %d, tside_num = %d\n",s,t,cost,sside,tside);
+        fprintf(stderr, "  prop : degree[%d] = %d, degree[%d] = %d max_flow_times = %d\n",s,degree[s], t, degree[t], max_flow_times);
       }
     }
 
