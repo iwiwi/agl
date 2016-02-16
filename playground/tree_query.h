@@ -40,6 +40,7 @@ class tree_query {
 public:
   static tree_query from_file(const string& path) {
     ifstream ifs(path.c_str());
+    CHECK(ifs.is_open());
     return from_file(ifs);
   }
 
@@ -71,6 +72,30 @@ public:
     return ans;
   }
 
+  int dfs1(V v, V par, vector<int>& childs,vector<int>& par2) {
+    childs[v] = 1;
+    par2[v] = par;
+    for(auto& to : edges_[v]) {
+      if(to.first == par) continue;
+      childs[v] += dfs1(to.first, v, childs, par2);
+    }
+    return childs[v];
+  }
+
+  //(u,v,lr)
+  vector<tuple<V,V,int>> child_num()  {
+    vector<int> directed_graph_childs(num_vertices_);
+    vector<int> par2(num_vertices_);
+    dfs1(0, -1, directed_graph_childs, par2);
+    vector<tuple<V,V,int>> ret(num_vertices_);
+    FOR(v, num_vertices_) {
+      int l = directed_graph_childs[v];
+      int r = num_vertices_ - l;
+      ret[v] = make_tuple(v, par2[v], min(l,r));
+    }
+    return ret;
+  }
+
   int query(V u, V v) const {
     CHECK(u != v);
     CHECK(u < num_vertices_ && v < num_vertices_);
@@ -83,7 +108,7 @@ public:
     return ans;
   }
   
-private:
+public:
   int num_vertices_;
   vector<pair<V, int>> parent_weight_;
   vector<vector<pair<V, int>>> edges_;
