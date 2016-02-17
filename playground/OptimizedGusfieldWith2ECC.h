@@ -219,21 +219,22 @@ public:
     int max_flow_times = 0;
     int mx = 0;
 
+    map<int,int> cutsize_count;
     for (V s : mincut_order) {
       const V t = pts.get_parent(s);
 
       dc_base.reset_graph();
       int cost = dc_base.max_flow(s, t);
       max_flow_times++;
-      if (max_flow_times % 100000 == 0) {
+      if (max_flow_times % 10000 == 0) {
         stringstream ss;
-        ss << "max_flow_times = " << max_flow_times << ", (" << s << "," << t << ") cost = " << cost << endl;
+        ss << "max_flow_times = " << max_flow_times << ", (" << s << "," << t << ") cost = " << cost;
         JLOG_ADD("gusfield.progress", ss.str());
       }
       // fprintf(stderr, "(%d,%d) cost = %d\n", s, t, cost);
       parent_weight_[s].second = cost;
 
-      if (degree[s] == cost) continue;
+      // if (degree[s] == cost) continue;
 
       //s側のmincutを求めて親の付け替え
       q.push(s);
@@ -253,11 +254,19 @@ public:
       }
       int tside = num_vs - sside;
       const int x = min(tside, sside);
+      cutsize_count[x]++;
       if (x > mx) {
         mx = x;
-        fprintf(stderr, "(%d,%d), cut = %d, sside_num = %d, tside_num = %d\n", s, t, cost, sside, tside);
-        fprintf(stderr, "  prop : degree[%d] = %d, degree[%d] = %d max_flow_times = %d\n", s, degree[s], t, degree[t], max_flow_times);
+        if(mx != 1) {
+          fprintf(stderr, "(%d,%d), cut = %d, sside_num = %d, tside_num = %d\n", s, t, cost, sside, tside);
+          fprintf(stderr, "  prop : degree[%d] = %d, degree[%d] = %d max_flow_times = %d\n", s, degree[s], t, degree[t], max_flow_times);
+        }
       }
+    }
+    if(sz(cutsize_count) > 10) {
+      fprintf(stderr, "cutsize_count : ");
+      for(auto& kv : cutsize_count) fprintf(stderr, "(%d,%d), ", kv.first, kv.second);
+      fprintf(stderr,"\n");
     }
 
     // gomory-hu treeの親nodeの設定
