@@ -209,9 +209,9 @@ void test2(G&& g) {
 }
 
 void tester() {
-  test2(to_directed_graph(built_in_graph("karate_club")));
-  test2(to_directed_graph(built_in_graph("dolphin")));
-  test2(to_directed_graph(built_in_graph("ca_grqc")));
+  test(to_directed_graph(built_in_graph("karate_club")));
+  test(to_directed_graph(built_in_graph("dolphin")));
+  test(to_directed_graph(built_in_graph("ca_grqc")));
   exit(0);
 }
 
@@ -232,9 +232,8 @@ void single_source_mincut(G&& g) {
     }
   }
 
-  vector<bool> solved(g.num_vertices());
   auto e = g.edge_list();
-  greedy_treepacking gt(e, g.num_vertices(), solved);
+  greedy_treepacking gt(e, g.num_vertices());
   gt.arborescence_packing(max_deg_v);
 
   FILE* fp = fopen(FLAGS_single_source_mincut_output.c_str(), "w");

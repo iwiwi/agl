@@ -55,7 +55,7 @@ class greedy_treepacking {
   }
 
 public:
-  greedy_treepacking(const vector<pair<V, V>>& edges, int num_vs, vector<bool>& solved) :
+  greedy_treepacking(const vector<pair<V, V>>& edges, int num_vs) :
     n_(num_vs), edges_(n_), inedge_count_(n_), used_revision_(n_), vertices_revision_(1) {
     for (auto& e : edges) {
       edges_[e.first].add(e.second);

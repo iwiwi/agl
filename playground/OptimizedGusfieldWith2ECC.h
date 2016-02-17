@@ -80,13 +80,11 @@ class OptimizedGusfieldWith2ECC {
 
   void prune_obvious_mincut(parent_tree_set& pts, vector<int>& mincut_order, const vector<int>& degree) {
     vector<int> current_parent(num_vertices_, -1);
-    vector<bool> mincut_solved(num_vertices_);
-    greedy_treepacking packing_base(edges_, num_vertices_, mincut_solved);
+    greedy_treepacking packing_base(edges_, num_vertices_);
 
-    auto set_solved = [&](V v,V parent, int weight) {
+    auto set_solved = [&](V v, V parent, int weight) {
       current_parent[v] = parent;
       parent_weight_[v].second = weight;
-      mincut_solved[v] = true;
     };
 
     FOR(v, num_vertices_) {
@@ -106,6 +104,7 @@ class OptimizedGusfieldWith2ECC {
 
       FOR(trying, iteration) {
         const V v = idx[trying];
+        if (degree[v] == 2) continue; // 自明なcutがある
         auto packing = packing_base;
         packing.arborescence_packing(v);
         if (current_parent[v] != -1) {
@@ -155,16 +154,49 @@ class OptimizedGusfieldWith2ECC {
 
   }
 
+  void erase_deg2_edges(vector<int>& degree) {
+    const int n = sz(degree);
+    vector<vector<int>> e(n);
+
+    for (auto& uv : edges_) {
+      int u, v; tie(u, v) = uv;
+      e[u].push_back(v);
+      e[v].push_back(u);
+    }
+
+    FOR(i, n) if (sz(e[i]) == 2) {
+      int a = e[i][0], b = e[i][1];
+      e[a].erase(find(e[a].begin(), e[a].end(), i));
+      e[b].erase(find(e[b].begin(), e[b].end(), i));
+      e[a].push_back(b);
+      e[b].push_back(a);
+      e[i].clear();
+    }
+
+    edges_.clear();
+
+    FOR(i, n) {
+      for (auto to : e[i]) {
+        if (i < to) {
+          edges_.emplace_back(i, to);
+        }
+      }
+    }
+  }
+
 public:
 
   OptimizedGusfieldWith2ECC(vector<pair<V, V>>& edges, int num_vs) :
-    edges_(edges), 
+    edges_(edges),
     num_vertices_(num_vs),
     parent_weight_(num_vs, make_pair(-1, 0)),
     depth_(num_vs, -1) {
 
     vector<int> degree(num_vertices_);
     for (auto& e : edges) degree[e.first]++, degree[e.second]++;
+
+    //次数2の頂点と接続を持つ辺を削除して、探索しやすくする
+    erase_deg2_edges(degree);
 
     //gomory-hu treeのroot nodeの決定
     root_node_ = -1;
@@ -193,6 +225,11 @@ public:
       dc_base.reset_graph();
       int cost = dc_base.max_flow(s, t);
       max_flow_times++;
+      if (max_flow_times % 100000 == 0) {
+        stringstream ss;
+        ss << "max_flow_times = " << max_flow_times << ", (" << s << "," << t << ") cost = " << cost << endl;
+        JLOG_ADD("gusfield.progress", ss.str());
+      }
       // fprintf(stderr, "(%d,%d) cost = %d\n", s, t, cost);
       parent_weight_[s].second = cost;
 
@@ -215,11 +252,11 @@ public:
         }
       }
       int tside = num_vs - sside;
-      const int x = min(tside,sside);
-      if(x > mx) {
+      const int x = min(tside, sside);
+      if (x > mx) {
         mx = x;
-        fprintf(stderr, "(%d,%d), cut = %d, sside_num = %d, tside_num = %d\n",s,t,cost,sside,tside);
-        fprintf(stderr, "  prop : degree[%d] = %d, degree[%d] = %d max_flow_times = %d\n",s,degree[s], t, degree[t], max_flow_times);
+        fprintf(stderr, "(%d,%d), cut = %d, sside_num = %d, tside_num = %d\n", s, t, cost, sside, tside);
+        fprintf(stderr, "  prop : degree[%d] = %d, degree[%d] = %d max_flow_times = %d\n", s, degree[s], t, degree[t], max_flow_times);
       }
     }
 
@@ -251,7 +288,7 @@ public:
   }
 
 private:
-  const vector<pair<V, V>>& edges_;
+  vector<pair<V, V>>& edges_;
   const int num_vertices_;
   vector<pair<V, int>> parent_weight_;
   vector<int> depth_;
