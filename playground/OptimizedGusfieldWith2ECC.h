@@ -5,6 +5,7 @@
 DEFINE_string(gusfield_choice_stpair_strategy, "sort_by_degree_desending", "sequential, sort_by_degree_ascending, sort_by_degree_desending, random");
 DEFINE_int32(try_greedy_tree_packing, 10, "");
 DEFINE_bool(enable_greedy_tree_packing, true, "");
+DEFINE_bool(enable_logging_max_flow_details, false, "");
 
 class parent_tree_set {
   const int root;
@@ -223,18 +224,26 @@ public:
     for (V s : mincut_order) {
       const V t = pts.get_parent(s);
 
+      //max-flow
+      const long long before_max_flow = getcap_counter;
       dc_base.reset_graph();
       int cost = dc_base.max_flow(s, t);
+      parent_weight_[s].second = cost;
+      const long long after_max_flow = getcap_counter;
+
+      //debug infomation
       max_flow_times++;
+      if(FLAGS_enable_logging_max_flow_details) {
+        JLOG_ADD_OPEN("gusfield.max_flow_details") {
+          JLOG_PUT("cost", cost, false);
+          JLOG_PUT("edge_count", after_max_flow - before_max_flow, false);
+        }
+      }
       if (max_flow_times % 10000 == 0) {
         stringstream ss;
         ss << "max_flow_times = " << max_flow_times << ", (" << s << "," << t << ") cost = " << cost;
         JLOG_ADD("gusfield.progress", ss.str());
       }
-      // fprintf(stderr, "(%d,%d) cost = %d\n", s, t, cost);
-      parent_weight_[s].second = cost;
-
-      // if (degree[s] == cost) continue;
 
       //s側のmincutを求めて親の付け替え
       q.push(s);
@@ -252,6 +261,8 @@ public:
           if (tpar == t) pts.set_parent(e.to, s); //mincut後のe.toはs側に属する
         }
       }
+
+      //debug infomation
       int tside = num_vs - sside;
       const int x = min(tside, sside);
       cutsize_count[x]++;
@@ -263,10 +274,12 @@ public:
         }
       }
     }
+
     if(sz(cutsize_count) > 10) {
-      fprintf(stderr, "cutsize_count : ");
-      for(auto& kv : cutsize_count) fprintf(stderr, "(%d,%d), ", kv.first, kv.second);
-      fprintf(stderr,"\n");
+      stringstream cutsize_count_ss;
+      cutsize_count_ss << "cutsize_count : ";
+      for(auto& kv : cutsize_count) cutsize_count_ss << "(" << kv.first << "," << kv.second << "), ";
+        JLOG_PUT("gusfield.cutsize_count", cutsize_count_ss.str());
     }
 
     // gomory-hu treeの親nodeの設定
