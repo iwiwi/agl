@@ -44,11 +44,6 @@ public:
 };
 
 class OptimizedGusfieldWith2ECC {
-  struct debug_infomation_t {
-    int max_flow_times;
-    vector<tuple<int, int, int, int>> log;
-  };
-
   void build_depth() {
     depth_[root_node_] = 0;
 

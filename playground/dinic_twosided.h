@@ -15,11 +15,13 @@ public:
 private:
 
   class E {
-    const int init_cap_;
-    int cap_, revision_;
+    static const int init_cap_ = 1;
+    int cap_;
+    int revision_;
   public:
     E(int to, int reverse, int cap) :
-      init_cap_(cap), cap_(cap), revision_(0), to(to), reverse(reverse) {
+      cap_(cap), revision_(0), to(to), reverse(reverse) {
+        CHECK(init_cap_ == cap);
     }
 
     const int to, reverse;

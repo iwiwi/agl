@@ -53,6 +53,13 @@ public:
     CHECK(sz(bridge) + sz(biconnected_graphs_edges) == num_edges);
 
     G new_g(biconnected_graphs_edges, n);
+
+    //dealloc
+    lowlink.clear(); lowlink.shrink_to_fit();
+    order.clear(); order.shrink_to_fit();
+    bridge.clear(); bridge.shrink_to_fit();
+    biconnected_graphs_edges.clear(); biconnected_graphs_edges.shrink_to_fit();
+
     biconnected_graph_handler.reset(new ConnectedComponentsFilter<handler_t>(new_g));
   }
 
