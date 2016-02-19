@@ -6,6 +6,7 @@ DEFINE_string(gusfield_choice_stpair_strategy, "sort_by_degree_desending", "sequ
 DEFINE_int32(try_greedy_tree_packing, 10, "");
 DEFINE_bool(enable_greedy_tree_packing, true, "");
 DEFINE_bool(enable_logging_max_flow_details, false, "");
+DEFINE_bool(enable_adjacent_cut, false, "");
 
 class parent_tree_set {
   const int root;
@@ -43,6 +44,11 @@ public:
 };
 
 class OptimizedGusfieldWith2ECC {
+  struct debug_infomation_t {
+    int max_flow_times;
+    vector<tuple<int, int, int, int>> log;
+  };
+
   void build_depth() {
     depth_[root_node_] = 0;
 
@@ -79,7 +85,7 @@ class OptimizedGusfieldWith2ECC {
     }
   }
 
-  void prune_obvious_mincut(parent_tree_set& pts, vector<int>& mincut_order, const vector<int>& degree) {
+  vector<int> prune_obvious_mincut(parent_tree_set& pts, const vector<int>& degree) {
     vector<int> current_parent(num_vertices_, -1);
     greedy_treepacking packing_base(edges_, num_vertices_);
 
@@ -136,12 +142,18 @@ class OptimizedGusfieldWith2ECC {
       root_node_ = current_parent[root_node_];
     }
 
+    vector<int> mincut_order;
     // cutの求まっていない頂点達について、gusfieldでcutを求める
     FOR(v, num_vertices_) {
       if (v == root_node_) continue;
       if (current_parent[v] != -1) {
         pts.set_parent(v, current_parent[v]); // cutがもとまっている
       } else {
+        // もしcutが代入されていた場合に対応するため、-1を代入
+        //   「"閉路が出来上がるのを防ぐために、親を自分自身であると登録しておく" の段階で、
+        //   既にcutが見つかっていたが、tree packingのroot nodeとなった場合」に、
+        //   parentが存在しないのにweightが-1でないという場合が発生する
+        parent_weight_[v].second = -1; 
         mincut_order.push_back(v); //gusfieldで求める
       }
     }
@@ -153,6 +165,7 @@ class OptimizedGusfieldWith2ECC {
       }
     }
 
+    return mincut_order;
   }
 
   void erase_deg2_edges(vector<int>& degree) {
@@ -185,42 +198,137 @@ class OptimizedGusfieldWith2ECC {
     }
   }
 
-public:
-
-  OptimizedGusfieldWith2ECC(vector<pair<V, V>>& edges, int num_vs) :
-    edges_(edges),
-    num_vertices_(num_vs),
-    parent_weight_(num_vs, make_pair(-1, 0)),
-    depth_(num_vs, -1) {
-
-    vector<int> degree(num_vertices_);
-    for (auto& e : edges) degree[e.first]++, degree[e.second]++;
-
-    //次数2の頂点と接続を持つ辺を削除して、探索しやすくする
-    erase_deg2_edges(degree);
-
-    //gomory-hu treeのroot nodeの決定
-    root_node_ = -1;
-    FOR(v, num_vertices_) if (degree[v] != 2) {
-      root_node_ = v; break;
+  //同じ部分グラフに所属していれば true,そのグループの親nodeを返す
+  pair<bool, V> belong_to_same_component(parent_tree_set& pts, V s, V t) const {
+    if(parent_weight_[s].second != -1 || parent_weight_[t].second != -1)
+      return make_pair(false, -1); // 既にコスト確定 = 別のグループ
+    if (pts.get_parent(t) == s) swap(s, t); // 下の処理とまとめる
+    if (pts.get_parent(s) == t) {
+      return make_pair(true, t); // t group
     }
-    if (root_node_ == -1) root_node_ = 0;
-    parent_tree_set pts(num_vs, root_node_);
+    if (pts.get_parent(t) == pts.get_parent(s)) {
+      return make_pair(true, pts.get_parent(t));
+    } else {
+      return make_pair(false, -1);
+    }
+  }
 
-    vector<int> mincut_order;
-    //枝刈りしつつ、まだmincutが求まってない頂点達を見つける
-    prune_obvious_mincut(pts, mincut_order, degree);
-    //gusfieldのアルゴリズムでcutしていく頂点の順番を決定
-    gusfield_choice_stpair(pts, mincut_order, degree);
+  //隣接頂点同士を見て、まだ切れていなかったらcutする
+  void cut_adjacent_pairs(dinic_twosided& dc_base, vector<int>& mincut_order, vector<int>& degree, parent_tree_set& pts) {
+    queue<int> q;
+    vector<int> used(num_vertices_);
+    int used_revision = 0;
+    int max_flow_times = 0;
+    int mx = 0;
+    map<int, int> cutsize_count;
 
-    //フローを流す gusfieldのアルゴリズム
-    dinic_twosided dc_base(edges, num_vs);
+    for (const auto& e : edges_) {
+      V s, t; tie(s, t) = e;
+      bool same_component; V par; tie(same_component, par) = belong_to_same_component(pts, s, t);
+      if (!same_component) continue;
+
+      // int min_deg = min(degree[s], degree[t]);
+      // if (min_deg > FLAGS_adjacents_max_deg) continue;
+
+      //max-flow
+      const long long before_max_flow = getcap_counter;
+      dc_base.reset_graph();
+      const int cost = dc_base.max_flow(s, t);
+      const long long after_max_flow = getcap_counter;
+
+      //debug infomation
+      max_flow_times++;
+      if (FLAGS_enable_logging_max_flow_details) {
+        JLOG_ADD_OPEN("gusfield.max_flow_details") {
+          JLOG_PUT("cost", cost, false);
+          JLOG_PUT("edge_count", after_max_flow - before_max_flow, false);
+        }
+      }
+      if (max_flow_times % 10000 == 0) {
+        stringstream ss;
+        ss << "max_flow_times = " << max_flow_times << ", (" << s << "," << t << ") cost = " << cost;
+        JLOG_ADD("gusfield.progress", ss.str());
+      }
+
+      //par -> tへのパスが存在しない => parent nodeがs側にある
+      bool parent_belongs_to_s_side = dc_base.path_dont_exists_to_t(par);
+      const int F = ++used_revision;
+
+      int sside = 0, tside = 0;
+      if (!parent_belongs_to_s_side) {
+        // on gomory-fu tree, s -> t -> par
+        pts.set_parent(s, t);
+        parent_weight_[s].second = cost;
+        //s側に属する頂点の親を,sに変更する
+        q.push(s);
+        used[s] = F;
+        while (!q.empty()) {
+          V v = q.front(); q.pop();
+          for (auto& e : dc_base.e[v]) {
+            const int cap = e.cap(dc_base.graph_revision);
+            if (cap == 0 || used[e.to] == F) continue;
+            sside++;
+            used[e.to] = F;
+            q.push(e.to);
+            if (pts.get_parent(e.to) == par) pts.set_parent(e.to, s);
+          }
+        }
+        tside = num_vertices_ - sside;
+      } else {
+        // on gomory-fu tree, t -> s -> par
+        pts.set_parent(t, s);
+        parent_weight_[t].second = cost;
+        //t側に属する頂点の親を,tに変更する
+        q.push(t);
+        used[t] = F;
+        while (!q.empty()) {
+          V v = q.front(); q.pop();
+          for (auto& e : dc_base.e[v]) {
+            const int cap = dc_base.e[e.to][e.reverse].cap(dc_base.graph_revision);
+            if (cap == 0 || used[e.to] == F) continue;
+            tside++;
+            used[e.to] = F;
+            q.push(e.to);
+            if (pts.get_parent(e.to) == par) pts.set_parent(e.to, t);
+          }
+        }
+        sside = num_vertices_ - tside;
+      }
+
+      //debug infomation
+      const int x = min(tside, sside);
+      cutsize_count[x]++;
+      if (x > mx) {
+        mx = x;
+        if (mx != 1) {
+          fprintf(stderr, "(%d,%d), cut = %d, sside_num = %d, tside_num = %d\n", s, t, cost, sside, tside);
+          fprintf(stderr, "  prop : degree[%d] = %d, degree[%d] = %d max_flow_times = %d\n", s, degree[s], t, degree[t], max_flow_times);
+        }
+      }
+    }
+
+    if (sz(cutsize_count) > 10) {
+      stringstream cutsize_count_ss;
+      cutsize_count_ss << "cutsize_count : ";
+      for (auto& kv : cutsize_count) cutsize_count_ss << "(" << kv.first << "," << kv.second << "), ";
+      JLOG_PUT("cut_adjacent_pairs.cutsize_count", cutsize_count_ss.str());
+    }
+
+    //cutしきれなかった頂点たちを、mincut_orderに登録する
+    vector<int> mincut_order2;
+    for (auto v : mincut_order) {
+      if (parent_weight_[v].second == -1) mincut_order2.push_back(v);
+    }
+    mincut_order = mincut_order2;
+  }
+
+  void gusfield(dinic_twosided& dc_base, parent_tree_set& pts, vector<int>& mincut_order,vector<int>& degree) {
     vector<int> used(num_vertices_);
     queue<int> q;
     int max_flow_times = 0;
     int mx = 0;
 
-    map<int,int> cutsize_count;
+    map<int, int> cutsize_count;
     for (V s : mincut_order) {
       const V t = pts.get_parent(s);
 
@@ -233,7 +341,7 @@ public:
 
       //debug infomation
       max_flow_times++;
-      if(FLAGS_enable_logging_max_flow_details) {
+      if (FLAGS_enable_logging_max_flow_details) {
         JLOG_ADD_OPEN("gusfield.max_flow_details") {
           JLOG_PUT("cost", cost, false);
           JLOG_PUT("edge_count", after_max_flow - before_max_flow, false);
@@ -263,24 +371,62 @@ public:
       }
 
       //debug infomation
-      int tside = num_vs - sside;
+      int tside = num_vertices_ - sside;
       const int x = min(tside, sside);
       cutsize_count[x]++;
       if (x > mx) {
         mx = x;
-        if(mx != 1) {
+        if (mx != 1) {
           fprintf(stderr, "(%d,%d), cut = %d, sside_num = %d, tside_num = %d\n", s, t, cost, sside, tside);
           fprintf(stderr, "  prop : degree[%d] = %d, degree[%d] = %d max_flow_times = %d\n", s, degree[s], t, degree[t], max_flow_times);
         }
       }
     }
 
-    if(sz(cutsize_count) > 10) {
+    if (sz(cutsize_count) > 10) {
       stringstream cutsize_count_ss;
       cutsize_count_ss << "cutsize_count : ";
-      for(auto& kv : cutsize_count) cutsize_count_ss << "(" << kv.first << "," << kv.second << "), ";
-        JLOG_PUT("gusfield.cutsize_count", cutsize_count_ss.str());
+      for (auto& kv : cutsize_count) cutsize_count_ss << "(" << kv.first << "," << kv.second << "), ";
+      JLOG_PUT("gusfield.cutsize_count", cutsize_count_ss.str());
     }
+  }
+
+public:
+
+  OptimizedGusfieldWith2ECC(vector<pair<V, V>>& edges, int num_vs) :
+    edges_(edges),
+    num_vertices_(num_vs),
+    parent_weight_(num_vs, make_pair(-1, 0)),
+    depth_(num_vs, -1) {
+
+    vector<int> degree(num_vertices_);
+    for (auto& e : edges) degree[e.first]++, degree[e.second]++;
+
+    //次数2の頂点と接続を持つ辺を削除して、探索しやすくする
+    erase_deg2_edges(degree);
+
+    //gomory-hu treeのroot nodeの決定
+    root_node_ = -1;
+    FOR(v, num_vertices_) if (degree[v] != 2) {
+      root_node_ = v; break;
+    }
+    if (root_node_ == -1) root_node_ = 0;
+    parent_tree_set pts(num_vs, root_node_);
+
+    //枝刈りしつつ、まだmincutが求まってない頂点達を見つける
+    vector<int> mincut_order = prune_obvious_mincut(pts, degree);
+
+    //dinicの初期化
+    dinic_twosided dc_base(edges, num_vs);
+
+    //まず隣接頂点対からcutしていく
+    if (FLAGS_enable_adjacent_cut) {
+      cut_adjacent_pairs(dc_base, mincut_order, degree, pts);
+    }
+    //残った頂点gusfieldのアルゴリズムでcutしていく頂点の順番を決定
+    gusfield_choice_stpair(pts, mincut_order, degree);
+    // gusfieldのアルゴリズムを実行、gomory_hu treeの完成
+    gusfield(dc_base, pts, mincut_order, degree);
 
     // gomory-hu treeの親nodeの設定
     FOR(v, num_vs) parent_weight_[v].first = pts.get_parent(v);
