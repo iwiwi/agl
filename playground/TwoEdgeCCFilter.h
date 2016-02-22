@@ -57,7 +57,7 @@ public:
     //dealloc
     lowlink.clear(); lowlink.shrink_to_fit();
     order.clear(); order.shrink_to_fit();
-    bridge.clear(); bridge.shrink_to_fit();
+    // bridge.clear(); bridge.shrink_to_fit();
     biconnected_graphs_edges.clear(); biconnected_graphs_edges.shrink_to_fit();
 
     biconnected_graph_handler.reset(new ConnectedComponentsFilter<handler_t>(new_g));
@@ -99,7 +99,6 @@ public:
   }
 
   void print_gomory_hu_tree(ostream& os) {
-    const int n = sz(lowlink);
     vector<int> roots;
     FOR(v, n) if (uf.root(v) == v) roots.push_back(v);
     FOR(i, sz(roots) - 1) os << roots[0] << " " << roots[i + 1] << " 0\n";
@@ -123,7 +122,6 @@ public:
   }
 
   vector<int> single_source_mincut(int s) {
-    const int n = sz(lowlink);
     vector<int> global_ans(n);
 
     vector<vector<int>> local_id2global_id = get_local_id2global_id();
