@@ -91,6 +91,18 @@ template<typename value_t> struct json_leaf : json_node {
   }
 };
 
+template<> struct json_leaf<std::string> : json_node {
+  std::string value;
+
+  virtual void set_value(std::string v) {
+    value = v;
+  }
+
+  virtual void print(std::ostream &os, int, bool last) {
+    os << "\"" << value << (last ? "\"" : "\",") << std::endl;
+  }
+};
+
 template<typename value_t> struct json_leaf_numerical : json_node {
   value_t value;
   
