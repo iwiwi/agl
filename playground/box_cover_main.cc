@@ -7,8 +7,8 @@ DEFINE_int32(rad_max, 10, "maximum radius");
 DEFINE_string(method, "sketch", "using method");
 DEFINE_double(final_coverage, 1.0, "coverage");
 DEFINE_int32(pass, 1, "Number of multi-pass");
-DEFINE_int32(sketch_k, 1024, "sketch k");
-DEFINE_bool(rad_analytical, false, "Using analytical diameters as rads");
+DEFINE_int32(sketch_k, 128, "sketch k");
+DEFINE_bool(rad_analytical, false, "Using analytical diameters for rads");
 DEFINE_double(upper_param, 1.0, "size_upper_bound=upper_param*n*k");
 DEFINE_string(exp_tag, "", "experiment name");
 

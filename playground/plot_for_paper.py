@@ -42,14 +42,14 @@ def xy_from_json(json_data):
 def plotLine(beta):
     qx = np.linspace(0.5, 1000000, 1000000)
     axes.plot(qx, theoreticalValue(beta, qx),
-              label="$\propto\  x^{" + "{0:.1f}".format(beta[1]) + "}$",
+              label="$\propto\  \ell ^{" + "{0:.1f}".format(beta[1]) + "}$",
               color="#FF0000")
 
 
 def plotExpo(beta):
     qx = np.linspace(0.5, 1000000, 1000000)
     axes.plot(qx, expoValue(beta, qx),
-              label="$\propto\  e^{ " + "{0:.1f}".format(beta[1]) + " x}$",
+              label="$\propto\  e^{ " + "{0:.1f}".format(beta[1]) + " \ \ell}$",
               linestyle="--",  color="#000000")
 
 
