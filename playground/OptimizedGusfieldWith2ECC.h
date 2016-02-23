@@ -219,6 +219,7 @@ class OptimizedGusfieldWith2ECC {
 
     for (const auto& e : edges_) {
       V s, t; tie(s, t) = e;
+      if(degree[s] > degree[t]) swap(s,t); 
       bool same_component; V par; tie(same_component, par) = belong_to_same_component(pts, s, t);
       if (!same_component) continue;
 
@@ -259,10 +260,10 @@ class OptimizedGusfieldWith2ECC {
         used[s] = F;
         while (!q.empty()) {
           V v = q.front(); q.pop();
+          sside++;
           for (auto& e : dc_base.e[v]) {
             const int cap = e.cap(dc_base.graph_revision);
             if (cap == 0 || used[e.to] == F) continue;
-            sside++;
             used[e.to] = F;
             q.push(e.to);
             if (pts.get_parent(e.to) == par) pts.set_parent(e.to, s);
@@ -278,10 +279,10 @@ class OptimizedGusfieldWith2ECC {
         used[t] = F;
         while (!q.empty()) {
           V v = q.front(); q.pop();
+          tside++;
           for (auto& e : dc_base.e[v]) {
             const int cap = dc_base.e[e.to][e.reverse].cap(dc_base.graph_revision);
             if (cap == 0 || used[e.to] == F) continue;
-            tside++;
             used[e.to] = F;
             q.push(e.to);
             if (pts.get_parent(e.to) == par) pts.set_parent(e.to, t);
