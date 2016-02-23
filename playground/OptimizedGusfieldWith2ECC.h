@@ -9,33 +9,74 @@ DEFINE_bool(enable_logging_max_flow_details, false, "");
 DEFINE_bool(enable_adjacent_cut, false, "");
 
 class parent_tree_set {
-  const int root;
-  vector<int> data, datainv, ref;
+  int root_;
+  vector<int> data_, datainv_, ref_;
+  vector<bool> freezed_;
+  vector<pair<int, int>> parent_weight_;
 
 public:
-  parent_tree_set(const int n, const int root) : root(root), data(n), datainv(n), ref(n, root) {
-    FOR(i, n) datainv[i] = data[i] = i;
+  parent_tree_set(const int n, const int root_) : root_(root_), data_(n), datainv_(n), ref_(n, root_),
+    freezed_(n), parent_weight_(n, make_pair(-1, -1)) {
+    FOR(i, n) datainv_[i] = data_[i] = i;
   }
 
-  void set_parent(int v, int par) {
-    ref[v] = datainv[par];
+  int root() const {
+    return root_;
   }
 
-  void change_parent(int cur_parent, int new_parent) {
-    int ci = datainv[cur_parent];
-    int ni = datainv[new_parent];
-    swap(data[ci], data[ni]);
-    swap(datainv[cur_parent], datainv[new_parent]);
+  void root(int new_root) {
+    root_ = new_root;
   }
 
-  int get_parent(int v) const {
-    return data[ref[v]];
+  void set_temporary_parent(int v, int par) {
+    CHECK(!freezed_[v]);
+    ref_[v] = datainv_[par];
+  }
+
+  void change_temporary_parent(int cur_parent, int new_parent) {
+    int ci = datainv_[cur_parent];
+    int ni = datainv_[new_parent];
+    swap(data_[ci], data_[ni]);
+    swap(datainv_[cur_parent], datainv_[new_parent]);
+  }
+
+  int get_temporary_parent(int v) const {
+    CHECK(!freezed_[v]);
+    return data_[ref_[v]];
+  }
+
+  bool is_freezed(int v) const {
+    return freezed_[v];
+  }
+
+  int get_freezed_parent(int v) const {
+    CHECK(freezed_[v]);
+    return parent_weight_[v].first;
+  }
+
+  void freeze_parent(int v) {
+    CHECK(!freezed_[v]);
+    parent_weight_[v].first = get_temporary_parent(v);
+    freezed_[v] = true;
+  }
+
+  void set_weight(int v, int weight) {
+    CHECK(!freezed_[v]);
+    parent_weight_[v].second = weight;
+  }
+
+  // parent_weightをmoveで返して、parent_tree_setを壊します
+  vector<pair<int, int>> move_parent_weight() {
+    FOR(i, sz(parent_weight_)) if (i != root_) {
+      CHECK(freezed_[i]);
+    }
+    return std::move(parent_weight_);
   }
 
   void debug() const {
-    FOR(v, sz(data)) {
-      printf("%d, ", get_parent(v));
-      if (v != root && v == get_parent(v)) {
+    FOR(v, sz(data_)) {
+      printf("%d, ", get_temporary_parent(v));
+      if (v != root_ && v == get_temporary_parent(v)) {
         puts("?");
       }
     }
@@ -44,19 +85,20 @@ public:
 };
 
 class OptimizedGusfieldWith2ECC {
-  void build_depth() {
-    depth_[root_node_] = 0;
+  void build_depth(parent_tree_set &pts) {
+    depth_[pts.root()] = 0;
 
     stack<int> stk;
     FOR(v, num_vertices_) {
-      while (depth_[v] == -1) {
-        stk.push(v);
-        v = parent_weight_[v].first;
+      int tmp = v;
+      while (depth_[tmp] == -1) {
+        stk.push(tmp);
+        tmp = parent_weight_[tmp].first;
       }
       while (!stk.empty()) {
         int u = stk.top(); stk.pop();
-        depth_[u] = depth_[v] + 1;
-        v = u;
+        depth_[u] = depth_[tmp] + 1;
+        tmp = u;
       }
     }
   }
@@ -86,12 +128,12 @@ class OptimizedGusfieldWith2ECC {
 
     auto set_solved = [&](V v, V parent, int weight) {
       current_parent[v] = parent;
-      parent_weight_[v].second = weight;
+      pts.set_weight(v, weight);
     };
 
     FOR(v, num_vertices_) {
-      if (v == root_node_) continue;
-      if (degree[v] == 2) set_solved(v, root_node_, 2); //二重連結成分分解後なので自明なcut
+      if (v == pts.root()) continue;
+      if (degree[v] == 2) set_solved(v, pts.root(), 2); //二重連結成分分解後なので自明なcut
     }
 
 
@@ -132,23 +174,26 @@ class OptimizedGusfieldWith2ECC {
     }
 
     // root nodeの差し替え
-    if (current_parent[root_node_] != -1) {
-      pts.change_parent(root_node_, current_parent[root_node_]);
-      root_node_ = current_parent[root_node_];
+    if (current_parent[pts.root()] != -1) {
+      int cur_root = pts.root();
+      pts.change_temporary_parent(cur_root, current_parent[cur_root]);
+      pts.root(current_parent[cur_root]);
     }
 
     vector<int> mincut_order;
     // cutの求まっていない頂点達について、gusfieldでcutを求める
     FOR(v, num_vertices_) {
-      if (v == root_node_) continue;
+      if (v == pts.root()) continue;
       if (current_parent[v] != -1) {
-        pts.set_parent(v, current_parent[v]); // cutがもとまっている
+        // cutがもとまっている
+        pts.set_temporary_parent(v, current_parent[v]);
+        pts.freeze_parent(v);
       } else {
         // もしcutが代入されていた場合に対応するため、-1を代入
         //   「"閉路が出来上がるのを防ぐために、親を自分自身であると登録しておく" の段階で、
         //   既にcutが見つかっていたが、tree packingのroot nodeとなった場合」に、
         //   parentが存在しないのにweightが-1でないという場合が発生する
-        parent_weight_[v].second = -1; 
+        pts.set_weight(v, -1);
         mincut_order.push_back(v); //gusfieldで求める
       }
     }
@@ -195,18 +240,31 @@ class OptimizedGusfieldWith2ECC {
 
   //同じ部分グラフに所属していれば true,そのグループの親nodeを返す
   pair<bool, V> belong_to_same_component(parent_tree_set& pts, V s, V t) const {
-    if(parent_weight_[s].second != -1 || parent_weight_[t].second != -1)
-      return make_pair(false, -1); // 既にコスト確定 = 別のグループ
-    if (pts.get_parent(t) == s) swap(s, t); // 下の処理とまとめる
-    if (pts.get_parent(s) == t) {
-      return make_pair(true, t); // t group
-    }
-    if (pts.get_parent(t) == pts.get_parent(s)) {
-      return make_pair(true, pts.get_parent(t));
+    if (pts.is_freezed(s) || pts.is_freezed(t)) return make_pair(false, -1); //どちらもコストが決定している
+
+    if (pts.is_freezed(s)) swap(s, t);
+    if (pts.is_freezed(t)) { // tはgusfield cut treeの親がfreezeされている
+      if (pts.get_temporary_parent(s) == t) {
+        return make_pair(true, t); //t == parent
+      } else if (pts.get_temporary_parent(s) == pts.get_freezed_parent(t)) {
+        return make_pair(true, pts.get_temporary_parent(s));
+      } else {
+        return make_pair(false, -1); // 同じグループではない
+      }
     } else {
-      return make_pair(false, -1);
+      //どちらも親が確定していない
+      if (pts.get_temporary_parent(t) == s) swap(s, t);
+
+      if (pts.get_temporary_parent(s) == t) {
+        return make_pair(true, t);
+      } else if (pts.get_temporary_parent(s) == pts.get_temporary_parent(t)) {
+        return make_pair(true, pts.get_temporary_parent(s));
+      } else {
+        return make_pair(false, -1);
+      }
     }
   }
+
 
   //隣接頂点同士を見て、まだ切れていなかったらcutする
   void cut_adjacent_pairs(dinic_twosided& dc_base, vector<int>& mincut_order, vector<int>& degree, parent_tree_set& pts) {
@@ -219,7 +277,8 @@ class OptimizedGusfieldWith2ECC {
 
     for (const auto& e : edges_) {
       V s, t; tie(s, t) = e;
-      if(degree[s] > degree[t]) swap(s,t); 
+      if (degree[s] > degree[t]) swap(s, t);
+
       bool same_component; V par; tie(same_component, par) = belong_to_same_component(pts, s, t);
       if (!same_component) continue;
 
@@ -231,6 +290,8 @@ class OptimizedGusfieldWith2ECC {
       dc_base.reset_graph();
       const int cost = dc_base.max_flow(s, t);
       const long long after_max_flow = getcap_counter;
+
+      // fprintf(stderr, "(%d,%d) = %d\n", s, t, cost);
 
       //debug infomation
       max_flow_times++;
@@ -253,8 +314,9 @@ class OptimizedGusfieldWith2ECC {
       int sside = 0, tside = 0;
       if (!parent_belongs_to_s_side) {
         // on gomory-fu tree, s -> t -> par
-        pts.set_parent(s, t);
-        parent_weight_[s].second = cost;
+        pts.set_temporary_parent(s, t);
+        pts.set_weight(s, cost);
+        pts.freeze_parent(s);
         //s側に属する頂点の親を,sに変更する
         q.push(s);
         used[s] = F;
@@ -266,14 +328,18 @@ class OptimizedGusfieldWith2ECC {
             if (cap == 0 || used[e.to] == F) continue;
             used[e.to] = F;
             q.push(e.to);
-            if (pts.get_parent(e.to) == par) pts.set_parent(e.to, s);
+            if (!pts.is_freezed(e.to)) {
+              const int tpar = pts.get_temporary_parent(e.to);
+              if (tpar == par) pts.set_temporary_parent(e.to, s); //mincut後のe.toはs側に属する
+            }
           }
         }
         tside = num_vertices_ - sside;
       } else {
         // on gomory-fu tree, t -> s -> par
-        pts.set_parent(t, s);
-        parent_weight_[t].second = cost;
+        pts.set_temporary_parent(t, s);
+        pts.set_weight(t, cost);
+        pts.freeze_parent(t);
         //t側に属する頂点の親を,tに変更する
         q.push(t);
         used[t] = F;
@@ -285,7 +351,10 @@ class OptimizedGusfieldWith2ECC {
             if (cap == 0 || used[e.to] == F) continue;
             used[e.to] = F;
             q.push(e.to);
-            if (pts.get_parent(e.to) == par) pts.set_parent(e.to, t);
+            if (!pts.is_freezed(e.to)) {
+              const int tpar = pts.get_temporary_parent(e.to);
+              if (tpar == par) pts.set_temporary_parent(e.to, t); //mincut後のe.toはt側に属する
+            }
           }
         }
         sside = num_vertices_ - tside;
@@ -313,12 +382,12 @@ class OptimizedGusfieldWith2ECC {
     //cutしきれなかった頂点たちを、mincut_orderに登録する
     vector<int> mincut_order2;
     for (auto v : mincut_order) {
-      if (parent_weight_[v].second == -1) mincut_order2.push_back(v);
+      if (!pts.is_freezed(v)) mincut_order2.push_back(v);
     }
     mincut_order = mincut_order2;
   }
 
-  void gusfield(dinic_twosided& dc_base, parent_tree_set& pts, vector<int>& mincut_order,vector<int>& degree) {
+  void gusfield(dinic_twosided& dc_base, parent_tree_set& pts, vector<int>& mincut_order, vector<int>& degree) {
     vector<int> used(num_vertices_);
     queue<int> q;
     int max_flow_times = 0;
@@ -326,14 +395,17 @@ class OptimizedGusfieldWith2ECC {
 
     map<int, int> cutsize_count;
     for (V s : mincut_order) {
-      const V t = pts.get_parent(s);
+      const V t = pts.get_temporary_parent(s);
 
       //max-flow
       const long long before_max_flow = getcap_counter;
       dc_base.reset_graph();
       int cost = dc_base.max_flow(s, t);
-      parent_weight_[s].second = cost;
+      pts.set_weight(s, cost);
+      pts.freeze_parent(s);
       const long long after_max_flow = getcap_counter;
+
+      // fprintf(stderr, "(%d,%d) = %d\n", s, t, cost);
 
       //debug infomation
       max_flow_times++;
@@ -361,8 +433,10 @@ class OptimizedGusfieldWith2ECC {
           if (e.cap(dc_base.graph_revision) == 0 || used[e.to] == F) continue;
           used[e.to] = F;
           q.push(e.to);
-          const int tpar = pts.get_parent(e.to);
-          if (tpar == t) pts.set_parent(e.to, s); //mincut後のe.toはs側に属する
+          if (!pts.is_freezed(e.to)) {
+            const int tpar = pts.get_temporary_parent(e.to);
+            if (tpar == t) pts.set_temporary_parent(e.to, s); //mincut後のe.toはs側に属する
+          }
         }
       }
 
@@ -392,7 +466,6 @@ public:
   OptimizedGusfieldWith2ECC(vector<pair<V, V>>& edges, int num_vs) :
     edges_(edges),
     num_vertices_(num_vs),
-    parent_weight_(num_vs, make_pair(-1, 0)),
     depth_(num_vs, -1) {
 
     vector<int> degree(num_vertices_);
@@ -402,12 +475,12 @@ public:
     erase_deg2_edges(degree);
 
     //gomory-hu treeのroot nodeの決定
-    root_node_ = -1;
+    int tmp_root_node = -1;
     FOR(v, num_vertices_) if (degree[v] != 2) {
-      root_node_ = v; break;
+      tmp_root_node = v; break;
     }
-    if (root_node_ == -1) root_node_ = 0;
-    parent_tree_set pts(num_vs, root_node_);
+    if (tmp_root_node == -1) tmp_root_node = 0;
+    parent_tree_set pts(num_vs, tmp_root_node);
 
     //枝刈りしつつ、まだmincutが求まってない頂点達を見つける
     vector<int> mincut_order = prune_obvious_mincut(pts, degree);
@@ -425,10 +498,9 @@ public:
     gusfield(dc_base, pts, mincut_order, degree);
 
     // gomory-hu treeの親nodeの設定
-    FOR(v, num_vs) parent_weight_[v].first = pts.get_parent(v);
-    parent_weight_[root_node_].first = -1;
+    parent_weight_ = pts.move_parent_weight();
 
-    build_depth();
+    build_depth(pts);
   }
 
   int query(V u, V v) {
@@ -456,6 +528,4 @@ private:
   const int num_vertices_;
   vector<pair<V, int>> parent_weight_;
   vector<int> depth_;
-
-  int root_node_;
 };

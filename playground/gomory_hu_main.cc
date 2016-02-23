@@ -285,6 +285,8 @@ void main_(G&& g) {
     }
   } else if (FLAGS_method == "print_gomory_hu_tree") {
     print_gomory_hu_tree<T>(std::move(g));
+    JLOG_ADD("getcap_counter", getcap_counter);
+    JLOG_ADD("addcap_counter", addcap_counter);
   } else if (FLAGS_method == "single_source_mincut") {
     single_source_mincut(std::move(g));
   } else if (FLAGS_method == "single_source_mincut_gomory_hu") {
