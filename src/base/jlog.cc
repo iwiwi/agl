@@ -31,6 +31,7 @@
 
 std::string FLAGS_jlog_out = "./jlog";
 bool FLAGS_jlog_suppress_log = false;
+std::string FLAGS_jlog_file_name = "";
 
 namespace jlog_internal {
 jlog jlog::instance_;
@@ -84,6 +85,8 @@ void JLOG_INIT(int *argc, char **argv) {
       FLAGS_jlog_out = argv[i] + 11;
     } else if (strncmp(argv[i], "--jlog_suppress_log", 19) == 0) {
       FLAGS_jlog_suppress_log = true;
+    } else if(strncmp(argv[i], "--jlog_file_name=", 17) == 0) {
+      FLAGS_jlog_file_name = argv[i] + 17;
     } else {
       argv[k++] = argv[i];
     }

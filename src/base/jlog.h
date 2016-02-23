@@ -50,6 +50,7 @@
 
 extern std::string FLAGS_jlog_out;
 extern bool FLAGS_jlog_suppress_log;
+extern std::string FLAGS_jlog_file_name;
 
 namespace jlog_internal {
 double get_current_time_sec();
@@ -209,23 +210,27 @@ class jlog {
     struct ::tm tm_time;
     localtime_r(&timestamp, &tm_time);
 
-    std::ostringstream os;
-    os.fill('0');
-    os << instance_.program_name_ << "."
-       << u.nodename << "."
-       // << getenv("USER") << "."
-       << "jlog."
-       << std::setw(2) << (1900 + tm_time.tm_year) % 100
-       << std::setw(2) << 1+tm_time.tm_mon
-       << std::setw(2) << tm_time.tm_mday
-       << '-'
-       << std::setw(2) << tm_time.tm_hour
-       << std::setw(2) << tm_time.tm_min
-       << std::setw(2) << tm_time.tm_sec
-       << '.'
-       << getpid();
+    if(FLAGS_jlog_file_name != "") {
+      instance_.filename_ = FLAGS_jlog_file_name;
+    } else {
+      std::ostringstream os;
+      os.fill('0');
+      os << instance_.program_name_ << "."
+         << u.nodename << "."
+         // << getenv("USER") << "."
+         << "jlog."
+         << std::setw(2) << (1900 + tm_time.tm_year) % 100
+         << std::setw(2) << 1+tm_time.tm_mon
+         << std::setw(2) << tm_time.tm_mday
+         << '-'
+         << std::setw(2) << tm_time.tm_hour
+         << std::setw(2) << tm_time.tm_min
+         << std::setw(2) << tm_time.tm_sec
+         << '.'
+         << getpid();
 
-    instance_.filename_ = os.str();
+      instance_.filename_ = os.str();
+    }
     LOG() << "JLOG: " << instance_.filename_ << std::endl;
 
     jlog_put("run.program", instance_.program_name_, true);
