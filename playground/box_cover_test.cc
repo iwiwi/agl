@@ -380,57 +380,6 @@ TEST(box_cover, coloring) {
   }
 }
 
-TEST(box_cover, fast_build_sketch) {
-  for (int trial = 0; trial < 5; ++trial) {
-    const W radius = 256;
-    const int k = 128;
-    V u = 2, v = 2;
-    auto es = generate_uv_flower(10000, u, v);
-    G g(make_undirected(es));
-    pretty_print(g);
-
-    vector<V> rank(g.num_vertices());
-    vector<V> inv(g.num_vertices());
-    for (V i = 0; i < g.num_vertices(); ++i) {
-      inv[i] = i;
-    }
-    random_shuffle(inv.begin(), inv.end());
-    for (int i = 0; i < g.num_vertices(); ++i) {
-      rank[inv[i]] = i;
-    }
-    coverage_manager cm(g, radius, 1.0);
-
-    cerr << "k: " << k << endl;
-    cerr << "radius: " << radius << endl;
-    double timer = -get_current_time_sec();
-    vector<vector<V>> bX = build_sketch(g, radius, k, rank, inv, cm);
-    timer += get_current_time_sec();
-    cerr << "build_sketch():" << timer << " sec" << endl;
-    bool use_memb = false;
-
-    timer = -get_current_time_sec();
-    vector<vector<V>> fX =
-        fast_build_sketch(g, radius, k, rank, cm, use_memb, 1000000000);
-    timer += get_current_time_sec();
-    cerr << "fast_build_sketch():" << timer << " sec" << endl;
-
-    if (bX != fX) {
-      int N = bX.size();
-      for (int i = 0; i < N; ++i) {
-        if (bX[i].size() != fX[i].size()) {
-          cerr << i << endl;
-          cerr << bX[i].size() << " " << fX[i].size() << endl;
-          V mi = min(bX[i].size(), fX[i].size());
-          for (int v = 0; v < mi; ++v) {
-            cerr << bX[i][v] << " " << fX[i][v] << endl;
-          }
-        }
-      }
-    }
-    ASSERT_EQ(bX, fX);
-  }
-}
-
 TEST(box_cover, covered_check) {
   for (int trial = 0; trial < 10; ++trial) {
     V N = agl::random(1000) + 1000;
