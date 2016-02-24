@@ -339,97 +339,103 @@ class OptimizedGusfieldWith2ECC {
     }
   }
 
+  queue<int> q;
+  vector<int> used;
+  int max_flow_times;
+  int max_cut_size;
+  map<int, int> cutsize_count;
+  void mincut_init() {
+    used.resize(num_vertices_);
+    max_flow_times = 0;
+    max_cut_size = 0;
+    while (!q.empty()) q.pop();
+    cutsize_count.clear();
+  }
+
+  void mincut(V s, V t, dinic_twosided& dc_base, disjoint_cut_set& dcs,vector<int>& degree) {
+    if (degree[s] > degree[t]) swap(s, t);
+
+    //max-flow
+    const long long before_max_flow = getcap_counter;
+    dc_base.reset_graph();
+    int cost = dc_base.max_flow(s, t);
+    const long long after_max_flow = getcap_counter;
+
+    gh_builder_.add_edge(s, t, cost); //cutした結果をgomory_hu treeの枝を登録
+
+    //debug infomation
+    max_flow_times++;
+    if (FLAGS_enable_logging_max_flow_details) {
+      JLOG_ADD_OPEN("gusfield.max_flow_details") {
+        JLOG_PUT("cost", cost, false);
+        JLOG_PUT("edge_count", after_max_flow - before_max_flow, false);
+      }
+    }
+    if (max_flow_times % 10000 == 0) {
+      stringstream ss;
+      ss << "max_flow_times = " << max_flow_times << ", (" << s << "," << t << ") cost = " << cost;
+      JLOG_ADD("gusfield.progress", ss.str());
+    }
+
+    const int F = max_flow_times;
+    int sside = 0, tside = 0;
+    if (dc_base.reason_for_finishing_bfs == dinic_twosided::kQsIsEmpty) {
+      //s側に属する頂点の親を新しいgroupに移動する
+      q.push(s);
+      used[s] = F;
+      dcs.create_new_group(s);
+      while (!q.empty()) {
+        V v = q.front(); q.pop();
+        sside++;
+        for (auto& e : dc_base.e[v]) {
+          const int cap = e.cap(dc_base.graph_revision);
+          if (cap == 0 || used[e.to] == F) continue;
+          used[e.to] = F;
+          q.push(e.to);
+          if (dcs.is_same_group(t, e.to)) {
+            dcs.move_other_group(e.to, s); //tと同じgroupにいた頂点を、s側のgroupに移動
+          }
+        }
+      }
+      tside = num_vertices_ - sside;
+    } else {
+      //t側に属する頂点の親を,tに変更する
+      q.push(t);
+      used[t] = F;
+      dcs.create_new_group(t);
+      while (!q.empty()) {
+        V v = q.front(); q.pop();
+        tside++;
+        for (auto& e : dc_base.e[v]) {
+          const int cap = dc_base.e[e.to][e.reverse].cap(dc_base.graph_revision);
+          if (cap == 0 || used[e.to] == F) continue;
+          used[e.to] = F;
+          q.push(e.to);
+          if (dcs.is_same_group(s, e.to)) {
+            dcs.move_other_group(e.to, t); //sと同じgroupにいた頂点を、t側のgroupに移動
+          }
+        }
+      }
+      sside = num_vertices_ - tside;
+    }
+
+    const int x = min(tside, sside);
+    cutsize_count[x]++;
+    if (x > max_cut_size) {
+      max_cut_size = x;
+      if (max_cut_size != 1) {
+        fprintf(stderr, "(%d,%d), cut = %d, sside_num = %d, tside_num = %d\n", s, t, cost, sside, tside);
+        fprintf(stderr, "  prop : degree[%d] = %d, degree[%d] = %d max_flow_times = %d\n", s, degree[s], t, degree[t], max_flow_times);
+      }
+    }
+  }
+
   //隣接頂点同士を見て、まだ切れていなかったらcutする
   void cut_adjacent_pairs(dinic_twosided& dc_base, disjoint_cut_set& dcs, vector<int>& degree) {
-    queue<int> q;
-    vector<int> used(num_vertices_);
-    int used_revision = 0;
-    int max_flow_times = 0;
-    int mx = 0;
-    map<int, int> cutsize_count;
-
     for (const auto& e : edges_) {
       V s, t; tie(s, t) = e;
       if (!dcs.is_same_group(s, t)) continue;
-
-      if (degree[s] > degree[t]) swap(s, t);
-
-      //max-flow
-      const long long before_max_flow = getcap_counter;
-      dc_base.reset_graph();
-      const int cost = dc_base.max_flow(s, t);
-      const long long after_max_flow = getcap_counter;
-      // fprintf(stderr, "(%d,%d) = %d\n", s, t, cost);
-
-      gh_builder_.add_edge(s, t, cost); //cutした結果をgomory_hu treeの枝を登録
-
-                        //debug infomation
-      max_flow_times++;
-      if (FLAGS_enable_logging_max_flow_details) {
-        JLOG_ADD_OPEN("gusfield.max_flow_details") {
-          JLOG_PUT("cost", cost, false);
-          JLOG_PUT("edge_count", after_max_flow - before_max_flow, false);
-        }
-      }
-      if (max_flow_times % 10000 == 0) {
-        stringstream ss;
-        ss << "max_flow_times = " << max_flow_times << ", (" << s << "," << t << ") cost = " << cost;
-        JLOG_ADD("gusfield.progress", ss.str());
-      }
-
-      const int F = ++used_revision;
-
-      int sside = 0, tside = 0;
-      if (dc_base.reason_for_finishing_bfs == dinic_twosided::kQsIsEmpty) {
-        //s側に属する頂点の親を新しいgroupに移動する
-        q.push(s);
-        used[s] = F;
-        dcs.create_new_group(s);
-        while (!q.empty()) {
-          V v = q.front(); q.pop();
-          sside++;
-          for (auto& e : dc_base.e[v]) {
-            const int cap = e.cap(dc_base.graph_revision);
-            if (cap == 0 || used[e.to] == F) continue;
-            used[e.to] = F;
-            q.push(e.to);
-            if (dcs.is_same_group(t, e.to)) {
-              dcs.move_other_group(e.to, s); //tと同じgroupにいた頂点を、s側のgroupに移動
-            }
-          }
-        }
-        tside = num_vertices_ - sside;
-      } else {
-        //t側に属する頂点の親を,tに変更する
-        q.push(t);
-        used[t] = F;
-        dcs.create_new_group(t);
-        while (!q.empty()) {
-          V v = q.front(); q.pop();
-          tside++;
-          for (auto& e : dc_base.e[v]) {
-            const int cap = dc_base.e[e.to][e.reverse].cap(dc_base.graph_revision);
-            if (cap == 0 || used[e.to] == F) continue;
-            used[e.to] = F;
-            q.push(e.to);
-            if (dcs.is_same_group(s, e.to)) {
-              dcs.move_other_group(e.to, t); //sと同じgroupにいた頂点を、t側のgroupに移動
-            }
-          }
-        }
-        sside = num_vertices_ - tside;
-      }
-
-      //debug infomation
-      const int x = min(tside, sside);
-      cutsize_count[x]++;
-      if (x > mx) {
-        mx = x;
-        if (mx != 1) {
-          fprintf(stderr, "(%d,%d), cut = %d, sside_num = %d, tside_num = %d\n", s, t, cost, sside, tside);
-          fprintf(stderr, "  prop : degree[%d] = %d, degree[%d] = %d max_flow_times = %d\n", s, degree[s], t, degree[t], max_flow_times);
-        }
-      }
+      mincut(s, t, dc_base, dcs, degree);
     }
 
     if (sz(cutsize_count) > 10) {
@@ -441,92 +447,11 @@ class OptimizedGusfieldWith2ECC {
   }
 
   void gusfield(dinic_twosided& dc_base, disjoint_cut_set& dcs, vector<int>& degree) {
-    vector<int> used(num_vertices_);
-    queue<int> q;
-    int max_flow_times = 0;
-    int mx = 0;
 
-    map<int, int> cutsize_count;
     FOR(group_id, num_vertices_) {
       while (dcs.has_two_elements(group_id)) {
         V s, t; tie(s, t) = dcs.get_two_elements(group_id);
-        if (degree[s] > degree[t]) swap(s, t);
-
-        //max-flow
-        const long long before_max_flow = getcap_counter;
-        dc_base.reset_graph();
-        int cost = dc_base.max_flow(s, t);
-        const long long after_max_flow = getcap_counter;
-
-        gh_builder_.add_edge(s, t, cost); //cutした結果をgomory_hu treeの枝を登録
-
-        // fprintf(stderr, "(%d,%d) = %d\n", s, t, cost);
-
-        //debug infomation
-        max_flow_times++;
-        if (FLAGS_enable_logging_max_flow_details) {
-          JLOG_ADD_OPEN("gusfield.max_flow_details") {
-            JLOG_PUT("cost", cost, false);
-            JLOG_PUT("edge_count", after_max_flow - before_max_flow, false);
-          }
-        }
-        if (max_flow_times % 10000 == 0) {
-          stringstream ss;
-          ss << "max_flow_times = " << max_flow_times << ", (" << s << "," << t << ") cost = " << cost;
-          JLOG_ADD("gusfield.progress", ss.str());
-        }
-
-        const int F = max_flow_times;
-        int sside = 0, tside = 0;
-        if (dc_base.reason_for_finishing_bfs == dinic_twosided::kQsIsEmpty) {
-          //s側に属する頂点の親を新しいgroupに移動する
-          q.push(s);
-          used[s] = F;
-          dcs.create_new_group(s);
-          while (!q.empty()) {
-            V v = q.front(); q.pop();
-            sside++;
-            for (auto& e : dc_base.e[v]) {
-              const int cap = e.cap(dc_base.graph_revision);
-              if (cap == 0 || used[e.to] == F) continue;
-              used[e.to] = F;
-              q.push(e.to);
-              if (dcs.is_same_group(t, e.to)) {
-                dcs.move_other_group(e.to, s); //tと同じgroupにいた頂点を、s側のgroupに移動
-              }
-            }
-          }
-          tside = num_vertices_ - sside;
-        } else {
-          //t側に属する頂点の親を,tに変更する
-          q.push(t);
-          used[t] = F;
-          dcs.create_new_group(t);
-          while (!q.empty()) {
-            V v = q.front(); q.pop();
-            tside++;
-            for (auto& e : dc_base.e[v]) {
-              const int cap = dc_base.e[e.to][e.reverse].cap(dc_base.graph_revision);
-              if (cap == 0 || used[e.to] == F) continue;
-              used[e.to] = F;
-              q.push(e.to);
-              if (dcs.is_same_group(s, e.to)) {
-                dcs.move_other_group(e.to, t); //sと同じgroupにいた頂点を、t側のgroupに移動
-              }
-            }
-          }
-          sside = num_vertices_ - tside;
-        }
-
-        const int x = min(tside, sside);
-        cutsize_count[x]++;
-        if (x > mx) {
-          mx = x;
-          if (mx != 1) {
-            fprintf(stderr, "(%d,%d), cut = %d, sside_num = %d, tside_num = %d\n", s, t, cost, sside, tside);
-            fprintf(stderr, "  prop : degree[%d] = %d, degree[%d] = %d max_flow_times = %d\n", s, degree[s], t, degree[t], max_flow_times);
-          }
-        }
+        mincut(s, t,dc_base,dcs, degree);
       }
     }
 
@@ -559,6 +484,7 @@ public:
     //dinicの初期化
     dinic_twosided dc_base(edges, num_vs);
 
+    mincut_init();
     //まず隣接頂点対からcutしていく
     if (FLAGS_enable_adjacent_cut) {
       cut_adjacent_pairs(dc_base, dcs, degree);
