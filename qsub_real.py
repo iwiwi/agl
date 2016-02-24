@@ -3,7 +3,8 @@ import subprocess
 
 
 def torque_nageru():
-    graph_names = ["uk-2002.agl", "hollywood-2011.agl", "enwiki-2013.agl", "ljournal-2008.agl", "arabic-2005.agl",]
+    graph_names = ["uk-2002.agl", "hollywood-2011.agl",
+                   "enwiki-2013.agl", "ljournal-2008.agl", "arabic-2005.agl", ]
 
     exp_tag = "96G_real"
     sketch_k = 128
@@ -29,7 +30,8 @@ def torque_nageru():
                 "-rad." + str(rad) + \
                 "-upper_param." + str(upper_param)
             p1 = subprocess.Popen(["echo", command], stdout=subprocess.PIPE)
-            p2 = subprocess.Popen(["qsub", "-l", "walltime=48:00:00,nodes=1:ppn=24", "-N", job_name], stdin=p1.stdout)
+            p2 = subprocess.Popen(
+                ["qsub", "-l", "walltime=48:00:00,nodes=long:ppn=24", "-p", "-10", "-N", job_name], stdin=p1.stdout)
             p1.stdout.close()
             output = p2.communicate()[0]
 
