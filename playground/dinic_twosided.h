@@ -21,10 +21,10 @@ private:
   public:
     E(int to, int reverse, int cap) :
       cap_(cap), revision_(0), to(to), reverse(reverse) {
-        CHECK(init_cap_ == cap);
+      CHECK(init_cap_ == cap);
     }
 
-    const int to, reverse;
+    int to, reverse;
     const int cap(int currenct_revision) {
       if (revision_ != currenct_revision) {
         revision_ = currenct_revision;
@@ -91,10 +91,10 @@ private:
         }
         tlevel++;
       }
-      if(path_found) return true;
+      if (path_found) return true;
     }
 
-  reason_for_finishing_bfs = (qs.empty()) ? kQsIsEmpty : kQtIsEmpty;
+    reason_for_finishing_bfs = (qs.empty()) ? kQsIsEmpty : kQtIsEmpty;
     return false;
   }
 
@@ -154,7 +154,37 @@ public:
     for (auto& uv : edges) {
       add_undirected_edge(uv.first, uv.second, 1);
     }
+  }
 
+  void add_vertex() {
+    level.emplace_back();
+    iter.emplace_back();
+    bfs_revision.emplace_back();
+    dfs_revision.emplace_back();
+    e.emplace_back();
+    n++;
+  }
+
+  void reconnect_edge(E& rm,int sside_vtx, int tside_vtx) {
+    const int to = rm.to;
+    const int to_rev = rm.reverse;
+    E& rm_rev = e[to][to_rev];
+    const int from = rm_rev.to;
+    const int from_rev = rm_rev.reverse;
+
+    add_undirected_edge(sside_vtx, tside_vtx, 1);
+    E& se = e[sside_vtx].back();
+    E& te = e[tside_vtx].back();
+
+    rm.to = sside_vtx;
+    rm.reverse = te.reverse;
+    rm_rev.to = tside_vtx;
+    rm_rev.reverse = se.reverse;
+
+    se.to = from;
+    se.reverse = from_rev;
+    te.to = to;
+    te.reverse = to_rev;
   }
 
   int max_flow_core(int s, int t) {
@@ -167,18 +197,18 @@ public:
       if (!path_found) return flow;
       while (true) {
         int f = dfs(s, t, true, numeric_limits<int>::max());
-        if(f == 0) break;
+        if (f == 0) break;
         flow += f;
       }
     }
     return flow;
   }
 
-  int max_flow(int s,int t) {
+  int max_flow(int s, int t) {
     auto b1 = getcap_counter;
     int ans = max_flow_core(s, t);
     auto b2 = getcap_counter;
-    FOR(_,FLAGS_flow_iter - 1) {
+    FOR(_, FLAGS_flow_iter - 1) {
       reset_graph();
       max_flow_core(s, t);
       auto b3 = getcap_counter;
@@ -217,7 +247,7 @@ public:
     }
   }
 
-  const int n;
+  int n;
   vector<pair<int, int>> level;
   vector<int> iter;
   vector<int> bfs_revision, dfs_revision;

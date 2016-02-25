@@ -57,7 +57,7 @@ class OptimizedGusfieldWith2ECC2 {
 
 public:
 
-  OptimizedGusfieldWith2ECC2(vector<pair<V, V>>& edges, int num_vs) :
+  OptimizedGusfieldWith2ECC2(vector<pair<V, V>> edges, int num_vs) :
     num_vertices_(num_vs),
     parent_weight_(num_vs, make_pair(-1, -1)),
     depth_(num_vs, -1) {

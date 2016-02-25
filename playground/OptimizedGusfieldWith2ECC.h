@@ -56,6 +56,7 @@ public:
   }
 
   bool is_same_group(int a, int b) const {
+    if (a > sz(nodes) || b > sz(nodes)) return false;
     return nodes[a].root == nodes[b].root;
   }
 
@@ -344,15 +345,20 @@ class OptimizedGusfieldWith2ECC {
   int max_flow_times;
   int max_cut_size;
   map<int, int> cutsize_count;
+  vector<int> gomory_hu_cut_used;
+  int sep_count;
+
   void mincut_init() {
     used.resize(num_vertices_);
     max_flow_times = 0;
     max_cut_size = 0;
     while (!q.empty()) q.pop();
     cutsize_count.clear();
+    gomory_hu_cut_used.resize(num_vertices_);
+    sep_count = 0;
   }
 
-  void mincut(V s, V t, dinic_twosided& dc_base, disjoint_cut_set& dcs,vector<int>& degree) {
+  void mincut(V s, V t, dinic_twosided& dc_base, disjoint_cut_set& dcs, vector<int>& degree) {
     if (degree[s] > degree[t]) swap(s, t);
 
     //max-flow
@@ -363,7 +369,7 @@ class OptimizedGusfieldWith2ECC {
 
     gh_builder_.add_edge(s, t, cost); //cutした結果をgomory_hu treeの枝を登録
 
-    //debug infomation
+                      //debug infomation
     max_flow_times++;
     if (FLAGS_enable_logging_max_flow_details) {
       JLOG_ADD_OPEN("gusfield.max_flow_details") {
@@ -377,6 +383,7 @@ class OptimizedGusfieldWith2ECC {
       JLOG_ADD("gusfield.progress", ss.str());
     }
 
+    //s側の頂点とt側の頂点に分類する
     const int F = max_flow_times;
     int sside = 0, tside = 0;
     if (dc_base.reason_for_finishing_bfs == dinic_twosided::kQsIsEmpty) {
@@ -419,10 +426,47 @@ class OptimizedGusfieldWith2ECC {
       sside = num_vertices_ - tside;
     }
 
-    const int x = min(tside, sside);
-    cutsize_count[x]++;
-    if (x > max_cut_size) {
-      max_cut_size = x;
+    const int min_side = min(tside, sside);
+
+    if (sside == min_side && dc_base.reason_for_finishing_bfs == dinic_twosided::kQsIsEmpty && sside > 10) {
+      sep_count++;
+      //gomory_hu algorithm
+      //縮約後の頂点2つを追加する
+      int sside_new_vtx = dc_base.n;
+      int tside_new_vtx = sside_new_vtx + 1;
+      FOR(_, 2) {
+        dc_base.add_vertex();
+        used.emplace_back();
+        gomory_hu_cut_used.emplace_back();
+      }
+
+      int num_reconnected = 0;
+      q.push(s);
+      gomory_hu_cut_used[s] = F;
+      while (!q.empty()) {
+        V v = q.front(); q.pop();
+        for (auto& e : dc_base.e[v]) {
+          const int cap = e.cap(dc_base.graph_revision);
+          if (gomory_hu_cut_used[e.to] == F) continue;
+          if(cap == 0) {
+            if(used[e.to] != F) {
+              //辺を上手に張り替える
+              dc_base.reconnect_edge(e, sside_new_vtx, tside_new_vtx);
+              num_reconnected++;
+            }
+          } else {
+            gomory_hu_cut_used[e.to] = F;
+            q.push(e.to);
+          }
+        }
+      }
+      CHECK(num_reconnected == cost);
+    }
+
+
+    cutsize_count[min_side]++;
+    if (min_side > max_cut_size) {
+      max_cut_size = min_side;
       if (max_cut_size != 1) {
         fprintf(stderr, "(%d,%d), cut = %d, sside_num = %d, tside_num = %d\n", s, t, cost, sside, tside);
         fprintf(stderr, "  prop : degree[%d] = %d, degree[%d] = %d max_flow_times = %d\n", s, degree[s], t, degree[t], max_flow_times);
@@ -442,7 +486,7 @@ class OptimizedGusfieldWith2ECC {
       stringstream cutsize_count_ss;
       cutsize_count_ss << "cutsize_count : ";
       for (auto& kv : cutsize_count) cutsize_count_ss << "(" << kv.first << "," << kv.second << "), ";
-      JLOG_PUT("cut_adjacent_pairs.cutsize_count", cutsize_count_ss.str());
+      JLOG_ADD("cut_adjacent_pairs.cutsize_count", cutsize_count_ss.str());
     }
   }
 
@@ -451,7 +495,7 @@ class OptimizedGusfieldWith2ECC {
     FOR(group_id, num_vertices_) {
       while (dcs.has_two_elements(group_id)) {
         V s, t; tie(s, t) = dcs.get_two_elements(group_id);
-        mincut(s, t,dc_base,dcs, degree);
+        mincut(s, t, dc_base, dcs, degree);
       }
     }
 
@@ -459,19 +503,20 @@ class OptimizedGusfieldWith2ECC {
       stringstream cutsize_count_ss;
       cutsize_count_ss << "cutsize_count : ";
       for (auto& kv : cutsize_count) cutsize_count_ss << "(" << kv.first << "," << kv.second << "), ";
-      JLOG_PUT("gusfield.cutsize_count", cutsize_count_ss.str());
+      JLOG_ADD("gusfield.cutsize_count", cutsize_count_ss.str());
+      JLOG_ADD("gomory_hu.separated_count", sep_count);
     }
   }
 
 public:
 
-  OptimizedGusfieldWith2ECC(vector<pair<V, V>>& edges, int num_vs) :
-    edges_(edges),
+  OptimizedGusfieldWith2ECC(vector<pair<V, V>>&& edges_moved, int num_vs) :
+    edges_(std::move(edges_moved)),
     num_vertices_(num_vs),
     gh_builder_(num_vs) {
 
     vector<int> degree(num_vertices_);
-    for (auto& e : edges) degree[e.first]++, degree[e.second]++;
+    for (auto& e : edges_) degree[e.first]++, degree[e.second]++;
 
     //次数2の頂点と接続を持つ辺を削除して、探索しやすくする
     erase_deg2_edges(degree);
@@ -482,9 +527,10 @@ public:
     prune_obvious_mincut(dcs, degree);
 
     //dinicの初期化
-    dinic_twosided dc_base(edges, num_vs);
+    dinic_twosided dc_base(edges_, num_vs);
 
     mincut_init();
+    
     //まず隣接頂点対からcutしていく
     if (FLAGS_enable_adjacent_cut) {
       cut_adjacent_pairs(dc_base, dcs, degree);
@@ -494,6 +540,7 @@ public:
 
     dcs.debug();
     gh_builder_.build();
+    edges_.clear(); edges_.shrink_to_fit();
   }
 
   int query(V u, V v) const {
@@ -505,7 +552,7 @@ public:
   }
 
 private:
-  vector<pair<V, V>>& edges_;
+  vector<pair<V, V>> edges_;
   const int num_vertices_;
   gomory_hu_tree_builder gh_builder_;
 };
