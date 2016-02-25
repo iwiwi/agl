@@ -139,7 +139,9 @@ int main(int argc, char** argv) {
       JLOG_ADD("size", res.size());
       JLOG_ADD("radius", rad);
       JLOG_ADD("coverage", coverage_bechmark);
-      for (const auto& b : res) JLOG_ADD(to_string(rad).data(), b);
+      JLOG_ADD_OPEN("centers") {
+        for (const auto& b : res) JLOG_ADD(to_string(rad).data(), b);
+      }
       if (res.size() == 1) break;
     }
   } else if (FLAGS_method == "memb") {
