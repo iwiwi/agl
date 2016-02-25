@@ -56,7 +56,7 @@ public:
   }
 
   bool is_same_group(int a, int b) const {
-    if (a > sz(nodes) || b > sz(nodes)) return false;
+    if (a >= sz(nodes) || b >= sz(nodes)) return false;
     return nodes[a].root == nodes[b].root;
   }
 
@@ -71,12 +71,6 @@ public:
     CHECK(rt != -1);
     if (rt != id) return true;
     const int nxt = nodes[rt].nt;
-
-    int size_of_group = debug_size_of_group(grp_id);
-    if (size_of_group >= 2 && nxt == -1) {
-      CHECK(false);
-    }
-
     return nxt != -1;
   }
 
@@ -120,12 +114,13 @@ public:
   void debug() {
     FOR(i, sz(nodes)) {
       int cur = root[i];
-      if (cur == -1) {
-        printf("i = %d, cur = -1\n", i);
-      }
-      CHECK(cur != -1);
+      if (cur == -1) continue;
       int cnt = 0;
       while (cur != -1) {
+        if (cur >= sz(root)) {
+          printf("i = %d, cur = %d\n", i, cur);
+        }
+        CHECK(cur < sz(root));
         cnt++;
         cur = nodes[cur].nt;
       }
@@ -138,7 +133,6 @@ public:
         }
         puts("");
       }
-      CHECK(cnt == 1);
     }
   }
 
@@ -362,8 +356,8 @@ class OptimizedGusfieldWith2ECC {
     if (degree[s] > degree[t]) swap(s, t);
 
     /*
-     * max-flow phase
-     */
+    * max-flow phase
+    */
     const long long before_max_flow = getcap_counter;
     dc_base.reset_graph();
     int cost = dc_base.max_flow(s, t);
@@ -371,7 +365,7 @@ class OptimizedGusfieldWith2ECC {
 
     gh_builder_.add_edge(s, t, cost); //cutした結果をgomory_hu treeの枝を登録
     // fprintf(stderr, "(%d,%d) : %d\n", s, t, cost);
-    //debug infomation
+                      //debug infomation
     max_flow_times++;
     if (FLAGS_enable_logging_max_flow_details) {
       JLOG_ADD_OPEN("gusfield.max_flow_details") {
@@ -566,7 +560,6 @@ public:
     // gusfieldのアルゴリズムを実行、gomory_hu treeの完成
     gusfield(dc_base, dcs, degree);
 
-    dcs.debug();
     gh_builder_.build();
     edges_.clear(); edges_.shrink_to_fit();
   }
