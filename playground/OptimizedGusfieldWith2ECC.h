@@ -4,6 +4,7 @@
 
 DEFINE_string(gusfield_choice_stpair_strategy, "sort_by_degree_desending", "sequential, sort_by_degree_ascending, sort_by_degree_desending, random");
 DEFINE_int32(try_greedy_tree_packing, 10, "");
+DEFINE_int32(try_large_degree_pairs, 10, "");
 DEFINE_bool(enable_greedy_tree_packing, true, "");
 DEFINE_bool(enable_logging_max_flow_details, false, "");
 DEFINE_bool(enable_adjacent_cut, false, "");
@@ -497,6 +498,33 @@ class OptimizedGusfieldWith2ECC {
     }
   }
 
+  void cut_large_degree_pairs(dinic_twosided& dc_base, disjoint_cut_set& dcs, vector<int>& degree) {
+    vector<int> vtxs;
+    FOR(v, num_vertices_) {
+      if (dcs.has_another_id_in_same_group(v)) vtxs.push_back(v);
+    }
+    const int tries = max(min(FLAGS_try_large_degree_pairs, sz(vtxs) - 1), 0);
+    partial_sort(vtxs.begin(), vtxs.begin() + tries, vtxs.end(), [&degree](V l, V r) {
+      return degree[l] > degree[r];
+    });
+
+    int cut_large_degree_count = 0;
+    for (int i = 1; i <= tries; i++) {
+      for (int pari = 0; pari < i; pari++) {
+        V s = vtxs[i];
+        V t = vtxs[pari];
+        if (!dcs.is_same_group(s, t)) continue;
+        mincut(s, t, dc_base, dcs, degree);
+        cut_large_degree_count++;
+      }
+    }
+
+    if (cut_large_degree_count > 0) {
+      JLOG_PUT("cut_large_degree_pairs.cut_large_degree_count", cut_large_degree_count);
+      JLOG_PUT("cut_large_degree_pairs.separated_count", sep_count);
+    }
+  }
+
   //隣接頂点同士を見て、まだ切れていなかったらcutする
   void cut_adjacent_pairs(dinic_twosided& dc_base, disjoint_cut_set& dcs, vector<int>& degree) {
     for (const auto& e : edges_) {
@@ -514,7 +542,6 @@ class OptimizedGusfieldWith2ECC {
   }
 
   void gusfield(dinic_twosided& dc_base, disjoint_cut_set& dcs, vector<int>& degree) {
-
     FOR(group_id, num_vertices_) {
       while (dcs.has_two_elements(group_id)) {
         V s, t; tie(s, t) = dcs.get_two_elements(group_id);
@@ -553,11 +580,18 @@ public:
     dinic_twosided dc_base(edges_, num_vs);
 
     mincut_init();
+
+    // 次数の高い頂点対をcutする
+    // グラフをなるべく2分するcutを見つけられると有用
+    if (num_vs > 100) {
+      cut_large_degree_pairs(dc_base, dcs, degree);
+    }
+
     //まず隣接頂点対からcutしていく
     if (FLAGS_enable_adjacent_cut) {
       cut_adjacent_pairs(dc_base, dcs, degree);
     }
-    // gusfieldのアルゴリズムを実行、gomory_hu treeの完成
+    // 残った頂点groupをcutする、gomory_hu treeの完成
     gusfield(dc_base, dcs, degree);
 
     gh_builder_.build();
