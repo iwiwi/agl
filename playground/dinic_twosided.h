@@ -99,6 +99,9 @@ private:
   }
 
   int dfs(int v, int t, bool use_slevel, int f) {
+    if (f < 0) {
+      cout << "?";
+    }
     if (v == t) return f;
     if (dfs_revision[v] != bfs_revision[v]) {
       dfs_revision[v] = bfs_revision[v];
@@ -139,18 +142,65 @@ private:
     graph_revision = 0;
   }
 
+  int special_dfs_inner(int v, int flow) {
+    if (v == special_bfs_root)
+      return flow;
+
+    if (dfs_revision[v] != s_side_bfs_revision) {
+      dfs_revision[v] = s_side_bfs_revision;
+      iter[v] = 0;
+    }
+    for (int &i = iter[v]; i < sz(e[v]); i++) {
+      E& to_edge = e[v][i];
+      int to = to_edge.to;
+      if (special_bfs_depth[to] >= special_bfs_depth[v]) {
+        //sort済なので, これより後で自身の深さよりも浅い頂点は存在しない
+        return 0;
+      }
+      int cap = to_edge.cap(graph_revision);
+      if (cap == 0) continue;
+      int d = special_dfs_inner(to, min(flow, cap));
+      if (d > 0) {
+        to_edge.add_cap(-d, graph_revision);
+        e[to_edge.to][to_edge.reverse].add_cap(d, graph_revision);
+        return d;
+      }
+    }
+
+    return 0;
+  }
+
+  //v -> special_bfs_root にflowを出来る限り送る
+  int special_dfs(int v) {
+    int flow = 0;
+    s_side_bfs_revision += 2;
+    t_side_bfs_revision += 2;
+
+    for (auto it = e[v].rbegin(); it != e[v].rend(); ++it) {
+      auto& to_edge = *it;
+      while (to_edge.cap(graph_revision) > 0) {
+        int add = special_dfs_inner(to_edge.to, to_edge.cap(graph_revision));
+        if (add == 0) break;
+        flow += add;
+        to_edge.add_cap(-add, graph_revision);
+        e[to_edge.to][to_edge.reverse].add_cap(add, graph_revision);
+      }
+    }
+    return flow;
+  }
+
 public:
   dinic_twosided() : n(0) {}
   dinic_twosided(const G& g)
     : n(g.num_vertices()), level(n), iter(n), bfs_revision(n), dfs_revision(n), e(n),
-    s_side_bfs_revision(2), t_side_bfs_revision(3), graph_revision(0) {
+    s_side_bfs_revision(2), t_side_bfs_revision(3), graph_revision(0), special_bfs_root(-1) {
     FOR(v, n) for (auto& e : g.edges(v)) {
       add_undirected_edge(v, to(e), 1);
     }
   }
   dinic_twosided(const vector<pair<V, V>>& edges, int num_vs)
     : n(num_vs), level(n), iter(n), bfs_revision(n), dfs_revision(n), e(n),
-    s_side_bfs_revision(2), t_side_bfs_revision(3), graph_revision(0) {
+    s_side_bfs_revision(2), t_side_bfs_revision(3), graph_revision(0), special_bfs_root(-1) {
     for (auto& uv : edges) {
       add_undirected_edge(uv.first, uv.second, 1);
     }
@@ -165,7 +215,7 @@ public:
     n++;
   }
 
-  void reconnect_edge(E& rm,int sside_vtx, int tside_vtx) {
+  void reconnect_edge(E& rm, int sside_vtx, int tside_vtx) {
     const int to = rm.to;
     const int to_rev = rm.reverse;
     E& rm_rev = e[to][to_rev];
@@ -189,7 +239,14 @@ public:
 
   int max_flow_core(int s, int t) {
     assert(s != t);
+    reset_graph();
+
     int flow = 0;
+    if (special_bfs_root == t) {
+      int preflow = special_dfs(s);
+      flow += preflow;
+    }
+
     s_side_bfs_revision += 2;
     t_side_bfs_revision += 2;
     for (; ; s_side_bfs_revision += 2, t_side_bfs_revision += 2) {
@@ -209,7 +266,6 @@ public:
     int ans = max_flow_core(s, t);
     auto b2 = getcap_counter;
     FOR(_, FLAGS_flow_iter - 1) {
-      reset_graph();
       max_flow_core(s, t);
       auto b3 = getcap_counter;
       CHECK(b3 - b2 == b2 - b1);
@@ -247,6 +303,45 @@ public:
     }
   }
 
+  //rootを起点にbfsをして、 s -> rootのflowを高速化する
+  void special_bfs_init(int root) {
+    special_bfs_root = root;
+    special_bfs_depth.clear();
+    special_bfs_depth.resize(n, n); // bfsの深さをn(=INF)で初期化
+
+                    // set special_bfs_depth
+    queue<int> q;
+    q.push(root);
+    special_bfs_depth[root] = 0;
+    while (!q.empty()) {
+      const int v = q.front(); q.pop();
+      const int ndepth = special_bfs_depth[v] + 1;
+      for (auto& to_edge : e[v]) {
+        if (special_bfs_depth[to_edge.to] > ndepth) {
+          special_bfs_depth[to_edge.to] = ndepth;
+          q.push(to_edge.to);
+        }
+      }
+    }
+
+    //sort edges by depth order
+    FOR(v, n) {
+      // dep[l.to]は3つの値しか取らないので高速化可能
+      sort(e[v].begin(), e[v].end(), [&dep = special_bfs_depth](const E& l, const E& r) {
+        return dep[l.to] < dep[r.to];
+      });
+
+      //reset reverse edge's "reverse" value
+      FOR(i, sz(e[v])) {
+        const E& to_edge = e[v][i];
+        E& rev = e[to_edge.to][to_edge.reverse];
+        rev.reverse = i;
+      }
+    }
+
+  }
+
+
   int n;
   vector<pair<int, int>> level;
   vector<int> iter;
@@ -256,4 +351,6 @@ public:
   int graph_revision;
   reason_for_finishing_bfs_t reason_for_finishing_bfs;
 
+  int special_bfs_root;
+  vector<int> special_bfs_depth;
 };

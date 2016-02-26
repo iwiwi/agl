@@ -8,6 +8,7 @@ DEFINE_int32(try_large_degree_pairs, 10, "");
 DEFINE_bool(enable_greedy_tree_packing, true, "");
 DEFINE_bool(enable_logging_max_flow_details, false, "");
 DEFINE_bool(enable_adjacent_cut, false, "");
+DEFINE_bool(enable_special_bfs, true, "");
 
 class disjoint_cut_set {
   struct Node {
@@ -353,19 +354,18 @@ class OptimizedGusfieldWith2ECC {
     sep_count = 0;
   }
 
-  void mincut(V s, V t, dinic_twosided& dc_base, disjoint_cut_set& dcs, vector<int>& degree) {
+  void mincut(V s, V t, dinic_twosided& dc_base, disjoint_cut_set& dcs, vector<int>& degree, bool enable_separate_graph = true) {
     if (degree[s] > degree[t]) swap(s, t);
 
     /*
     * max-flow phase
     */
     const long long before_max_flow = getcap_counter;
-    dc_base.reset_graph();
     int cost = dc_base.max_flow(s, t);
     const long long after_max_flow = getcap_counter;
 
     gh_builder_.add_edge(s, t, cost); //cutした結果をgomory_hu treeの枝を登録
-    // fprintf(stderr, "(%d,%d) : %d\n", s, t, cost);
+                      // fprintf(stderr, "(%d,%d) : %d\n", s, t, cost);
                       //debug infomation
     max_flow_times++;
     if (FLAGS_enable_logging_max_flow_details) {
@@ -423,68 +423,70 @@ class OptimizedGusfieldWith2ECC {
       sside = num_vertices_ - tside;
     }
 
-    /*
-    * separate phase
-    */
     const int min_side = min(tside, sside);
-    const int separate_upper_bound = 10;
-    const bool sside_separate = (sside == min_side && dc_base.reason_for_finishing_bfs == dinic_twosided::kQsIsEmpty && sside > separate_upper_bound);
-    const bool tside_separate = (tside == min_side && dc_base.reason_for_finishing_bfs == dinic_twosided::kQtIsEmpty && tside > separate_upper_bound);
-    if (sside_separate || tside_separate) {
-      sep_count++;
-      //gomory_hu algorithm
-      //縮約後の頂点2つを追加する
-      int sside_new_vtx = dc_base.n;
-      int tside_new_vtx = sside_new_vtx + 1;
-      FOR(_, 2) {
-        dc_base.add_vertex();
-        used.emplace_back();
-        gomory_hu_cut_used.emplace_back();
-      }
+    if (enable_separate_graph) {
+      /*
+      * separate phase
+      */
+      const int separate_upper_bound = 10;
+      const bool sside_separate = (sside == min_side && dc_base.reason_for_finishing_bfs == dinic_twosided::kQsIsEmpty && sside > separate_upper_bound);
+      const bool tside_separate = (tside == min_side && dc_base.reason_for_finishing_bfs == dinic_twosided::kQtIsEmpty && tside > separate_upper_bound);
+      if (sside_separate || tside_separate) {
+        sep_count++;
+        //gomory_hu algorithm
+        //縮約後の頂点2つを追加する
+        int sside_new_vtx = dc_base.n;
+        int tside_new_vtx = sside_new_vtx + 1;
+        FOR(_, 2) {
+          dc_base.add_vertex();
+          used.emplace_back();
+          gomory_hu_cut_used.emplace_back();
+        }
 
-      int num_reconnected = 0; //枝を繋ぎ直した回数
-      if (sside_separate) {
-        q.push(s);
-        gomory_hu_cut_used[s] = F;
-        while (!q.empty()) {
-          V v = q.front(); q.pop();
-          for (auto& e : dc_base.e[v]) {
-            const int cap = e.cap(dc_base.graph_revision);
-            if (gomory_hu_cut_used[e.to] == F) continue;
-            if (cap == 0) {
-              if (used[e.to] != F) {
-                //辺を上手に張り替える
-                dc_base.reconnect_edge(e, sside_new_vtx, tside_new_vtx);
-                num_reconnected++;
+        int num_reconnected = 0; //枝を繋ぎ直した回数
+        if (sside_separate) {
+          q.push(s);
+          gomory_hu_cut_used[s] = F;
+          while (!q.empty()) {
+            V v = q.front(); q.pop();
+            for (auto& e : dc_base.e[v]) {
+              const int cap = e.cap(dc_base.graph_revision);
+              if (gomory_hu_cut_used[e.to] == F) continue;
+              if (cap == 0) {
+                if (used[e.to] != F) {
+                  //辺を上手に張り替える
+                  dc_base.reconnect_edge(e, sside_new_vtx, tside_new_vtx);
+                  num_reconnected++;
+                }
+              } else {
+                gomory_hu_cut_used[e.to] = F;
+                q.push(e.to);
               }
-            } else {
-              gomory_hu_cut_used[e.to] = F;
-              q.push(e.to);
+            }
+          }
+        } else {
+          q.push(t);
+          gomory_hu_cut_used[t] = F;
+          while (!q.empty()) {
+            V v = q.front(); q.pop();
+            for (auto& e : dc_base.e[v]) {
+              const int cap = dc_base.e[e.to][e.reverse].cap(dc_base.graph_revision);
+              if (gomory_hu_cut_used[e.to] == F) continue;
+              if (cap == 0) {
+                if (used[e.to] != F) {
+                  //辺を上手に張り替える
+                  dc_base.reconnect_edge(e, tside_new_vtx, sside_new_vtx);
+                  num_reconnected++;
+                }
+              } else {
+                gomory_hu_cut_used[e.to] = F;
+                q.push(e.to);
+              }
             }
           }
         }
-      } else {
-        q.push(t);
-        gomory_hu_cut_used[t] = F;
-        while (!q.empty()) {
-          V v = q.front(); q.pop();
-          for (auto& e : dc_base.e[v]) {
-            const int cap = dc_base.e[e.to][e.reverse].cap(dc_base.graph_revision);
-            if (gomory_hu_cut_used[e.to] == F) continue;
-            if (cap == 0) {
-              if (used[e.to] != F) {
-                //辺を上手に張り替える
-                dc_base.reconnect_edge(e, tside_new_vtx, sside_new_vtx);
-                num_reconnected++;
-              }
-            } else {
-              gomory_hu_cut_used[e.to] = F;
-              q.push(e.to);
-            }
-          }
-        }
+        CHECK(num_reconnected == cost); // 枝を繋ぎ直した回数 == maxflow
       }
-      CHECK(num_reconnected == cost); // 枝を繋ぎ直した回数 == maxflow
     }
 
     // debug infomation
@@ -558,6 +560,20 @@ class OptimizedGusfieldWith2ECC {
     }
   }
 
+  //次数の最も高い頂点に対して、出来る限りの頂点からflowを流してmincutを求める
+  void special_bfs_cut(dinic_twosided& dc_base, disjoint_cut_set& dcs, vector<int>& degree) {
+    int max_degree_vtx = 0;
+    FOR(v, num_vertices_) if (degree[max_degree_vtx] < degree[v]) max_degree_vtx = v;
+
+    dc_base.special_bfs_init(max_degree_vtx);
+    FOR(v, num_vertices_) {
+      if (v == max_degree_vtx) continue;
+      if (!dcs.is_same_group(v, max_degree_vtx)) continue;
+      //graphの形状が変わると損なので、ここでは enable_separate_graph = false する
+      mincut(v, max_degree_vtx, dc_base, dcs, degree, false);
+    }
+  }
+
 public:
 
   OptimizedGusfieldWith2ECC(vector<pair<V, V>>&& edges_moved, int num_vs) :
@@ -580,6 +596,10 @@ public:
     dinic_twosided dc_base(edges_, num_vs);
 
     mincut_init();
+
+    if (FLAGS_enable_special_bfs) {
+      special_bfs_cut(dc_base, dcs, degree);
+    }
 
     // 次数の高い頂点対をcutする
     // グラフをなるべく2分するcutを見つけられると有用
