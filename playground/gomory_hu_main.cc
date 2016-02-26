@@ -35,7 +35,7 @@ using Gusfield3 = TwoEdgeCCFilter<OptimizedGusfieldWith2ECC>;
 using Gusfield4 = TwoEdgeCCFilter<OptimizedGusfieldWith2ECC2>;
 DEFINE_string(gomory_hu_builder, "Gusfield3", "Gusfield3, Gusfield4");
 
-void aggregate_weight(const G& g) {
+void aggregate_weight(G& g) {
   Gusfield3 gf3(g);
   gf3.aggregate_gomory_hu_tree_weight();
 }
@@ -61,7 +61,7 @@ void print_gomory_hu_tree(G&& g) {
   }
   gomory_hu_tree_t* gf;
   JLOG_PUT_BENCHMARK("gusfield_time") {
-    gf = new gomory_hu_tree_t(std::move(g));
+    gf = new gomory_hu_tree_t(g);
   }
 
   ofstream os(FLAGS_validation_data_path.c_str(), ios_base::out);
