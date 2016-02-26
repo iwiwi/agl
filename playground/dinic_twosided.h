@@ -1,7 +1,7 @@
 #pragma once
 
 DEFINE_int32(flow_iter, 1, "");
-DEFINE_int32(special_dfs_aster_ub, 1, "");
+DEFINE_int32(special_dfs_aster_ub, 2, "");
 
 long long getcap_counter = 0;
 long long addcap_counter = 0;

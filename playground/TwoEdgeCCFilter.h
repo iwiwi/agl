@@ -6,7 +6,7 @@ template<class handler_t>
 class TwoEdgeCCFilter {
 public:
   const int n;
-  const G& g;
+  G g;
 
   void lowlink_dfs(int v, int par, int& cur_ord) {
     lowlink[v] = order[v] = cur_ord++;
@@ -38,7 +38,7 @@ public:
     return local_id2global_id;
   }
 
-  TwoEdgeCCFilter(const G& g) : n(g.num_vertices()), g(g), uf(n), lowlink(n, -1), order(n, -1) {
+  TwoEdgeCCFilter(G g_move) : n(g_move.num_vertices()), g(std::move(g_move)), uf(n), lowlink(n, -1), order(n, -1) {
     FOR(v, n) for (auto& e : g.edges(v)) {
       uf.unite(v, to(e));
     }
@@ -52,7 +52,8 @@ public:
 
     CHECK(sz(bridge) + sz(biconnected_graphs_edges) == num_edges);
 
-    G new_g(biconnected_graphs_edges, n);
+  g.clear();
+  G new_g(biconnected_graphs_edges, n);
 
     //dealloc
     lowlink.clear(); lowlink.shrink_to_fit();

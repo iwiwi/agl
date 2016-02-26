@@ -59,9 +59,14 @@ void print_gomory_hu_tree(G&& g) {
     auto gname = graph_name();
     FLAGS_validation_data_path = gname + ".tree";
   }
-  gomory_hu_tree_t gf(g);
+  gomory_hu_tree_t* gf;
+  JLOG_PUT_BENCHMARK("gusfield_time") {
+    gf = new gomory_hu_tree_t(std::move(g));
+  }
+
   ofstream os(FLAGS_validation_data_path.c_str(), ios_base::out);
-  gf.print_gomory_hu_tree(os);
+  gf->print_gomory_hu_tree(os);
+  delete gf;
 }
 
 map<int, vector<pair<V, V>>> load(const string& path) {
@@ -279,7 +284,6 @@ void main_(G&& g) {
   } else if (FLAGS_method == "gusfield") {
     JLOG_PUT_BENCHMARK("gusfield_time") {
       T gf(g);
-      JLOG_ADD("try_greedy_tree_packing", FLAGS_try_greedy_tree_packing);
     }
   } else if (FLAGS_method == "print_gomory_hu_tree") {
     print_gomory_hu_tree<T>(std::move(g));
@@ -292,6 +296,7 @@ void main_(G&& g) {
     exit(-1);
   }
 
+  JLOG_ADD("try_greedy_tree_packing", FLAGS_try_greedy_tree_packing);
   JLOG_ADD("getcap_counter", getcap_counter);
   JLOG_ADD("addcap_counter", addcap_counter);
   JLOG_ADD("preflow_eq_degree", preflow_eq_degree);

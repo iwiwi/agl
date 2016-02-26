@@ -98,7 +98,12 @@ class basic_graph {
     return *this;
   }
 
-  void clear();
+  void clear() {
+    edges_from_[0].clear(); edges_from_[0].shrink_to_fit();
+    edges_from_[1].clear(); edges_from_[1].shrink_to_fit();
+    graph_indices_.clear(); graph_indices_.shrink_to_fit();
+    graph_dynamic_indices_.clear(); graph_dynamic_indices_.shrink_to_fit();
+  }
 
   void assign(const edge_list_type &es, V num_vs = -1);
   void assign(std::vector<std::vector<E>> edges_from);

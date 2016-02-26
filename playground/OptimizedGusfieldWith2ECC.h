@@ -592,6 +592,11 @@ public:
     //枝刈り
     prune_obvious_mincut(dcs, degree);
 
+
+    //debug infomation
+    auto preflow_eq_degree_before = preflow_eq_degree;
+    auto flow_eq_0_before = flow_eq_0;
+
     //dinicの初期化
     dinic_twosided dc_base(edges_, num_vs);
 
@@ -616,6 +621,16 @@ public:
 
     gh_builder_.build();
     edges_.clear(); edges_.shrink_to_fit();
+
+    auto preflow_eq_degree_after = preflow_eq_degree;
+    auto flow_eq_0_after = flow_eq_0;
+
+    if (num_vertices_ > 50) {
+      JLOG_OPEN("sp_dfs") {
+        JLOG_ADD("preflow_eq_degree", preflow_eq_degree_after - preflow_eq_degree_before);
+        JLOG_ADD("flow_eq_0", flow_eq_0_after - flow_eq_0_before);
+      }
+    }
   }
 
   int query(V u, V v) const {
