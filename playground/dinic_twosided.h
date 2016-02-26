@@ -102,9 +102,9 @@ private:
   }
 
   int dfs(int v, int t, bool use_slevel, int f) {
-    if (f < 0) {
-      cout << "?";
-    }
+    // special_dfs_aster_ub >= 3 を設定すると、dfs中に同じ辺を使ってしまい、辺のコストが破綻して f < 0 となることがある
+    CHECK(f >= 0); 
+
     if (v == t) return f;
     if (dfs_revision[v] != bfs_revision[v]) {
       dfs_revision[v] = bfs_revision[v];
