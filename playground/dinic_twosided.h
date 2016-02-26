@@ -1,9 +1,12 @@
 #pragma once
 
 DEFINE_int32(flow_iter, 1, "");
+DEFINE_int32(special_dfs_aster_ub, 1, "");
 
 long long getcap_counter = 0;
 long long addcap_counter = 0;
+int preflow_eq_degree = 0;
+int flow_eq_0 = 0;
 
 class dinic_twosided {
 public:
@@ -142,7 +145,7 @@ private:
     graph_revision = 0;
   }
 
-  int special_dfs_inner(int v, int flow) {
+  int special_dfs_inner(int v, int flow,int astar_cost) {
     if (v == special_bfs_root)
       return flow;
 
@@ -153,13 +156,16 @@ private:
     for (int &i = iter[v]; i < sz(e[v]); i++) {
       E& to_edge = e[v][i];
       int to = to_edge.to;
-      if (special_bfs_depth[to] >= special_bfs_depth[v]) {
+      int add_aster_cost = special_bfs_depth[to] - special_bfs_depth[v] + 1;
+      if(add_aster_cost == 2) return 0; //コストの増える頂点は辿らない
+      int n_astar_cost = astar_cost + add_aster_cost;
+      if (n_astar_cost > FLAGS_special_dfs_aster_ub) {
         //sort済なので, これより後で自身の深さよりも浅い頂点は存在しない
         return 0;
       }
       int cap = to_edge.cap(graph_revision);
       if (cap == 0) continue;
-      int d = special_dfs_inner(to, min(flow, cap));
+      int d = special_dfs_inner(to, min(flow, cap), n_astar_cost);
       if (d > 0) {
         to_edge.add_cap(-d, graph_revision);
         e[to_edge.to][to_edge.reverse].add_cap(d, graph_revision);
@@ -176,10 +182,10 @@ private:
     s_side_bfs_revision += 2;
     t_side_bfs_revision += 2;
 
-    for (auto it = e[v].rbegin(); it != e[v].rend(); ++it) {
+    for (auto it = e[v].begin(); it != e[v].end(); ++it) {
       auto& to_edge = *it;
       while (to_edge.cap(graph_revision) > 0) {
-        int add = special_dfs_inner(to_edge.to, to_edge.cap(graph_revision));
+        int add = special_dfs_inner(to_edge.to, to_edge.cap(graph_revision), 0);
         if (add == 0) break;
         flow += add;
         to_edge.add_cap(-add, graph_revision);
@@ -242,23 +248,30 @@ public:
     reset_graph();
 
     int flow = 0;
+    int preflow = 0;
     if (special_bfs_root == t) {
-      int preflow = special_dfs(s);
-      flow += preflow;
+      preflow = special_dfs(s);
     }
 
     s_side_bfs_revision += 2;
     t_side_bfs_revision += 2;
     for (; ; s_side_bfs_revision += 2, t_side_bfs_revision += 2) {
       bool path_found = two_sided_bfs(s, t);
-      if (!path_found) return flow;
+      if (!path_found) break;
       while (true) {
         int f = dfs(s, t, true, numeric_limits<int>::max());
         if (f == 0) break;
         flow += f;
       }
     }
-    return flow;
+    // fprintf(stderr, "(%d,%d) : preflow = %d, flow = %d\n", s, t, preflow, flow);
+    if(flow == 0 && preflow > 0) {
+      if(sz(e[s]) == preflow) {
+        preflow_eq_degree++;
+      }
+      flow_eq_0++;
+    }
+    return flow + preflow;
   }
 
   int max_flow(int s, int t) {

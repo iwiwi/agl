@@ -280,13 +280,9 @@ void main_(G&& g) {
     JLOG_PUT_BENCHMARK("gusfield_time") {
       T gf(g);
       JLOG_ADD("try_greedy_tree_packing", FLAGS_try_greedy_tree_packing);
-      JLOG_ADD("getcap_counter", getcap_counter);
-      JLOG_ADD("addcap_counter", addcap_counter);
     }
   } else if (FLAGS_method == "print_gomory_hu_tree") {
     print_gomory_hu_tree<T>(std::move(g));
-    JLOG_ADD("getcap_counter", getcap_counter);
-    JLOG_ADD("addcap_counter", addcap_counter);
   } else if (FLAGS_method == "single_source_mincut") {
     single_source_mincut(std::move(g));
   } else if (FLAGS_method == "single_source_mincut_gomory_hu") {
@@ -295,6 +291,12 @@ void main_(G&& g) {
     fprintf(stderr, "unrecognized option '%s'\n", FLAGS_method.c_str());
     exit(-1);
   }
+
+  JLOG_ADD("getcap_counter", getcap_counter);
+  JLOG_ADD("addcap_counter", addcap_counter);
+  JLOG_ADD("preflow_eq_degree", preflow_eq_degree);
+  JLOG_ADD("flow_eq_0", flow_eq_0);
+
 }
 
 void from_file(G&& g) {
