@@ -160,7 +160,7 @@ if __name__ == "__main__":
         sys.stdout.write("-log10(P/E)\ttime\tmemory\t")
     sys.stdout.write("\n")
     for graph_name in data.keys():
-        if re.match(r"^flower\-", graph_name) or re.match(r"^shm\-", graph_name):
+        if re.match(r"^flower\-", graph_name):
             u = re.sub(r'^.*\-(\d+)\-\d+$', r"\1", graph_name)
             v = re.sub(r'^.*\-(\d+)$', r"\1", graph_name)
             model = re.sub(r'^([a-z]*)\-.*$', r"\1", graph_name)

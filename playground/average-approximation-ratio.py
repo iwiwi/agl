@@ -287,20 +287,3 @@ if __name__ == "__main__":
                     data[graph][k][a][r] = np.array(data[graph][k][a][r])
                     data[graph][k][a][r] = (data[graph][k][a][r] / (analytical[graph][r] + 0.0))
     plot_approximation_ratio(data)
-    graph = "flower-223950-3-3"
-    k = 128
-    a = 1.0
-
-    if graph in graph_keys and k in data[graph] and a in data[graph][k]:
-        cv = np.array([])
-
-        rs = sorted(data[graph][k][a])
-        for r in rs:
-            cv = np.append(cv, data[graph][k][a][r].std() / data[graph][k][a][r].mean(),)
-        rads = sorted(analytical[graph])
-        plt.plot(rads, cv, "o-")
-        plt.xscale("log")
-        plt.xlabel("$\it{l_{B}}$", fontsize=18)
-        plt.ylabel("$CV$", fontsize=18)
-        plt.savefig("cv.pdf")
-        plt.close()
