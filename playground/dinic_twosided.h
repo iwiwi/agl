@@ -259,7 +259,9 @@ public:
       preflow = special_dfs(s);
     }
 
-    if(preflow != sz(e[s])) {
+    if(preflow == sz(e[s])) {
+      reason_for_finishing_bfs = kQsIsEmpty;
+    } else {
       s_side_bfs_revision += 2;
       t_side_bfs_revision += 2;
       for (; ; s_side_bfs_revision += 2, t_side_bfs_revision += 2) {
