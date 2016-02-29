@@ -176,10 +176,8 @@ void write_graph_binary(const GraphType &g, const char *filename) {
 //reader binary
 template<typename EdgeType,
   enabler_if<std::is_pod<EdgeType>::value> = enabler >
-EdgeType read_edge_binary(std::istream& is) {
-  EdgeType e;
-  read_binary(is, &e);
-  return e;
+void read_edge_binary(std::istream& is,EdgeType* dst ,std::size_t edge_count) {
+  read_binary(is, dst, edge_count);
 }
 
 template<typename GraphType = G>
@@ -205,10 +203,8 @@ GraphType read_graph_binary(std::istream &is = std::cin) {
   for(V v = 0; v < num_vertices; v++) {
     std::size_t degree;
     read_binary(is, &degree);
-    edges[v].reserve(degree);
-    for(std::size_t i = 0; i < degree; i++) {
-      edges[v].emplace_back(read_edge_binary<typename GraphType::E>(is));
-    }
+    edges[v].resize(degree);
+    read_edge_binary<typename GraphType::E>(is, edges[v].data(), degree);
   }
 
   GraphType deserialized_graph;
