@@ -58,13 +58,16 @@ private:
     bfs_revision[s] = s_side_bfs_revision;
     bfs_revision[t] = t_side_bfs_revision;
 
+    size_t qs_next_get_cap = sz(e[s]);
+    size_t qt_next_get_cap = sz(e[t]);
     int slevel = 0, tlevel = 0;
     while (sz(qs) != 0 && sz(qt) != 0) {
       bool path_found = false;
-      if (sz(qs) <= sz(qt)) {
+      if (qs_next_get_cap <= qt_next_get_cap) {
         int size = sz(qs);
         FOR(_, size) {
           const int v = qs.front(); qs.pop();
+          qs_next_get_cap -= sz(e[v]);
           for (auto& t : e[v]) {
             if (t.cap(graph_revision) == 0 || bfs_revision[t.to] == s_side_bfs_revision) continue;
             if (bfs_revision[t.to] == t_side_bfs_revision) {
@@ -73,6 +76,7 @@ private:
             }
             bfs_revision[t.to] = s_side_bfs_revision;
             level[t.to].first = slevel + 1;
+            qs_next_get_cap += sz(e[t.to]);
             qs.push(t.to);
           }
         }
@@ -81,6 +85,7 @@ private:
         int size = sz(qt);
         FOR(_, size) {
           const int v = qt.front(); qt.pop();
+          qt_next_get_cap -= sz(e[v]);
           for (auto& t : e[v]) {
             if (e[t.to][t.reverse].cap(graph_revision) == 0 || bfs_revision[t.to] == t_side_bfs_revision) continue;
             if (bfs_revision[t.to] == s_side_bfs_revision) {
@@ -89,6 +94,7 @@ private:
             }
             bfs_revision[t.to] = t_side_bfs_revision;
             level[t.to].second = tlevel + 1;
+            qt_next_get_cap += sz(e[t.to]);
             qt.push(t.to);
           }
         }
