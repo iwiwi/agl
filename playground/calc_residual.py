@@ -67,10 +67,10 @@ if __name__ == "__main__":
         log = open(sys.argv[ai], 'r')
         json_data = json.load(log)
         log.close()
-        sys.stderr.write(sys.argv[ai] + "\n")
+        # sys.stderr.write(sys.argv[ai] + "\n")
 
         px, py = xy_from_json(json_data)
-        if(len(px) < 3):
+        if (len(px) < 3):
             continue
 
         # Real_data
@@ -91,11 +91,11 @@ if __name__ == "__main__":
         expo = scipy.optimize.leastsq(expoFit, expo_init, args=(px, py))
         expo_result = sum(expoFit(expo[0], px, py)**2)
 
-        print fractalFit(fractal[0], px, py)
-        print expoFit(expo[0], px, py)
-        print fractalFit(fractal[0], px, py)**2
-        print expoFit(expo[0], px, py)**2
-        print frac_result, expo_result
+        # print fractalFit(fractal[0], px, py)
+        # print expoFit(expo[0], px, py)
+        # print fractalFit(fractal[0], px, py)**2
+        # print expoFit(expo[0], px, py)**2
+        # print frac_result, expo_result
 
         # Graph Information
         graph_name = json_data['graph_info'][0]['graph']
@@ -115,10 +115,7 @@ if __name__ == "__main__":
             memory = json_data["run"]["memory"]
 
         if graph_name not in data:
-            data[graph_name] = {
-                "edges": edges,
-                "vertices": vertices
-            }
+            data[graph_name] = {"edges": edges, "vertices": vertices}
 
         # Sketch
         if 'k' in json_data:
@@ -133,10 +130,7 @@ if __name__ == "__main__":
                 "time": time,
                 "memory": memory
             }
-            methods[method] = {
-                "k": int(k),
-                "upper_param": float(ub)
-            }
+            methods[method] = {"k": int(k), "upper_param": float(ub)}
         else:
             if method in data[graph_name] and data[graph_name][method]["time"] < time:
                 continue
@@ -159,17 +153,17 @@ if __name__ == "__main__":
     # CSV
     sys.stdout.write("\t\t\t")
     for method in methods.keys():
-        sys.stdout.write(method + "\t\t")
+        sys.stdout.write(method + "\t\t\t")
     sys.stdout.write("\n")
     sys.stdout.write("model\tvertices\tedges\t")
     for method in methods.keys():
-        sys.stdout.write("log10(P/E)\ttime\tmemory\t")
+        sys.stdout.write("-log10(P/E)\ttime\tmemory\t")
     sys.stdout.write("\n")
     for graph_name in data.keys():
         if re.match(r"^flower\-", graph_name) or re.match(r"^shm\-", graph_name):
             u = re.sub(r'^.*\-(\d+)\-\d+$', r"\1", graph_name)
-            v = re.sub(r'^.*\-(\d+)$',  r"\1", graph_name)
-            model = re.sub(r'^([a-z]*)\-.*$',  r"\1", graph_name)
+            v = re.sub(r'^.*\-(\d+)$', r"\1", graph_name)
+            model = re.sub(r'^([a-z]*)\-.*$', r"\1", graph_name)
             model = "(" + u + ", " + v + ")-" + model
             sys.stdout.write(model + "\t")
         else:
@@ -178,11 +172,10 @@ if __name__ == "__main__":
         sys.stdout.write(str(data[graph_name]["edges"]) + "\t")
         for method in methods.keys():
             if 'fractal' in data[graph_name][method]:
-                sys.stdout.write(
-                    str(np.log10(data[graph_name][method]["fractal"] / data[graph_name][method]["exponential"])) + "\t")
+                sys.stdout.write(str(-np.log10(data[graph_name][method]["fractal"] / data[graph_name][method][
+                    "exponential"])) + "\t")
                 sys.stdout.write(str(data[graph_name][method]["time"]) + "\t")
-                sys.stdout.write(
-                    str(data[graph_name][method]["memory"]) + "\t")
+                sys.stdout.write(str(data[graph_name][method]["memory"]) + "\t")
             else:
                 sys.stdout.write("\t")
                 sys.stdout.write("\t")

@@ -32,12 +32,38 @@ def xy_from_json(json_data):
     y = np.array(y)
     return x, y
 
+
 if __name__ == "__main__":
     analytical = {
-        "flower-223950-3-3":    {4: 37326, 10: 6222, 28:   1038, 82:   174, 244: 30, 730: 6, 2188:  2},
-        "shm-234376-4-2":    {2: 46876, 8:       9376, 26:   1876, 80:   376, 242: 76, 728: 16, 2186: 4, 6560:  1},
-        "shm-312501-5-2":    {2: 62501, 8:   12501, 26:  2501, 80:   501, 242: 101, 728: 21, 2186: 5, 6560:  1},
-        "shm-67229-5-3":    {2: 9605, 8: 1373,   26: 197, 80: 29, 242: 5,  728: 1},
+        "flower-223950-3-3": {4: 37326,
+                              10: 6222,
+                              28: 1038,
+                              82: 174,
+                              244: 30,
+                              730: 6,
+                              2188: 2},
+        "shm-234376-4-2": {2: 46876,
+                           8: 9376,
+                           26: 1876,
+                           80: 376,
+                           242: 76,
+                           728: 16,
+                           2186: 4,
+                           6560: 1},
+        "shm-312501-5-2": {2: 62501,
+                           8: 12501,
+                           26: 2501,
+                           80: 501,
+                           242: 101,
+                           728: 21,
+                           2186: 5,
+                           6560: 1},
+        "shm-67229-5-3": {2: 9605,
+                          8: 1373,
+                          26: 197,
+                          80: 29,
+                          242: 5,
+                          728: 1},
     }
     data = {}
     for ai in range(1, len(sys.argv)):
@@ -65,7 +91,7 @@ if __name__ == "__main__":
             data[graph][k][a][px[i]].append(py[i])
 
     json_str = json.dumps(data, sort_keys=True, indent=4)
-    print json_str
+    # print json_str
 
     # graph_keys = sorted(data)
     # for graph in graph_keys:
@@ -111,8 +137,7 @@ if __name__ == "__main__":
                 for r in rs:
                     data[graph][k][a][r] = np.array(data[graph][k][a][r])
                     # sys.stdout.write(str(data[graph][k][a][r].mean()) + ",")
-                    data[graph][k][a][r] = (
-                        data[graph][k][a][r] / (analytical[graph][r] + 0.0))
+                    data[graph][k][a][r] = (data[graph][k][a][r] / (analytical[graph][r] + 0.0))
                     s += data[graph][k][a][r].mean()
                     all4std = np.append(all4std, data[graph][k][a][r])
                 sys.stdout.write(str(s / len(rs)) + ",")
@@ -143,11 +168,7 @@ if __name__ == "__main__":
                 for k in ks:
                     rs = sorted(data[graph][k][a])
                     for r in rs:
-                        cv = np.append(
-                            cv,
-                            data[graph][k][a][r].std() /
-                            data[graph][k][a][r].mean(),
-                        )
+                        cv = np.append(cv, data[graph][k][a][r].std() / data[graph][k][a][r].mean(),)
         rads = sorted(analytical[graph])
         print rads, cv
         plt.plot(rads, cv, "o-")
