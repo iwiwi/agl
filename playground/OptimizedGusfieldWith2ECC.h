@@ -341,6 +341,7 @@ class OptimizedGusfieldWith2ECC {
   int max_flow_times;
   int max_cut_size;
   map<int, int> cutsize_count;
+  map<int, int> debug_cut_details;
   vector<int> gomory_hu_cut_used;
   int sep_count;
 
@@ -352,6 +353,7 @@ class OptimizedGusfieldWith2ECC {
     cutsize_count.clear();
     gomory_hu_cut_used.resize(num_vertices_);
     sep_count = 0;
+    debug_cut_details.clear();
   }
 
   void mincut(V s, V t, dinic_twosided& dc_base, disjoint_cut_set& dcs, vector<int>& degree, bool enable_separate_graph = true) {
@@ -378,6 +380,15 @@ class OptimizedGusfieldWith2ECC {
       stringstream ss;
       ss << "max_flow_times = " << max_flow_times << ", (" << s << "," << t << ") cost = " << cost;
       JLOG_ADD("gusfield.progress", ss.str());
+      fprintf(stderr, "getcap_counter = %lld\n", getcap_counter);
+      fprintf(stderr, "addcap_counter = %lld\n", addcap_counter);
+      fprintf(stderr, "preflow_eq_degree = %d\n", preflow_eq_degree);
+      fprintf(stderr, "flow_eq_0 = %d\n", flow_eq_0);
+
+      fprintf(stderr, "cut details : ");
+      for(auto& kv : debug_cut_details) fprintf(stderr, "(%d,%d), ", kv.first, kv.second);
+      fprintf(stderr, "\n");
+      debug_cut_details.clear();
     }
 
     //s側の頂点とt側の頂点に分類する
@@ -491,6 +502,7 @@ class OptimizedGusfieldWith2ECC {
 
     // debug infomation
     cutsize_count[min_side]++;
+    debug_cut_details[min_side]++;
     if (min_side > max_cut_size) {
       max_cut_size = min_side;
       if (max_cut_size != 1) {

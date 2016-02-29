@@ -61,7 +61,7 @@ private:
     int slevel = 0, tlevel = 0;
     while (sz(qs) != 0 && sz(qt) != 0) {
       bool path_found = false;
-      if (sz(qs) < sz(qt)) {
+      if (sz(qs) <= sz(qt)) {
         int size = sz(qs);
         FOR(_, size) {
           const int v = qs.front(); qs.pop();
@@ -253,15 +253,17 @@ public:
       preflow = special_dfs(s);
     }
 
-    s_side_bfs_revision += 2;
-    t_side_bfs_revision += 2;
-    for (; ; s_side_bfs_revision += 2, t_side_bfs_revision += 2) {
-      bool path_found = two_sided_bfs(s, t);
-      if (!path_found) break;
-      while (true) {
-        int f = dfs(s, t, true, numeric_limits<int>::max());
-        if (f == 0) break;
-        flow += f;
+    if(preflow != sz(e[s])) {
+      s_side_bfs_revision += 2;
+      t_side_bfs_revision += 2;
+      for (; ; s_side_bfs_revision += 2, t_side_bfs_revision += 2) {
+        bool path_found = two_sided_bfs(s, t);
+        if (!path_found) break;
+        while (true) {
+          int f = dfs(s, t, true, numeric_limits<int>::max());
+          if (f == 0) break;
+          flow += f;
+        }
       }
     }
     // fprintf(stderr, "(%d,%d) : preflow = %d, flow = %d\n", s, t, preflow, flow);
