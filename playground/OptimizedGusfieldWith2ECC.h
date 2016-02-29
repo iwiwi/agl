@@ -3,11 +3,11 @@
 #include "greedy_treepacking.h"
 
 DEFINE_string(gusfield_choice_stpair_strategy, "sort_by_degree_desending", "sequential, sort_by_degree_ascending, sort_by_degree_desending, random");
-DEFINE_int32(try_greedy_tree_packing, 10, "");
+DEFINE_int32(try_greedy_tree_packing, 2, "");
 DEFINE_int32(try_large_degree_pairs, 10, "");
 DEFINE_bool(enable_greedy_tree_packing, true, "");
 DEFINE_bool(enable_logging_max_flow_details, false, "");
-DEFINE_bool(enable_adjacent_cut, false, "");
+DEFINE_bool(enable_adjacent_cut, true, "");
 DEFINE_bool(enable_special_bfs, true, "");
 
 class disjoint_cut_set {
