@@ -19,15 +19,17 @@ private:
 
   class E {
     static const int init_cap_ = 1;
-    int cap_;
-    int revision_;
+  private: int revision_;
+  public:  int to;
+  private: int cap_ : 4;
+  public:  int reverse : 28;
+  
   public:
     E(int to, int reverse, int cap) :
-      cap_(cap), revision_(0), to(to), reverse(reverse) {
+      revision_(0),to(to),  cap_(cap), reverse(reverse) {
       CHECK(init_cap_ == cap);
     }
 
-    int to, reverse;
     const int cap(int currenct_revision) {
       if (revision_ != currenct_revision) {
         revision_ = currenct_revision;
