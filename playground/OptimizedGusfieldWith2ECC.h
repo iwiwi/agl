@@ -241,8 +241,23 @@ class OptimizedGusfieldWith2ECC {
       FOR(trying, iteration) {
         const V v = idx[trying];
         if (degree[v] == 2) continue; // 自明なcutがある
+
+        //debug infomation
+        auto gtp_edge_count_before = gtp_edge_count;
+        auto gtp_edge_miss_before = gtp_edge_miss;
+        auto gtp_edge_use_before = gtp_edge_use;
+
         auto packing = packing_base;
         packing.arborescence_packing(v);
+
+        //debug infomation
+        if (num_vertices_ > 100) { 
+          JLOG_ADD("prune_obvious_mincut.gtp_edge_count", gtp_edge_count - gtp_edge_count_before);
+          JLOG_ADD("prune_obvious_mincut.gtp_edge_miss", gtp_edge_miss - gtp_edge_miss_before);
+          JLOG_ADD("prune_obvious_mincut.gtp_edge_use", gtp_edge_use - gtp_edge_use_before);
+        }
+
+
         if (current_parent[v] != -1) {
           current_parent[v] = v; // 閉路が出来上がるのを防ぐために、親を自分自身であると登録しておく
         }
@@ -582,7 +597,14 @@ public:
     disjoint_cut_set dcs(num_vs);
 
     //枝刈り
-    prune_obvious_mincut(edges, dcs, degree);
+    if(num_vertices_ > 10000) {
+      //頂点数の多いグラフのみlogging
+      JLOG_ADD_BENCHMARK("prune_obvious_mincut_time") {
+        prune_obvious_mincut(edges, dcs, degree);
+      }
+    } else {
+      prune_obvious_mincut(edges, dcs, degree);
+    }
 
     //debug infomation
     auto preflow_eq_degree_before = preflow_eq_degree;

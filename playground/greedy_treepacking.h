@@ -1,7 +1,12 @@
 #pragma once
 
 DEFINE_bool(gtp_shuffle, false, "");
+long long gtp_edge_count = 0;
+long long gtp_edge_miss = 0;
+long long gtp_edge_use = 0;
 
+
+DEFINE_int32(gtp_dfs_edge_max, 3, "");
 
 // ある頂点からdfsをして、貪欲にtree packingを求める
 class greedy_treepacking {
@@ -39,17 +44,19 @@ class greedy_treepacking {
   void dfs(int v) {
     used_revision_[v] = vertices_revision_;
     auto& to_edges = edges_[v];
-    const int rem_edges = to_edges.size();
+    const int rem_edges = min(to_edges.size(), FLAGS_gtp_dfs_edge_max);
+    // const int rem_edges = to_edges.size();
     FOR(i, rem_edges) {
       V to = to_edges.current();
+      gtp_edge_count++;
       if (used_revision_[to] == vertices_revision_) {
         to_edges.advance();
-        continue;
+        gtp_edge_miss++;
       } else {
         to_edges.remove_current();
         inedge_count_[to]++; // in-edgeの本数が増える
         dfs(to);
-
+        gtp_edge_use++;
       }
     }
   }
@@ -75,6 +82,11 @@ public:
   void arborescence_packing(int from) {
     if(FLAGS_gtp_shuffle) for(auto& e : edges_) e.shuffle();
     FOR(_, sz(edges_[from])) {
+      if(vertices_revision_% 1000 == 0) {
+        stringstream ss;
+        ss << "revision = " << vertices_revision_ << ", gtp_edge_count = " << gtp_edge_count << ", gtp_edge_use = " << gtp_edge_use;
+        JLOG_ADD("greedy_treepacking.progress", ss.str());
+      }
       dfs(from);
       vertices_revision_++;
     }

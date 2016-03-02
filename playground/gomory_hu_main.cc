@@ -296,12 +296,14 @@ void main_(G&& g) {
     exit(-1);
   }
 
-  JLOG_ADD("try_greedy_tree_packing", FLAGS_try_greedy_tree_packing);
-  JLOG_ADD("getcap_counter", getcap_counter);
-  JLOG_ADD("addcap_counter", addcap_counter);
-  JLOG_ADD("preflow_eq_degree", preflow_eq_degree);
-  JLOG_ADD("flow_eq_0", flow_eq_0);
-
+  JLOG_PUT("try_greedy_tree_packing", FLAGS_try_greedy_tree_packing);
+  JLOG_PUT("getcap_counter", getcap_counter);
+  JLOG_PUT("addcap_counter", addcap_counter);
+  JLOG_PUT("preflow_eq_degree", preflow_eq_degree);
+  JLOG_PUT("flow_eq_0", flow_eq_0);
+  JLOG_PUT("gtp_edge_count_all", gtp_edge_count);
+  JLOG_PUT("gtp_edge_miss_all", gtp_edge_miss);
+  JLOG_PUT("gtp_edge_use_all", gtp_edge_use);
 }
 
 void from_file(G&& g) {
