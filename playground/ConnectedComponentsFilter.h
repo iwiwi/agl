@@ -41,6 +41,7 @@ public:
         }
       }
 
+      edges.shrink_to_fit();
       // fprintf(stderr, "root = %d num_vs = %d, edge_size = %d\n", v, num_vs, sz(edges));
       handlers_.emplace_back(std::move(edges), num_vs);
     }
