@@ -2,7 +2,6 @@
 #include "ConnectedComponentsFilter.h"
 #include "greedy_treepacking.h"
 
-DEFINE_string(gusfield_choice_stpair_strategy, "sort_by_degree_desending", "sequential, sort_by_degree_ascending, sort_by_degree_desending, random");
 DEFINE_int32(try_greedy_tree_packing, 2, "");
 DEFINE_int32(try_large_degree_pairs, 10, "");
 DEFINE_bool(enable_greedy_tree_packing, true, "");
@@ -206,30 +205,10 @@ private:
 };
 
 class OptimizedGusfieldWith2ECC {
-
-  void gusfield_choice_stpair(disjoint_cut_set& dcs, vector<int>& mincut_order, const vector<int>& degree) {
-    if (FLAGS_gusfield_choice_stpair_strategy == "sequential") {
-      return;
-    } else if (FLAGS_gusfield_choice_stpair_strategy == "sort_by_degree_ascending") {
-      sort(mincut_order.begin(), mincut_order.end(), [&degree](const int l, const int r) {
-        return degree[l] < degree[r];
-      });
-    } else if (FLAGS_gusfield_choice_stpair_strategy == "sort_by_degree_desending") {
-      sort(mincut_order.begin(), mincut_order.end(), [&degree](const int l, const int r) {
-        return degree[l] > degree[r];
-      });
-    } else if (FLAGS_gusfield_choice_stpair_strategy == "random") {
-      random_shuffle(mincut_order.begin(), mincut_order.end());
-    } else {
-      fprintf(stderr, "unrecognized option '-gusfield_choice_stpair_strategy=%s'\n", FLAGS_gusfield_choice_stpair_strategy.c_str());
-      exit(-1);
-    }
-  }
-
-  void prune_obvious_mincut(disjoint_cut_set& dcs, const vector<int>& degree) {
+  void prune_obvious_mincut(vector<pair<V,V>>& edges, disjoint_cut_set& dcs, const vector<int>& degree) {
     vector<int> current_parent(num_vertices_, -1);
     vector<int> current_weight(num_vertices_, -1);
-    greedy_treepacking packing_base(edges_, num_vertices_);
+    greedy_treepacking packing_base(edges, num_vertices_);
 
     auto set_solved = [&](V v, V parent, int weight) {
       current_parent[v] = parent;
@@ -298,7 +277,7 @@ class OptimizedGusfieldWith2ECC {
       }
     }
 
-    if (num_vertices_ > 50) {
+    if (num_vertices_ > 100) {
       JLOG_OPEN("prune") {
         JLOG_ADD("num_vs", num_vertices_);
         JLOG_ADD("pruned", pruned);
@@ -306,11 +285,11 @@ class OptimizedGusfieldWith2ECC {
     }
   }
 
-  void erase_deg2_edges(vector<int>& degree) {
+  void erase_deg2_edges(vector<pair<V,V>>& edges, vector<int>& degree) {
     const int n = sz(degree);
     vector<vector<int>> e(n);
 
-    for (auto& uv : edges_) {
+    for (auto& uv : edges) {
       int u, v; tie(u, v) = uv;
       e[u].push_back(v);
       e[v].push_back(u);
@@ -325,12 +304,12 @@ class OptimizedGusfieldWith2ECC {
       e[i].clear();
     }
 
-    edges_.clear();
+    edges.clear();
 
     FOR(i, n) {
       for (auto to : e[i]) {
         if (i < to) {
-          edges_.emplace_back(i, to);
+          edges.emplace_back(i, to);
         }
       }
     }
@@ -541,10 +520,12 @@ class OptimizedGusfieldWith2ECC {
 
   //隣接頂点同士を見て、まだ切れていなかったらcutする
   void cut_adjacent_pairs(dinic_twosided& dc_base, disjoint_cut_set& dcs) {
-    for (const auto& e : edges_) {
-      V s, t; tie(s, t) = e;
-      if (!dcs.is_same_group(s, t)) continue;
-      mincut(s, t, dc_base, dcs);
+    FOR(s, num_vertices_) {
+      for(auto& to_edge : dc_base.e[s]) {
+        const V t = to_edge.to;
+        if (!dcs.is_same_group(s, t)) continue;
+        mincut(s, t, dc_base, dcs);
+      }
     }
 
     if (sz(cutsize_count) > 10) {
@@ -588,29 +569,27 @@ class OptimizedGusfieldWith2ECC {
 
 public:
 
-  OptimizedGusfieldWith2ECC(vector<pair<V, V>>&& edges_moved, int num_vs) :
-    edges_(std::move(edges_moved)),
+  OptimizedGusfieldWith2ECC(vector<pair<V, V>>&& edges, int num_vs) :
     num_vertices_(num_vs),
     gh_builder_(num_vs) {
 
     vector<int> degree(num_vertices_);
-    for (auto& e : edges_) degree[e.first]++, degree[e.second]++;
+    for (auto& e : edges) degree[e.first]++, degree[e.second]++;
 
     //次数2の頂点と接続を持つ辺を削除して、探索しやすくする
-    erase_deg2_edges(degree);
+    erase_deg2_edges(edges, degree);
 
     disjoint_cut_set dcs(num_vs);
 
     //枝刈り
-    prune_obvious_mincut(dcs, degree);
-
+    prune_obvious_mincut(edges, dcs, degree);
 
     //debug infomation
     auto preflow_eq_degree_before = preflow_eq_degree;
     auto flow_eq_0_before = flow_eq_0;
 
     //dinicの初期化
-    dinic_twosided dc_base(edges_, num_vs);
+    dinic_twosided dc_base(std::move(edges), num_vs);
 
     mincut_init();
 
@@ -632,12 +611,11 @@ public:
     gusfield(dc_base, dcs);
 
     gh_builder_.build();
-    edges_.clear(); edges_.shrink_to_fit();
 
     auto preflow_eq_degree_after = preflow_eq_degree;
     auto flow_eq_0_after = flow_eq_0;
 
-    if (num_vertices_ > 50) {
+    if (num_vertices_ > 100) {
       JLOG_OPEN("sp_dfs") {
         JLOG_ADD("preflow_eq_degree", preflow_eq_degree_after - preflow_eq_degree_before);
         JLOG_ADD("flow_eq_0", flow_eq_0_after - flow_eq_0_before);
@@ -654,7 +632,6 @@ public:
   }
 
 private:
-  vector<pair<V, V>> edges_;
   const int num_vertices_;
   gomory_hu_tree_builder gh_builder_;
 };

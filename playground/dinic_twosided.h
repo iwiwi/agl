@@ -219,6 +219,25 @@ public:
       add_undirected_edge(uv.first, uv.second, 1);
     }
   }
+  dinic_twosided(vector<pair<V, V>>&& edges, int num_vs)
+    : n(num_vs), level(n), iter(n), bfs_revision(n), dfs_revision(n), e(n),
+    s_side_bfs_revision(2), t_side_bfs_revision(3), graph_revision(0), special_bfs_root(-1) {
+      edges.shrink_to_fit();
+
+      //こまめに解放しながら辺を追加していく
+      while(sz(edges) >= 1) {
+        int loop = max(sz(edges)  / 2, 10000);
+        loop = min(loop, sz(edges));
+        FOR(_, loop) {
+          auto& uv = edges.back();
+          add_undirected_edge(uv.first, uv.second, 1);
+          edges.pop_back();
+        }
+        edges.shrink_to_fit();
+      }
+
+      for(auto& e_ : e) e_.shrink_to_fit();
+  }
 
   void add_vertex() {
     level.emplace_back();
