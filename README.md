@@ -24,3 +24,25 @@
 ./combine_rads.py [統合したjlogファイルたち]
 ./combine_rads.py jlog/sketch-hollywood-2011.agl-rad.*
 ```
+
+## スケーラビリティ
+各アルゴリズムのflowerとBAに対する実行時間・メモリ使用量をプロットする。
+
+<img src="scalability_flower_time.png" width=320px>
+<img src="scalability_flower_memory.png" width=320px>
+<img src="scalability_ba_time.png" width=320px>
+<img src="scalability_ba_memory.png" width=320px>
+```
+./scalability.py [スケーラビリティを計測するJLOGたち]
+./scalability.py jlog/*
+```
+
+## ばらつき
+同一アルゴリズムの同一グラフに対する実行ごとのばらつきをプロットする。直線としてプロットされている解析解は埋め込みしたもの。
+
+<img src="scatter.png" width=320px>
+<img src="cv.png" width=320px>
+```
+./scatter_plot.py [同一アルゴリズムの同一グラフに対する計測結果のJLOGたち]
+./scatter_plot.py sketch-flower-223950-3-3-*
+```
