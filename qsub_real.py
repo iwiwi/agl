@@ -3,8 +3,7 @@ import subprocess
 
 
 def torque_nageru():
-    graph_names = ["uk-2002.agl", "hollywood-2011.agl",
-                   "enwiki-2013.agl", "ljournal-2008.agl", "arabic-2005.agl", ]
+    graph_names = ["indochina-2004.agl", "in-2004.agl"]
 
     exp_tag = "96G_real"
     sketch_k = 128
