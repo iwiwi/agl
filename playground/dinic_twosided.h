@@ -21,8 +21,8 @@ private:
     static const int init_cap_ = 1;
   private: int revision_;
   public:  int to;
-  private: int cap_ : 4;
-  public:  int reverse : 28;
+  private: int cap_ : 3;
+  public:  unsigned int reverse : 29;
   
   public:
     E(int to, int reverse, int cap) :
