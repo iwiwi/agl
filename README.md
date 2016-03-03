@@ -1,4 +1,22 @@
-# フラクタル次元絶対求めるマン
+# box_cover
+```
+box_cover --type gen --graph "flower 2000 2 2" --rad_analytical --sketch_k 128 --upper_param 1.0 --pass 100000 --rad_max 100000 --final_coverage 1.0
+```
+
+|オプション||
+|:--|:--|
+|type|使用するグラフのファイルタイプ。生成させる場合は gen にする|
+|exp_tag|実験管理タグ。JLOGファイル名の先頭に追加する文字列|
+|final_coverage|Sketch の最終的なカバレッジ。デフォルトは1.0|
+|method|使用するアルゴリズム。指定なしの場合は sketch になる。|
+|pass|マルチパスのパス数。デフォルトは1|
+|rad_analytical|flowerとSHMモデルの場合、解析解に必要な半径だけを使う。|
+|rad_max|半径の最大値。デフォルトは10|
+|rad_min|半径の最小値。デフォルトは1|
+|sketch_k|sketchのk。デフォルトは128|
+|upper_param|sketchのα。デフォルトは1.0|
+
+# 解析用スクリプト
 
 ## Average Approximation Ratio
 フラクタルなモデルのグラフの計算結果に対して、パラメータ k ごと、α ごとにそれぞれ分けて Average Approximation Ratio を計算してグラフを出力してくれる。ただし、モデルは解析解が埋め込みされているものしか計算できないので、予め埋め込んでおく必要がある。
