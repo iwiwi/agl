@@ -109,12 +109,18 @@ def residual_by_a(data):
 
 def plot_approximation_ratio(data):
     for x in xrange(0, 2):
-        linestyles = {"(3, 0, 6)-SHM": "-", "(3, 3, 7)-flower": "-", "(2, 0, 8)-SHM": "-",}
-        markers = {"(3, 0, 6)-SHM": 'o', "(3, 3, 7)-flower": "s", "(2, 0, 8)-SHM": "^",}
-        colors = {"(3, 0, 6)-SHM": "b", "(3, 3, 7)-flower": "r", "(2, 0, 8)-SHM": "g",}
-        markerfacecolors = {"(3, 0, 6)-SHM": "b", "(3, 3, 7)-flower": "r", "(2, 0, 8)-SHM": "w",}
-        markeredgecolors = {"(3, 0, 6)-SHM": "k", "(3, 3, 7)-flower": "k", "(2, 0, 8)-SHM": "g",}
-        displace = {"(3, 0, 6)-SHM": 1.0 * (2.0**0.1), "(3, 3, 7)-flower": 1.0 / (2.0**0.1), "(2, 0, 8)-SHM": 1.0,}
+        linestyles = {"(3, 0, 6)-SHM": "-",
+                      "(3, 3, 7)-flower": "-", "(2, 0, 8)-SHM": "-", }
+        markers = {"(3, 0, 6)-SHM": 'o', "(3, 3, 7)-flower": "s",
+                   "(2, 0, 8)-SHM": "^", }
+        colors = {"(3, 0, 6)-SHM": "b", "(3, 3, 7)-flower": "r",
+                  "(2, 0, 8)-SHM": "g", }
+        markerfacecolors = {"(3, 0, 6)-SHM": "b",
+                            "(3, 3, 7)-flower": "r", "(2, 0, 8)-SHM": "w", }
+        markeredgecolors = {"(3, 0, 6)-SHM": "k",
+                            "(3, 3, 7)-flower": "k", "(2, 0, 8)-SHM": "g", }
+        displace = {"(3, 0, 6)-SHM": 1.0 * (2.0**0.1),
+                    "(3, 3, 7)-flower": 1.0 / (2.0**0.1), "(2, 0, 8)-SHM": 1.0, }
         # fig = plt.figure(figsize=(6, 3))
         plt.rcParams['font.size'] = 30
         plt.rcParams['xtick.major.pad'] = 10
@@ -132,7 +138,8 @@ def plot_approximation_ratio(data):
             residuals, error_bar, k, name = residual_by_k(data)
             axes.set_xlim(16 / np.sqrt(2), 1024 * np.sqrt(2))
         else:
-            axes.set_xlabel("$\it{" + u'\u03b1' + "}$", fontsize=40, labelpad=None)
+            axes.set_xlabel("$\it{" + u'\u03b1' + "}$",
+                            fontsize=40, labelpad=None)
             residuals, error_bar, k, name = residual_by_a(data)
             axes.set_xlim(0.125 / np.sqrt(2), 8 * np.sqrt(2))
 
@@ -141,7 +148,7 @@ def plot_approximation_ratio(data):
             "(3, 3, 7)-flower": "flower-223950-3-3",
             "(2, 0, 8)-SHM": "shm-312501-5-2",
         }
-        keys = ["(3, 0, 6)-SHM", "(3, 3, 7)-flower", "(2, 0, 8)-SHM",]
+        keys = ["(3, 0, 6)-SHM", "(3, 3, 7)-flower", "(2, 0, 8)-SHM", ]
         lines = []
         labels = []
         for graph_name in keys:
@@ -150,19 +157,23 @@ def plot_approximation_ratio(data):
             (_, caps, _) = axes.errorbar(k * displace[graph_name],
                                          residuals[graph_namemap[graph_name]],
                                          yerr=[
-                                             error_bar[graph_namemap[graph_name]],
-                                             error_bar[graph_namemap[graph_name]],
-                                         ],
-                                         ls=linestyles[graph_name],
-                                         color=colors[graph_name],
-                                         marker=markers[graph_name],
-                                         label=graph_name,
-                                         capsize=10,
-                                         elinewidth=3,
-                                         markersize=18,
-                                         markerfacecolor=markerfacecolors[graph_name],
-                                         markeredgecolor=markeredgecolors[graph_name],
-                                         markeredgewidth=2)
+                                             error_bar[
+                                                 graph_namemap[graph_name]],
+                                             error_bar[
+                                                 graph_namemap[graph_name]],
+            ],
+                ls=linestyles[graph_name],
+                color=colors[graph_name],
+                marker=markers[graph_name],
+                label=graph_name,
+                capsize=10,
+                elinewidth=3,
+                markersize=18,
+                markerfacecolor=markerfacecolors[
+                                             graph_name],
+                markeredgecolor=markeredgecolors[
+                                             graph_name],
+                markeredgewidth=2)
             for cap in caps:
                 cap.set_markeredgewidth(2)
 
@@ -180,7 +191,8 @@ def plot_approximation_ratio(data):
 
         axes.set_ylabel("approximation ratio", fontsize=30, labelpad=None)
 
-        axes.legend(lines, labels, loc='upper right', fontsize=23, frameon=False)
+        axes.legend(lines, labels, loc='upper right',
+                    fontsize=23, frameon=False)
 
         # axes.legend(loc='upper right', fontsize=23, frameon=False)
 
@@ -190,6 +202,7 @@ def plot_approximation_ratio(data):
 
         fig.tight_layout(pad=0.2)
         fig.savefig(name + ".pdf")
+        fig.savefig(name + ".png")
         plt.close()
 
 
@@ -285,5 +298,6 @@ if __name__ == "__main__":
             for a in data[graph][k]:
                 for r in data[graph][k][a]:
                     data[graph][k][a][r] = np.array(data[graph][k][a][r])
-                    data[graph][k][a][r] = (data[graph][k][a][r] / (analytical[graph][r] + 0.0))
+                    data[graph][k][a][r] = (
+                        data[graph][k][a][r] / (analytical[graph][r] + 0.0))
     plot_approximation_ratio(data)
