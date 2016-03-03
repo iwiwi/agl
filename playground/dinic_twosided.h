@@ -225,10 +225,10 @@ public:
       edges.shrink_to_fit();
 
       //こまめに解放しながら辺を追加していく
-      while(sz(edges) >= 1) {
-        int loop = max(sz(edges)  / 2, 10000);
-        loop = min(loop, sz(edges));
-        FOR(_, loop) {
+      while(edges.size() >= 1) {
+        size_t loop = max(edges.size() / 2, size_t(10000));
+        loop = min(loop, edges.size());
+        while(loop--) {
           auto& uv = edges.back();
           add_undirected_edge(uv.first, uv.second, 1);
           edges.pop_back();
