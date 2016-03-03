@@ -1,12 +1,9 @@
 #pragma once
 
-DEFINE_bool(gtp_shuffle, false, "");
+DEFINE_int32(gtp_dfs_edge_max, 3, "");
 long long gtp_edge_count = 0;
 long long gtp_edge_miss = 0;
 long long gtp_edge_use = 0;
-
-
-DEFINE_int32(gtp_dfs_edge_max, 3, "");
 
 // ある頂点からdfsをして、貪欲にtree packingを求める
 class greedy_treepacking {
@@ -32,9 +29,6 @@ class greedy_treepacking {
       swap(to_[idx_], to_.back());
       to_.pop_back();
       if(sz(to_) == idx_) idx_ = 0;
-    }
-    void shuffle() {
-      random_shuffle(to_.begin(),to_.end(), agl::random);
     }
   public:
     int rem_size_, idx_;
@@ -75,12 +69,10 @@ public:
         int b = edges_[r].size();
         return a < b;
       });
-      // e.shuffle();
     }
   }
 
   void arborescence_packing(int from) {
-    if(FLAGS_gtp_shuffle) for(auto& e : edges_) e.shuffle();
     FOR(_, sz(edges_[from])) {
       if(vertices_revision_% 1000 == 0) {
         stringstream ss;
