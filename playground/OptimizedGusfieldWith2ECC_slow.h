@@ -3,7 +3,7 @@
 
 DEFINE_int32(adjacents_max_deg, 10, "");
 
-class OptimizedGusfieldWith2ECC2 {
+class OptimizedGusfieldWith2ECC_slow {
   void build_depth() {
     depth_[root_node_] = 0;
 
@@ -20,25 +20,6 @@ class OptimizedGusfieldWith2ECC2 {
       }
     }
   }
-
-  //void gusfield_choice_stpair(vector<int>& mincut_order, const vector<int>& degree) {
-  //  if(FLAGS_gusfield_choice_stpair_strategy == "sequential"){
-  //    return ;
-  //  } else if(FLAGS_gusfield_choice_stpair_strategy == "sort_by_degree_ascending") {
-  //      sort(mincut_order.begin(),mincut_order.end(),[&degree](const int l,const int r) {
-  //        return degree[l] < degree[r];
-  //      });
-  //  } else if(FLAGS_gusfield_choice_stpair_strategy == "sort_by_degree_desending") {
-  //      sort(mincut_order.begin(),mincut_order.end(),[&degree](const int l,const int r) {
-  //        return degree[l] > degree[r];
-  //      });
-  //  } else if(FLAGS_gusfield_choice_stpair_strategy == "random") {
-  //    random_shuffle(mincut_order.begin(),mincut_order.end());
-  //  } else {
-  //    fprintf(stderr, "unrecognized option '-gusfield_choice_stpair_strategy=%s'\n", FLAGS_gusfield_choice_stpair_strategy.c_str());
-  //    exit(-1);
-  //  }
-  //}
 
   //同じ部分グラフに所属していれば true,そのグループの親nodeを返す
   pair<bool ,V> belong_to_same_component(V s,V t) const {
@@ -57,7 +38,7 @@ class OptimizedGusfieldWith2ECC2 {
 
 public:
 
-  OptimizedGusfieldWith2ECC2(vector<pair<V, V>> edges, int num_vs) :
+  OptimizedGusfieldWith2ECC_slow(vector<pair<V, V>> edges, int num_vs) :
     num_vertices_(num_vs),
     parent_weight_(num_vs, make_pair(-1, -1)),
     depth_(num_vs, -1) {

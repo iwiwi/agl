@@ -6,8 +6,6 @@
 #include "dinic_twosided.h"
 #include "dinic_onesided.h"
 #include "ConnectedComponentsFilter.h"
-#include "OptimizedGusfield.h"
-#include "OptimizedGusfieldWith2ECC.h"
 
 DEFINE_string(method, "oneside", "oneside, twoside");
 DEFINE_int32(num_query, 1000, "");

@@ -440,8 +440,8 @@ class OptimizedGusfieldWith2ECC {
         sep_count++;
         //gomory_hu algorithm
         //縮約後の頂点2つを追加する
-        int sside_new_vtx = dc_base.n;
-        int tside_new_vtx = sside_new_vtx + 1;
+        const int sside_new_vtx = dc_base.n;
+        const int tside_new_vtx = sside_new_vtx + 1;
         FOR(_, 2) {
           dc_base.add_vertex();
           used.emplace_back();
@@ -506,6 +506,7 @@ class OptimizedGusfieldWith2ECC {
     }
   }
 
+  //次数の大きい頂点対をcutする
   void cut_large_degree_pairs(dinic_twosided& dc_base, disjoint_cut_set& dcs) {
     vector<int> vtxs;
     FOR(v, num_vertices_) {

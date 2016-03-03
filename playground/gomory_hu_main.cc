@@ -14,10 +14,8 @@ DEFINE_string(method, "gusfield", "test, gusfield, print_gomory_hu_tree");
 #include "dinic_twosided.h"
 #include "ConnectedComponentsFilter.h"
 #include "TwoEdgeCCFilter.h"
-#include "OptimizedGusfield.h"
 #include "OptimizedGusfieldWith2ECC.h"
-#include "OptimizedGusfieldWith2ECC2.h"
-#include "greedy_treepacking.h"
+#include "OptimizedGusfieldWith2ECC_slow.h"
 #include "tree_query.h"
 
 G to_directed_graph(G&& g) {
@@ -31,13 +29,13 @@ G to_directed_graph(G&& g) {
   return G(ret);
 }
 
-using Gusfield3 = TwoEdgeCCFilter<OptimizedGusfieldWith2ECC>;
-using Gusfield4 = TwoEdgeCCFilter<OptimizedGusfieldWith2ECC2>;
-DEFINE_string(gomory_hu_builder, "Gusfield3", "Gusfield3, Gusfield4");
+using Gusfield = TwoEdgeCCFilter<OptimizedGusfieldWith2ECC>;
+using Gusfield_slow = TwoEdgeCCFilter<OptimizedGusfieldWith2ECC_slow>;
+DEFINE_string(gomory_hu_builder, "Gusfield", "Gusfield, Gusfield_slow");
 
 void aggregate_weight(G& g) {
-  Gusfield3 gf3(g);
-  gf3.aggregate_gomory_hu_tree_weight();
+  Gusfield gf(g);
+  gf.aggregate_gomory_hu_tree_weight();
 }
 
 string graph_name() {
@@ -92,9 +90,9 @@ map<int, vector<pair<V, V>>> f(T& gf) {
 }
 
 void test(G&& g) {
-  Gusfield3 gf3(g);
-  Gusfield4 gf4(g);
-  auto l = f(gf3);
+  Gusfield gf(g);
+  Gusfield_slow gf4(g);
+  auto l = f(gf);
   auto r = f(gf4);
 
   using ull = unsigned long long;
@@ -195,15 +193,15 @@ void test(G&& g) {
 }
 
 void test2(G&& g) {
-  Gusfield3 gf3(g);
+  Gusfield gf(g);
   stringstream ss;
-  gf3.print_gomory_hu_tree(ss);
+  gf.print_gomory_hu_tree(ss);
   auto query = tree_query::from_file(ss);
 
   const int n = g.num_vertices();
   FOR(i, n) {
     for (int j = i + 1; j < n; j++) {
-      int a1 = gf3.query(i, j);
+      int a1 = gf.query(i, j);
       int a2 = query.query(i, j);
       if (a1 != a2) {
         cout << i << " " << j << endl;
@@ -417,10 +415,10 @@ int main(int argc, char** argv) {
     exit(0);
   }
 
-  if (FLAGS_gomory_hu_builder == "Gusfield3") {
-    main_<Gusfield3>(std::move(g));
-  } else if (FLAGS_gomory_hu_builder == "Gusfield4") {
-    main_<Gusfield4>(std::move(g));
+  if (FLAGS_gomory_hu_builder == "Gusfield") {
+    main_<Gusfield>(std::move(g));
+  } else if (FLAGS_gomory_hu_builder == "Gusfield_slow") {
+    main_<Gusfield_slow>(std::move(g));
   } else {
     fprintf(stderr, "unrecognized option -gomory_hu_builder='%s'\n", FLAGS_gomory_hu_builder.c_str());
     exit(-1);
