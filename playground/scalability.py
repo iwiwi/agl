@@ -212,3 +212,4 @@ if __name__ == "__main__":
 
         fig.tight_layout(pad=0.1)
         fig.savefig("scalability_" + filename + ".pdf")
+        fig.savefig("scalability_" + filename + ".png")
