@@ -40,21 +40,16 @@ class coverage_manager {
       }
     }
   }
-
   double get_current_coverage() { return (double)cnt / num_v; }
-
   bool is_covered() { return get_current_coverage() >= goal_coverage; }
-
   bool v_covered(V v) const { return dist[v] <= radius; }
-
   bool is_center(V v) const { return dist[v] == 0; }
 };
+double naive_coverage(const G &g, const vector<V> &s, W rad);
+double coverage(const G &g, const vector<V> &s, W rad);
 
 vector<pair<W, V>> find_analytical_solution(const string &type, V u, V v,
                                             const G &g);
-
-double naive_coverage(const G &g, const vector<V> &s, W rad);
-double coverage(const G &g, const vector<V> &s, W rad);
 
 //
 // Naive Functions for Tests
@@ -95,9 +90,10 @@ vector<V> box_cover_memb(const G &g, W radius);
 vector<V> box_cover_burning(const G &g, W radius);
 
 //! Akiba et al. 2016
-vector<V> box_cover_sketch(const G &g, W radius, const int k,
-                           const int pass_num, double &aim_coverage,
-                           double upper_param = 1.0);
+vector<V> box_cover_sketch(const G &g, W radius, const int k, const int pass,
+                           double final_coverage, double alpha = 1.0);
+vector<V> box_cover_sketch(const G &g, W radius, const int k, const int pass,
+                           coverage_manager &cm, double alpha = 1.0);
 
 //
 // Diameter-based Methods:

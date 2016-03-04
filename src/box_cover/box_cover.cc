@@ -943,9 +943,14 @@ void naive_select_greedily(const G &g, const vector<vector<V>> &X,
   }
 }
 
-vector<V> box_cover_sketch(const G &g, W radius, const int k,
-                           const int pass_num, double &aim_coverage,
-                           double upper_param) {
+vector<V> box_cover_sketch(const G &g, W radius, const int k, const int pass,
+                           double final_coverage, double alpha) {
+  coverage_manager cm(g, radius, final_coverage);
+  return box_cover_sketch(g, radius, k, pass, cm, alpha);
+}
+
+vector<V> box_cover_sketch(const G &g, W radius, const int k, const int pass,
+                           coverage_manager &cm, double alpha) {
   assert(k > 0);
 
   const V num_v = g.num_vertices();
@@ -953,50 +958,26 @@ vector<V> box_cover_sketch(const G &g, W radius, const int k,
   vector<V> centers;
   vector<V> rank(num_v);
   vector<V> inv(num_v);
-  coverage_manager cm(g, radius, aim_coverage);
   for (V i = 0; i < num_v; ++i) {
     inv[i] = i;
   }
 
-  double timer = 0.0;
-  for (int pass_trial = 0; pass_trial < pass_num; pass_trial++) {
-    //
-    // Build-Sketches O((n+m)*rad)
-    //
+  for (int pass_trial = 0; pass_trial < pass; pass_trial++) {
     shuffle(inv.begin(), inv.end(), agl::random);
-    for (int i = 0; i < num_v; ++i) {
-      rank[inv[i]] = i;
-    }
+    for (int i = 0; i < num_v; ++i) rank[inv[i]] = i;
+
     bool use_memb = true;
-
-    cerr << pass_trial << "-th building..." << endl;
-
-    timer = -get_current_time_sec();
-    vector<vector<V>> X = build_sketch(g, radius, k, rank, inv, cm, use_memb,
-                                       num_v * k * upper_param);
-    timer += get_current_time_sec();
-    cerr << timer << " sec built" << endl;
+    vector<vector<V>> X =
+        build_sketch(g, radius, k, rank, inv, cm, use_memb, num_v * k * alpha);
 
     if (use_memb) {
-      timer = -get_current_time_sec();
-      cerr << pass_trial << "-th lazy selecting..." << endl;
       select_lazy_greedily(g, X, rank, inv, centers, cm);
-      timer += get_current_time_sec();
-      cerr << timer << " sec lazy selected" << endl;
     } else {
-      timer = -get_current_time_sec();
-      cerr << pass_trial << "-th selecting..." << endl;
       select_greedily(g, X, centers, k, cm);
-      timer += get_current_time_sec();
-      cerr << timer << " sec selected" << endl;
     }
 
-    cerr << "size: " << centers.size() << endl;
     if (cm.is_covered()) break;
-    cerr << "coverage: " << cm.get_current_coverage() << endl;
   }
-
-  aim_coverage = cm.get_current_coverage();
   return centers;
 }
 
