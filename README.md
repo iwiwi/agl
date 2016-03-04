@@ -18,7 +18,8 @@ box_cover --type gen --graph "flower 2000 2 2" --rad_analytical --sketch_k 128 -
 
 ## 使用可能なアルゴリズム
 --method オプションで使用可能なアルゴリズム
-|アルゴリズム||
+
+|オプション|アルゴリズム|
 |:--|:--|
 |sketch|Sketch (Akiba et al. 2016)|
 |memb|MEMB (Song et al. 2007)|
