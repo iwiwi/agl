@@ -1,6 +1,6 @@
 # box_cover
 ```
-box_cover --type gen --graph "flower 2000 2 2" --rad_analytical --sketch_k 128 --upper_param 1.0 --pass 100000 --rad_max 100000 --final_coverage 1.0
+box_cover --type gen --graph "flower 2000 2 2" --rad_analytical --sketch_k 128 --upper_param 1.0 --pass 100000 --rad_max 100000 --final_coverage 1.0 --method sketch
 ```
 
 |オプション||
@@ -15,6 +15,17 @@ box_cover --type gen --graph "flower 2000 2 2" --rad_analytical --sketch_k 128 -
 |rad_min|半径の最小値。デフォルトは1|
 |sketch_k|sketchのk。デフォルトは128|
 |upper_param|sketchのα。デフォルトは1.0|
+
+## 使用可能なアルゴリズム
+--method オプションで使用可能なアルゴリズム
+|アルゴリズム||
+|:--|:--|
+|sketch|Sketch (Akiba et al. 2016)|
+|memb|MEMB (Song et al. 2007)|
+|coloring|Greedy Coloring (Song et al. 2007)|
+|cbb|CBB (Song et al. 2007)|
+|burning|Burning (Schneider et al. 2012)|
+|analytical|flower または SHM モデルに限り解析解を返す|
 
 # 解析用スクリプト
 
