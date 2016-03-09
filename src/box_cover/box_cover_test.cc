@@ -339,15 +339,14 @@ TEST(box_cover, coloring) {
   pretty_print(g);
 
   vector<pair<W, V>> pairs = find_analytical_solution("flower", u, v, g);
-  for (auto p : pairs) {
-    cerr << p << endl;
-  }
+  map<W, size_t> m;
+  for (const auto &p : pairs) m[p.first] = p.second;
 
   W largest = pairs.rbegin()->first;
   vector<pair<W, size_t>> coloring = box_cover_coloring(g, largest);
-  for (auto c : coloring) {
-    cerr << c << endl;
-  }
+  for (auto c : coloring)
+    if (m[c.first] > 0)
+      ASSERT_TRUE(c.second < m[c.first] * 10 && m[c.first] < c.second * 10);
 }
 
 TEST(box_cover, covered_check) {
