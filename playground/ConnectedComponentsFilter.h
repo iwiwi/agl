@@ -5,6 +5,7 @@ class ConnectedComponentsFilter {
 public:
   ConnectedComponentsFilter(const G& g) 
   : n(g.num_vertices()), uf_(n), local_indices_(n), handlers_indices_(n), num_connected_components_(0) {
+    fprintf(stderr, "ConnectedComponentsFilter::constructor start memory %ld MB\n", jlog_internal::get_memory_usage() / 1024);
 
     FOR(v, n) for (auto e : g.edges(v)) {
       V u = to(e);

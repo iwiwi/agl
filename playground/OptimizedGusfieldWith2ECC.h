@@ -4,6 +4,7 @@
 
 DEFINE_int32(try_greedy_tree_packing, 2, "");
 DEFINE_int32(try_large_degree_pairs, 10, "");
+DEFINE_int32(choose_near_verices_d, 1, "");
 DEFINE_bool(enable_greedy_tree_packing, true, "");
 DEFINE_bool(enable_logging_max_flow_details, false, "");
 DEFINE_bool(enable_adjacent_cut, true, "");
@@ -135,6 +136,10 @@ public:
         puts("");
       }
     }
+  }
+
+  int debug_group_num() const {
+    return group_num;
   }
 
 private:
@@ -569,6 +574,42 @@ class OptimizedGusfieldWith2ECC {
     }
   }
 
+  void choose_near_verices(dinic_twosided& dc_base, disjoint_cut_set& dcs) {
+    vector<int> used;
+    used.reserve(num_vertices_ * 2);
+    used.resize(dc_base.n, -1);
+
+    FOR(s, num_vertices_) {
+      if(!dcs.has_another_id_in_same_group(s)) continue;
+      queue<V> q;
+      q.push(s);
+      used[s] = s;
+      FOR(depth, FLAGS_choose_near_verices_d) {
+        const int loop_num = sz(q);
+        FOR(_, loop_num) {
+          const V v = q.front(); q.pop();
+          for(auto& to_edge : dc_base.e[v]) {
+              const V t = to_edge.to;
+              if(used[t] == s) continue;
+              used[t] = s;
+              q.push(t);
+              if(s != t && dcs.is_same_group(s, t)) {
+                mincut(s, t, dc_base, dcs);
+                used.resize(dc_base.n, -1); // dinic中に頂点数が変わる場合がある
+              }
+          }
+        }
+      }
+    }
+
+    if (sz(cutsize_count) > 10) {
+      stringstream cutsize_count_ss;
+      cutsize_count_ss << "cutsize_count : ";
+      for (auto& kv : cutsize_count) cutsize_count_ss << "(" << kv.first << "," << kv.second << "), ";
+      JLOG_ADD("cut_adjacent_pairs.cutsize_count", cutsize_count_ss.str());
+    }
+  }
+
   //次数の最も高い頂点に対して、出来る限りの頂点からflowを流してmincutを求める
   void special_bfs_cut(dinic_twosided& dc_base, disjoint_cut_set& dcs) {
     int max_degree_vtx = 0;
@@ -589,6 +630,7 @@ public:
     num_vertices_(num_vs),
     gh_builder_(num_vs) {
 
+    if(num_vs > 1000) fprintf(stderr, "OptimizedGusfieldWith2ECC::constructor start : memory %ld MB\n", jlog_internal::get_memory_usage() / 1024);
     vector<int> degree(num_vertices_);
     for (auto& e : edges) degree[e.first]++, degree[e.second]++;
 
@@ -611,8 +653,10 @@ public:
     auto preflow_eq_degree_before = preflow_eq_degree;
     auto flow_eq_0_before = flow_eq_0;
 
+    if(num_vs > 1000) fprintf(stderr, "OptimizedGusfieldWith2ECC::dinic_twosided before init : memory %ld MB\n", jlog_internal::get_memory_usage() / 1024);
     //dinicの初期化
     dinic_twosided dc_base(std::move(edges), num_vs);
+    if(num_vs > 1000) fprintf(stderr, "OptimizedGusfieldWith2ECC::dinic_twosided after init : memory %ld MB\n", jlog_internal::get_memory_usage() / 1024);
 
     mincut_init();
 
@@ -628,7 +672,12 @@ public:
 
     //まず隣接頂点対からcutしていく
     if (FLAGS_enable_adjacent_cut) {
-      cut_adjacent_pairs(dc_base, dcs);
+      CHECK(FLAGS_choose_near_verices_d >= 1);
+      if(FLAGS_choose_near_verices_d == 1) {
+        cut_adjacent_pairs(dc_base, dcs); 
+      } else {
+        choose_near_verices(dc_base, dcs);
+      }
     }
     // 残った頂点groupをcutする、gomory_hu treeの完成
     gusfield(dc_base, dcs);

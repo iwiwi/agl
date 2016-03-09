@@ -8,6 +8,13 @@ long long addcap_counter = 0;
 int preflow_eq_degree = 0;
 int flow_eq_0 = 0;
 
+
+#ifdef DEBUG_DINIC_TWOSIDED
+#else
+   void nopnop() { }
+#  define fprintf(...) nopnop()
+#endif
+
 class dinic_twosided {
 public:
   // two sided bfsが終了した理由
@@ -102,6 +109,7 @@ private:
         }
         tlevel++;
       }
+      fprintf(stderr, "slevel : %d, tlevel : %d\n",slevel, tlevel);
       if (path_found) return true;
     }
 
@@ -285,8 +293,12 @@ public:
     } else {
       s_side_bfs_revision += 2;
       t_side_bfs_revision += 2;
+
+      int bfs_counter = 0;
       for (; ; s_side_bfs_revision += 2, t_side_bfs_revision += 2) {
+        fprintf(stderr, "bfs_start\n");
         bool path_found = two_sided_bfs(s, t);
+        bfs_counter++;
         if (!path_found) break;
         while (true) {
           int f = dfs(s, t, true, numeric_limits<int>::max());
@@ -294,6 +306,7 @@ public:
           flow += f;
         }
       }
+      fprintf(stderr, "bfs_counter : %d\n", bfs_counter);
     }
     // fprintf(stderr, "(%d,%d) : preflow = %d, flow = %d\n", s, t, preflow, flow);
     if(flow == 0 && preflow > 0) {
@@ -301,6 +314,9 @@ public:
         preflow_eq_degree++;
       }
       flow_eq_0++;
+    } else {
+      fprintf(stderr, "getcap_counter : %lld\n", getcap_counter);
+      fprintf(stderr, "addcap_counter : %lld\n", addcap_counter);
     }
     return flow + preflow;
   }
@@ -398,3 +414,5 @@ public:
   int special_bfs_root;
   vector<int> special_bfs_depth;
 };
+
+#undef fprintf

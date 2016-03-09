@@ -39,6 +39,8 @@ public:
   }
 
   TwoEdgeCCFilter(G& g) : n(g.num_vertices()), g(g), uf(n), lowlink(n, -1), order(n, -1) {
+    fprintf(stderr, "TwoEdgeCCFilter::constructor start : memory %ld MB\n", jlog_internal::get_memory_usage() / 1024);
+
     FOR(v, n) for (auto& e : g.edges(v)) {
       uf.unite(v, to(e));
     }
@@ -52,8 +54,8 @@ public:
 
     CHECK(sz(bridge) + sz(biconnected_graphs_edges) == num_edges);
 
-  g.clear();
-  G new_g(biconnected_graphs_edges, n);
+    g.clear();
+    G new_g(biconnected_graphs_edges, n);
 
     //dealloc
     lowlink.clear(); lowlink.shrink_to_fit();
@@ -61,6 +63,7 @@ public:
     // bridge.clear(); bridge.shrink_to_fit();
     biconnected_graphs_edges.clear(); biconnected_graphs_edges.shrink_to_fit();
 
+    fprintf(stderr, "TwoEdgeCCFilter::constructor end, before ConnectedComponentsFilter : memory %ld MB\n", jlog_internal::get_memory_usage() / 1024);
     biconnected_graph_handler.reset(new ConnectedComponentsFilter<handler_t>(new_g));
   }
 
