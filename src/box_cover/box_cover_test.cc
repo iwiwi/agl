@@ -4,6 +4,15 @@
 using namespace agl;
 using namespace std;
 
+pair<vector<V>, vector<V>> inv_and_rank(const G &g) {
+  vector<V> rank(g.num_vertices());
+  vector<V> inv(g.num_vertices());
+  for (V i = 0; i < g.num_vertices(); ++i) inv[i] = i;
+  shuffle(inv.begin(), inv.end(), agl::random);
+  for (int i = 0; i < g.num_vertices(); ++i) rank[inv[i]] = i;
+  return {inv, rank};
+}
+
 TEST(box_cover, memb) {
   for (int trial = 0; trial < 10; ++trial) {
     V M = 3;
@@ -51,12 +60,9 @@ TEST(box_cover, build_sketch_check) {
     W radius = agl::random(3) + 1;
     const int k = 128;
 
-    // generate rank
-    vector<V> inv(g.num_vertices());
-    for (V i = 0; i < g.num_vertices(); ++i) inv[i] = i;
-    shuffle(inv.begin(), inv.end(), agl::random);
-    vector<V> rank(g.num_vertices());
-    for (int i = 0; i < g.num_vertices(); ++i) rank[inv[i]] = i;
+    auto inv_rank = inv_and_rank(g);
+    auto &inv = inv_rank.first;
+    auto &rank = inv_rank.second;
 
     coverage_manager cm(g, radius, 1.0);
     for (int cover_trial = 0; cover_trial < 10; ++cover_trial) {
@@ -86,36 +92,26 @@ TEST(box_cover, greedy_small) {
       trial--;
       continue;
     }
-    vector<V> rank(g.num_vertices());
-    vector<V> inv(g.num_vertices());
-    for (V i = 0; i < g.num_vertices(); ++i) {
-      inv[i] = i;
-    }
-    shuffle(inv.begin(), inv.end(), agl::random);
-    for (int i = 0; i < g.num_vertices(); ++i) {
-      rank[inv[i]] = i;
-    }
+    auto inv_rank = inv_and_rank(g);
+    auto &inv = inv_rank.first;
+    auto &rank = inv_rank.second;
 
     coverage_manager cm(g, radius, 1.0);
     vector<vector<V>> X = build_sketch(g, radius, k, rank, inv, cm);
 
     vector<V> centers2;
     {
-      cerr << "naive" << endl;
       vector<bool> centered(g.num_vertices(), false);
       naive_select_greedily(g, X, centers2, centered, k);
-      cerr << centers2 << endl;
     }
 
     vector<V> centers1;
     {
-      cerr << "greedy" << endl;
       vector<bool> centered(g.num_vertices(), false);
       coverage_manager cm(g, radius, 1.0);
       select_greedily(g, X, centers1, centered, k, cm);
     }
     ASSERT_EQ(centers1, centers2);
-    cerr << "Stage: " << (trial + 1) << " CLEARED!!!!!!!" << endl;
   }
 }
 
@@ -131,35 +127,23 @@ TEST(box_cover, greedy_big) {
       trial--;
       continue;
     }
-    vector<V> rank(g.num_vertices());
-    vector<V> inv(g.num_vertices());
-    for (V i = 0; i < g.num_vertices(); ++i) {
-      inv[i] = i;
-    }
-    shuffle(inv.begin(), inv.end(), agl::random);
-    for (int i = 0; i < g.num_vertices(); ++i) {
-      rank[inv[i]] = i;
-    }
+    auto inv_rank = inv_and_rank(g);
+    auto &inv = inv_rank.first;
+    auto &rank = inv_rank.second;
 
     coverage_manager cm(g, radius, 1.0);
     vector<vector<V>> X = build_sketch(g, radius, k, rank, inv, cm);
-    // pretty_print(g);
     vector<V> centers1;
     {
-      double timer = -get_current_time_sec();
       vector<bool> centered(g.num_vertices(), false);
       coverage_manager cm(g, radius, 1.0);
       select_greedily(g, X, centers1, centered, k, cm);
-      timer += get_current_time_sec();
     }
     vector<V> centers2;
     {
-      double timer = -get_current_time_sec();
       vector<bool> centered(g.num_vertices(), false);
       naive_select_greedily(g, X, centers2, centered, k);
-      timer += get_current_time_sec();
     }
-
     ASSERT_EQ(centers1, centers2);
   }
 }
@@ -172,33 +156,23 @@ TEST(box_cover, greedy_huge) {
   while (N <= k) N = M + agl::random(10000) + 10000;
   auto es = generate_ba(N, M);
   G g(make_undirected(es));
-  vector<V> rank(g.num_vertices());
-  vector<V> inv(g.num_vertices());
-  for (V i = 0; i < g.num_vertices(); ++i) {
-    inv[i] = i;
-  }
-  shuffle(inv.begin(), inv.end(), agl::random);
-  for (int i = 0; i < g.num_vertices(); ++i) {
-    rank[inv[i]] = i;
-  }
+  auto inv_rank = inv_and_rank(g);
+  auto &inv = inv_rank.first;
+  auto &rank = inv_rank.second;
 
   coverage_manager cm(g, radius, 1.0);
   vector<vector<V>> X = build_sketch(g, radius, k, rank, inv, cm);
   pretty_print(g);
   vector<V> centers1;
   {
-    double timer = -get_current_time_sec();
     vector<bool> centered(g.num_vertices(), false);
     coverage_manager cm(g, radius, 1.0);
     select_greedily(g, X, centers1, centered, k, cm);
-    timer += get_current_time_sec();
   }
   vector<V> centers2;
   {
-    double timer = -get_current_time_sec();
     vector<bool> centered(g.num_vertices(), false);
     naive_select_greedily(g, X, centers2, centered, k);
-    timer += get_current_time_sec();
   }
 
   ASSERT_EQ(centers1, centers2);
@@ -213,15 +187,9 @@ TEST(box_cover, coverage_management) {
     while (N <= k) N = M + agl::random(1000) + 1000;
     auto es = generate_ba(N, M);
     G g(make_undirected(es));
-    vector<V> rank(g.num_vertices());
-    vector<V> inv(g.num_vertices());
-    for (V i = 0; i < g.num_vertices(); ++i) {
-      inv[i] = i;
-    }
-    shuffle(inv.begin(), inv.end(), agl::random);
-    for (int i = 0; i < g.num_vertices(); ++i) {
-      rank[inv[i]] = i;
-    }
+    auto inv_rank = inv_and_rank(g);
+    auto &inv = inv_rank.first;
+    auto &rank = inv_rank.second;
 
     coverage_manager cmtmp(g, radius, 1.0);
     vector<vector<V>> X = build_sketch(g, radius, k, rank, inv, cmtmp);
@@ -245,15 +213,9 @@ TEST(box_cover, coverage_break) {
     while (N <= k) N = M + agl::random(1000) + 1000;
     auto es = generate_ba(N, M);
     G g(make_undirected(es));
-    vector<V> rank(g.num_vertices());
-    vector<V> inv(g.num_vertices());
-    for (V i = 0; i < g.num_vertices(); ++i) {
-      inv[i] = i;
-    }
-    shuffle(inv.begin(), inv.end(), agl::random);
-    for (int i = 0; i < g.num_vertices(); ++i) {
-      rank[inv[i]] = i;
-    }
+    auto inv_rank = inv_and_rank(g);
+    auto &inv = inv_rank.first;
+    auto &rank = inv_rank.second;
 
     coverage_manager cmtmp(g, radius, 1.0);
     vector<vector<V>> X = build_sketch(g, radius, k, rank, inv, cmtmp);
@@ -303,24 +265,17 @@ TEST(box_cover, lazy_greedily) {
   G g(make_undirected(es));
   vector<pair<W, V>> pairs = find_analytical_solution("flower", u, v, g);
 
-  vector<V> rank(g.num_vertices());
-  vector<V> inv(g.num_vertices());
-  for (V i = 0; i < g.num_vertices(); ++i) inv[i] = i;
-  shuffle(inv.begin(), inv.end(), agl::random);
-  for (int i = 0; i < g.num_vertices(); ++i) rank[inv[i]] = i;
   const int k = 1024;
   for (auto p : pairs) {
     W rad = p.first / 2;
 
     coverage_manager cm(g, rad, 1.0);
     bool tmp = true;
+    auto inv_rank = inv_and_rank(g);
+    auto &inv = inv_rank.first;
+    auto &rank = inv_rank.second;
     auto X = build_sketch(g, rad, k, rank, inv, cm, tmp, SIZE_MAX);
 
-    vector<V> rank(g.num_vertices());
-    vector<V> inv(g.num_vertices());
-    for (V i = 0; i < g.num_vertices(); ++i) inv[i] = i;
-    shuffle(inv.begin(), inv.end(), agl::random);
-    for (int i = 0; i < g.num_vertices(); ++i) rank[inv[i]] = i;
     vector<V> centers;
     select_lazy_greedily(g, X, rank, inv, centers, cm);
 
@@ -357,11 +312,9 @@ TEST(box_cover, covered_check) {
     auto es = generate_uv_flower(N, 2, 2);
     G g(make_undirected(es));
     coverage_manager cm(g, radius, 1.0);
-    vector<V> rank(g.num_vertices());
-    vector<V> inv(g.num_vertices());
-    for (V i = 0; i < g.num_vertices(); ++i) inv[i] = i;
-    shuffle(inv.begin(), inv.end(), agl::random);
-    for (int i = 0; i < g.num_vertices(); ++i) rank[inv[i]] = i;
+    auto inv_rank = inv_and_rank(g);
+    auto &inv = inv_rank.first;
+    auto &rank = inv_rank.second;
 
     cm.add(g, 0);
     vector<vector<V>> X = build_sketch(g, radius, k, rank, inv, cm);
