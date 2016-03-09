@@ -50,34 +50,18 @@ class coverage_manager {
 double naive_coverage(const G &g, const vector<V> &s, W rad);
 double coverage(const G &g, const vector<V> &s, W rad);
 
-vector<pair<W, V>> find_analytical_solution(const string &type, V u, V v,
-                                            const G &g);
+vector<pair<W, V>> find_analytical_solution(const string &type, V u, V v, const G &g);
 
 //
 // Naive Functions for Tests
 //
-vector<vector<V>> naive_build_sketch(const G &g, const W radius, const int k,
-                                     const vector<V> &rank,
-                                     const vector<V> &inv,
-                                     const vector<bool> &is_covered);
-vector<vector<V>> build_sketch(const G &g, const W radius, const int k,
-                               const vector<V> &rank, const vector<V> &inv,
-                               const coverage_manager &cm);
-vector<vector<V>> build_sketch(const G &g, const W radius, const int k,
-                               const vector<V> &rank, const vector<V> &inv,
-                               const coverage_manager &cm, bool &use_memb,
-                               size_t size_upper_bound);
-
-void naive_select_greedily(const G &g, const vector<vector<V>> &X,
-                           vector<V> &centers, vector<bool> &centered,
-                           const int k);
-void select_greedily(const G &g, const vector<vector<V>> &X, vector<V> &centers,
-                     vector<bool> &centered, const int k, coverage_manager &cm);
-void select_greedily(const G &g, const vector<vector<V>> &X, vector<V> &centers,
-                     const int k, coverage_manager &cm);
-void select_lazy_greedily(const G &g, const vector<vector<V>> &X,
-                          const vector<V> &rank, const vector<V> &inv,
-                          vector<V> &centers, coverage_manager &cm);
+vector<vector<V>> naive_build_sketch(const G &g, const W radius, const int k, const vector<V> &rank, const vector<V> &inv, const vector<bool> &is_covered);
+vector<vector<V>> build_sketch(const G &g, const W radius, const int k, const vector<V> &rank, const vector<V> &inv, const coverage_manager &cm);
+vector<vector<V>> build_sketch(const G &g, const W radius, const int k, const vector<V> &rank, const vector<V> &inv, const coverage_manager &cm, bool &use_memb, size_t size_upper_bound);
+void naive_select_greedily(const G &g, const vector<vector<V>> &X, vector<V> &centers, vector<bool> &centered, const int k);
+void select_greedily(const G &g, const vector<vector<V>> &X, vector<V> &centers, vector<bool> &centered, const int k, coverage_manager &cm);
+void select_greedily(const G &g, const vector<vector<V>> &X, vector<V> &centers, const int k, coverage_manager &cm);
+void select_lazy_greedily(const G &g, const vector<vector<V>> &X, const vector<V> &rank, const vector<V> &inv, vector<V> &centers, coverage_manager &cm);
 
 //
 // Radius-based Methods:
@@ -92,10 +76,8 @@ vector<V> box_cover_memb(const G &g, W radius);
 vector<V> box_cover_burning(const G &g, W radius);
 
 //! Akiba et al. 2016
-vector<V> box_cover_sketch(const G &g, W radius, const int k, const int pass,
-                           double final_coverage, double alpha = 1.0);
-vector<V> box_cover_sketch(const G &g, W radius, const int k, const int pass,
-                           coverage_manager &cm, double alpha = 1.0);
+vector<V> box_cover_sketch(const G &g, W radius, const int k, const int pass, double final_coverage, double alpha = 1.0);
+vector<V> box_cover_sketch(const G &g, W radius, const int k, const int pass, coverage_manager &cm, double alpha = 1.0);
 
 //
 // Diameter-based Methods:
