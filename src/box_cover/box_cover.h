@@ -71,7 +71,7 @@ std::vector<V> box_cover_memb(const G &g, W radius);
 std::vector<V> box_cover_burning(const G &g, W radius);
 
 //! Akiba et al. 2016
-std::vector<V> box_cover_sketch(const G &g, W radius, const int k, const int pass, double final_coverage, double alpha = 1.0);
+std::vector<V> box_cover_sketch(const G &g, W radius, const int k, const int pass, double least_coverage = 1.0, double alpha = 1.0);
 std::vector<V> box_cover_sketch(const G &g, W radius, const int k, const int pass, coverage_manager &cm, double alpha = 1.0);
 
 //

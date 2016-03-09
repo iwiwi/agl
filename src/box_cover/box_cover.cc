@@ -2,40 +2,39 @@
 using namespace std;
 
 namespace agl {
-double naive_coverage(const G &g, const vector<V> &s, W rad,
-                      vector<bool> &is_covered) {
+double naive_coverage(const G &g, const vector<V> &s, W rad, vector<bool> &is_covered) {
   vector<W> dist(g.num_vertices(), g.num_vertices());
   for (V start : s) {
     queue<pair<V, W>> que;
     que.push({start, 0});
     is_covered[start] = true;
     while (!que.empty()) {
-      auto p = que.front();
+      V v = que.front().first;
+      W d = que.front().second;
       que.pop();
-      dist[p.first] = p.second;
-      if (p.second == rad) continue;
-      for (V n : g.neighbors(p.first)) {
-        if (dist[n] < p.second + 1) continue;
+      dist[v] = d;
+      if (d == rad) continue;
+      for (const V &n : g.neighbors(v)) {
+        if (dist[n] < d + 1) continue;
         is_covered[n] = true;
-        que.push({n, p.second + 1});
+        que.push({n, d + 1});
       }
     }
   }
   V cnt = 0;
-  for (bool a : is_covered)
-    if (a) cnt++;
+  for (const bool &c : is_covered)
+    if (c) cnt++;
   return (double)cnt / g.num_vertices();
 }
 
 double naive_coverage(const G &g, const vector<V> &s, W rad) {
-  vector<bool> dummy(g.num_vertices(), false);
-  return naive_coverage(g, s, rad, dummy);
+  vector<bool> is_covered_dummy(g.num_vertices(), false);
+  return naive_coverage(g, s, rad, is_covered_dummy);
 }
 
-vector<V> merge_and_purify(set<V> &parent, const vector<V> &sorted_vec,
-                           const int k) {
+vector<V> merge_and_purify(set<V> &parent, const vector<V> &sorted_vec, const int k) {
   vector<V> delta;
-  for (V p_rank : sorted_vec) {
+  for (const V &p_rank : sorted_vec) {
     if (parent.size() == (size_t)k && p_rank > *parent.rbegin()) break;
     size_t prev = parent.size();
     parent.insert(p_rank);
@@ -46,7 +45,6 @@ vector<V> merge_and_purify(set<V> &parent, const vector<V> &sorted_vec,
 }
 
 vector<V> box_cover_memb(const G &g, W radius) {
-  double timer = -get_current_time_sec();
 
   V num_v = g.num_vertices();
   vector<vector<pair<V, W>>> node_lists;
@@ -82,10 +80,7 @@ vector<V> box_cover_memb(const G &g, W radius) {
       excluded_mass_map[p.first].insert(p.second);
     }
   }
-  timer += get_current_time_sec();
-  cerr << timer << "sec MEMB built" << endl;
 
-  timer = -get_current_time_sec();
   set<V> covered_nodes;
   set<V> center_nodes;
   vector<W> central_distance(num_v, num_v);
@@ -132,14 +127,11 @@ vector<V> box_cover_memb(const G &g, W radius) {
     }
   }
 
-  timer += get_current_time_sec();
-  cerr << timer << "sec MEMB select" << endl;
   vector<V> ret(center_nodes.begin(), center_nodes.end());
   return ret;
 }
 
-void burning_splitted(const G &g, W radius, set<V> &solution,
-                      vector<vector<V>> &boxes) {
+void burning_splitted(const G &g, W radius, set<V> &solution, vector<vector<V>> &boxes) {
   V num_v = g.num_vertices();
   V prev_size = -1;
   while (prev_size < (V)solution.size()) {
@@ -621,15 +613,12 @@ void select_lazy_greedily(const G &g, const vector<vector<V>> &X, const vector<V
   }
 }
 
-void select_greedily(const G &g, const vector<vector<V>> &X, vector<V> &centers,
-                     vector<bool> &centered, const int k,
-                     coverage_manager &cm) {
+void select_greedily(const G &g, const vector<vector<V>> &X, vector<V> &centers, vector<bool> &centered, const int k, coverage_manager &cm) {
   select_greedily(g, X, centers, k, cm);
   for (size_t i = 0; i < centered.size(); ++i) centered[i] = cm.is_center(i);
 }
 
-void select_greedily(const G &g, const vector<vector<V>> &X, vector<V> &centers,
-                     const int k, coverage_manager &cm) {
+void select_greedily(const G &g, const vector<vector<V>> &X, vector<V> &centers, const int k, coverage_manager &cm) {
   assert(g.num_vertices() > k);
   //
   // Variables
@@ -822,9 +811,7 @@ void select_greedily(const G &g, const vector<vector<V>> &X, vector<V> &centers,
 }
 
 // Select-Greedily O(n^2*k)
-void naive_select_greedily(const G &g, const vector<vector<V>> &X,
-                           vector<V> &centers, vector<bool> &centered,
-                           const int k) {
+void naive_select_greedily(const G &g, const vector<vector<V>> &X, vector<V> &centers, vector<bool> &centered, const int k) {
   V num_v = g.num_vertices();
   set<V> Xs;
   auto estimated_cardinality = [&](const set<V> &subset) -> double {
@@ -864,17 +851,16 @@ void naive_select_greedily(const G &g, const vector<vector<V>> &X,
   }
 }
 
-vector<V> box_cover_sketch(const G &g, W radius, const int k, const int pass,
-                           double final_coverage, double alpha) {
-  coverage_manager cm(g, radius, final_coverage);
+vector<V> box_cover_sketch(const G &g, W radius, const int k, const int pass, double least_coverage, double alpha) {
+  coverage_manager cm(g, radius, least_coverage);
   return box_cover_sketch(g, radius, k, pass, cm, alpha);
 }
 
-vector<V> box_cover_sketch(const G &g, W radius, const int k, const int pass,
-                           coverage_manager &cm, double alpha) {
+vector<V> box_cover_sketch(const G &g, W radius, const int k, const int pass, coverage_manager &cm, double alpha) {
   assert(k > 0);
 
   const V num_v = g.num_vertices();
+  const size_t index_size_limt = num_v * k * alpha;
 
   vector<V> centers;
   vector<V> rank(num_v);
@@ -889,7 +875,7 @@ vector<V> box_cover_sketch(const G &g, W radius, const int k, const int pass,
 
     bool use_memb = true;
     vector<vector<V>> X =
-        build_sketch(g, radius, k, rank, inv, cm, use_memb, num_v * k * alpha);
+        build_sketch(g, radius, k, rank, inv, cm, use_memb, index_size_limt);
 
     if (use_memb) {
       select_lazy_greedily(g, X, rank, inv, centers, cm);
@@ -902,8 +888,7 @@ vector<V> box_cover_sketch(const G &g, W radius, const int k, const int pass,
   return centers;
 }
 
-vector<pair<W, V>> find_analytical_solution(const string &type, V u, V v,
-                                            const G &g) {
+vector<pair<W, V>> find_analytical_solution(const string &type, V u, V v, const G &g) {
   vector<W> diameters;
   vector<V> nodes;
   vector<V> edges;
