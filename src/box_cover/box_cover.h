@@ -7,21 +7,19 @@ class coverage_manager {
  private:
   V num_v;
   vector<W> dist;
-  V cnt = 0;
+  V cnt;
   W radius;
+  double least_coverage;
   coverage_manager() {}
 
  public:
-  double goal_coverage;
-  coverage_manager(const G &g, const W r, const double c) {
+  coverage_manager(const G &g, const W r, const double c) : cnt(0), radius(r), least_coverage(c) {
+    assert(least_coverage <= 1.0);
     num_v = g.num_vertices();
     dist.assign(num_v, num_v);
-    radius = r;
-    assert(c <= 1.0);
-    goal_coverage = c;
   }
 
-  void add(const G &g, V new_v) {
+  void add(const G &g, const V new_v) {
     queue<V> que;
     if (dist[new_v] == num_v) cnt++;
     dist[new_v] = 0;
@@ -42,13 +40,12 @@ class coverage_manager {
     }
   }
   double get_current_coverage() { return (double)cnt / num_v; }
-  bool is_covered() { return get_current_coverage() >= goal_coverage; }
+  bool is_covered() { return get_current_coverage() >= least_coverage; }
   bool v_covered(V v) const { return dist[v] <= radius; }
   bool is_center(V v) const { return dist[v] == 0; }
 };
 
 double naive_coverage(const G &g, const vector<V> &s, W rad);
-double coverage(const G &g, const vector<V> &s, W rad);
 
 vector<pair<W, V>> find_analytical_solution(const string &type, V u, V v, const G &g);
 

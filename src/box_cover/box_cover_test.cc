@@ -16,7 +16,10 @@ TEST(box_cover, memb) {
     W radius = 3;
     vector<V> memb = box_cover_memb(g, radius);
 
-    ASSERT_EQ(coverage(g, memb, radius), 1.0);
+    coverage_manager cm(g, radius, 1.0);
+    for (const V &v : memb) cm.add(g, v);
+
+    ASSERT_EQ(cm.get_current_coverage(), 1.0);
   }
 }
 
@@ -31,7 +34,10 @@ TEST(box_cover, burning) {
     W radius = 1;
     vector<V> burning = box_cover_burning(g, radius);
 
-    ASSERT_EQ(coverage(g, burning, radius), 1.0);
+    coverage_manager cm(g, radius, 1.0);
+    for (const V &v : burning) cm.add(g, v);
+
+    ASSERT_EQ(cm.get_current_coverage(), 1.0);
   }
 }
 
@@ -235,7 +241,7 @@ TEST(box_cover, coverage_management) {
     vector<bool> centered(g.num_vertices(), false);
     coverage_manager cm(g, radius, 1.0);
     select_greedily(g, X, centers, centered, k, cm);
-    double tester = coverage(g, centers, radius);
+    double tester = naive_coverage(g, centers, radius);
     double hey = cm.get_current_coverage();
     ASSERT_EQ(tester, hey);
   }

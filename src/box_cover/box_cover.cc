@@ -32,14 +32,6 @@ double naive_coverage(const G &g, const vector<V> &s, W rad) {
   return naive_coverage(g, s, rad, dummy);
 }
 
-double coverage(const G &g, const vector<V> &s, W rad) {
-  coverage_manager c(g, rad, 1.0);
-  for (auto a : s) {
-    c.add(g, a);
-  }
-  return c.get_current_coverage();
-}
-
 vector<V> merge_and_purify(set<V> &parent, const vector<V> &sorted_vec,
                            const int k) {
   vector<V> delta;
@@ -333,9 +325,9 @@ vector<V> box_cover_burning(const G &g, W radius) {
 
     burning_splitted(g, radius, qsolution, qboxes);
 
-    vector<V> s(qsolution.begin(), qsolution.end());
-    double qcoverage = coverage(g, s, radius);
-    if (qcoverage == 1.0) {
+    coverage_manager cm(g, radius, 1.0);
+    for (const V &qv : qsolution) cm.add(g, qv);
+    if (cm.get_current_coverage() == 1.0) {
       if (min_size > qsolution.size()) {
         solution = qsolution;
         min_size = solution.size();
@@ -659,7 +651,6 @@ vector<vector<V>> fast_build_sketch(const G &g, const W radius, const int k,
 void select_lazy_greedily(const G &g, const vector<vector<V>> &X,
                           const vector<V> &rank, const vector<V> &inv,
                           vector<V> &centers, coverage_manager &cm) {
-  cm.goal_coverage = 1.0;
   vector<bool> rank_covered(X.size(), false);
 
   priority_queue<pair<V, V>> que;
