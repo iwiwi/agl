@@ -30,7 +30,6 @@ TEST(box_cover, burning) {
 
     W radius = 1;
     vector<V> burning = box_cover_burning(g, radius);
-    vector<W> central_distances(g.num_vertices(), g.num_vertices());
 
     ASSERT_EQ(coverage(g, burning, radius), 1.0);
   }
@@ -46,27 +45,26 @@ TEST(box_cover, build_sketch_check) {
 
     W radius = agl::random(3) + 1;
     const int k = 128;
-    vector<V> rank(g.num_vertices());
+
+    // generate rank
     vector<V> inv(g.num_vertices());
-    for (V i = 0; i < g.num_vertices(); ++i) {
-      inv[i] = i;
-    }
-    random_shuffle(inv.begin(), inv.end());
-    for (int i = 0; i < g.num_vertices(); ++i) {
-      rank[inv[i]] = i;
-    }
+    for (V i = 0; i < g.num_vertices(); ++i) inv[i] = i;
+    shuffle(inv.begin(), inv.end(), agl::random);
+    vector<V> rank(g.num_vertices());
+    for (int i = 0; i < g.num_vertices(); ++i) rank[inv[i]] = i;
 
     coverage_manager cm(g, radius, 1.0);
     for (int cover_trial = 0; cover_trial < 10; ++cover_trial) {
       vector<bool> covered(g.num_vertices());
       for (int i = 0; i < g.num_vertices(); ++i) covered[i] = cm.v_covered(i);
 
+      // build sketches
       vector<vector<V>> naive_x =
           naive_build_sketch(g, radius, k, rank, inv, covered);
       vector<vector<V>> x = build_sketch(g, radius, k, rank, inv, cm);
-      for (V v = 0; v < g.num_vertices(); v++) {
-        ASSERT_EQ(naive_x[v], x[v]) << v;
-      }
+
+      // check
+      for (V v = 0; v < g.num_vertices(); v++) ASSERT_EQ(naive_x[v], x[v]) << v;
     }
   }
 }
@@ -88,7 +86,7 @@ TEST(box_cover, greedy_small) {
     for (V i = 0; i < g.num_vertices(); ++i) {
       inv[i] = i;
     }
-    random_shuffle(inv.begin(), inv.end());
+    shuffle(inv.begin(), inv.end(), agl::random);
     for (int i = 0; i < g.num_vertices(); ++i) {
       rank[inv[i]] = i;
     }
@@ -133,7 +131,7 @@ TEST(box_cover, greedy_big) {
     for (V i = 0; i < g.num_vertices(); ++i) {
       inv[i] = i;
     }
-    random_shuffle(inv.begin(), inv.end());
+    shuffle(inv.begin(), inv.end(), agl::random);
     for (int i = 0; i < g.num_vertices(); ++i) {
       rank[inv[i]] = i;
     }
@@ -179,7 +177,7 @@ TEST(box_cover, greedy_huge) {
   for (V i = 0; i < g.num_vertices(); ++i) {
     inv[i] = i;
   }
-  random_shuffle(inv.begin(), inv.end());
+  shuffle(inv.begin(), inv.end(), agl::random);
   for (int i = 0; i < g.num_vertices(); ++i) {
     rank[inv[i]] = i;
   }

@@ -704,7 +704,7 @@ void select_greedily(const G &g, const vector<vector<V>> &X, vector<V> &centers,
                      vector<bool> &centered, const int k,
                      coverage_manager &cm) {
   select_greedily(g, X, centers, k, cm);
-  for (int i = 0; i < centered.size(); ++i) centered[i] = cm.is_center(i);
+  for (size_t i = 0; i < centered.size(); ++i) centered[i] = cm.is_center(i);
 }
 
 void select_greedily(const G &g, const vector<vector<V>> &X, vector<V> &centers,
