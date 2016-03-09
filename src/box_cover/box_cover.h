@@ -52,7 +52,7 @@ std::vector<std::pair<W, V>> find_analytical_solution(const std::string &type, V
 //
 std::vector<std::vector<V>> naive_build_sketch(const G &g, const W radius, const int k, const std::vector<V> &rank, const std::vector<V> &inv, const std::vector<bool> &is_covered);
 std::vector<std::vector<V>> build_sketch(const G &g, const W radius, const int k, const std::vector<V> &rank, const std::vector<V> &inv, const coverage_manager &cm);
-std::vector<std::vector<V>> build_sketch(const G &g, const W radius, const int k, const std::vector<V> &rank, const std::vector<V> &inv, const coverage_manager &cm, bool &use_memb, size_t size_upper_bound);
+std::vector<std::vector<V>> build_sketch(const G &g, const W radius, const int k, const std::vector<V> &rank, const std::vector<V> &inv, const coverage_manager &cm, bool &use_memb, size_t index_size_limit);
 void naive_select_greedily(const G &g, const std::vector<std::vector<V>> &X, std::vector<V> &centers, std::vector<bool> &centered, const int k);
 void select_greedily(const G &g, const std::vector<std::vector<V>> &X, std::vector<V> &centers, std::vector<bool> &centered, const int k, coverage_manager &cm);
 void select_greedily(const G &g, const std::vector<std::vector<V>> &X, std::vector<V> &centers, const int k, coverage_manager &cm);

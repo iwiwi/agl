@@ -468,10 +468,7 @@ vector<V> box_cover_cbb(const G &g, W diameter) {
 }
 
 // Naive BFS method of Build-Sketch
-vector<vector<V>> naive_build_sketch(const G &g, const W radius, const int k,
-                                     const vector<V> &rank,
-                                     const vector<V> &inv,
-                                     const vector<bool> &is_covered) {
+vector<vector<V>> naive_build_sketch(const G &g, const W radius, const int k, const vector<V> &rank, const vector<V> &inv, const vector<bool> &is_covered) {
   V num_v = g.num_vertices();
   vector<vector<V>> naive_X(num_v);
   for (V i = 0; i < num_v; ++i) {
@@ -506,11 +503,9 @@ vector<vector<V>> naive_build_sketch(const G &g, const W radius, const int k,
   return naive_X;
 }
 
-vector<vector<V>> build_sketch(const G &g, const W radius, const int k,
-                               const vector<V> &rank, const vector<V> &inv,
-                               const coverage_manager &cm) {
+vector<vector<V>> build_sketch(const G &g, const W radius, const int k, const vector<V> &rank, const vector<V> &inv, const coverage_manager &cm) {
   bool t = false;
-  return build_sketch(g, radius, k, rank, inv, cm, t, rank.size() * k);
+  return build_sketch(g, radius, k, rank, inv, cm, t, g.num_vertices() * k);
 }
 
 /**
@@ -518,12 +513,9 @@ vector<vector<V>> build_sketch(const G &g, const W radius, const int k,
  * \param inv Inverted index of rank.
  * \param is_covered Is vertex v is covered?
  * \param use_memb Want to use MEMB if the required memory is enough small?
- * \param size_upper_bound Upper bound of memory size which MEMB can be used.
+ * \param index_size_limit Upper bound of memory size which MEMB can be used.
  */
-vector<vector<V>> build_sketch(const G &g, const W radius, const int k,
-                               const vector<V> &rank, const vector<V> &inv,
-                               const coverage_manager &cm, bool &use_memb,
-                               size_t size_upper_bound) {
+vector<vector<V>> build_sketch(const G &g, const W radius, const int k, const vector<V> &rank, const vector<V> &inv, const coverage_manager &cm, bool &use_memb, size_t index_size_limit) {
   V num_v = g.num_vertices();
   vector<set<V>> X(num_v);
   vector<vector<V>> previous_added(num_v);
@@ -566,7 +558,7 @@ vector<vector<V>> build_sketch(const G &g, const W radius, const int k,
           }
         }
 
-        if (use_memb && total_size >= size_upper_bound) {
+        if (use_memb && total_size >= index_size_limit) {
           using_k = k;
           use_memb = false;
           for (V i = 0; i < num_v; ++i)
@@ -592,74 +584,14 @@ vector<vector<V>> build_sketch(const G &g, const W radius, const int k,
   return ret;
 }
 
-vector<vector<V>> fast_build_sketch(const G &g, const W radius, const int k,
-                                    const vector<V> &rank,
-                                    const coverage_manager &cm, bool &use_memb,
-                                    size_t size_upper_bound) {
-  V N = g.num_vertices();
-  size_t using_k = use_memb ? N * N : k;
-  size_t total_size = 0;
-
-  vector<vector<V>> X;
-  vector<int> used(N, -1);
-  for (V v = 0; v < N; ++v) {
-    set<V> xv;
-    if (cm.v_covered(v)) {
-      X.push_back(vector<V>());
-      continue;
-    }
-
-    // BFS
-    queue<V> que;
-    que.push(v);
-    xv.insert(rank[v]);
-    used[v] = v;
-    for (W d = 0; d < radius; ++d) {
-      size_t s = que.size();
-      for (size_t t = 0; t < s; ++t) {
-        V u = que.front();
-        que.pop();
-        for (const auto &w : g.neighbors(u)) {
-          if (used[w] == v) continue;
-          que.push(w);
-          used[w] = v;
-
-          // Merge & Purify
-          auto inserted = xv.insert(rank[w]);
-          if (inserted.second) {
-            if (xv.size() > using_k) xv.erase(*xv.rbegin());
-            total_size++;
-          }
-
-          // Size Change
-          if (!use_memb || total_size <= size_upper_bound) continue;
-          use_memb = false;
-          using_k = k;
-          for (V tv = 0; tv < v; ++tv)
-            while (X[tv].size() > using_k) X[tv].pop_back();
-          while (xv.size() > using_k) xv.erase(*xv.rbegin());
-        }
-      }
-    }
-    //--BFS
-    vector<V> vxv(xv.begin(), xv.end());
-    X.push_back(vxv);
-  }
-  return X;
-}
-
-void select_lazy_greedily(const G &g, const vector<vector<V>> &X,
-                          const vector<V> &rank, const vector<V> &inv,
-                          vector<V> &centers, coverage_manager &cm) {
+void select_lazy_greedily(const G &g, const vector<vector<V>> &X, const vector<V> &rank, const vector<V> &inv, vector<V> &centers, coverage_manager &cm) {
   vector<bool> rank_covered(X.size(), false);
-
   priority_queue<pair<V, V>> que;
   vector<V> box_size(X.size());
   for (size_t box = 0; box < X.size(); ++box) {
     if (X[box].size() == 0 || cm.is_center(box)) continue;
     box_size[box] = X[box].size();
     que.push({box_size[box], rank[box]});
-    // que.push({box_size[box], box});
   }
 
   vector<vector<V>> inverted(X.size());
@@ -670,12 +602,10 @@ void select_lazy_greedily(const G &g, const vector<vector<V>> &X,
     V s = que.top().first;
     V rank_box = que.top().second;
     V v = inv[rank_box];
-    // V v = rank_box;
     que.pop();
     if (cm.is_center(v)) continue;
     if (box_size[v] != s) {
       que.push({box_size[v], rank[v]});
-      // que.push({box_size[v], v});
       continue;
     }
 
