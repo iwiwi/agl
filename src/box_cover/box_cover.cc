@@ -44,8 +44,12 @@ vector<V> merge_and_purify(set<V> &parent, const vector<V> &sorted_vec, const in
   return delta;
 }
 
+/**
+ * Box-Covering algorithm, named maximum excluded mass burning (MEMB).
+ * \param g is graph to cover
+ * \param radius is radius of each box
+ */
 vector<V> box_cover_memb(const G &g, W radius) {
-
   V num_v = g.num_vertices();
   vector<vector<pair<V, W>>> node_lists;
   map<size_t, set<V>> excluded_mass_map;
@@ -262,6 +266,13 @@ void burning_splitted(const G &g, W radius, set<V> &solution, vector<vector<V>> 
   }
 }
 
+/**
+ * Box-Covering algorithm, introduced by Schneider et al. in 2012.
+ * The box-covering for tree networks could be performed in O(N^3) while for
+ * regular networks it requires O(2^N).
+ * \param g is graph to cover
+ * \param radius is radius of each box
+ */
 vector<V> box_cover_burning(const G &g, W radius) {
   if (radius == 0) {
     vector<V> ret;
@@ -373,6 +384,12 @@ vector<V> box_cover_burning(const G &g, W radius) {
   return ret;
 }
 
+
+/**
+ * Box-Covering algorithm, named Greedy-Coloring.
+ * \param g is graph to cover
+ * \param diameter is diameter of each box
+ */
 vector<pair<W, size_t>> box_cover_coloring(const G &g, W diameter) {
   V N = g.num_vertices();
   vector<vector<V>> colors(N, vector<V>(diameter + 1, 0));
@@ -406,6 +423,11 @@ vector<pair<W, size_t>> box_cover_coloring(const G &g, W diameter) {
   return ret;
 }
 
+/**
+ * Box-Covering algorithm, named comapct box burning (CBB).
+ * \param g is graph to cover
+ * \param diameter is diameter of each box
+ */
 vector<V> box_cover_cbb(const G &g, W diameter) {
   auto bfs = [](const G &g, W diameter, V center) -> set<V> {
     set<V> ret;
@@ -459,7 +481,15 @@ vector<V> box_cover_cbb(const G &g, W diameter) {
   return centers;
 }
 
-// Naive BFS method of Build-Sketch
+/**
+ * Naive method to generate bottom-k min-hash sketch.
+ * \param g is graph to cover
+ * \param radius is radius of each box
+ * \param k size of each bottom-k min-hash sketch
+ * \param rank Ranks of vertices.
+ * \param inv Inverted index of rank.
+ * \param is_covered Is vertex v is covered?
+ */
 vector<vector<V>> naive_build_sketch(const G &g, const W radius, const int k, const vector<V> &rank, const vector<V> &inv, const vector<bool> &is_covered) {
   V num_v = g.num_vertices();
   vector<vector<V>> naive_X(num_v);
@@ -501,11 +531,12 @@ vector<vector<V>> build_sketch(const G &g, const W radius, const int k, const ve
 }
 
 /**
+ * Generate bottom-k min-hash sketch.
  * \param rank Ranks of vertices.
  * \param inv Inverted index of rank.
  * \param is_covered Is vertex v is covered?
  * \param use_memb Want to use MEMB if the required memory is enough small?
- * \param index_size_limit Upper bound of memory size which MEMB can be used.
+ * \param index_size_limit limit of memory size which MEMB can be used.
  */
 vector<vector<V>> build_sketch(const G &g, const W radius, const int k, const vector<V> &rank, const vector<V> &inv, const coverage_manager &cm, bool &use_memb, size_t index_size_limit) {
   V num_v = g.num_vertices();
@@ -520,7 +551,6 @@ vector<vector<V>> build_sketch(const G &g, const W radius, const int k, const ve
 
   for (V i = 0; i < num_v; ++i) {
     if (cm.v_covered(i)) continue;
-    // if (cm.is_center(i)) continue;
     X[i].insert(rank[i]);
     previous_added[i].push_back(i);
     total_size++;
@@ -571,11 +601,18 @@ vector<vector<V>> build_sketch(const G &g, const W radius, const int k, const ve
     vector<V> sketch(X[v].begin(), X[v].end());
     ret.push_back(sketch);
   }
-
-  cerr << "total index " << total_size << endl;
   return ret;
 }
 
+/**
+ * Select center nodes of boxes by MEMB
+ * \param g is graph to cover
+ * \param X bottom-k min-hash sketch.
+ * \param rank Ranks of vertices.
+ * \param inv Inverted index of rank.
+ * \param centers center nodes of boxes
+ * \param cm coverage manager
+ */
 void select_lazy_greedily(const G &g, const vector<vector<V>> &X, const vector<V> &rank, const vector<V> &inv, vector<V> &centers, coverage_manager &cm) {
   vector<bool> rank_covered(X.size(), false);
   priority_queue<pair<V, V>> que;
@@ -618,6 +655,14 @@ void select_greedily(const G &g, const vector<vector<V>> &X, vector<V> &centers,
   for (size_t i = 0; i < centered.size(); ++i) centered[i] = cm.is_center(i);
 }
 
+/**
+ * Select center nodes of boxes by using min-hash sketch
+ * \param g is graph to cover
+ * \param X bottom-k min-hash sketch.
+ * \param k k
+ * \param centers center nodes of boxes
+ * \param cm coverage manager
+ */
 void select_greedily(const G &g, const vector<vector<V>> &X, vector<V> &centers, const int k, coverage_manager &cm) {
   assert(g.num_vertices() > k);
   //
@@ -810,7 +855,14 @@ void select_greedily(const G &g, const vector<vector<V>> &X, vector<V> &centers,
   }
 }
 
-// Select-Greedily O(n^2*k)
+/**
+ * naive method to select center nodes of boxes by using min-hash sketch
+ * \param g is graph to cover
+ * \param X bottom-k min-hash sketch.
+ * \param centers center nodes of boxes
+ * \param centered Is node v center?
+ * \param k k
+ */
 void naive_select_greedily(const G &g, const vector<vector<V>> &X, vector<V> &centers, vector<bool> &centered, const int k) {
   V num_v = g.num_vertices();
   set<V> Xs;
@@ -856,6 +908,15 @@ vector<V> box_cover_sketch(const G &g, W radius, const int k, const int pass, do
   return box_cover_sketch(g, radius, k, pass, cm, alpha);
 }
 
+/**
+ * Box-Covering algorithm, which is using bottom-k min-hash sketch
+ * \param g is graph to cover
+ * \param radius is radius of each box
+ * \param k k
+ * \param pass 
+ * \param cm coverage manager
+ * \param alpha 
+ */
 vector<V> box_cover_sketch(const G &g, W radius, const int k, const int pass, coverage_manager &cm, double alpha) {
   assert(k > 0);
 
@@ -888,6 +949,14 @@ vector<V> box_cover_sketch(const G &g, W radius, const int k, const int pass, co
   return centers;
 }
 
+
+/**
+ * Calculate analytical size of boxes for two fractal models, (u, v)-flower and SHM-model.
+ * \param type is model type, which has to be "flower" or "shm"
+ * \param u parameter u of (u, v)-flower, or initial number of nodes of SHM-model
+ * \param v parameter v of (u, v)-flower, or multiply parameter of SHM-model
+ * \param g graph to calculate
+ */
 vector<pair<W, V>> find_analytical_solution(const string &type, V u, V v, const G &g) {
   vector<W> diameters;
   vector<V> nodes;
