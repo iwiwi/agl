@@ -1,12 +1,10 @@
 #include "agl.h"
-using namespace std;
-using namespace agl;
 
 namespace agl {
 class coverage_manager {
  private:
   V num_v;
-  vector<W> dist;
+  std::vector<W> dist;
   V cnt;
   W radius;
   double least_coverage;
@@ -20,7 +18,7 @@ class coverage_manager {
   }
 
   void add(const G &g, const V new_v) {
-    queue<V> que;
+    std::queue<V> que;
     if (dist[new_v] == num_v) cnt++;
     dist[new_v] = 0;
     que.push(new_v);
@@ -45,20 +43,20 @@ class coverage_manager {
   bool is_center(V v) const { return dist[v] == 0; }
 };
 
-double naive_coverage(const G &g, const vector<V> &s, W rad);
+double naive_coverage(const G &g, const std::vector<V> &s, W rad);
 
-vector<pair<W, V>> find_analytical_solution(const string &type, V u, V v, const G &g);
+std::vector<std::pair<W, V>> find_analytical_solution(const std::string &type, V u, V v, const G &g);
 
 //
 // Naive Functions for Tests
 //
-vector<vector<V>> naive_build_sketch(const G &g, const W radius, const int k, const vector<V> &rank, const vector<V> &inv, const vector<bool> &is_covered);
-vector<vector<V>> build_sketch(const G &g, const W radius, const int k, const vector<V> &rank, const vector<V> &inv, const coverage_manager &cm);
-vector<vector<V>> build_sketch(const G &g, const W radius, const int k, const vector<V> &rank, const vector<V> &inv, const coverage_manager &cm, bool &use_memb, size_t size_upper_bound);
-void naive_select_greedily(const G &g, const vector<vector<V>> &X, vector<V> &centers, vector<bool> &centered, const int k);
-void select_greedily(const G &g, const vector<vector<V>> &X, vector<V> &centers, vector<bool> &centered, const int k, coverage_manager &cm);
-void select_greedily(const G &g, const vector<vector<V>> &X, vector<V> &centers, const int k, coverage_manager &cm);
-void select_lazy_greedily(const G &g, const vector<vector<V>> &X, const vector<V> &rank, const vector<V> &inv, vector<V> &centers, coverage_manager &cm);
+std::vector<std::vector<V>> naive_build_sketch(const G &g, const W radius, const int k, const std::vector<V> &rank, const std::vector<V> &inv, const std::vector<bool> &is_covered);
+std::vector<std::vector<V>> build_sketch(const G &g, const W radius, const int k, const std::vector<V> &rank, const std::vector<V> &inv, const coverage_manager &cm);
+std::vector<std::vector<V>> build_sketch(const G &g, const W radius, const int k, const std::vector<V> &rank, const std::vector<V> &inv, const coverage_manager &cm, bool &use_memb, size_t size_upper_bound);
+void naive_select_greedily(const G &g, const std::vector<std::vector<V>> &X, std::vector<V> &centers, std::vector<bool> &centered, const int k);
+void select_greedily(const G &g, const std::vector<std::vector<V>> &X, std::vector<V> &centers, std::vector<bool> &centered, const int k, coverage_manager &cm);
+void select_greedily(const G &g, const std::vector<std::vector<V>> &X, std::vector<V> &centers, const int k, coverage_manager &cm);
+void select_lazy_greedily(const G &g, const std::vector<std::vector<V>> &X, const std::vector<V> &rank, const std::vector<V> &inv, std::vector<V> &centers, coverage_manager &cm);
 
 //
 // Radius-based Methods:
@@ -67,14 +65,14 @@ void select_lazy_greedily(const G &g, const vector<vector<V>> &X, const vector<V
 //
 
 //! Song et al. 2007 (Section 3.2)
-vector<V> box_cover_memb(const G &g, W radius);
+std::vector<V> box_cover_memb(const G &g, W radius);
 
 //! Schneider et al. 2012
-vector<V> box_cover_burning(const G &g, W radius);
+std::vector<V> box_cover_burning(const G &g, W radius);
 
 //! Akiba et al. 2016
-vector<V> box_cover_sketch(const G &g, W radius, const int k, const int pass, double final_coverage, double alpha = 1.0);
-vector<V> box_cover_sketch(const G &g, W radius, const int k, const int pass, coverage_manager &cm, double alpha = 1.0);
+std::vector<V> box_cover_sketch(const G &g, W radius, const int k, const int pass, double final_coverage, double alpha = 1.0);
+std::vector<V> box_cover_sketch(const G &g, W radius, const int k, const int pass, coverage_manager &cm, double alpha = 1.0);
 
 //
 // Diameter-based Methods:
@@ -83,8 +81,8 @@ vector<V> box_cover_sketch(const G &g, W radius, const int k, const int pass, co
 //
 
 //! Song et al. 2007 (Section 3.1)
-vector<V> box_cover_cbb(const G &g, W diameter);
+std::vector<V> box_cover_cbb(const G &g, W diameter);
 
 //! Song et al. 2007 (Section 2)
-vector<pair<W, size_t>> box_cover_coloring(const G &g, W diameter);
+std::vector<std::pair<W, size_t>> box_cover_coloring(const G &g, W diameter);
 }  // namespace agl
