@@ -53,6 +53,9 @@ DEFINE_string(validation_data_path, "", "");
 
 template<class gomory_hu_tree_t>
 void print_gomory_hu_tree(G&& g) {
+
+  fprintf(stderr, "print_gomory_hu_tree : memory %ld MB\n", jlog_internal::get_memory_usage() / 1024);
+
   if (FLAGS_validation_data_path == "") {
     auto gname = graph_name();
     FLAGS_validation_data_path = gname + ".tree";
@@ -403,12 +406,28 @@ void from_file(G&& g) {
   fclose(fp);
 }
 
+DEFINE_bool(to_directed_graph,true, "");
+DEFINE_string(write_directed_graph_name,"", "");
+
 int main(int argc, char** argv) {
 
   // tester();
 
   G g = easy_cui_init(argc, argv);
-  g = to_directed_graph(std::move(g));
+  fprintf(stderr, "easy_cui_init : memory %ld MB\n", jlog_internal::get_memory_usage() / 1024);
+  if(FLAGS_graph.find(".directed") == string::npos) {
+    g = to_directed_graph(std::move(g));
+    fprintf(stderr, "load graph : memory %ld MB\n", jlog_internal::get_memory_usage() / 1024);
+  }
+
+  if(FLAGS_gomory_hu_builder == "write_directed_graph") {
+    string output = FLAGS_write_directed_graph_name;
+    if(output == "") {
+      output = FLAGS_graph + ".directed"; 
+    }
+    write_graph_binary(g, output.c_str());
+    exit(0);
+  }
 
   if (FLAGS_gomory_hu_builder == "fromfile") {
     from_file(std::move(g));
