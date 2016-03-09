@@ -145,6 +145,7 @@ TEST(box_cover, greedy_big) {
       naive_select_greedily(g, X, centers2, centered, k);
     }
     ASSERT_EQ(centers1, centers2);
+    cerr << "Test case " << (trial + 1) << "has been done." << endl;
   }
 }
 
