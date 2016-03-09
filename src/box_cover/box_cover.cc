@@ -1,7 +1,7 @@
 #include "box_cover.h"
-
 using namespace std;
 
+namespace agl {
 double naive_coverage(const G &g, const vector<V> &s, W rad,
                       vector<bool> &is_covered) {
   vector<W> dist(g.num_vertices(), g.num_vertices());
@@ -1044,3 +1044,4 @@ vector<pair<W, V>> find_analytical_solution(const string &type, V u, V v,
   }
   return {};
 }
+}  // namespace agl

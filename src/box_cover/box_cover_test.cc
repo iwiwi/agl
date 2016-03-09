@@ -222,7 +222,7 @@ TEST(box_cover, coverage_management) {
     for (V i = 0; i < g.num_vertices(); ++i) {
       inv[i] = i;
     }
-    random_shuffle(inv.begin(), inv.end());
+    shuffle(inv.begin(), inv.end(), agl::random);
     for (int i = 0; i < g.num_vertices(); ++i) {
       rank[inv[i]] = i;
     }
@@ -255,7 +255,7 @@ TEST(box_cover, coverage_break) {
     for (V i = 0; i < g.num_vertices(); ++i) {
       inv[i] = i;
     }
-    random_shuffle(inv.begin(), inv.end());
+    shuffle(inv.begin(), inv.end(), agl::random);
     for (int i = 0; i < g.num_vertices(); ++i) {
       rank[inv[i]] = i;
     }
@@ -314,7 +314,7 @@ TEST(box_cover, lazy_greedily) {
   for (V i = 0; i < g.num_vertices(); ++i) {
     inv[i] = i;
   }
-  random_shuffle(inv.begin(), inv.end());
+  shuffle(inv.begin(), inv.end(), agl::random);
   for (int i = 0; i < g.num_vertices(); ++i) {
     rank[inv[i]] = i;
   }
@@ -341,7 +341,7 @@ TEST(box_cover, lazy_greedily) {
     for (V i = 0; i < g.num_vertices(); ++i) {
       inv[i] = i;
     }
-    random_shuffle(inv.begin(), inv.end());
+    shuffle(inv.begin(), inv.end(), agl::random);
     for (int i = 0; i < g.num_vertices(); ++i) {
       rank[inv[i]] = i;
     }
@@ -389,7 +389,7 @@ TEST(box_cover, covered_check) {
     vector<V> rank(g.num_vertices());
     vector<V> inv(g.num_vertices());
     for (V i = 0; i < g.num_vertices(); ++i) inv[i] = i;
-    random_shuffle(inv.begin(), inv.end());
+    shuffle(inv.begin(), inv.end(), agl::random);
     for (int i = 0; i < g.num_vertices(); ++i) rank[inv[i]] = i;
 
     cm.add(g, 0);
