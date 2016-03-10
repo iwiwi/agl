@@ -90,9 +90,7 @@ vector<vector<V>> naive_build_sketch(const G &g, const W radius, const int k, co
   return naive_X;
 }
 
-vector<vector<V>> build_sketch(const G &g, const W radius, const int k,
-                               const vector<V> &rank, const vector<V> &inv,
-                               const coverage_manager &cm) {
+vector<vector<V>> build_sketch(const G &g, const W radius, const int k, const vector<V> &rank, const vector<V> &inv, const coverage_manager &cm) {
   bool t = false;
   return build_sketch(g, radius, k, rank, inv, cm, t, g.num_vertices() * k);
 }
@@ -105,10 +103,7 @@ vector<vector<V>> build_sketch(const G &g, const W radius, const int k,
  * \param use_memb Want to use MEMB if the required memory is enough small?
  * \param index_size_limit limit of memory size which MEMB can be used.
  */
-vector<vector<V>> build_sketch(const G &g, const W radius, const int k,
-                               const vector<V> &rank, const vector<V> &inv,
-                               const coverage_manager &cm, bool &use_memb,
-                               size_t index_size_limit) {
+vector<vector<V>> build_sketch(const G &g, const W radius, const int k, const vector<V> &rank, const vector<V> &inv, const coverage_manager &cm, bool &use_memb, size_t index_size_limit) {
   V num_v = g.num_vertices();
   vector<set<V>> X(num_v);
   vector<vector<V>> previous_added(num_v);
@@ -127,17 +122,16 @@ vector<vector<V>> build_sketch(const G &g, const W radius, const int k,
   }
 
   for (W d = 0; d < radius; ++d) {
-    for (V v : inv) {
+    for (const V &v : inv) {
       vector<V> next;
-      for (V a : previous_added[v]) {
-        for (V neighbor : g.neighbors(a)) {
+      for (const V &a : previous_added[v]) {
+        for (const V &neighbor : g.neighbors(a)) {
           // Merge & Purify
           V rv = rank[v];
           set<V> &xn = X[neighbor];
 
-          if (xn.size() >= using_k && *(xn.rbegin()) <= rv) {
-            continue;
-          }
+          if (xn.size() >= using_k && *(xn.rbegin()) <= rv) continue;
+
           auto inserted = xn.insert(rv);
           while (xn.size() > using_k) {
             auto it = xn.end();
@@ -183,9 +177,7 @@ vector<vector<V>> build_sketch(const G &g, const W radius, const int k,
  * \param centers center nodes of boxes
  * \param cm coverage manager
  */
-void select_lazy_greedily(const G &g, const vector<vector<V>> &X,
-                          const vector<V> &rank, const vector<V> &inv,
-                          vector<V> &centers, coverage_manager &cm) {
+void select_lazy_greedily(const G &g, const vector<vector<V>> &X, const vector<V> &rank, const vector<V> &inv, vector<V> &centers, coverage_manager &cm) {
   vector<bool> rank_covered(X.size(), false);
   priority_queue<pair<V, V>> que;
   vector<V> box_size(X.size());
@@ -197,7 +189,7 @@ void select_lazy_greedily(const G &g, const vector<vector<V>> &X,
 
   vector<vector<V>> inverted(X.size());
   for (size_t box = 0; box < X.size(); ++box)
-    for (V rank_b : X[box]) inverted[rank_b].push_back(box);
+    for (const V &rank_b : X[box]) inverted[rank_b].push_back(box);
 
   while (!que.empty() && !cm.is_covered()) {
     V s = que.top().first;
@@ -214,17 +206,15 @@ void select_lazy_greedily(const G &g, const vector<vector<V>> &X,
     cm.add(g, v);
     if (cm.is_covered()) break;
 
-    for (auto rank_v : X[v]) {
+    for (const auto &rank_v : X[v]) {
       if (rank_covered[rank_v]) continue;
       rank_covered[rank_v] = true;
-      for (auto box : inverted[rank_v]) box_size[box]--;
+      for (const auto &box : inverted[rank_v]) box_size[box]--;
     }
   }
 }
 
-void select_greedily(const G &g, const vector<vector<V>> &X, vector<V> &centers,
-                     vector<bool> &centered, const int k,
-                     coverage_manager &cm) {
+void select_greedily(const G &g, const vector<vector<V>> &X, vector<V> &centers, vector<bool> &centered, const int k, coverage_manager &cm) {
   select_greedily(g, X, centers, k, cm);
   for (size_t i = 0; i < centered.size(); ++i) centered[i] = cm.is_center(i);
 }
@@ -237,8 +227,7 @@ void select_greedily(const G &g, const vector<vector<V>> &X, vector<V> &centers,
  * \param centers center nodes of boxes
  * \param cm coverage manager
  */
-void select_greedily(const G &g, const vector<vector<V>> &X, vector<V> &centers,
-                     const int k, coverage_manager &cm) {
+void select_greedily(const G &g, const vector<vector<V>> &X, vector<V> &centers, const int k, coverage_manager &cm) {
   assert(g.num_vertices() > k);
   //
   // Variables
@@ -359,9 +348,9 @@ void select_greedily(const G &g, const vector<vector<V>> &X, vector<V> &centers,
     //
     // Update about covered elements
     //
-    for (V rank_i : delta) {
+    for (const V &rank_i : delta) {
       covered_rank[rank_i] = true;
-      for (V box : I[rank_i]) {
+      for (const V &box : I[rank_i]) {
         if (k2[box] + 1 >= k) removed[box] = true;
         if (removed[box]) continue;
         pair<V, V> box_pair = {last_element(box), box};
@@ -438,9 +427,7 @@ void select_greedily(const G &g, const vector<vector<V>> &X, vector<V> &centers,
  * \param centered Is node v center?
  * \param k k
  */
-void naive_select_greedily(const G &g, const vector<vector<V>> &X,
-                           vector<V> &centers, vector<bool> &centered,
-                           const int k) {
+void naive_select_greedily(const G &g, const vector<vector<V>> &X, vector<V> &centers, vector<bool> &centered, const int k) {
   V num_v = g.num_vertices();
   set<V> Xs;
   auto estimated_cardinality = [&](const set<V> &subset) -> double {
@@ -489,8 +476,7 @@ void naive_select_greedily(const G &g, const vector<vector<V>> &X,
  * \param v parameter v of (u, v)-flower, or multiply parameter of SHM-model
  * \param g graph to calculate
  */
-vector<pair<W, V>> find_analytical_solution(const string &type, V u, V v,
-                                            const G &g) {
+vector<pair<W, V>> find_analytical_solution(const string &type, V u, V v, const G &g) {
   vector<W> diameters;
   vector<V> nodes;
   vector<V> edges;
@@ -582,7 +568,7 @@ vector<V> box_cover_memb(const G &g, W radius) {
         W dist = que.front().second;
         que.pop();
         if (dist >= radius) continue;
-        for (V u : g.neighbors(v)) {
+        for (const V &u : g.neighbors(v)) {
           if (vis[u]) continue;
           que.push(make_pair(u, dist + 1));
           nodes.push_back(make_pair(u, dist + 1));
@@ -593,7 +579,7 @@ vector<V> box_cover_memb(const G &g, W radius) {
       node_lists.push_back(nodes);
       center_candidates.push_back(make_pair(nodes.size(), pv));
     }
-    for (pair<size_t, V> p : center_candidates) {
+    for (const pair<size_t, V> &p : center_candidates) {
       excluded_mass_map[p.first].insert(p.second);
     }
   }
@@ -620,7 +606,7 @@ vector<V> box_cover_memb(const G &g, W radius) {
       }
 
       V mass = 0;
-      for (pair<V, W> p : node_lists[node]) {
+      for (const pair<V, W> &p : node_lists[node]) {
         if (covered_nodes.find(p.first) == covered_nodes.end()) {
           mass++;
         }
@@ -636,7 +622,7 @@ vector<V> box_cover_memb(const G &g, W radius) {
       }
     }
     center_nodes.insert(center_node_found);
-    for (pair<V, W> p : node_lists[center_node_found]) {
+    for (const pair<V, W> &p : node_lists[center_node_found]) {
       V i = p.first;
       W d = p.second;
       covered_nodes.insert(i);
@@ -994,8 +980,7 @@ vector<V> box_cover_cbb(const G &g, W diameter) {
   return centers;
 }
 
-vector<V> box_cover_sketch(const G &g, W radius, const int k, const int pass,
-                           double least_coverage, double alpha) {
+vector<V> box_cover_sketch(const G &g, W radius, const int k, const int pass, double least_coverage, double alpha) {
   coverage_manager cm(g, radius, least_coverage);
   return box_cover_sketch(g, radius, k, pass, cm, alpha);
 }
@@ -1009,8 +994,7 @@ vector<V> box_cover_sketch(const G &g, W radius, const int k, const int pass,
  * \param cm coverage manager
  * \param alpha
  */
-vector<V> box_cover_sketch(const G &g, W radius, const int k, const int pass,
-                           coverage_manager &cm, double alpha) {
+vector<V> box_cover_sketch(const G &g, W radius, const int k, const int pass, coverage_manager &cm, double alpha) {
   assert(k > 0);
 
   const V num_v = g.num_vertices();
@@ -1019,9 +1003,7 @@ vector<V> box_cover_sketch(const G &g, W radius, const int k, const int pass,
   vector<V> centers;
   vector<V> rank(num_v);
   vector<V> inv(num_v);
-  for (V i = 0; i < num_v; ++i) {
-    inv[i] = i;
-  }
+  for (V i = 0; i < num_v; ++i) inv[i] = i;
 
   for (int pass_trial = 0; pass_trial < pass; pass_trial++) {
     shuffle(inv.begin(), inv.end(), agl::random);
