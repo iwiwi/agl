@@ -108,9 +108,8 @@ TEST(box_cover, greedy_small) {
 
     vector<V> centers1;
     {
-      vector<bool> centered(g.num_vertices(), false);
       coverage_manager cm(g, radius, 1.0);
-      select_greedily(g, X, centers1, centered, k, cm);
+      select_greedily(g, X, centers1, k, cm);
     }
     ASSERT_EQ(centers1, centers2);
   }
@@ -136,9 +135,8 @@ TEST(box_cover, greedy_big) {
     vector<vector<V>> X = build_sketch(g, radius, k, rank, inv, cm);
     vector<V> centers1;
     {
-      vector<bool> centered(g.num_vertices(), false);
       coverage_manager cm(g, radius, 1.0);
-      select_greedily(g, X, centers1, centered, k, cm);
+      select_greedily(g, X, centers1, k, cm);
     }
     vector<V> centers2;
     {
@@ -167,9 +165,8 @@ TEST(box_cover, greedy_huge) {
   pretty_print(g);
   vector<V> centers1;
   {
-    vector<bool> centered(g.num_vertices(), false);
     coverage_manager cm(g, radius, 1.0);
-    select_greedily(g, X, centers1, centered, k, cm);
+    select_greedily(g, X, centers1, k, cm);
   }
   vector<V> centers2;
   {
@@ -197,9 +194,8 @@ TEST(box_cover, coverage_management) {
     vector<vector<V>> X = build_sketch(g, radius, k, rank, inv, cmtmp);
     pretty_print(g);
     vector<V> centers;
-    vector<bool> centered(g.num_vertices(), false);
     coverage_manager cm(g, radius, 1.0);
-    select_greedily(g, X, centers, centered, k, cm);
+    select_greedily(g, X, centers, k, cm);
     double tester = naive_coverage(g, centers, radius);
     double hey = cm.get_current_coverage();
     ASSERT_EQ(tester, hey);

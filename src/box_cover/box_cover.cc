@@ -90,6 +90,15 @@ vector<vector<V>> naive_build_sketch(const G &g, const W radius, const int k, co
   return naive_X;
 }
 
+/**
+ * Generate bottom-k min-hash sketch.
+ * \param g the graph to cover
+ * \param radius radius of each box
+ * \param k maximum size of each sketch
+ * \param rank Ranks of vertices.
+ * \param inv Inverted index of rank.
+ * \param cm coverage manager
+ */
 vector<vector<V>> build_sketch(const G &g, const W radius, const int k, const vector<V> &rank, const vector<V> &inv, const coverage_manager &cm) {
   bool t = false;
   return build_sketch(g, radius, k, rank, inv, cm, t, g.num_vertices() * k);
@@ -97,9 +106,11 @@ vector<vector<V>> build_sketch(const G &g, const W radius, const int k, const ve
 
 /**
  * Generate bottom-k min-hash sketch.
+ * \param g the graph to cover
+ * \param radius radius of each box
+ * \param k maximum size of each sketch
  * \param rank Ranks of vertices.
  * \param inv Inverted index of rank.
- * \param is_covered Is vertex v is covered?
  * \param use_memb Want to use MEMB if the required memory is enough small?
  * \param index_size_limit limit of memory size which MEMB can be used.
  */
@@ -214,17 +225,12 @@ void select_lazy_greedily(const G &g, const vector<vector<V>> &X, const vector<V
   }
 }
 
-void select_greedily(const G &g, const vector<vector<V>> &X, vector<V> &centers, vector<bool> &centered, const int k, coverage_manager &cm) {
-  select_greedily(g, X, centers, k, cm);
-  for (size_t i = 0; i < centered.size(); ++i) centered[i] = cm.is_center(i);
-}
-
 /**
  * Select center nodes of boxes by using min-hash sketch
  * \param g is graph to cover
  * \param X bottom-k min-hash sketch.
- * \param k k
  * \param centers center nodes of boxes
+ * \param k maximum size of each sketch
  * \param cm coverage manager
  */
 void select_greedily(const G &g, const vector<vector<V>> &X, vector<V> &centers, const int k, coverage_manager &cm) {
@@ -958,7 +964,7 @@ vector<V> box_cover_cbb(const G &g, W diameter) {
     V center = -1;
     {
       vector<V> tmp(uncovered.begin(), uncovered.end());
-      random_shuffle(tmp.begin(), tmp.end());
+      shuffle(tmp.begin(), tmp.end(),agl::random);
       center = tmp[0];
     }
     assert(center >= 0);
@@ -980,6 +986,15 @@ vector<V> box_cover_cbb(const G &g, W diameter) {
   return centers;
 }
 
+/**
+ * Box-Covering algorithm, which is using bottom-k min-hash sketch
+ * \param g is graph to cover
+ * \param radius is radius of each box
+ * \param k maximum size of each sketch
+ * \param pass the maximum number of iterations for multi-pass improvement
+ * \param least_coverage when the coverage exceeds least_coverage, the main loop will terminate
+ * \param alpha if the index size is smaller than alpha * k * N, MEMB will be applied
+ */
 vector<V> box_cover_sketch(const G &g, W radius, const int k, const int pass, double least_coverage, double alpha) {
   coverage_manager cm(g, radius, least_coverage);
   return box_cover_sketch(g, radius, k, pass, cm, alpha);
@@ -989,10 +1004,10 @@ vector<V> box_cover_sketch(const G &g, W radius, const int k, const int pass, do
  * Box-Covering algorithm, which is using bottom-k min-hash sketch
  * \param g is graph to cover
  * \param radius is radius of each box
- * \param k k
- * \param pass
+ * \param k maximum size of each sketch
+ * \param pass the maximum number of iterations for multi-pass improvement
  * \param cm coverage manager
- * \param alpha
+ * \param alpha if the index size is smaller than alpha * k * N, MEMB will be applied
  */
 vector<V> box_cover_sketch(const G &g, W radius, const int k, const int pass, coverage_manager &cm, double alpha) {
   assert(k > 0);
