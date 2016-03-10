@@ -214,7 +214,4 @@ int main(int argc, char** argv) {
     cerr << "Unknown method: " << FLAGS_method << endl;
     return 0;
   }
-
-  string rad_str = to_string(FLAGS_rad_max);
-  while (rad_str.size() < 3) rad_str = "0" + rad_str;
 }
