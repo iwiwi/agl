@@ -1,6 +1,7 @@
 #include "easy_cui.h"
 #include "box_cover.h"
 using namespace std;
+using namespace agl::box_cover_internal;
 
 DEFINE_int32(rad_min, 1, "minimum radius");
 DEFINE_int32(rad_max, 100000000, "maximum radius");
@@ -102,7 +103,7 @@ int main(int argc, char** argv) {
     if (!(iss >> required)) required = 44;
     if (!(iss >> u)) u = 2;
     if (!(iss >> v)) v = 2;
-    auto as = box_cover_interface::find_analytical_solution(family, u, v, g);
+    auto as = find_analytical_solution(family, u, v, g);
     for (auto p : as) {
       W diameter = p.first;
       W rad = (diameter + 1) / 2;
@@ -128,7 +129,7 @@ int main(int argc, char** argv) {
 
     for (W rad : rads) {
       vector<V> res;
-      box_cover_interface::coverage_manager cm(g, rad, FLAGS_least_coverage);
+      coverage_manager cm(g, rad, FLAGS_least_coverage);
       JLOG_ADD_BENCHMARK("time")
       res = box_cover_sketch(g, rad, FLAGS_sketch_k, FLAGS_multipass, cm,
                              FLAGS_alpha);
@@ -147,7 +148,7 @@ int main(int argc, char** argv) {
       JLOG_ADD_BENCHMARK("time") res = box_cover_memb(g, rad);
       JLOG_ADD("size", res.size());
       JLOG_ADD("radius", rad);
-      box_cover_interface::coverage_manager cm(g, rad, FLAGS_least_coverage);
+      coverage_manager cm(g, rad, FLAGS_least_coverage);
       for (auto& v : res) cm.add(g, v);
       JLOG_ADD("coverage", cm.get_current_coverage());
       if (res.size() == 1) break;
@@ -159,7 +160,7 @@ int main(int argc, char** argv) {
       JLOG_ADD_BENCHMARK("time") res = box_cover_cbb(g, rad * 2);
       JLOG_ADD("size", res.size());
       JLOG_ADD("radius", rad);
-      box_cover_interface::coverage_manager cm(g, rad, FLAGS_least_coverage);
+      coverage_manager cm(g, rad, FLAGS_least_coverage);
       for (auto& v : res) cm.add(g, v);
       JLOG_ADD("coverage", cm.get_current_coverage());
       if (res.size() == 1) break;
@@ -189,7 +190,7 @@ int main(int argc, char** argv) {
       JLOG_ADD_BENCHMARK("time") res = box_cover_burning(g, rad);
       JLOG_ADD("size", res.size());
       JLOG_ADD("radius", rad);
-      box_cover_interface::coverage_manager cm(g, rad, FLAGS_least_coverage);
+      coverage_manager cm(g, rad, FLAGS_least_coverage);
       for (auto& v : res) cm.add(g, v);
       JLOG_ADD("coverage", cm.get_current_coverage());
       if (res.size() == 1) break;
@@ -203,7 +204,7 @@ int main(int argc, char** argv) {
     if (!(iss >> required)) required = 44;
     if (!(iss >> u)) u = 2;
     if (!(iss >> v)) v = 2;
-    auto as = box_cover_interface::find_analytical_solution(family, u, v, g);
+    auto as = find_analytical_solution(family, u, v, g);
 
     for (auto p : as) {
       JLOG_ADD("size", p.second);

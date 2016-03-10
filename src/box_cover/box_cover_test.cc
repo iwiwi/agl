@@ -2,8 +2,8 @@
 #include "gtest/gtest.h"
 
 using namespace agl;
+using namespace agl::box_cover_internal;
 using namespace std;
-using namespace box_cover_interface;
 
 pair<vector<V>, vector<V>> inv_and_rank(const G &g) {
   vector<V> rank(g.num_vertices());

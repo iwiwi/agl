@@ -1,8 +1,8 @@
 #include "box_cover.h"
 using namespace std;
 
-namespace box_cover_interface {
-using namespace agl;
+namespace agl{
+namespace box_cover_internal {
 
 double naive_coverage(const G &g, const vector<V> &s, W rad, vector<bool> &is_covered) {
   vector<W> dist(g.num_vertices(), g.num_vertices());
@@ -546,8 +546,7 @@ vector<pair<W, V>> find_analytical_solution(const string &type, V u, V v, const 
 }
 }  // namespace box_cover_interface
 
-namespace agl {
-using namespace box_cover_interface;
+using namespace agl::box_cover_internal;
 
 /**
  * Box-Covering algorithm, named maximum excluded mass burning (MEMB).
