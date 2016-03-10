@@ -544,7 +544,7 @@ vector<pair<W, V>> find_analytical_solution(const string &type, V u, V v, const 
   }
   return {};
 }
-}  // namespace box_cover_interface
+}  // namespace box_cover_internal
 
 using namespace agl::box_cover_internal;
 
