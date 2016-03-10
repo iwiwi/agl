@@ -50,18 +50,19 @@ class coverage_manager {
   bool is_center(agl::V v) const { return dist[v] == 0; }
 };
 
-double naive_coverage(const agl::G &g, const std::vector<agl::V> &s, agl::W rad);
 std::vector<std::pair<agl::W, agl::V>> find_analytical_solution(const std::string &type, agl::V u, agl::V v, const agl::G &g);
+void select_greedily(const agl::G &g, const std::vector<std::vector<agl::V>> &X, std::vector<agl::V> &centers, const int k, coverage_manager &cm);
+void select_lazy_greedily(const agl::G &g, const std::vector<std::vector<agl::V>> &X, const std::vector<agl::V> &rank, const std::vector<agl::V> &inv, std::vector<agl::V> &centers, coverage_manager &cm);
+std::vector<std::vector<agl::V>> build_sketch(const agl::G &g, const agl::W radius, const int k, const std::vector<agl::V> &rank, const std::vector<agl::V> &inv, const coverage_manager &cm);
+std::vector<std::vector<agl::V>> build_sketch(const agl::G &g, const agl::W radius, const int k, const std::vector<agl::V> &rank, const std::vector<agl::V> &inv, const coverage_manager &cm, bool &use_memb, size_t index_size_limit);
 
 //
 // Naive Functions for Tests
 //
+double naive_coverage(const agl::G &g, const std::vector<agl::V> &s, agl::W rad);
 std::vector<std::vector<agl::V>> naive_build_sketch(const agl::G &g, const agl::W radius, const int k, const std::vector<agl::V> &rank, const std::vector<agl::V> &inv, const std::vector<bool> &is_covered);
-std::vector<std::vector<agl::V>> build_sketch(const agl::G &g, const agl::W radius, const int k, const std::vector<agl::V> &rank, const std::vector<agl::V> &inv, const coverage_manager &cm);
-std::vector<std::vector<agl::V>> build_sketch(const agl::G &g, const agl::W radius, const int k, const std::vector<agl::V> &rank, const std::vector<agl::V> &inv, const coverage_manager &cm, bool &use_memb, size_t index_size_limit);
 void naive_select_greedily(const agl::G &g, const std::vector<std::vector<agl::V>> &X, std::vector<agl::V> &centers, std::vector<bool> &centered, const int k);
-void select_greedily(const agl::G &g, const std::vector<std::vector<agl::V>> &X, std::vector<agl::V> &centers, const int k, coverage_manager &cm);
-void select_lazy_greedily(const agl::G &g, const std::vector<std::vector<agl::V>> &X, const std::vector<agl::V> &rank, const std::vector<agl::V> &inv, std::vector<agl::V> &centers, coverage_manager &cm);
+
 }  // namespace box_cover_interface
 
 namespace agl {
