@@ -64,38 +64,40 @@ unweighted_edge_list shrink(const G& g, vector<V> centers, W rad) {
 int main(int argc, char** argv) {
   G g = easy_cui_init(argc, argv);
   CHECK_MSG(FLAGS_force_undirected, "undirected only!!!");
-  JLOG_ADD_OPEN(to_string(0).data()) {
-    int N = g.num_vertices();
-    vector<V> distribution(N, 0);
-    for (int i = 0; i < N; ++i) distribution[g.degree(i)]++;
-    while (distribution.back() == 0) distribution.pop_back();
-    for (int i = 0; i < distribution.size(); ++i)
-      JLOG_PUT(to_string(i).data(), (double)distribution[i] / N);
-  }
+  JLOG_ADD_OPEN("distribution") {
+    JLOG_ADD_OPEN(to_string(0).data()) {
+      int N = g.num_vertices();
+      vector<V> distribution(N, 0);
+      for (int i = 0; i < N; ++i) distribution[g.degree(i)]++;
+      while (distribution.back() == 0) distribution.pop_back();
+      for (int i = 0; i < distribution.size(); ++i)
+        JLOG_PUT(to_string(i).data(), (double)distribution[i] / N);
+    }
 
-  string json = load_json(FLAGS_jlog_file);
-  value v;
-  string err;
-  parse(v, json.begin(), json.end(), &err);
-  picojson::array& centers_array =
-      v.get<object>()["centers"].get<picojson::array>();
-  for (auto it = centers_array.begin(); it != centers_array.end(); it++) {
-    object& co = it->get<object>();
-    for (auto co_it = co.begin(); co_it != co.end(); co_it++) {
-      auto rad = co_it->first;
-      JLOG_ADD_OPEN(rad.data()) {
-        picojson::array& centers = co[rad].get<picojson::array>();
-        vector<V> v;
-        for (const auto& c : centers) v.push_back(stoi(c.to_str()));
-        auto shrinked_es = shrink(g, v, stoi(rad));
-        G shg(shrinked_es);
-        int N = shg.num_vertices();
-        vector<V> distribution(N, 0);
-        for (int i = 0; i < N; ++i) distribution[shg.degree(i)]++;
-        while (!distribution.empty() && distribution.back() == 0)
-          distribution.pop_back();
-        for (int i = 0; i < distribution.size(); ++i)
-          JLOG_PUT(to_string(i).data(), (double)distribution[i] / N);
+    string json = load_json(FLAGS_jlog_file);
+    value v;
+    string err;
+    parse(v, json.begin(), json.end(), &err);
+    picojson::array& centers_array =
+        v.get<object>()["centers"].get<picojson::array>();
+    for (auto it = centers_array.begin(); it != centers_array.end(); it++) {
+      object& co = it->get<object>();
+      for (auto co_it = co.begin(); co_it != co.end(); co_it++) {
+        auto rad = co_it->first;
+        JLOG_ADD_OPEN(rad.data()) {
+          picojson::array& centers = co[rad].get<picojson::array>();
+          vector<V> v;
+          for (const auto& c : centers) v.push_back(stoi(c.to_str()));
+          auto shrinked_es = shrink(g, v, stoi(rad));
+          G shg(shrinked_es);
+          int N = shg.num_vertices();
+          vector<V> distribution(N, 0);
+          for (int i = 0; i < N; ++i) distribution[shg.degree(i)]++;
+          while (!distribution.empty() && distribution.back() == 0)
+            distribution.pop_back();
+          for (int i = 0; i < distribution.size(); ++i)
+            JLOG_PUT(to_string(i).data(), (double)distribution[i] / N);
+        }
       }
     }
   }
