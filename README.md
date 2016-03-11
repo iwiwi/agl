@@ -1,5 +1,6 @@
 # AGL
 
+Open source repository for Box-Cover
 
 ## ビルド方法
 
