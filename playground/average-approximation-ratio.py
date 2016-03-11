@@ -246,8 +246,10 @@ if __name__ == "__main__":
         k = int(json_data['k'])
         if k not in data[graph]:
             data[graph][k] = {}
-
-        a = float(json_data['upper_param'])
+        if 'upper_param' in json_data:
+            a = float(json_data['upper_param'])
+        elif 'alpha' in json_data:
+            a = float(json_data['alpha'])
         if a not in data[graph][k]:
             data[graph][k][a] = {}
 

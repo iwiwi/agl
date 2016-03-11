@@ -120,7 +120,12 @@ if __name__ == "__main__":
         # Sketch
         if 'k' in json_data:
             k = str(json_data['k']).zfill(4)
-            ub = str(json_data['upper_param'])
+
+            if 'upper_param' in json_data:
+                ub = str(json_data['upper_param'])
+            elif 'alpha' in json_data:
+                ub = str(json_data['alpha'])
+
             method = "Sketch (k=" + k + ", u=" + ub + ")"
             data[graph_name][method] = {
                 "k": int(k),
@@ -175,7 +180,8 @@ if __name__ == "__main__":
                 sys.stdout.write(str(-np.log10(data[graph_name][method]["fractal"] / data[graph_name][method][
                     "exponential"])) + "\t")
                 sys.stdout.write(str(data[graph_name][method]["time"]) + "\t")
-                sys.stdout.write(str(data[graph_name][method]["memory"]) + "\t")
+                sys.stdout.write(
+                    str(data[graph_name][method]["memory"]) + "\t")
             else:
                 sys.stdout.write("\t")
                 sys.stdout.write("\t")
