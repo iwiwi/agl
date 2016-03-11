@@ -14,6 +14,7 @@ if __name__ == "__main__":
     rads = []
     for ai in range(1, len(sys.argv)):
         log = open(sys.argv[ai], 'r')
+        print sys.argv[ai]
         json_data = json.load(log)
         log.close()
 

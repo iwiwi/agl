@@ -11,7 +11,9 @@ import pylab
 
 def loadTSV(tsv_file):
     es = pd.read_csv(tsv_file, delimiter='\t', header=None)
+    print "dataframe loaded"
     G = nx.from_pandas_dataframe(es, 0, 1)
+    print "graph generated"
     return G
 
 
@@ -66,6 +68,8 @@ if __name__ == "__main__":
     f = open(sys.argv[2], 'r')
     centers = json.load(f)["centers"]
     f.close()
+    print "loaded"
+
     rad_list = []
     centers_dict = {}
     for pair in centers:
@@ -77,12 +81,15 @@ if __name__ == "__main__":
 
     pos = {}
     for rad in rad_list:
-        if len(centers_dict[rad]) > 100:
+        print rad
+        if len(centers_dict[rad]) > 3000:
             continue
         if len(pos) == 0:
-            shrinked_G, pos, covered_size = shrinkGraph(G, centers_dict[rad], rad, True)
+            shrinked_G, pos, covered_size = shrinkGraph(
+                G, centers_dict[rad], rad, True)
         else:
-            shrinked_G, _, covered_size = shrinkGraph(G, centers_dict[rad], rad)
+            shrinked_G, _, covered_size = shrinkGraph(
+                G, centers_dict[rad], rad)
         nx.draw_networkx_nodes(shrinked_G,
                                pos,
                                nodelist=shrinked_G.nodes(),
