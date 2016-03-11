@@ -20,7 +20,9 @@ if __name__ == "__main__":
         radius = json_data["radius"][0]
         time = json_data['time'][0]
         size = json_data['size'][0]
-        combined[radius] = {'size': size, 'time': time, 'radius': radius}
+        centers = json_data['centers'][0]
+        combined[radius] = {'size': size, 'time': time,
+                            'radius': radius, 'centers': centers}
         rads.append(radius)
 
         graph_info = json_data['graph_info']
@@ -31,12 +33,14 @@ if __name__ == "__main__":
         "size": [],
         "radius": [],
         "name": name,
+        "centers": [],
         "graph_info": graph_info,
     }
     for radius in rads:
         data["time"].append(combined[radius]["time"])
         data["radius"].append(combined[radius]["radius"])
         data["size"].append(combined[radius]["size"])
+        data["centers"].append(combined[radius]["centers"])
     json_str = json.dumps(data, sort_keys=True, indent=4)
     # print json_str
     graph_name = graph_info[0]['graph'].replace(" ", "_")
