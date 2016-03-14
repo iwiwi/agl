@@ -98,10 +98,6 @@ GraphType easy_cui_init(int argc, char **argv) {
       if (!(iss >> n)) n = 10;
       if (!(iss >> e)) e = 25;
       es = generate_random_planar(n, e);
-    } else if (family == "cycle") {
-      V n;
-      if (!(iss >> n)) n = 10;
-      es = generate_cycle(n);
     } else if (family == "ba") {
       V n, m;
       if (!(iss >> n)) n = 10;

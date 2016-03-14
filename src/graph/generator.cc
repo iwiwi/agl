@@ -50,18 +50,6 @@ unweighted_edge_list generate_barbell(V size_clique) {
   return out;
 }
 
-unweighted_edge_list generate_cycle(V num_vertices) {
-  unweighted_edge_list es;
-  if (num_vertices < 2) {
-    return es;
-  }
-  for (V v = 0; v + 1 < num_vertices; ++v) {
-    es.emplace_back(v, v + 1);
-  }
-  es.emplace_back(num_vertices - 1, 0);
-  return es;
-}
-
 /**
  * Generate a random scale-free network by the Barabasi-Albert (BA) model.
  * The degree distribution resulting from the BA model is scale free
