@@ -22,7 +22,7 @@
 |-type            |Graph file type (auto, tsv, agl, built_in, gen) |string | "auto"|
 |-graph           |Input graph                                     |string | "-"   |
 |-method          |Using method                                    |string |"sketch"|
-|-alpha           |Index size limit to use MEMB (alpha*n*k)        |double |1.0    |
+|-alpha           |Index size limit to use MEMB (alpha * N * k)        |double |1.0    |
 |-least_coverage  |Least coverage.                   |double |1.0|
 |-sketch_k        |sketch k                                        |int32|128|
 |-multipass       |Number of multi-pass                            |int32|1000000000|
