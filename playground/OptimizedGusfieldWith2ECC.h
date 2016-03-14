@@ -99,6 +99,16 @@ public:
     return uv.first != -1;
   }
 
+  vector<int> get_group(int group_id) const {
+    vector<int> ret;
+    int cur = root[group_id];
+    while(cur != -1){
+      ret.push_back(cur);
+      cur = nodes[cur].nt;
+    }
+    return ret;
+  }
+
   int debug_group_id(int id) const {
     return nodes[id].root;
   }
@@ -575,23 +585,22 @@ class OptimizedGusfieldWith2ECC {
   }
 
   void choose_near_verices(dinic_twosided& dc_base, disjoint_cut_set& dcs) {
-    vector<int> used;
-    used.reserve(num_vertices_ * 2);
-    used.resize(dc_base.n, -1);
+    vector<int> used(num_vertices_ * 2, -1);
+    int used_revision = 0;
 
     FOR(s, num_vertices_) {
       if(!dcs.has_another_id_in_same_group(s)) continue;
       queue<V> q;
       q.push(s);
-      used[s] = s;
+      used[s] = used_revision;
       FOR(depth, FLAGS_choose_near_verices_d) {
         const int loop_num = sz(q);
         FOR(_, loop_num) {
           const V v = q.front(); q.pop();
           for(auto& to_edge : dc_base.e[v]) {
               const V t = to_edge.to;
-              if(used[t] == s) continue;
-              used[t] = s;
+              if(used[t] == used_revision) continue;
+              used[t] = used_revision;
               q.push(t);
               if(s != t && dcs.is_same_group(s, t)) {
                 mincut(s, t, dc_base, dcs);
@@ -600,13 +609,14 @@ class OptimizedGusfieldWith2ECC {
           }
         }
       }
+      used_revision++;
     }
 
     if (sz(cutsize_count) > 10) {
       stringstream cutsize_count_ss;
       cutsize_count_ss << "cutsize_count : ";
       for (auto& kv : cutsize_count) cutsize_count_ss << "(" << kv.first << "," << kv.second << "), ";
-      JLOG_ADD("cut_adjacent_pairs.cutsize_count", cutsize_count_ss.str());
+      JLOG_ADD("choose_near_verices.cutsize_count", cutsize_count_ss.str());
     }
   }
 
@@ -621,6 +631,20 @@ class OptimizedGusfieldWith2ECC {
       if (!dcs.is_same_group(v, max_degree_vtx)) continue;
       //graphの形状が変わると損なので、ここでは enable_separate_graph = false する
       mincut(v, max_degree_vtx, dc_base, dcs, false);
+    }
+  }
+
+  void verify(dinic_twosided& dc_base, disjoint_cut_set& dcs) {
+    union_find uf(dc_base.n);
+    FOR(i, dc_base.n) for (auto& to_edge : dc_base.e[i]) {
+      uf.unite(i, to_edge.to);
+    }
+    FOR(g, num_vertices_) {
+      auto v = dcs.get_group(g);
+      FOR(i, sz(v) - 1) {
+        int u = v[i], x = v[i + 1];
+        CHECK(uf.is_same(u, x));
+      }
     }
   }
 
@@ -679,6 +703,9 @@ public:
         choose_near_verices(dc_base, dcs);
       }
     }
+
+    // verify(dc_base, dcs);
+
     // 残った頂点groupをcutする、gomory_hu treeの完成
     gusfield(dc_base, dcs);
 
