@@ -107,44 +107,6 @@ GraphType easy_cui_init(int argc, char **argv) {
       if (!(iss >> n)) n = 10;
       if (!(iss >> m)) m = 5;
       es = generate_ba(n, m);
-    } else if (family == "dms") {
-      V n, m, k0;
-      if (!(iss >> n)) n = 10;
-      if (!(iss >> m)) m = 5;
-      if (!(iss >> k0)) k0 = -2;
-      es = generate_dms(n, m, k0);
-    } else if (family == "hk") {
-      V n, m;
-      double p;
-      if (!(iss >> n)) n = 10;
-      if (!(iss >> m)) m = 5;
-      if (!(iss >> p)) p = 0.5;
-      es = generate_hk(n, m, p);
-    } else if (family == "ws") {
-      V n, d;
-      double p;
-      if (!(iss >> n)) n = 10;
-      if (!(iss >> d)) d = 4;
-      if (!(iss >> p)) p = 0.5;
-      es = generate_ws(n, d, p);
-    } else if (family == "kronecker") {
-      int scale, n;
-      size_t avg_deg;
-      if (!(iss >> scale)) scale = 5;
-      if (!(iss >> avg_deg)) avg_deg = 16;
-      vector<vector<double>> mat;
-      if (!(iss >> n)) {
-        n = 2;
-        mat = vector<vector<double>>(n, vector<double>(n));
-        mat[0][0] = 0.57;
-        mat[0][1] = 0.19;
-        mat[1][0] = 0.19;
-        mat[1][1] = 0.05;
-      }
-      for (int i = 0; i < n * n; ++i) {
-        if (!(iss >> mat[i / n][i % n])) mat[i / n][i % n] = 1.0 / (n * n);
-      }
-      es = generate_kronecker(scale, avg_deg, mat);
     } else if (family == "flower") {
       V required, u, v;
       if (!(iss >> required)) required = 44;
