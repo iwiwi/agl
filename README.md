@@ -21,7 +21,7 @@
 |-force_undirected|Automatically add reverse edges? (This option must always be specified) | bool  |false  |
 |-type            |Graph file type (auto, tsv, agl, built_in, gen) |string | "auto"|
 |-graph           |Input graph                                     |string | "-"   |
-|-method          |Using method                                    |string |"sketch"|
+|-method          |Using method (see below)           |string |"sketch"|
 |-alpha           |Index size limit to use MEMB (alpha * N * k)        |double |1.0    |
 |-least_coverage  |Least coverage.                   |double |1.0|
 |-sketch_k        |sketch k                                        |int32|128|
