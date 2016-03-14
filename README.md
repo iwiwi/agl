@@ -1,19 +1,30 @@
-# AGL
+# Box-Cover Algorithms
 
-Open source repository for Box-Cover
-
-## ビルド方法
+## Building
 
 ```
 ./waf configure
 ./waf
 ```
 
-## ライセンス
+## Running
 
-現在 AGL は初期段階にあります，フィードバックと改善のサイクルを短くし，
-互換性の破壊を含む大きな変更を必要に応じて行えるようにするため，
-現在 AGL の利用は秋葉との共同研究に限るものとします．
-（AGL の利用を目的の 1 つとした共同研究のお誘いは歓迎します．）
+### Options
+|Options||Type|Default|
+|:--|:--|:--|--:|
+|-random_seed |Random seed. |int64|922337203685477583|
+|-alpha       | Index size limit to use MEMB (alpha*n*k)|double|1.0|
+|-least_coverage |coverage|double|1.0|
+|-method|using method|string|"sketch"|
+|-multipass |Number of multi-pass|int32|1000000000|
+|-rad_analytical|Using analytical diameters for rads| bool|false|
+|-rad_max |maximum radius|int32 |100000000|
+|-rad_min |minimum radius|int32 |  1|
+|-sketch_k|sketch k|int32|128|
+|-force_undirected|Automatically add reverse edges?| boolfalse|
+|-graph |input graph|string| "-"|
+|-type  |Graph file type (auto, tsv, agl, built_in, gen) |string | "auto"|
 
-将来的には，オープンソースライセンス下での公開を検討しています．
+## LICENSE
+
+HOGE
