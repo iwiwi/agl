@@ -44,4 +44,4 @@
 
 ## LICENSE
 
-HOGE
+MIT
