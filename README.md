@@ -11,7 +11,8 @@
 
 ```
 ./bin/box_cover -force_undirected -type=tsv -graph=/data/graph_edges.tsv \
- -method=sketch -alpha=1.0 -least_coverage=1.0 -sketch_k=128 -multipass=10000 -rad_min=1 -rad_max=30 --random_seed=114514 
+ -method=sketch -alpha=1.0 -least_coverage=1.0 -sketch_k=128 -multipass=10000 -rad_min=1 -rad_max=30 \
+ --random_seed=114514 
 ```
 
 ### Options
