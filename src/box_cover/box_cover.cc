@@ -898,8 +898,22 @@ vector<pair<W, size_t>> box_cover_coloring(const G &g, W diameter) {
   V N = g.num_vertices();
   vector<vector<V>> colors(N, vector<V>(diameter + 1, 0));
 
-  for (V i = 1; i < N; ++i) {                       //(iii)
-    vector<W> dist = single_source_distance(g, i);  //(a)
+  for (V i = 1; i < N; ++i) {  //(iii)
+    vector<W> dist(N, N);      //(a)
+    queue<pair<V, W>> que;
+    que.push({i, 0});
+    dist[i] = 0;
+    while (!que.empty()) {
+      V v = que.front().first;
+      W d = que.front().second;
+      que.pop();
+      for (const auto &u : g.neighbors(v)) {
+        if (dist[u] <= d + 1) continue;
+        dist[u] = d + 1;
+        que.push({u, d + 1});
+      }
+    }
+
     multimap<W, V> dict;
     for (V v = 0; v < N; ++v) dict.insert({dist[v], v});
 
