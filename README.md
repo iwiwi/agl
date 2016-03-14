@@ -25,7 +25,7 @@
 |-alpha           |Index size limit to use MEMB (alpha * N * k)        |double |1.0    |
 |-least_coverage  |Least coverage.                   |double |1.0|
 |-sketch_k        |sketch k                                        |int32|128|
-|-multipass       |Number of multi-pass                            |int32|1000000000|
+|-multipass       |Maximum number of multi-pass      |int32|1000000000|
 |-rad_analytical  |Use analytical diameters for radius?            | bool|false|
 |-rad_min         |Minimum radius.                                  |int32 |  1|
 |-rad_max         |Maximum radius.                                  |int32 |100000000|
