@@ -438,7 +438,7 @@ class OptimizedGusfieldWith2ECC {
       /*
       * separate phase
       */
-      const int separate_upper_bound = 10;
+      const int separate_upper_bound = 1;
       const bool sside_separate = (sside == min_side && dc_base.reason_for_finishing_bfs == dinic_twosided::kQsIsEmpty && sside > separate_upper_bound);
       const bool tside_separate = (tside == min_side && dc_base.reason_for_finishing_bfs == dinic_twosided::kQtIsEmpty && tside > separate_upper_bound);
       if (sside_separate || tside_separate) {
