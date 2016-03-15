@@ -14,5 +14,3 @@ static constexpr size_t kInfSize = std::numeric_limits<size_t>::max();
 #include "irange.h"
 #include "hash.h"
 #include "type.h"
-#include "data_structures.h"
-#include "geometry2d.h"

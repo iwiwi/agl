@@ -1,11 +1,33 @@
 #include "generator.h"
-#include "connectivity/connectivity.h"
 #include "gtest/gtest.h"
 #include <vector>
 #include <random>
+#include <queue>
 
 using namespace agl;
 using namespace std;
+
+namespace {
+template<typename GraphType>
+bool is_connected(const GraphType &g) {
+  if (g.num_vertices() == 0) return true;
+
+  std::queue<V> que;
+  std::vector<bool> vis(g.num_vertices());
+  que.push(0);
+  vis[0] = true;
+  while (!que.empty()) {
+    V v = que.front();
+    que.pop();
+    for (V tv : g.neighbors(v)) {
+      if (vis[tv]) continue;
+      que.push(tv);
+      vis[tv] = true;
+    }
+  }
+  return std::find(vis.begin(), vis.end(), false) == vis.end();
+}
+}  // namespace
 
 TEST(gen_ba, random_num_vertices) {
   for (int trial = 0; trial < 10; ++trial) {

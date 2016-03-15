@@ -2,6 +2,4 @@
 
 #include "base/base.h"
 #include "graph/graph.h"
-#include "connectivity/connectivity.h"
-
-#include "prettyprint.h"
+// #include "connectivity/connectivity.h"

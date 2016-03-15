@@ -1,7 +1,6 @@
 #pragma once
 #include "base/base.h"
 #include "direction.h"
-#include "graph_index_interface.h"
 #include <vector>
 #include <cstdint>
 #include <fstream>
@@ -85,24 +84,17 @@ class basic_graph {
     assign(es, num_vs);
   }
 
-  basic_graph(const basic_graph<EdgeType> &g) : edges_from_{g.edges_from_[0], g.edges_from_[1]} {
-    CHECK_MSG(g.graph_indices_.empty(), "Graphs with attached indices cannot be copied");
-    CHECK_MSG(g.graph_dynamic_indices_.empty(), "Graphs with attached indices cannot be copied");
-  }
+  basic_graph(const basic_graph<EdgeType> &g) : edges_from_{g.edges_from_[0], g.edges_from_[1]} {}
 
   basic_graph<EdgeType> &operator=(const basic_graph<EdgeType> &g) {
-    CHECK_MSG(g.graph_indices_.empty(), "Graphs with attached indices cannot be copied");
-    CHECK_MSG(g.graph_dynamic_indices_.empty(), "Graphs with attached indices cannot be copied");
     edges_from_[0] = g.edges_from_[0];
     edges_from_[1] = g.edges_from_[1];
     return *this;
   }
 
   void clear();
-
   void assign(const edge_list_type &es, V num_vs = -1);
   void assign(std::vector<std::vector<E>> edges_from);
-
   edge_list_type edge_list(D d = kFwd) const;
 
   //
@@ -143,101 +135,8 @@ class basic_graph {
     return edges_from_[d][v].size();
   }
 
-  //
-  // Dynamic graph update
-  //
-  template<typename... Args>
-  void add_edge(V v_from, Args&&... args) {
-    edges_from_[kFwd][v_from].emplace_back(std::forward<Args>(args)...);
-    const E &e = edges_from_[kFwd][v_from].back();
-    const V v_to = to(e);
-    edges_from_[kBwd][v_to].emplace_back(reverse_edge(v_from, e));
-
-    // TODO: faster by insertion
-    auto cmp = [](const E &e0, const E &e1) { return to(e0) < to(e1); };
-    std::sort(edges_from_[kFwd][v_from].begin(), edges_from_[kFwd][v_from].end(), cmp);
-    std::sort(edges_from_[kBwd][v_to].begin(), edges_from_[kBwd][v_to].end(), cmp);
-
-    // Notification to dynamic indices
-    for (auto i : graph_dynamic_indices_) {
-      i->add_edge(*this, v_from, e);
-    }
-  }
-
-  void remove_edge(V v_from, V v_to) {
-    {
-      auto &es = edges_from_[kFwd][v_from];
-      auto i = std::remove_if(es.begin(), es.end(), [&](const E &e) { return to(e) == v_to; });
-      es.erase(i, es.end());
-    }
-    {
-      auto &es = edges_from_[kBwd][v_to];
-      auto i = std::remove_if(es.begin(), es.end(), [&](const E &e) { return to(e) == v_from; });
-      es.erase(i, es.end());
-    }
-
-    // Notification to dynamic indices
-    for (auto i : graph_dynamic_indices_) {
-      i->remove_edge(*this, v_from, v_to);
-    }
-  }
-
-  void add_vertices(V new_num_vertices) {
-    V old_num_vertices = num_vertices();
-    CHECK(new_num_vertices >= old_num_vertices);
-    edges_from_[kFwd].resize(new_num_vertices);
-    edges_from_[kBwd].resize(new_num_vertices);
-
-    // Notification to dynamic indices
-    for (auto i : graph_dynamic_indices_) {
-      i->add_vertices(*this, old_num_vertices);
-    }
-  }
-
-  void remove_vertices(V new_num_vertices) {
-    V old_num_vertices = num_vertices();
-    CHECK(new_num_vertices <= old_num_vertices);
-    for (V v = new_num_vertices; v < old_num_vertices; ++v) {
-      CHECK(degree(v, kFwd) == 0);
-      CHECK(degree(v, kBwd) == 0);
-    }
-
-    edges_from_[kFwd].resize(new_num_vertices);
-    edges_from_[kBwd].resize(new_num_vertices);
-
-    // Notification to dynamic indices
-    for (auto i : graph_dynamic_indices_) {
-      i->remove_vertices(*this, old_num_vertices);
-    }
-  }
-
-  //
-  // Indexing
-  //
-  template<typename GraphIndexType>
-  void construct_and_own_index(GraphIndexType *index) {
-    index->construct(*this);  // Construct
-    graph_indices_.emplace_back(index);  // Own
-  }
-
-  template<typename GraphIndexType>
-  void construct_and_observe_dynamic_index(GraphIndexType *index) {
-    index->construct(*this);  // Construct
-    graph_dynamic_indices_.emplace_back(index);  // Observe
-  }
-
-  template<typename GraphIndexType>
-  void construct_observe_and_own_dynamic_index(GraphIndexType *index) {
-    index->construct(*this);  // Construct
-    graph_dynamic_indices_.emplace_back(index);  // Observe
-    graph_indices_.emplace_back(index);  // Own
-  }
-
 private:
   std::vector<std::vector<E>> edges_from_[kNumDirections];
-
-  std::vector<std::unique_ptr<graph_index_interface<G>>> graph_indices_;
-  std::vector<dynamic_graph_index_interface<G>*> graph_dynamic_indices_;  // Observer pattern
 };
 
 //
@@ -273,10 +172,6 @@ void basic_graph<EdgeType>::assign(const typename basic_graph<EdgeType>::edge_li
       std::sort(edges_from_[d][v].begin(), edges_from_[d][v].end(), cmp);
     }
   }
-
-  // TODO: reconstruction?
-  assert(graph_indices_.empty());
-  assert(graph_dynamic_indices_.empty());
 }
 
 template<typename EdgeType>
@@ -295,9 +190,6 @@ void basic_graph<EdgeType>::assign(std::vector<std::vector<E>> sorted_edges_from
       edges_from_[kBwd][to(e)].emplace_back(reverse_edge(v, e));
     }
   }
-
-  assert(graph_indices_.empty());
-  assert(graph_dynamic_indices_.empty());
 }
 
 template<typename EdgeType>

@@ -21,11 +21,6 @@ TEST(unweighted_graph_test, read_graph_tsv) {
   pretty_print(g);
 }
 
-TEST(unweighted_graph_test, built_in) {
-  G g = built_in_graph("karate_club");
-  pretty_print(g);
-}
-
 TEST(unweighted_graph, undirected_neighbors) {
   for (int trial = 0; trial < 10; ++trial) {
     unweighted_edge_list es = generate_erdos_renyi(100, 2);

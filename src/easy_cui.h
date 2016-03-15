@@ -1,8 +1,3 @@
-/*
- * 試作やベンチマーク目的でグラフを扱う CUI アプリケーションを作りたい場合，
- * こいつを使うと便利です．ズボラな人用．必ず本体から 1 度のみ include されるようにして下さい．
- */
-
 #pragma once
 #include <iostream>
 #include <sstream>
@@ -33,7 +28,7 @@ template<typename GraphType = G>
 string guess_type() {
   FILE* fp = fopen(FLAGS_graph.c_str(), "r");
   if(fp == NULL) return "built_in";
-  
+
   char buf[20];
   if(fgets(buf, sizeof(buf), fp) == NULL){
     string mes = "An error occured on read '" + FLAGS_graph + "'.";
@@ -58,7 +53,6 @@ GraphType easy_cui_init(int argc, char **argv) {
   if(FLAGS_type == "auto")
     FLAGS_type = guess_type();
 
-  //agl形式は隣接リストを介すると効率が悪いため、直接GraphTypeを生成する
   if (FLAGS_type == "agl") {
     auto g = read_graph_binary<G>(FLAGS_graph.c_str());
     if(FLAGS_force_undirected){
@@ -71,8 +65,6 @@ GraphType easy_cui_init(int argc, char **argv) {
   G::edge_list_type es;
   if (FLAGS_type == "tsv") {
     es = read_edge_list_tsv(FLAGS_graph.c_str());
-  } else if (FLAGS_type == "built_in") {
-    es = built_in_edge_list(FLAGS_graph.c_str());
   } else if (FLAGS_type == "gen") {
     istringstream iss(FLAGS_graph);
     string family;

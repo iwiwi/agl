@@ -1,4 +1,8 @@
 #include "agl.h"
+#include <vector>
+#include <set>
+#include <map>
+#include <queue>
 
 namespace agl {
 namespace box_cover_internal {

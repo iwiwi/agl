@@ -1,4 +1,5 @@
 #include "box_cover.h"
+#include <queue>
 using namespace std;
 
 namespace agl{
