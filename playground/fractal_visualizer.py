@@ -18,24 +18,26 @@ def loadTSV(tsv_file):
 
 
 def getMergedList(G, centers_list, rad):
-    merged = [-1] * nx.number_of_nodes(G)
+    N = nx.number_of_nodes(G)
+    merged = [-1] * N
+    queue = []
+    cnt = 0
     for start in centers_list:
-        used = [False] * nx.number_of_nodes(G)
-        queue = [(start, 0)]
+        queue.append(start)
         merged[start] = start
-        used[start] = True
-        while queue:
-            q = queue.pop(0)
-            d = q[1]
-            neighbor_list = G.neighbors(q[0])
-            for u in neighbor_list:
-                if used[u]:
-                    continue
-                if merged[u] < 0:
-                    merged[u] = start
-                if d < rad:
-                    queue.append((u, d + 1))
-                used[u] = True
+        cnt += 1
+    print "centers loaded"
+    while queue:
+        q = queue.pop(0)
+        neighbor_list = G.neighbors(q)
+        for u in neighbor_list:
+            if merged[u] >= 0:
+                continue
+            merged[u] = merged[q]
+            queue.append(u)
+            cnt += 1
+            if cnt % 1000 == 0:
+                print cnt
     return merged
 
 
@@ -43,7 +45,6 @@ def shrinkGraph(G, centers_list, rad, need_pos=False):
     merged = getMergedList(G, centers_list, rad)
     covered_size = [0] * nx.number_of_nodes(G)
     for m in merged:
-
         covered_size[m] += 1
     p = pd.DataFrame(G.edges())
     shrinked_edges = []
@@ -68,7 +69,7 @@ if __name__ == "__main__":
     f = open(sys.argv[2], 'r')
     centers = json.load(f)["centers"]
     f.close()
-    print "loaded"
+    print "graph loaded"
 
     rad_list = []
     centers_dict = {}
@@ -78,11 +79,12 @@ if __name__ == "__main__":
         rad_list.append(rad)
         centers_dict[rad] = pair[rad_str]
     rad_list.sort()
+    print "jlog loaded"
 
     pos = {}
     for rad in rad_list:
         print rad
-        if len(centers_dict[rad]) > 3000:
+        if len(centers_dict[rad]) > 500:
             continue
         if len(pos) == 0:
             shrinked_G, pos, covered_size = shrinkGraph(

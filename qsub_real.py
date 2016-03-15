@@ -5,7 +5,7 @@ import subprocess
 def torque_nageru():
     graph_names = [
 
-        "web-Stanford.agl",
+        # "web-Stanford.agl",
         # "web-NotreDame.agl",
         # "twitter_combined.agl",
         # # "amazon0302.agl",
@@ -70,8 +70,8 @@ def torque_nageru():
         # "roadNet-PA.agl",
         # "com-youtube.ungraph.agl",
         # "amazon0601.agl",
-        # # "amazon0505.agl",
-        # # "amazon0312.agl",
+        # "amazon0505.agl",
+        # "amazon0312.agl",
     ]
 
     exp_tag = "snap"
@@ -98,7 +98,7 @@ def torque_nageru():
             "-upper_param." + str(upper_param)
         p1 = subprocess.Popen(["echo", command], stdout=subprocess.PIPE)
         p2 = subprocess.Popen(
-            ["qsub", "-l", "walltime=48:00:00,nodes=long:ppn=24", "-p", "-10", "-N", job_name], stdin=p1.stdout)
+            ["qsub", "-l", "walltime=48:00:00,nodes=long:ppn=12", "-p", "-10", "-N", job_name], stdin=p1.stdout)
         p1.stdout.close()
         output = p2.communicate()[0]
 
