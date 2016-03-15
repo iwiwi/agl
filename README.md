@@ -30,7 +30,7 @@
 |-rad_max         |Maximum radius.                                  |int32 |100000000|
 |-random_seed     |Random seed.                                    |int64|922337203685477583|
 
-### Available Mtehods
+### Available Methods
 
 |Name|Method|
 |:--|:--|
