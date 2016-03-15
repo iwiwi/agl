@@ -71,7 +71,7 @@ int main(int argc, char** argv) {
       for (int i = 0; i < N; ++i) distribution[g.degree(i)]++;
       while (distribution.back() == 0) distribution.pop_back();
       for (int i = 0; i < distribution.size(); ++i)
-        JLOG_PUT(to_string(i).data(), (double)distribution[i] / N);
+        JLOG_PUT(to_string(i).data(), distribution[i]);
     }
 
     string json = load_json(FLAGS_jlog_file);
@@ -96,7 +96,7 @@ int main(int argc, char** argv) {
           while (!distribution.empty() && distribution.back() == 0)
             distribution.pop_back();
           for (int i = 0; i < distribution.size(); ++i)
-            JLOG_PUT(to_string(i).data(), (double)distribution[i] / N);
+            JLOG_PUT(to_string(i).data(), distribution[i]);
         }
       }
     }

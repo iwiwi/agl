@@ -5,7 +5,7 @@ import numpy as np
 import scipy.optimize
 import matplotlib.pyplot as plt
 import statsmodels.api as sm
-# import seaborn as sns
+import seaborn as sns
 import json
 import sys
 import re
@@ -92,14 +92,15 @@ def saveFig(jsonData):
     name = jsonData['name']
 
     plt.xlim(xmin=0.5)
-    plt.xlim(xmax=10000)
+    plt.xlim(xmax=100)
     plt.ylim(ymin=1)
-    plt.ylim(ymax=10000000)
+    plt.ylim(ymax=1000000)
+    plt.tight_layout(pad=0.2)
     plt.xscale("log")
     plt.yscale("log")
-    plt.legend(loc='best', fontsize=18)
+    plt.legend(loc='best', fontsize=15)
     plt.savefig(graph_name + "_" + str(vertices) + "_" + name + ".png")
-    plt.savefig(graph_name + "_" + str(vertices) + "_" + name + ".pdf")
+    # plt.savefig(graph_name + "_" + str(vertices) + "_" + name + ".pdf")
 
 
 def theoreticalValue(beta, x):
@@ -164,7 +165,12 @@ if __name__ == "__main__":
 
         px, py, pname = xy_from_json(json_data)
         # plt.plot(px, py, 'o', label=pname)
-        plt.plot(px, py, 'o', label=json_data['name'])
+        # plt.plot(px, py, 'o', label=json_data['name'])
+        graph_name = json_data['graph_info'][0]['graph'].replace(" ", "_")
+        if '/' in graph_name:
+            r = re.compile("/([a-zA-Z0-9_\-\.@]*)$")
+            m = r.search(graph_name)
+            graph_name = m.group(1)
 
         # px = px[4:]
         # py = py[4:]
@@ -176,8 +182,10 @@ if __name__ == "__main__":
 
         plotLine(fracResult[0])
         plotExpo(expoResult[0])
-        print fitFunc(fracResult[0], px, py)
-        print expoFit(expoResult[0], px, py)
+        f = sum(fitFunc(fracResult[0], px, py)**2)
+        e = sum(expoFit(expoResult[0], px, py)**2)
+        plt.plot(px, py, 'o', label=graph_name +
+                 " (" + str(np.log10(e / f)) + ")")
         # plotAnalytical(json_data)
         saveFig(json_data)
         plt.close()
