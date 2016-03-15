@@ -77,12 +77,7 @@ GraphType easy_cui_init(int argc, char **argv) {
     istringstream iss(FLAGS_graph);
     string family;
     iss >> family;
-    if (family == "grid") {
-      size_t r, c;
-      if (!(iss >> r)) r = 4;
-      if (!(iss >> c)) c = r;
-      es = generate_grid(r, c);
-    } else if (family == "erdos_renyi") {
+    if (family == "erdos_renyi") {
       V n;
       double d;
       if (!(iss >> n)) n = 10;

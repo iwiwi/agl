@@ -24,19 +24,6 @@ unweighted_edge_list generate_erdos_renyi(V num_vertices, double avg_deg) {
   return vector<pair<V, V>>(es.begin(), es.end());
 };
 
-unweighted_edge_list generate_grid(size_t num_rows, size_t num_cols) {
-  auto vid = [=](int i, int j) { return i * num_cols + j; };
-
-  vector<pair<V, V>> es;
-  for (auto i : make_irange(num_rows)) {
-    for (auto j : make_irange(num_cols)) {
-      if (j + 1 < num_cols) es.emplace_back(vid(i, j), vid(i, j + 1));
-      if (i + 1 < num_rows) es.emplace_back(vid(i, j), vid(i + 1, j));
-    }
-  }
-  return es;
-}
-
 /**
  * Generate a random scale-free network by the Barabasi-Albert (BA) model.
  * The degree distribution resulting from the BA model is scale free
