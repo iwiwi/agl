@@ -22,7 +22,7 @@ using namespace agl;
 
 DEFINE_string(type, "auto", "auto, tsv, agl, built_in, gen");
 DEFINE_string(graph, "-", "input graph");
-DEFINE_bool(force_undirected, false, "Automatically add reverse edges?");
+DEFINE_bool(force_undirected, true, "Automatically add reverse edges?");
 
 template<typename GraphType = G>
 string guess_type() {
