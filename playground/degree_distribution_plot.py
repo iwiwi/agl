@@ -46,7 +46,7 @@ if __name__ == "__main__":
         # axes = fig.add_subplot(1, 1, 1)
         plt.xscale("log")
         plt.yscale("log")
-        plt.ylabel("$p(k)$", labelpad=5, fontsize=labelfontsize)
+        plt.ylabel("$N(k)$", labelpad=5, fontsize=labelfontsize)
         plt.xlabel("$k$", fontsize=labelfontsize)
 
         plt.tight_layout(pad=0.2)
