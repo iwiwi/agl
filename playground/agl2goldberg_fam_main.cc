@@ -14,22 +14,6 @@
 using namespace std;
 using ll = long long;
 
-string file_base_name(string name) {
-  string ret;
-  int cnt = 0;
-  for (auto c : name) {
-    ret.push_back(c);
-    if (c == '.') cnt = 0;
-    cnt++;
-  }
-  if (cnt == ret.size()) cnt = 0;
-  while (cnt) {
-    cnt--;
-    ret.pop_back();
-  }
-  return ret;
-}
-
 vector<char> fread(FILE* fp, int size) {
   vector<char> ret(size);
   fread(&ret[0], size, 1, fp);
@@ -61,13 +45,13 @@ void fwrite(FILE* fp, ll v) {
 
 int main(int argc, char** argv) {
 
-  if (argc < 2) {
-    fprintf(stderr, "usage : graph.agl\n");
+  if (argc < 3) {
+    fprintf(stderr, "usage : graph.agl output.fam\n");
     exit(-1);
   }
 
   string input_file_name = argv[1];
-  string output_file_name = file_base_name(argv[1]) + ".fam";
+  string output_file_name = argv[2];
   fprintf(stderr, "write fam to : '%s'.\n", output_file_name.c_str());
   FILE* ip = fopen(input_file_name.c_str(), "rb");
 
