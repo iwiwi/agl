@@ -18,7 +18,6 @@
 ### Options
 |Options          |                                                |Type   |Default|
 |:----------------|:-----------------------------------------------|:-----:|:----:|
-|-force_undirected|Automatically add reverse edges? (This option must always be specified) | bool  |false  |
 |-type            |Graph file type (auto, tsv, agl, built_in, gen) |string | "auto"|
 |-graph           |Input graph                                     |string | "-"   |
 |-method          |Using method (see below)           |string |"sketch"|
