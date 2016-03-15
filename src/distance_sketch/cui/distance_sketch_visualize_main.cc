@@ -64,7 +64,7 @@ struct distance_sketch_visualizer {
           gz.set_edge_property(v, e.v, "dir", dir_str);
           gz.set_edge_property(v, e.v, "color", color);
           gz.set_edge_property(v, e.v, "style", "solid");
-          if (e.d > 1) gz.set_edge_property(v, e.v, "label", to_string(e.d));
+          if (draw_weight && e.d > 1) gz.set_edge_property(v, e.v, "label", to_string(e.d));
         }
       }
     }
@@ -104,7 +104,7 @@ int main(int argc, char **argv) {
     distance_sketch_visualizer dsv;
     if (b) dsv.gz.set_edge_property("style", [](V, V){ return "dashed"; });
     if (b & 1) dsv.add_sketch_edges(&ads, "orange");
-    if (b & 2) dsv.add_sketch_edges(&srs, "lightskyblue", true);
+    if (b & 2) dsv.add_sketch_edges(&srs, "blue", true);
     dsv.gz.set_edge_property("arrowsize", [](V, V) { return "0.5"; });
     dsv.generate();
   }
@@ -127,7 +127,7 @@ int main(int argc, char **argv) {
 
     for (auto &i : dsv.gz.edge_properties()) {
       V u = i.first.first, v = i.first.second;
-      if (abs(ds[v] - ds[u]) == 1) {
+      if (is_adjacent(g, u, v) && abs(ds[v] - ds[u]) == 1) {
           i.second["penwidth"] = "2";
           i.second["style"] = "solid";
           i.second["color"] = "blue";
@@ -141,6 +141,8 @@ int main(int argc, char **argv) {
           dsv.gz.set_edge_property(v, e.v, "penwidth", "2");
           dsv.gz.set_edge_property(v, e.v, "style", "solid");
           dsv.gz.set_edge_property(v, e.v, "color", "blue");
+
+          if (e.d > 1) dsv.gz.set_edge_property(v, e.v, "label", to_string(e.d));
         }
       }
     }
