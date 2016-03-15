@@ -7,21 +7,6 @@
 using namespace agl;
 using namespace std;
 
-TEST(gen_radom_spanning_tree, connectivity) {
-  for (int trial = 0; trial < 10; ++trial) {
-    V num_vs = 1 + agl::random(100000);
-    auto es = generate_random_spanning_tree(num_vs);
-
-    // Number of edges
-    ASSERT_EQ((V)es.size(), num_vs - 1);
-
-    // Connectivity
-    G g(make_undirected(es));
-    pretty_print(g);
-    ASSERT_TRUE(is_connected(g));
-  }
-}
-
 TEST(gen_ba, random_num_vertices) {
   for (int trial = 0; trial < 10; ++trial) {
     V M = agl::random(1000) + 3;

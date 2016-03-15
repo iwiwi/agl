@@ -10,8 +10,6 @@ unweighted_edge_list generate_ba(V final_num, V initial_num);
 unweighted_edge_list generate_uv_flower(V required_num, V u, V v);
 unweighted_edge_list generate_shm(V required_num, V initial_num, int t, double P = 0.0);
 
-unweighted_edge_list generate_random_spanning_tree(V num_vertices);
-
 unweighted_edge_list make_undirected(const unweighted_edge_list &es);
 
 template<typename GraphType>

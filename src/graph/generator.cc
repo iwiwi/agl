@@ -186,21 +186,6 @@ unweighted_edge_list generate_shm(V required_num, V initial_num, int t, double P
   return es;
 }
 
-unweighted_edge_list generate_random_spanning_tree(V num_vertices) {
-  union_find uf(num_vertices);
-  unweighted_edge_list es;
-  std::uniform_int_distribution<V> rng(0, num_vertices - 1);
-
-  while (es.size() + 1 < (size_t)num_vertices) {
-    V u = rng(agl::random), v = rng(agl::random);
-    if (uf.is_same(u, v)) continue;
-    es.emplace_back(u, v);
-    uf.unite(u, v);
-  }
-
-  return es;
-}
-
 unweighted_edge_list make_undirected(const unweighted_edge_list& es) {
   unweighted_edge_list out(es.size() * 2);
   for (auto i : make_irange(es.size())) {
