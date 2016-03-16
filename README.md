@@ -1,13 +1,14 @@
-# Box-Cover Algorithms
+Box-Cover Algorithms
+========================
 
-## Building
+# Building
 
 ```
 ./waf configure
 ./waf
 ```
 
-## Running
+# Running
 
 ```
 ./bin/box_cover -type=tsv -graph=/data/graph_edges.tsv \
@@ -15,10 +16,10 @@
  -random_seed=114514 
 ```
 
-### Options
+## Options
 |Options          |                                                |Type   |Default|
 |:----------------|:-----------------------------------------------|:-----:|:----:|
-|-type            |Graph file type (auto, tsv, agl, built_in, gen) |string | "auto"|
+|-type            |Graph file type (auto, tsv, agl, gen) |string | "auto"|
 |-graph           |Input graph                                     |string | "-"   |
 |-method          |Using method (see below)           |string |"sketch"|
 |-alpha           |Index size limit to use MEMB (alpha * N * k)        |double |1.0    |
@@ -30,7 +31,7 @@
 |-rad_max         |Maximum radius.                                  |int32 |100000000|
 |-random_seed     |Random seed.                                    |int64|922337203685477583|
 
-### Available Methods
+## Available Methods
 
 |Name|Method|
 |:--|:--|
@@ -41,6 +42,36 @@
 |burning|Burning (Schneider et al. 2012)|
 |analytical|Optimal solutions of Box-Cover of (u,v)-flower or SHM-model|
 
-## LICENSE
+
+# Supported Formats
+
+`bin/box_cover` works with TSV file, AGL file and User-Generated graph.
+
+## TSV files 
+* By using the option `-type=tsv`, you can specify .tsv file as the graph file with the option `-graph=...`.
+* In a .tsv file, each line should contain two integers describing an edge (see below).
+* Vertices should be described by integers starting from zero.
+
+### TSV file example
+```
+0 1
+0 2
+1 2
+```
+
+## AGL files
+__math is GOD.
+
+## User-Generated graph
+* By using the option `-type=gen`, you can generate and use famous network models.
+
+### Barabási–Albert model
+### (u, v)-flower
+### Song-Havlin-Makse model
+
+# Unit Test
+Execute `bin/test` to run tests.
+
+# LICENSE
 
 This software is released under the MIT License, see LICENSE.txt.
