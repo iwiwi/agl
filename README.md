@@ -19,7 +19,7 @@ Box-Cover Algorithms
 ## Options
 |Options          |                                                |Type   |Default|
 |:----------------|:-----------------------------------------------|:-----:|:----:|
-|-type            |Graph file type (auto, tsv, agl, gen) |string | "auto"|
+|-type            |Graph file type (auto, tsv, gen) |string | "auto"|
 |-graph           |Input graph                                     |string | "-"   |
 |-method          |Using method (see below)           |string |"sketch"|
 |-alpha           |Index size limit to use MEMB (alpha * N * k)        |double |1.0    |
@@ -45,7 +45,7 @@ Box-Cover Algorithms
 
 # Supported Formats
 
-`bin/box_cover` works with TSV file, AGL file and User-Generated graph.
+`bin/box_cover` works with TSV file and User-Generated graph.
 
 ## TSV files 
 * By using the option `-type=tsv`, you can specify .tsv file as the graph file with the option `-graph=...`.
@@ -58,9 +58,6 @@ Box-Cover Algorithms
 0 2
 1 2
 ```
-
-## AGL files
-__math is GOD.
 
 ## User-Generated graph
 By using the option `-type=gen`, you can generate and use famous network models.
