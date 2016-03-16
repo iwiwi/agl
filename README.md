@@ -76,3 +76,30 @@ box_cover --type gen --graph "flower 2000 2 2" --rad_analytical --sketch_k 128 -
 ./scatter_plot.py [同一アルゴリズムの同一グラフに対する計測結果のJLOGたち]
 ./scatter_plot.py sketch-flower-223950-3-3-*
 ```
+
+# 可視化まわり
+## 次数分布を出力
+`./bin/box_cover` が出力した jlog ファイルをからグラフの次数分布をjlogに出力する。
+```
+./bin/degree_distribution --type agl --graph [グラフファイル] --force_undirected --jlog_file [box_cover が出力したjlogファイル] 
+./bin/degree_distribution --type agl --graph hoge.agl --force_undirected --jlog_file hogehoge.jlog 
+```
+## 次数分布を描画
+```
+./degree_distribution_plot.py [degree_distributionが出した jlog ファイル]
+./degree_distribution_plot.py degree_distribution.jlog
+```
+
+## 最大連結成分を抽出
+最大連結成分を TSV にして出力する
+```
+./bin/largest_connected_tsv --type agl --graph [グラフファイル] --force_undirected > hoge.tsv
+./bin/largest_connected_tsv --type agl --graph hoge.agl --force_undirected > hoge.tsv
+```
+
+## 座標の位置を固定しながら可視化
+険しすぎ
+```
+./fractal_visualizer.py [グラフのtsvファイル（連結でなければダメ）] [box_cover が出力したjlogファイル]
+./fractal_visualizer.py largest_connected.tsv box_cover.jlog
+```
