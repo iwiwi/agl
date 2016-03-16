@@ -17,6 +17,8 @@ class disjoint_cut_set {
   };
 
   void erase(int node_id) {
+    group_size[nodes[node_id].root]--;
+
     int pv = nodes[node_id].pv, nt = nodes[node_id].nt;
     if (pv != -1) {
       nodes[pv].nt = nt;
@@ -30,6 +32,8 @@ class disjoint_cut_set {
   }
 
   void add(int node_id, int group_id) {
+    group_size[group_id]++;
+
     int nt = root[group_id];
     nodes[node_id].root = group_id;
     nodes[node_id].pv = -1;
@@ -41,7 +45,7 @@ class disjoint_cut_set {
   }
 
 public:
-  disjoint_cut_set(int n) : root(n, -1), nodes(n), group_num(1) {
+  disjoint_cut_set(int n) : root(n, -1), nodes(n), group_num(1), group_size(n) {
     root[0] = 0;
     nodes[0].pv = -1;
     nodes[n - 1].nt = -1;
@@ -50,6 +54,7 @@ public:
       nodes[i + 1].pv = i;
     }
     FOR(i, n) nodes[i].root = 0;
+    group_size[0] = n;
   }
 
   void create_new_group(int id) {
@@ -113,6 +118,10 @@ public:
     return nodes[id].root;
   }
 
+  int size_of_group(int grp_id) const {
+    return group_size[grp_id];
+  }
+
   int debug_size_of_group(int grp_id) const {
     int cnt = 0;
     int cur = root[grp_id];
@@ -156,6 +165,7 @@ private:
   vector<int> root;
   vector<Node> nodes;
   int group_num;
+  vector<int> group_size;
 };
 
 class gomory_hu_tree_builder {
@@ -641,6 +651,7 @@ class OptimizedGusfieldWith2ECC {
     }
     FOR(g, num_vertices_) {
       auto v = dcs.get_group(g);
+      CHECK(sz(v) == dcs.size_of_group(g));
       FOR(i, sz(v) - 1) {
         int u = v[i], x = v[i + 1];
         CHECK(uf.is_same(u, x));
