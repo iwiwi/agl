@@ -87,6 +87,8 @@ if __name__ == "__main__":
     pos = {}
     for rad in rad_list:
         print rad
+
+        # continue if the number of vertices is too big
         if len(centers_dict[rad]) > 100 or len(centers_dict[rad]) <= 1:
             continue
         if len(pos) == 0:
@@ -98,6 +100,8 @@ if __name__ == "__main__":
         nx.draw_networkx_nodes(shrinked_G,
                                pos,
                                nodelist=shrinked_G.nodes(),
+
+                               # it is difficult to fix node_size...
                                node_size=[covered_size[v] /
                                           nx.number_of_nodes(G) for v in shrinked_G.nodes()],
                                scale=100.0
