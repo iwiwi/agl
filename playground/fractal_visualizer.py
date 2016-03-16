@@ -2,6 +2,7 @@
 # coding=utf-8
 
 import networkx as nx
+import matplotlib.pyplot as plt
 import sys
 import pandas as pd
 import numpy as np
@@ -86,7 +87,7 @@ if __name__ == "__main__":
     pos = {}
     for rad in rad_list:
         print rad
-        if len(centers_dict[rad]) > 500:
+        if len(centers_dict[rad]) > 100 or len(centers_dict[rad]) <= 1:
             continue
         if len(pos) == 0:
             shrinked_G, pos, covered_size = shrinkGraph(
@@ -97,10 +98,14 @@ if __name__ == "__main__":
         nx.draw_networkx_nodes(shrinked_G,
                                pos,
                                nodelist=shrinked_G.nodes(),
-                               node_size=[covered_size[v] / 1000 for v in shrinked_G.nodes()])
+                               node_size=[covered_size[v] /
+                                          nx.number_of_nodes(G) for v in shrinked_G.nodes()],
+                               scale=100.0
+                               )
         nx.draw_networkx_edges(shrinked_G, pos, width=0.1)
 
-        pylab.xlim(-1.1, 1.1)
-        pylab.ylim(-1.1, 1.1)
-        pylab.savefig(str(rad) + ".png")
-        pylab.close()
+        plt.xlim(-1.5, 1.5)
+        plt.ylim(-1.5, 1.5)
+        plt.savefig("visualize_" + str(rad) + ".png", dpi=300)
+        # plt.savefig("visualize_" + str(rad) + ".pdf", dpi=300)
+        plt.close()
