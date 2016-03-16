@@ -2,7 +2,7 @@
 #include "ConnectedComponentsFilter.h"
 #include "greedy_treepacking.h"
 
-DEFINE_int32(try_greedy_tree_packing, 2, "");
+DEFINE_int32(try_greedy_tree_packing, 1, "");
 DEFINE_int32(try_large_degree_pairs, 10, "");
 DEFINE_int32(choose_near_verices_d, 1, "");
 DEFINE_bool(enable_greedy_tree_packing, true, "");
@@ -266,7 +266,7 @@ class OptimizedGusfieldWith2ECC {
         packing.arborescence_packing(v);
 
         //debug infomation
-        if (num_vertices_ > 100) { 
+        if (num_vertices_ > 10000) { 
           JLOG_ADD("prune_obvious_mincut.gtp_edge_count", gtp_edge_count - gtp_edge_count_before);
           JLOG_ADD("prune_obvious_mincut.gtp_edge_miss", gtp_edge_miss - gtp_edge_miss_before);
           JLOG_ADD("prune_obvious_mincut.gtp_edge_use", gtp_edge_use - gtp_edge_use_before);
@@ -307,7 +307,7 @@ class OptimizedGusfieldWith2ECC {
       }
     }
 
-    if (num_vertices_ > 100) {
+    if (num_vertices_ > 10000) {
       JLOG_OPEN("prune") {
         JLOG_ADD("num_vs", num_vertices_);
         JLOG_ADD("pruned", pruned);
@@ -654,7 +654,7 @@ public:
     num_vertices_(num_vs),
     gh_builder_(num_vs) {
 
-    if(num_vs > 1000) fprintf(stderr, "OptimizedGusfieldWith2ECC::constructor start : memory %ld MB\n", jlog_internal::get_memory_usage() / 1024);
+    if(num_vs > 10000) fprintf(stderr, "OptimizedGusfieldWith2ECC::constructor start : memory %ld MB\n", jlog_internal::get_memory_usage() / 1024);
     vector<int> degree(num_vertices_);
     for (auto& e : edges) degree[e.first]++, degree[e.second]++;
 
@@ -677,10 +677,10 @@ public:
     auto preflow_eq_degree_before = preflow_eq_degree;
     auto flow_eq_0_before = flow_eq_0;
 
-    if(num_vs > 1000) fprintf(stderr, "OptimizedGusfieldWith2ECC::dinic_twosided before init : memory %ld MB\n", jlog_internal::get_memory_usage() / 1024);
+    if(num_vs > 10000) fprintf(stderr, "OptimizedGusfieldWith2ECC::dinic_twosided before init : memory %ld MB\n", jlog_internal::get_memory_usage() / 1024);
     //dinicの初期化
     dinic_twosided dc_base(std::move(edges), num_vs);
-    if(num_vs > 1000) fprintf(stderr, "OptimizedGusfieldWith2ECC::dinic_twosided after init : memory %ld MB\n", jlog_internal::get_memory_usage() / 1024);
+    if(num_vs > 10000) fprintf(stderr, "OptimizedGusfieldWith2ECC::dinic_twosided after init : memory %ld MB\n", jlog_internal::get_memory_usage() / 1024);
 
     mincut_init();
 
@@ -690,7 +690,7 @@ public:
 
     // 次数の高い頂点対をcutする
     // グラフをなるべく2分するcutを見つけられると有用
-    if (num_vs > 100) {
+    if (num_vs > 10000) {
       cut_large_degree_pairs(dc_base, dcs);
     }
 
@@ -714,7 +714,7 @@ public:
     auto preflow_eq_degree_after = preflow_eq_degree;
     auto flow_eq_0_after = flow_eq_0;
 
-    if (num_vertices_ > 100) {
+    if (num_vertices_ > 10000) {
       JLOG_OPEN("sp_dfs") {
         JLOG_ADD("preflow_eq_degree", preflow_eq_degree_after - preflow_eq_degree_before);
         JLOG_ADD("flow_eq_0", flow_eq_0_after - flow_eq_0_before);
