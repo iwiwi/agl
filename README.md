@@ -26,7 +26,7 @@ Box-Cover Algorithms
 |-least_coverage  |Least coverage.                   |double |1.0|
 |-sketch_k        |sketch k                                        |int32|128|
 |-multipass       |Maximum number of multi-pass      |int32|1000000000|
-|-rad_analytical  |Use analytical diameters for radius?            | bool|false|
+|-rad_analytical  |Use analytical diameters?         | bool|false|
 |-rad_min         |Minimum radius.                                  |int32 |  1|
 |-rad_max         |Maximum radius.                                  |int32 |100000000|
 |-random_seed     |Random seed.                                    |int64|922337203685477583|
@@ -63,9 +63,14 @@ Box-Cover Algorithms
 __math is GOD.
 
 ## User-Generated graph
-* By using the option `-type=gen`, you can generate and use famous network models.
+By using the option `-type=gen`, you can generate and use famous network models.
+```
+./bin/box_cover -type=gen -graph="ba 1000 3"
+```
 
 ### Barabási–Albert model
+By using `-graph="ba v u"`, you can generate and use Barabási–Albert model with v nodes, which is generated from complete graph with u nodes.
+
 ### (u, v)-flower
 ### Song-Havlin-Makse model
 
