@@ -1,6 +1,6 @@
 #pragma once
 
-DEFINE_int32(gtp_dfs_edge_max, 3, "");
+DEFINE_int32(gtp_dfs_edge_max, 1000000000, "");
 long long gtp_edge_count = 0;
 long long gtp_edge_miss = 0;
 long long gtp_edge_use = 0;
