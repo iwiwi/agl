@@ -70,6 +70,7 @@ By using the option `-type=gen`, you can generate and use famous network models.
 
 ### Barabási–Albert model
 By using `-graph="ba v u"`, you can generate and use Barabási–Albert model with v nodes, which is generated from complete graph with u nodes.
+For example, by using `-graph="ba 1000 3"`, a BA model graph, which has 1000 nodes and 2994 edges, will be genearated.
 
 ### (u, v)-flower
 ### Song-Havlin-Makse model
