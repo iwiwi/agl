@@ -70,10 +70,18 @@ By using the option `-type=gen`, you can generate and use famous network models.
 
 ### Barabási–Albert model
 By using `-graph="ba v u"`, you can generate and use Barabási–Albert model with v nodes, which is generated from complete graph with u nodes.
+
 For example, by using `-graph="ba 1000 3"`, a BA model graph, which has 1000 nodes and 2994 edges, will be genearated.
 
 ### (u, v)-flower
+By using `-graph="flower N u v"`, you can generate and use (u, v)-flower which has at least N nodes.
+
+For example, by using `-graph="flower 1000 1 2"`, (1, 2)-flower, which has 1095 nodes, will be genearated.
+
 ### Song-Havlin-Makse model
+By using `-graph="shm N s t"`, you can generate and use Song-Havlin-Makse model which is generated from s-nodes star graph, added t*d new nodes to each node of degree d in each step, and finally has at least N nodes.
+
+For example, by using `-graph="shm 1000 5 2"`, SHM model, which is generated from 5-nodes star graph and has 2501 nodes and 2500 edges, will be genearated.
 
 # Unit Test
 Execute `bin/test` to run tests.
