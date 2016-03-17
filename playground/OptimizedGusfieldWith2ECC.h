@@ -5,6 +5,7 @@
 DEFINE_int32(try_greedy_tree_packing, 1, "");
 DEFINE_int32(try_large_degree_pairs, 10, "");
 DEFINE_int32(separete_near_pairs_d, 1, "");
+DEFINE_int32(contraction_lower_bound, 2, "");
 DEFINE_bool(enable_greedy_tree_packing, true, "");
 DEFINE_bool(enable_logging_max_flow_details, false, "");
 DEFINE_bool(enable_adjacent_cut, true, "");
@@ -458,10 +459,14 @@ class OptimizedGusfieldWith2ECC {
       /*
       * separate phase
       */
-      const int separate_upper_bound = 1;
-      const bool sside_separate = (sside == min_side && dc_base.reason_for_finishing_bfs == bi_dinitz::kQsIsEmpty && sside > separate_upper_bound);
-      const bool tside_separate = (tside == min_side && dc_base.reason_for_finishing_bfs == bi_dinitz::kQtIsEmpty && tside > separate_upper_bound);
-      if (sside_separate || tside_separate) {
+      const bool sside_contraction = sside == min_side && 
+        dc_base.reason_for_finishing_bfs == bi_dinitz::kQsIsEmpty &&
+        sside >= FLAGS_contraction_lower_bound;
+      const bool tside_contraction = tside == min_side &&
+        dc_base.reason_for_finishing_bfs == bi_dinitz::kQtIsEmpty &&
+        tside >= FLAGS_contraction_lower_bound;
+
+      if (sside_contraction || tside_contraction) {
         sep_count++;
         //gomory_hu algorithm
         //縮約後の頂点2つを追加する
@@ -474,7 +479,7 @@ class OptimizedGusfieldWith2ECC {
         }
 
         int num_reconnected = 0; //枝を繋ぎ直した回数
-        if (sside_separate) {
+        if (sside_contraction) {
           q.push(s);
           gomory_hu_cut_used[s] = F;
           while (!q.empty()) {
