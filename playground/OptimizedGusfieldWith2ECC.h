@@ -18,7 +18,7 @@ class disjoint_cut_set {
   };
 
   void erase(int node_id) {
-    group_size[nodes[node_id].root]--;
+    group_size_[nodes[node_id].root]--;
 
     int pv = nodes[node_id].pv, nt = nodes[node_id].nt;
     if (pv != -1) {
@@ -33,7 +33,7 @@ class disjoint_cut_set {
   }
 
   void add(int node_id, int group_id) {
-    group_size[group_id]++;
+    group_size_[group_id]++;
 
     int nt = root[group_id];
     nodes[node_id].root = group_id;
@@ -46,7 +46,7 @@ class disjoint_cut_set {
   }
 
 public:
-  disjoint_cut_set(int n) : root(n, -1), nodes(n), group_num(1), group_size(n) {
+  disjoint_cut_set(int n) : root(n, -1), nodes(n), group_num(1), group_size_(n) {
     root[0] = 0;
     nodes[0].pv = -1;
     nodes[n - 1].nt = -1;
@@ -55,7 +55,7 @@ public:
       nodes[i + 1].pv = i;
     }
     FOR(i, n) nodes[i].root = 0;
-    group_size[0] = n;
+    group_size_[0] = n;
   }
 
   void create_new_group(int id) {
@@ -71,15 +71,6 @@ public:
   void move_other_group(int src, int dst) {
     erase(src);
     add(src, nodes[dst].root);
-  }
-
-  bool has_another_id_in_same_group(int id) const {
-    const int grp_id = nodes[id].root;
-    const int rt = root[grp_id];
-    CHECK(rt != -1);
-    if (rt != id) return true;
-    const int nxt = nodes[rt].nt;
-    return nxt != -1;
   }
 
   int other_id_in_same_group(int id) const {
@@ -119,11 +110,11 @@ public:
     return nodes[id].root;
   }
 
-  int size_of_group(int grp_id) const {
-    return group_size[grp_id];
+  int group_size(int grp_id) const {
+    return group_size_[grp_id];
   }
 
-  int debug_size_of_group(int grp_id) const {
+  int debug_group_size(int grp_id) const {
     int cnt = 0;
     int cur = root[grp_id];
     while (cur != -1) {
@@ -166,7 +157,7 @@ private:
   vector<int> root;
   vector<Node> nodes;
   int group_num;
-  vector<int> group_size;
+  vector<int> group_size_;
 };
 
 class gomory_hu_tree_builder {
@@ -540,7 +531,7 @@ class OptimizedGusfieldWith2ECC {
   void separete_high_degree_pairs(bi_dinitz& dc_base, disjoint_cut_set& dcs) {
     vector<int> vtxs;
     FOR(v, num_vertices_) {
-      if (dcs.has_another_id_in_same_group(v)) vtxs.push_back(v);
+      if (dcs.group_size(v) >= 2) vtxs.push_back(v);
     }
     const int tries = max(min(FLAGS_try_large_degree_pairs, sz(vtxs) - 1), 0);
     partial_sort(vtxs.begin(), vtxs.begin() + tries, vtxs.end(), [&dc_base](V l, V r) {
@@ -604,7 +595,7 @@ class OptimizedGusfieldWith2ECC {
     int used_revision = 0;
 
     FOR(s, num_vertices_) {
-      if(!dcs.has_another_id_in_same_group(s)) continue;
+      if(dcs.group_size(s) <= 1) continue;
       queue<V> q;
       q.push(s);
       used[s] = used_revision;
@@ -640,7 +631,7 @@ class OptimizedGusfieldWith2ECC {
     int max_degree_vtx = 0;
     FOR(v, num_vertices_) if (sz(dc_base.e[max_degree_vtx]) < sz(dc_base.e[v])) max_degree_vtx = v;
 
-    dc_base.special_bfs_init(max_degree_vtx);
+    dc_base.goal_oriented_bfs_init(max_degree_vtx);
     FOR(v, num_vertices_) {
       if (v == max_degree_vtx) continue;
       if (!dcs.is_same_group(v, max_degree_vtx)) continue;
@@ -656,7 +647,7 @@ class OptimizedGusfieldWith2ECC {
     }
     FOR(g, num_vertices_) {
       auto v = dcs.get_group(g);
-      CHECK(sz(v) == dcs.size_of_group(g));
+      CHECK(sz(v) == dcs.group_size(g));
       FOR(i, sz(v) - 1) {
         int u = v[i], x = v[i + 1];
         CHECK(uf.is_same(u, x));

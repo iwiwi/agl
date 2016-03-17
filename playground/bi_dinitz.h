@@ -1,7 +1,7 @@
 #pragma once
 
 DEFINE_int32(flow_iter, 1, "");
-DEFINE_int32(special_dfs_aster_ub, 2, "");
+DEFINE_int32(goal_oriented_dfs_aster_ub, 2, "");
 
 long long getcap_counter = 0;
 long long addcap_counter = 0;
@@ -60,7 +60,7 @@ private:
     }
   };
 
-  bool two_sided_bfs(int s, int t) {
+  bool bi_dfs(int s, int t) {
     queue<int> qs, qt;
     qs.push(s); qt.push(t);
     level[s].first = level[t].second = 0;
@@ -118,7 +118,7 @@ private:
   }
 
   int dfs(int v, int t, bool use_slevel, int f) {
-    // special_dfs_aster_ub >= 3 を設定すると、dfs中に同じ辺を使ってしまい、辺のコストが破綻して f < 0 となることがある
+    // goal_oriented_dfs_aster_ub >= 3 を設定すると、dfs中に同じ辺を使ってしまい、辺のコストが破綻して f < 0 となることがある
     CHECK(f >= 0); 
 
     if (v == t) return f;
@@ -161,8 +161,8 @@ private:
     graph_revision = 0;
   }
 
-  int special_dfs_inner(int v, int flow,int astar_cost) {
-    if (v == special_bfs_root)
+  int goal_oriented_dfs_inner(int v, int flow,int astar_cost) {
+    if (v == goal_oriented_bfs_root)
       return flow;
 
     if (dfs_revision[v] != s_side_bfs_revision) {
@@ -172,16 +172,16 @@ private:
     for (int &i = iter[v]; i < sz(e[v]); i++) {
       E& to_edge = e[v][i];
       int to = to_edge.to;
-      int add_aster_cost = special_bfs_depth[to] - special_bfs_depth[v] + 1;
+      int add_aster_cost = goal_oriented_bfs_depth[to] - goal_oriented_bfs_depth[v] + 1;
       if(add_aster_cost == 2) return 0; //コストの増える頂点は辿らない
       int n_astar_cost = astar_cost + add_aster_cost;
-      if (n_astar_cost > FLAGS_special_dfs_aster_ub) {
+      if (n_astar_cost > FLAGS_goal_oriented_dfs_aster_ub) {
         //sort済なので, これより後で自身の深さよりも浅い頂点は存在しない
         return 0;
       }
       int cap = to_edge.cap(graph_revision);
       if (cap == 0) continue;
-      int d = special_dfs_inner(to, min(flow, cap), n_astar_cost);
+      int d = goal_oriented_dfs_inner(to, min(flow, cap), n_astar_cost);
       if (d > 0) {
         to_edge.add_cap(-d, graph_revision);
         e[to_edge.to][to_edge.reverse].add_cap(d, graph_revision);
@@ -192,8 +192,8 @@ private:
     return 0;
   }
 
-  //v -> special_bfs_root にflowを出来る限り送る
-  int special_dfs(int v) {
+  //v -> goal_oriented_bfs_root にflowを出来る限り送る
+  int goal_oriented_dfs(int v) {
     int flow = 0;
     s_side_bfs_revision += 2;
     t_side_bfs_revision += 2;
@@ -201,7 +201,7 @@ private:
     for (auto it = e[v].begin(); it != e[v].end(); ++it) {
       auto& to_edge = *it;
       while (to_edge.cap(graph_revision) > 0) {
-        int add = special_dfs_inner(to_edge.to, to_edge.cap(graph_revision), 0);
+        int add = goal_oriented_dfs_inner(to_edge.to, to_edge.cap(graph_revision), 0);
         if (add == 0) break;
         flow += add;
         to_edge.add_cap(-add, graph_revision);
@@ -215,21 +215,21 @@ public:
   bi_dinitz() : n(0) {}
   bi_dinitz(const G& g)
     : n(g.num_vertices()), level(n), iter(n), bfs_revision(n), dfs_revision(n), e(n),
-    s_side_bfs_revision(2), t_side_bfs_revision(3), graph_revision(0), special_bfs_root(-1) {
+    s_side_bfs_revision(2), t_side_bfs_revision(3), graph_revision(0), goal_oriented_bfs_root(-1) {
     FOR(v, n) for (auto& e : g.edges(v)) {
       add_undirected_edge(v, to(e), 1);
     }
   }
   bi_dinitz(const vector<pair<V, V>>& edges, int num_vs)
     : n(num_vs), level(n), iter(n), bfs_revision(n), dfs_revision(n), e(n),
-    s_side_bfs_revision(2), t_side_bfs_revision(3), graph_revision(0), special_bfs_root(-1) {
+    s_side_bfs_revision(2), t_side_bfs_revision(3), graph_revision(0), goal_oriented_bfs_root(-1) {
     for (auto& uv : edges) {
       add_undirected_edge(uv.first, uv.second, 1);
     }
   }
   bi_dinitz(vector<pair<V, V>>&& edges, int num_vs)
     : n(num_vs), level(n), iter(n), bfs_revision(n), dfs_revision(n), e(n),
-    s_side_bfs_revision(2), t_side_bfs_revision(3), graph_revision(0), special_bfs_root(-1) {
+    s_side_bfs_revision(2), t_side_bfs_revision(3), graph_revision(0), goal_oriented_bfs_root(-1) {
       edges.shrink_to_fit();
 
       //こまめに解放しながら辺を追加していく
@@ -284,8 +284,8 @@ public:
 
     int flow = 0;
     int preflow = 0;
-    if (special_bfs_root == t) {
-      preflow = special_dfs(s);
+    if (goal_oriented_bfs_root == t) {
+      preflow = goal_oriented_dfs(s);
     }
 
     if(preflow == sz(e[s])) {
@@ -297,7 +297,7 @@ public:
       int bfs_counter = 0;
       for (; ; s_side_bfs_revision += 2, t_side_bfs_revision += 2) {
         fprintf(stderr, "bfs_start\n");
-        bool path_found = two_sided_bfs(s, t);
+        bool path_found = bi_dfs(s, t);
         bfs_counter++;
         if (!path_found) break;
         while (true) {
@@ -364,21 +364,21 @@ public:
   }
 
   //rootを起点にbfsをして、 s -> rootのflowを高速化する
-  void special_bfs_init(int root) {
-    special_bfs_root = root;
-    special_bfs_depth.clear();
-    special_bfs_depth.resize(n, n); // bfsの深さをn(=INF)で初期化
+  void goal_oriented_bfs_init(int root) {
+    goal_oriented_bfs_root = root;
+    goal_oriented_bfs_depth.clear();
+    goal_oriented_bfs_depth.resize(n, n); // bfsの深さをn(=INF)で初期化
 
-                    // set special_bfs_depth
+                    // set goal_oriented_bfs_depth
     queue<int> q;
     q.push(root);
-    special_bfs_depth[root] = 0;
+    goal_oriented_bfs_depth[root] = 0;
     while (!q.empty()) {
       const int v = q.front(); q.pop();
-      const int ndepth = special_bfs_depth[v] + 1;
+      const int ndepth = goal_oriented_bfs_depth[v] + 1;
       for (auto& to_edge : e[v]) {
-        if (special_bfs_depth[to_edge.to] > ndepth) {
-          special_bfs_depth[to_edge.to] = ndepth;
+        if (goal_oriented_bfs_depth[to_edge.to] > ndepth) {
+          goal_oriented_bfs_depth[to_edge.to] = ndepth;
           q.push(to_edge.to);
         }
       }
@@ -387,7 +387,7 @@ public:
     //sort edges by depth order
     FOR(v, n) {
       // dep[l.to]は3つの値しか取らないので高速化可能
-      sort(e[v].begin(), e[v].end(), [&dep = special_bfs_depth](const E& l, const E& r) {
+      sort(e[v].begin(), e[v].end(), [&dep = goal_oriented_bfs_depth](const E& l, const E& r) {
         return dep[l.to] < dep[r.to];
       });
 
@@ -411,8 +411,8 @@ public:
   int graph_revision;
   reason_for_finishing_bfs_t reason_for_finishing_bfs;
 
-  int special_bfs_root;
-  vector<int> special_bfs_depth;
+  int goal_oriented_bfs_root;
+  vector<int> goal_oriented_bfs_depth;
 };
 
 #undef fprintf
