@@ -51,7 +51,7 @@ public:
   int query(V u, V v) {
     if (!uf_.is_same(u, v)) return 0;
     int lu = local_indices_[u], lv = local_indices_[v];
-  handler_t& handler = handlers_[handlers_indices_[uf_.root(u)]];
+    handler_t& handler = handlers_[handlers_indices_[uf_.root(u)]];
     if (lu == lv) {
       printf("u = %d, lu = %d, v = %d, lv = %d\n", u, lu, v, lv);
       CHECK(false);

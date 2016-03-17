@@ -83,7 +83,7 @@ public:
     FOR(i, sz(roots) - 1) os << roots[0] << " " << roots[i + 1] << " 0\n";
     for (auto& e : bridge) os << e.first << " " << e.second << " 1\n";
 
-  vector<vector<int>> local_id2global_id = get_local_id2global_id();
+    vector<vector<int>> local_id2global_id = get_local_id2global_id();
 
     //weight2以上
     FOR(i,sz(biconnected_graph_handler->handlers())) {

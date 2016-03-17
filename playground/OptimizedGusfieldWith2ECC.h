@@ -4,7 +4,7 @@
 
 DEFINE_int32(try_greedy_tree_packing, 1, "");
 DEFINE_int32(try_large_degree_pairs, 10, "");
-DEFINE_int32(choose_near_verices_d, 1, "");
+DEFINE_int32(separete_near_pairs_d, 1, "");
 DEFINE_bool(enable_greedy_tree_packing, true, "");
 DEFINE_bool(enable_logging_max_flow_details, false, "");
 DEFINE_bool(enable_adjacent_cut, true, "");
@@ -230,7 +230,7 @@ private:
 };
 
 class OptimizedGusfieldWith2ECC {
-  void prune_obvious_mincut(vector<pair<V,V>>& edges, disjoint_cut_set& dcs, const vector<int>& degree) {
+  void find_cuts_by_tree_packing(vector<pair<V,V>>& edges, disjoint_cut_set& dcs, const vector<int>& degree) {
     vector<int> current_parent(num_vertices_, -1);
     vector<int> current_weight(num_vertices_, -1);
     greedy_treepacking packing_base(edges, num_vertices_);
@@ -277,9 +277,9 @@ class OptimizedGusfieldWith2ECC {
 
         //debug infomation
         if (num_vertices_ > 10000) { 
-          JLOG_ADD("prune_obvious_mincut.gtp_edge_count", gtp_edge_count - gtp_edge_count_before);
-          JLOG_ADD("prune_obvious_mincut.gtp_edge_miss", gtp_edge_miss - gtp_edge_miss_before);
-          JLOG_ADD("prune_obvious_mincut.gtp_edge_use", gtp_edge_use - gtp_edge_use_before);
+          JLOG_ADD("find_cuts_by_tree_packing.gtp_edge_count", gtp_edge_count - gtp_edge_count_before);
+          JLOG_ADD("find_cuts_by_tree_packing.gtp_edge_miss", gtp_edge_miss - gtp_edge_miss_before);
+          JLOG_ADD("find_cuts_by_tree_packing.gtp_edge_use", gtp_edge_use - gtp_edge_use_before);
         }
 
 
@@ -325,7 +325,7 @@ class OptimizedGusfieldWith2ECC {
     }
   }
 
-  void erase_deg2_edges(vector<pair<V,V>>& edges, vector<int>& degree) {
+  void contract_degree_2_vertices(vector<pair<V,V>>& edges, vector<int>& degree) {
     const int n = sz(degree);
     vector<vector<int>> e(n);
 
@@ -532,7 +532,7 @@ class OptimizedGusfieldWith2ECC {
   }
 
   //次数の大きい頂点対をcutする
-  void cut_large_degree_pairs(dinic_twosided& dc_base, disjoint_cut_set& dcs) {
+  void separete_high_degree_pairs(dinic_twosided& dc_base, disjoint_cut_set& dcs) {
     vector<int> vtxs;
     FOR(v, num_vertices_) {
       if (dcs.has_another_id_in_same_group(v)) vtxs.push_back(v);
@@ -554,13 +554,13 @@ class OptimizedGusfieldWith2ECC {
     }
 
     if (cut_large_degree_count > 0) {
-      JLOG_PUT("cut_large_degree_pairs.cut_large_degree_count", cut_large_degree_count);
-      JLOG_PUT("cut_large_degree_pairs.separated_count", sep_count);
+      JLOG_PUT("separete_high_degree_pairs.cut_large_degree_count", cut_large_degree_count);
+      JLOG_PUT("separete_high_degree_pairs.separated_count", sep_count);
     }
   }
 
   //隣接頂点同士を見て、まだ切れていなかったらcutする
-  void cut_adjacent_pairs(dinic_twosided& dc_base, disjoint_cut_set& dcs) {
+  void separete_adjacent_pairs(dinic_twosided& dc_base, disjoint_cut_set& dcs) {
     FOR(s, num_vertices_) {
       for(auto& to_edge : dc_base.e[s]) {
         const V t = to_edge.to;
@@ -573,11 +573,11 @@ class OptimizedGusfieldWith2ECC {
       stringstream cutsize_count_ss;
       cutsize_count_ss << "cutsize_count : ";
       for (auto& kv : cutsize_count) cutsize_count_ss << "(" << kv.first << "," << kv.second << "), ";
-      JLOG_ADD("cut_adjacent_pairs.cutsize_count", cutsize_count_ss.str());
+      JLOG_ADD("separete_adjacent_pairs.cutsize_count", cutsize_count_ss.str());
     }
   }
 
-  void gusfield(dinic_twosided& dc_base, disjoint_cut_set& dcs) {
+  void separate_all(dinic_twosided& dc_base, disjoint_cut_set& dcs) {
     FOR(group_id, num_vertices_) {
       while (dcs.has_two_elements(group_id)) {
         V s, t; tie(s, t) = dcs.get_two_elements(group_id);
@@ -589,12 +589,12 @@ class OptimizedGusfieldWith2ECC {
       stringstream cutsize_count_ss;
       cutsize_count_ss << "cutsize_count : ";
       for (auto& kv : cutsize_count) cutsize_count_ss << "(" << kv.first << "," << kv.second << "), ";
-      JLOG_ADD("gusfield.cutsize_count", cutsize_count_ss.str());
-      JLOG_ADD("gomory_hu.separated_count", sep_count);
+      JLOG_ADD("separate_all.cutsize_count", cutsize_count_ss.str());
+      JLOG_ADD("separate_all.separated_count", sep_count);
     }
   }
 
-  void choose_near_verices(dinic_twosided& dc_base, disjoint_cut_set& dcs) {
+  void separete_near_pairs(dinic_twosided& dc_base, disjoint_cut_set& dcs) {
     vector<int> used(num_vertices_ * 2, -1);
     int used_revision = 0;
 
@@ -603,7 +603,7 @@ class OptimizedGusfieldWith2ECC {
       queue<V> q;
       q.push(s);
       used[s] = used_revision;
-      FOR(depth, FLAGS_choose_near_verices_d) {
+      FOR(depth, FLAGS_separete_near_pairs_d) {
         const int loop_num = sz(q);
         FOR(_, loop_num) {
           const V v = q.front(); q.pop();
@@ -626,12 +626,12 @@ class OptimizedGusfieldWith2ECC {
       stringstream cutsize_count_ss;
       cutsize_count_ss << "cutsize_count : ";
       for (auto& kv : cutsize_count) cutsize_count_ss << "(" << kv.first << "," << kv.second << "), ";
-      JLOG_ADD("choose_near_verices.cutsize_count", cutsize_count_ss.str());
+      JLOG_ADD("separete_near_pairs.cutsize_count", cutsize_count_ss.str());
     }
   }
 
   //次数の最も高い頂点に対して、出来る限りの頂点からflowを流してmincutを求める
-  void special_bfs_cut(dinic_twosided& dc_base, disjoint_cut_set& dcs) {
+  void find_cuts_by_goal_oriented_search(dinic_twosided& dc_base, disjoint_cut_set& dcs) {
     int max_degree_vtx = 0;
     FOR(v, num_vertices_) if (sz(dc_base.e[max_degree_vtx]) < sz(dc_base.e[v])) max_degree_vtx = v;
 
@@ -670,18 +670,18 @@ public:
     for (auto& e : edges) degree[e.first]++, degree[e.second]++;
 
     //次数2の頂点と接続を持つ辺を削除して、探索しやすくする
-    erase_deg2_edges(edges, degree);
+    contract_degree_2_vertices(edges, degree);
 
     disjoint_cut_set dcs(num_vs);
 
     //枝刈り
     if(num_vertices_ > 10000) {
       //頂点数の多いグラフのみlogging
-      JLOG_ADD_BENCHMARK("prune_obvious_mincut_time") {
-        prune_obvious_mincut(edges, dcs, degree);
+      JLOG_ADD_BENCHMARK("find_cuts_by_tree_packing_time") {
+        find_cuts_by_tree_packing(edges, dcs, degree);
       }
     } else {
-      prune_obvious_mincut(edges, dcs, degree);
+      find_cuts_by_tree_packing(edges, dcs, degree);
     }
 
     //debug infomation
@@ -696,29 +696,29 @@ public:
     mincut_init();
 
     if (FLAGS_enable_special_bfs) {
-      special_bfs_cut(dc_base, dcs);
+      find_cuts_by_goal_oriented_search(dc_base, dcs);
     }
 
     // 次数の高い頂点対をcutする
     // グラフをなるべく2分するcutを見つけられると有用
     if (num_vs > 10000) {
-      cut_large_degree_pairs(dc_base, dcs);
+      separete_high_degree_pairs(dc_base, dcs);
     }
 
     //まず隣接頂点対からcutしていく
     if (FLAGS_enable_adjacent_cut) {
-      CHECK(FLAGS_choose_near_verices_d >= 1);
-      if(FLAGS_choose_near_verices_d == 1) {
-        cut_adjacent_pairs(dc_base, dcs); 
+      CHECK(FLAGS_separete_near_pairs_d >= 1);
+      if(FLAGS_separete_near_pairs_d == 1) {
+        separete_adjacent_pairs(dc_base, dcs); 
       } else {
-        choose_near_verices(dc_base, dcs);
+        separete_near_pairs(dc_base, dcs);
       }
     }
 
     // verify(dc_base, dcs);
 
     // 残った頂点groupをcutする、gomory_hu treeの完成
-    gusfield(dc_base, dcs);
+    separate_all(dc_base, dcs);
 
     gh_builder_.build();
 
