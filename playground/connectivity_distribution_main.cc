@@ -44,19 +44,22 @@ void save(const string& path, const map<int,long long>& connectivity_distributio
 }
 
 DEFINE_string(gomory_hu_tree_path, "", "");
+DEFINE_string(output_path, "", "");
 
 string get_output_path() {
-  string output_path = FLAGS_gomory_hu_tree_path;
-  auto idx = output_path.find_last_of('.');
-  if(idx != string::npos) {
-    output_path = output_path.substr(0, idx);
+  string output_path = FLAGS_output_path;
+  if(output_path == "") {
+    output_path = FLAGS_gomory_hu_tree_path;
+    auto idx = output_path.find_last_of('.');
+    if(idx != string::npos) {
+      output_path = output_path.substr(0, idx);
+    }
+    output_path += ".cdist";
   }
-
-  return output_path + ".cdist";
+  return output_path;
 }
 
 int main(int argc, char** argv) {
-  JLOG_INIT(&argc, argv);
   google::ParseCommandLineFlags(&argc, &argv, true);
   const string output_path = get_output_path();
 
