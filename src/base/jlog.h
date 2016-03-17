@@ -125,7 +125,9 @@ template<> struct json_leaf<short> : json_leaf_numerical<short> {};
 template<> struct json_leaf<long double> : json_leaf_numerical<long double> {};
 template<> struct json_leaf<double> : json_leaf_numerical<double> {};
 template<> struct json_leaf<float> : json_leaf_numerical<float> {};
- 
+template<> struct json_leaf<const char*> : json_leaf<std::string> {};
+template<> struct json_leaf<char*> : json_leaf<std::string> {};
+
 template<> struct json_leaf<bool> : json_node {
   bool value;
   
