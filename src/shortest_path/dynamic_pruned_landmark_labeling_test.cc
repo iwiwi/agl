@@ -15,7 +15,11 @@ template <typename TypeParam>
 void Test(const G& g) {
   pretty_print(g);
   TypeParam dpll;
+  double t = -get_current_time_sec();
   dpll.construct(g);
+  t += get_current_time_sec();
+  cerr << t << " sec/construct" << endl;
+  t = 0;
 
   const W INF = 100;
   V num_v = g.num_vertices();
@@ -33,11 +37,15 @@ void Test(const G& g) {
         que.push(u);
       }
     }
+    t = -get_current_time_sec();
     for (int j = 0; j < num_v; ++j) {
       if (dist[j] == INF) continue;
       ASSERT_EQ(dist[j], dpll.query_distance(g, i, j)) << i << "->" << j;
     }
+    t += get_current_time_sec();
   }
+  t /= num_v * num_v;
+  cerr << t << " sec/query" << endl;
 }
 
 TYPED_TEST(dpll_test, small_grid) {
@@ -60,6 +68,16 @@ TYPED_TEST(dpll_test, medium_ba) {
   for (int trial = 0; trial < 100; ++trial) {
     V m = agl::random(10) + 2;
     V n = agl::random(1000) + m;
+    auto es = generate_ba(n, m);
+    G g(es);
+    Test<TypeParam>(g);
+  }
+}
+
+TYPED_TEST(dpll_test, large_ba) {
+  for (int trial = 0; trial < 5; ++trial) {
+    V m = agl::random(10) + 2;
+    V n = agl::random(10000) + m;
     auto es = generate_ba(n, m);
     G g(es);
     Test<TypeParam>(g);
