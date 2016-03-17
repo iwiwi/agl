@@ -77,31 +77,6 @@ public:
     return ans;
   }
 
-  void aggregate_gomory_hu_tree_weight() const {
-    map<int,int> weight_num;
-    const int wight0_num = biconnected_graph_handler->num_connected_components() - sz(bridge) - 1;
-    weight_num[0] = wight0_num;
-    const int wight1_num = sz(bridge);
-    weight_num[1] = wight1_num;
-
-    //weight2以上
-    for(auto& gusfield_core : biconnected_graph_handler->handlers()) {
-      for(auto& kv : gusfield_core.parent_weight()) {
-        if(kv.first == -1) continue; // 親への辺が存在しない
-        int weight = kv.second;
-        CHECK(weight >= 2);
-        weight_num[weight]++;
-      }
-    }
-
-    for(const auto& wn : weight_num) {
-      JLOG_ADD_OPEN("gomory-hu_edge") {
-        JLOG_PUT("weight", wn.first);
-        JLOG_PUT("count", wn.second);
-      }
-    }
-  }
-
   void print_gomory_hu_tree(ostream& os) {
     vector<int> roots;
     FOR(v, n) if (uf.root(v) == v) roots.push_back(v);
@@ -123,30 +98,6 @@ public:
         os << l2g[v] << " " << l2g[u] << " " << weight << "\n";
       }
     }
-  }
-
-  vector<int> single_source_mincut(int s) {
-    vector<int> global_ans(n);
-
-    vector<vector<int>> local_id2global_id = get_local_id2global_id();
-    FOR(i, sz(biconnected_graph_handler->handlers())) {
-      const auto& l2g = local_id2global_id[i];
-      if (!uf.is_same(s, l2g[0])) continue; // mincut = 0
-      auto it = find(l2g.begin(), l2g.end(), s);
-      if (it == l2g.end()) {
-        for (auto v : l2g) global_ans[v] = 1;
-        continue;
-      } else {
-        const int local_id = it - l2g.begin();
-        const auto& handler = biconnected_graph_handler->handlers()[i];
-        vector<int> local_ans = handler.single_source_mincut(local_id);
-        FOR(v, sz(local_ans)) {
-          global_ans[l2g[v]] = local_ans[v];
-        }
-      }
-    }
-
-    return global_ans;
   }
 
 private:

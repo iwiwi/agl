@@ -34,11 +34,6 @@ using Gusfield = TwoEdgeCCFilter<OptimizedGusfieldWith2ECC>;
 using Gusfield_slow = TwoEdgeCCFilter<OptimizedGusfieldWith2ECC_slow>;
 DEFINE_string(gomory_hu_builder, "Gusfield", "Gusfield, Gusfield_slow");
 
-void aggregate_weight(G& g) {
-  Gusfield gf(g);
-  gf.aggregate_gomory_hu_tree_weight();
-}
-
 string graph_name() {
   string x = FLAGS_graph;
   string ret;
@@ -222,63 +217,6 @@ void tester() {
   exit(0);
 }
 
-DEFINE_string(single_source_mincut_output, "", "");
-void single_source_mincut(G&& g) {
-  if (FLAGS_single_source_mincut_output == "") {
-    auto gname = graph_name();
-    auto iter = to_string(FLAGS_try_greedy_tree_packing);
-    FLAGS_single_source_mincut_output = "gtp_" + gname + "-" + iter + ".ssm";
-  }
-
-  size_t max_deg = 0;
-  int max_deg_v = -1;
-  FOR(v, g.num_vertices()) {
-    if (g.degree(v, D(0)) + g.degree(D(1)) > max_deg) {
-      max_deg = g.degree(v, D(0)) + g.degree(D(1));
-      max_deg_v = v;
-    }
-  }
-
-  auto e = g.edge_list();
-  greedy_treepacking gt(e, g.num_vertices());
-  gt.arborescence_packing(max_deg_v);
-
-  FILE* fp = fopen(FLAGS_single_source_mincut_output.c_str(), "w");
-  FOR(v, g.num_vertices()) {
-    if (v == max_deg_v) continue;
-    int mc = gt.inedge_count(v);
-    fprintf(fp, "%d %d %d\n", max_deg_v, v, mc);
-  }
-  fclose(fp);
-}
-
-template<class T>
-void single_source_mincut_gomory_hu(G&& g) {
-  if (FLAGS_single_source_mincut_output == "") {
-    auto gname = graph_name();
-    auto iter = to_string(FLAGS_try_greedy_tree_packing);
-    FLAGS_single_source_mincut_output = "gf_" + gname + ".ssm";
-  }
-
-  size_t max_deg = 0;
-  int max_deg_v = -1;
-  FOR(v, g.num_vertices()) {
-    if (g.degree(v) > max_deg) {
-      max_deg = g.degree(v);
-      max_deg_v = v;
-    }
-  }
-
-  T gf(g);
-  FILE* fp = fopen(FLAGS_single_source_mincut_output.c_str(), "w");
-  FOR(v, g.num_vertices()) {
-    if (v == max_deg_v) continue;
-    int mc = gf.query(max_deg_v, v);
-    fprintf(fp, "%d %d %d\n", max_deg_v, v, mc);
-  }
-  fclose(fp);
-}
-
 template<class T>
 void main_(G&& g) {
   if (FLAGS_method == "test") {
@@ -289,10 +227,6 @@ void main_(G&& g) {
     }
   } else if (FLAGS_method == "print_gomory_hu_tree") {
     print_gomory_hu_tree<T>(std::move(g));
-  } else if (FLAGS_method == "single_source_mincut") {
-    single_source_mincut(std::move(g));
-  } else if (FLAGS_method == "single_source_mincut_gomory_hu") {
-    single_source_mincut_gomory_hu<T>(std::move(g));
   } else {
     fprintf(stderr, "unrecognized option '%s'\n", FLAGS_method.c_str());
     exit(-1);
@@ -309,11 +243,6 @@ void main_(G&& g) {
 }
 
 void from_file(G&& g) {
-  if (FLAGS_single_source_mincut_output == "") {
-    auto gname = graph_name();
-    auto iter = to_string(FLAGS_try_greedy_tree_packing);
-    FLAGS_single_source_mincut_output = "gf_" + gname + ".ssm";
-  }
   if (FLAGS_validation_data_path == "") {
     auto gname = graph_name();
     FLAGS_validation_data_path = gname + ".tree";
@@ -388,23 +317,6 @@ void from_file(G&& g) {
       fprintf(stderr, "  %d : %d\n",kv.first, kv.second);
     }
   }
-
-  size_t max_deg = 0;
-  int max_deg_v = -1;
-  FOR(v, g.num_vertices()) {
-    if (g.degree(v) > max_deg) {
-      max_deg = g.degree(v);
-      max_deg_v = v;
-    }
-  }
-
-  FILE* fp = fopen(FLAGS_single_source_mincut_output.c_str(), "w");
-  FOR(v, g.num_vertices()) {
-    if (v == max_deg_v) continue;
-    int mc = query.query(max_deg_v, v);
-    fprintf(fp, "%d %d %d\n", max_deg_v, v, mc);
-  }
-  fclose(fp);
 }
 
 DEFINE_bool(to_directed_graph,true, "");
