@@ -82,7 +82,7 @@ class basic_graph {
   basic_graph() = default;
 
   explicit basic_graph(const edge_list_type &es, V num_vs = -1) {
-    assign(es);
+    assign(es, num_vs);
   }
 
   basic_graph(const basic_graph<EdgeType> &g) : edges_from_{g.edges_from_[0], g.edges_from_[1]} {
@@ -101,6 +101,7 @@ class basic_graph {
   void clear();
 
   void assign(const edge_list_type &es, V num_vs = -1);
+  void assign(std::vector<std::vector<E>> edges_from);
 
   edge_list_type edge_list(D d = kFwd) const;
 
@@ -252,7 +253,7 @@ V num_vertices_from_edge_list(const std::vector<EdgePairType> &es) {
 }
 
 template<typename EdgeType>
-void basic_graph<EdgeType>::assign(const basic_graph<EdgeType>::edge_list_type &es, V num_vs) {
+void basic_graph<EdgeType>::assign(const typename basic_graph<EdgeType>::edge_list_type &es, V num_vs) {
   if (num_vs == -1) {
     num_vs = num_vertices_from_edge_list(es);
   }
@@ -274,6 +275,27 @@ void basic_graph<EdgeType>::assign(const basic_graph<EdgeType>::edge_list_type &
   }
 
   // TODO: reconstruction?
+  assert(graph_indices_.empty());
+  assert(graph_dynamic_indices_.empty());
+}
+
+template<typename EdgeType>
+void basic_graph<EdgeType>::assign(std::vector<std::vector<E>> sorted_edges_from) {
+  V num_vs = static_cast<V>(sorted_edges_from.size());
+  edges_from_[kFwd] = std::move(sorted_edges_from);
+  edges_from_[kBwd].assign(num_vs, {});
+  for(V v = 0; v < num_vs; v++) {
+    for(size_t i = 0; i < edges_from_[kFwd][v].size(); i++) {
+      const auto& e = edges_from_[kFwd][v][i];
+      if(i != 0) {
+        //is sorted?
+        const auto& prev_e = edges_from_[kFwd][v][i-1];
+        CHECK(to(prev_e) < to(e));
+      }
+      edges_from_[kBwd][to(e)].emplace_back(reverse_edge(v, e));
+    }
+  }
+
   assert(graph_indices_.empty());
   assert(graph_dynamic_indices_.empty());
 }

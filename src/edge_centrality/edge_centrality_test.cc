@@ -4,22 +4,22 @@ using namespace std;
 using namespace agl;
 
 TEST(edge_betweenness_centrality, naive_small_path2) {
-	G g(make_undirected({{0, 1}}));
-	const auto out =
-			merge_edge_centrality_map_entries_for_undirected_graph(
-					edge_betweenness_centrality_naive(g));
-	ASSERT_EQ(1, out.size());
-	ASSERT_NEAR(1.0, out.begin()->second, 1E-9);
+  G g(make_undirected({{0, 1}}));
+  const auto out =
+      merge_edge_centrality_map_entries_for_undirected_graph(
+          edge_betweenness_centrality_naive(g));
+  ASSERT_EQ(1, out.size());
+  ASSERT_NEAR(1.0, out.begin()->second, 1E-9);
 }
 
 TEST(edge_betweenness_centrality, naive_small_path3) {
-	G g(make_undirected({{0, 1}, {1, 2}}));
-	const auto out =
-			merge_edge_centrality_map_entries_for_undirected_graph(
-					edge_betweenness_centrality_naive(g));
-	ASSERT_EQ(2, out.size());
-	ASSERT_EQ(2.0 / 3.0, out.begin()->second);
-	ASSERT_EQ(2.0 / 3.0, (++out.begin())->second);
+  G g(make_undirected({{0, 1}, {1, 2}}));
+  const auto out =
+      merge_edge_centrality_map_entries_for_undirected_graph(
+            edge_betweenness_centrality_naive(g));
+  ASSERT_EQ(2, out.size());
+  ASSERT_EQ(2.0 / 3.0, out.begin()->second);
+  ASSERT_EQ(2.0 / 3.0, (++out.begin())->second);
 }
 
 TEST(edge_betweenness_centrality, sample_small_path2) {

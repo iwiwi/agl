@@ -34,9 +34,16 @@ def build(bld):
   cc_file_main = []
   cc_file_test = []
   cc_file_stlib = []
-  for src_dirname in ['src', 'tutorial', 'playground']:
+  target_dirs = ['src', 'playground']
+  if bld.cmd != 'build':
+    target_dirs.append('tutorial')
+
+  for src_dirname in target_dirs:
     for root, dirnames, filenames in os.walk(src_dirname):
       for filename in fnmatch.filter(filenames, '*.cc'):
+        if filename == 'test.cc':
+          print '\033[91m\033[1mWarning: You should avoid the filename \'test.cc\'.'
+          print 'It may conflict with gtest and cause unexpected behavior.\033[0m'
         filepath = os.path.join(root, filename)
         if filename.endswith('_main.cc'):
           cc_file_main.append(filepath)
@@ -74,3 +81,7 @@ def build(bld):
     target   = 'testt',
     use      = ['agl', 'gflags', 'gtest'],
     includes = ['src', 'playground', '3rd_party'])
+
+from waflib.Build import BuildContext
+class build_full(BuildContext):
+  cmd = 'build-full'
