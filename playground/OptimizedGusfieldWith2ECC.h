@@ -222,25 +222,15 @@ private:
 };
 
 class separator {
-public:
 
-  separator(bi_dinitz& dc, disjoint_cut_set& dcs, gomory_hu_tree_builder& gh_builder) 
-    : dc_(dc), dcs_(dcs), gh_builder_(gh_builder),
-      used(dc.n), max_flow_times(0), gomory_hu_cut_used(dc.n), sep_count_(0) {
+  const int used_flag_value() const {
+    return max_flow_times;
   }
 
-  void goal_oriented_bfs_init(const V goal){
-    dc_.goal_oriented_bfs_init(goal);
-  }
-
-  void mincut(V s, V t, bool enable_separate_graph = true) {
-    if (sz(dc_.e[s]) > sz(dc_.e[t])) swap(s, t);
-
-    /*
-    * max-flow phase
-    */
+  int max_flow(const V s, const V t) {
     const long long before_max_flow = getcap_counter;
-    int cost = dc_.max_flow(s, t);
+    int cost = dz_.max_flow(s, t);
+    debug_last_max_flow_cost = cost;
     const long long after_max_flow = getcap_counter;
 
     gh_builder_.add_edge(s, t, cost); //cutした結果をgomory_hu treeの枝を登録
@@ -269,18 +259,18 @@ public:
     }
 
     //s側の頂点とt側の頂点に分類する
-    const int F = max_flow_times;
-    int sside = 0, tside = 0;
-    if (dc_.reason_for_finishing_bfs == bi_dinitz::kQsIsEmpty) {
+    const int F = used_flag_value();
+    int one_side = 0;
+    if (dz_.reason_for_finishing_bfs == bi_dinitz::kQsIsEmpty) {
       //s側に属する頂点の親を新しいgroupに移動する
       q.push(s);
       used[s] = F;
       dcs_.create_new_group(s);
       while (!q.empty()) {
         V v = q.front(); q.pop();
-        sside++;
-        for (auto& e : dc_.e[v]) {
-          const int cap = e.cap(dc_.graph_revision);
+        one_side++;
+        for (auto& e : dz_.e[v]) {
+          const int cap = e.cap(dz_.graph_revision);
           if (cap == 0 || used[e.to] == F) continue;
           used[e.to] = F;
           q.push(e.to);
@@ -289,7 +279,6 @@ public:
           }
         }
       }
-      tside = dc_.n - sside;
     } else {
       //t側に属する頂点の親を,tに変更する
       q.push(t);
@@ -297,9 +286,9 @@ public:
       dcs_.create_new_group(t);
       while (!q.empty()) {
         V v = q.front(); q.pop();
-        tside++;
-        for (auto& e : dc_.e[v]) {
-          const int cap = dc_.e[e.to][e.reverse].cap(dc_.graph_revision);
+        one_side++;
+        for (auto& e : dz_.e[v]) {
+          const int cap = dz_.e[e.to][e.reverse].cap(dz_.graph_revision);
           if (cap == 0 || used[e.to] == F) continue;
           used[e.to] = F;
           q.push(e.to);
@@ -308,82 +297,96 @@ public:
           }
         }
       }
-      sside = dc_.n - tside;
     }
 
-    const int min_side = min(tside, sside);
+    return one_side;
+  }
+
+  void contraction(const V s,const V t) {
+    sep_count_++;
+    //gomory_hu algorithm
+    //縮約後の頂点2つを追加する
+    const int sside_new_vtx = dz_.n;
+    const int tside_new_vtx = sside_new_vtx + 1;
+    FOR(_, 2) {
+      dz_.add_vertex();
+      used.emplace_back();
+      gomory_hu_cut_used.emplace_back();
+    }
+
+    const int F = used_flag_value();
+    int num_reconnected = 0; //枝を繋ぎ直した回数
+    if (dz_.reason_for_finishing_bfs == bi_dinitz::kQsIsEmpty) {
+      q.push(s);
+      gomory_hu_cut_used[s] = F;
+      while (!q.empty()) {
+        V v = q.front(); q.pop();
+        for (auto& e : dz_.e[v]) {
+          const int cap = e.cap(dz_.graph_revision);
+          if (gomory_hu_cut_used[e.to] == F) continue;
+          if (cap == 0) {
+            if (used[e.to] != F) {
+              //辺を上手に張り替える
+              dz_.reconnect_edge(e, sside_new_vtx, tside_new_vtx);
+              num_reconnected++;
+            }
+          } else {
+            gomory_hu_cut_used[e.to] = F;
+            q.push(e.to);
+          }
+        }
+      }
+    } else {
+      q.push(t);
+      gomory_hu_cut_used[t] = F;
+      while (!q.empty()) {
+        V v = q.front(); q.pop();
+        for (auto& e : dz_.e[v]) {
+          const int cap = dz_.e[e.to][e.reverse].cap(dz_.graph_revision);
+          if (gomory_hu_cut_used[e.to] == F) continue;
+          if (cap == 0) {
+            if (used[e.to] != F) {
+              //辺を上手に張り替える
+              dz_.reconnect_edge(e, tside_new_vtx, sside_new_vtx);
+              num_reconnected++;
+            }
+          } else {
+            gomory_hu_cut_used[e.to] = F;
+            q.push(e.to);
+          }
+        }
+      }
+    }
+    CHECK(num_reconnected == debug_last_max_flow_cost); // 枝を繋ぎ直した回数 == maxflow
+  }
+
+public:
+
+  separator(bi_dinitz& dz, disjoint_cut_set& dcs, gomory_hu_tree_builder& gh_builder) 
+    : dz_(dz), dcs_(dcs), gh_builder_(gh_builder),
+      used(dz.n), max_flow_times(0), gomory_hu_cut_used(dz.n), sep_count_(0) {
+  }
+
+  void goal_oriented_bfs_init(const V goal){
+    dz_.goal_oriented_bfs_init(goal);
+  }
+
+  void mincut(V s, V t, bool enable_separate_graph = true) {
+    if (sz(dz_.e[s]) > sz(dz_.e[t])) swap(s, t);
+
+    const int one_side = max_flow(s, t);
     if (enable_separate_graph) {
-      /*
-      * separate phase
-      */
-      const bool sside_contraction = sside == min_side && 
-        dc_.reason_for_finishing_bfs == bi_dinitz::kQsIsEmpty &&
-        sside >= FLAGS_contraction_lower_bound;
-      const bool tside_contraction = tside == min_side &&
-        dc_.reason_for_finishing_bfs == bi_dinitz::kQtIsEmpty &&
-        tside >= FLAGS_contraction_lower_bound;
+      const int other_side_estimated = dz_.n - one_side;
 
-      if (sside_contraction || tside_contraction) {
-        sep_count_++;
-        //gomory_hu algorithm
-        //縮約後の頂点2つを追加する
-        const int sside_new_vtx = dc_.n;
-        const int tside_new_vtx = sside_new_vtx + 1;
-        FOR(_, 2) {
-          dc_.add_vertex();
-          used.emplace_back();
-          gomory_hu_cut_used.emplace_back();
-        }
-
-        int num_reconnected = 0; //枝を繋ぎ直した回数
-        if (sside_contraction) {
-          q.push(s);
-          gomory_hu_cut_used[s] = F;
-          while (!q.empty()) {
-            V v = q.front(); q.pop();
-            for (auto& e : dc_.e[v]) {
-              const int cap = e.cap(dc_.graph_revision);
-              if (gomory_hu_cut_used[e.to] == F) continue;
-              if (cap == 0) {
-                if (used[e.to] != F) {
-                  //辺を上手に張り替える
-                  dc_.reconnect_edge(e, sside_new_vtx, tside_new_vtx);
-                  num_reconnected++;
-                }
-              } else {
-                gomory_hu_cut_used[e.to] = F;
-                q.push(e.to);
-              }
-            }
-          }
-        } else {
-          q.push(t);
-          gomory_hu_cut_used[t] = F;
-          while (!q.empty()) {
-            V v = q.front(); q.pop();
-            for (auto& e : dc_.e[v]) {
-              const int cap = dc_.e[e.to][e.reverse].cap(dc_.graph_revision);
-              if (gomory_hu_cut_used[e.to] == F) continue;
-              if (cap == 0) {
-                if (used[e.to] != F) {
-                  //辺を上手に張り替える
-                  dc_.reconnect_edge(e, tside_new_vtx, sside_new_vtx);
-                  num_reconnected++;
-                }
-              } else {
-                gomory_hu_cut_used[e.to] = F;
-                q.push(e.to);
-              }
-            }
-          }
-        }
-        CHECK(num_reconnected == cost); // 枝を繋ぎ直した回数 == maxflow
+      const bool contract = min(one_side, other_side_estimated) >= FLAGS_contraction_lower_bound;
+      if(contract) {
+        contraction(s, t);
       }
     }
 
     // debug infomation
-    cutsize_count[min_side]++;
-    debug_cut_details[min_side]++;
+    cutsize_count[one_side]++;
+    debug_cut_details[one_side]++;
   }
 
   void output_debug_infomation() const {
@@ -396,14 +399,30 @@ public:
     }
   }
 
-  const bi_dinitz& get_bi_dinitz() { return dc_; }
+
+  void debug_verify() const {
+    union_find uf(dz_.n);
+    FOR(i, dz_.n) for (const auto& to_edge : dz_.e[i]) {
+      uf.unite(i, to_edge.to);
+    }
+    FOR(g, dcs_.debug_group_num()) {
+      auto v = dcs_.get_group(g);
+      CHECK(sz(v) == dcs_.group_size(g));
+      FOR(i, sz(v) - 1) {
+        int u = v[i], x = v[i + 1];
+        CHECK(uf.is_same(u, x));
+      }
+    }
+  }
+
+  const bi_dinitz& get_bi_dinitz() { return dz_; }
   const disjoint_cut_set& get_disjoint_cut_set() { return dcs_; }
 
   const int sep_count() { return sep_count_; }
 
 private:
 
-  bi_dinitz& dc_;
+  bi_dinitz& dz_;
   disjoint_cut_set& dcs_;
   gomory_hu_tree_builder& gh_builder_;
 
@@ -414,6 +433,8 @@ private:
   map<int, int> debug_cut_details;
   vector<int> gomory_hu_cut_used;
   int sep_count_;
+
+  int debug_last_max_flow_cost;
 };
 
 class OptimizedGusfieldWith2ECC {
@@ -595,8 +616,6 @@ class OptimizedGusfieldWith2ECC {
         sep.mincut(s, t);
       }
     }
-
-    sep.output_debug_infomation();
   }
 
   void separate_near_pairs(separator& sep) {
@@ -648,24 +667,6 @@ class OptimizedGusfieldWith2ECC {
     }
   }
 
-  void verify(separator& sep) {
-    const bi_dinitz& dz = sep.get_bi_dinitz();
-    const disjoint_cut_set& dcs = sep.get_disjoint_cut_set();
-
-    union_find uf(dz.n);
-    FOR(i, dz.n) for (const auto& to_edge : dz.e[i]) {
-      uf.unite(i, to_edge.to);
-    }
-    FOR(g, num_vertices_) {
-      auto v = dcs.get_group(g);
-      CHECK(sz(v) == dcs.group_size(g));
-      FOR(i, sz(v) - 1) {
-        int u = v[i], x = v[i + 1];
-        CHECK(uf.is_same(u, x));
-      }
-    }
-  }
-
 public:
 
   OptimizedGusfieldWith2ECC(vector<pair<V, V>>&& edges, int num_vs) :
@@ -697,10 +698,10 @@ public:
 
     if(num_vs > 10000) fprintf(stderr, "OptimizedGusfieldWith2ECC::bi_dinitz before init : memory %ld MB\n", jlog_internal::get_memory_usage() / 1024);
     //dinicの初期化
-    bi_dinitz dc_base(std::move(edges), num_vs);
+    bi_dinitz dz_base(std::move(edges), num_vs);
     if(num_vs > 10000) fprintf(stderr, "OptimizedGusfieldWith2ECC::bi_dinitz after init : memory %ld MB\n", jlog_internal::get_memory_usage() / 1024);
 
-    separator sep(dc_base, dcs, gh_builder_);
+    separator sep(dz_base, dcs, gh_builder_);
 
     if (FLAGS_enable_goal_oriented_search) {
       find_cuts_by_goal_oriented_search(sep);
@@ -722,10 +723,12 @@ public:
       }
     }
 
-    // verify(dc_base, dcs);
+    sep.debug_verify();
 
     // 残った頂点groupをcutする、gomory_hu treeの完成
     separate_all(sep);
+
+    sep.output_debug_infomation();
 
     gh_builder_.build();
 
