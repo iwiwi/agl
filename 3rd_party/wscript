@@ -16,3 +16,8 @@ def build(bld):
                     gtest/gtest_main.cc',
     target       = 'gtest',
     includes     = '.')
+
+  bld.stlib(
+    source       = 'jlog.cc',
+    target       = 'jlog',
+    includes     = '.')
