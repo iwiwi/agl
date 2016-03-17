@@ -6,7 +6,7 @@ DEFINE_string(s2, "s2.txt", "gomory-hu tree 2");
 #define FOR(i,n) for(int i = 0; i < (n); i++)
 #define sz(c) ((int)(c).size())
 
-#include "dinic_twosided.h"
+#include "bi_dinitz.h"
 
 map<int, vector<pair<V, V>>> load(const string& path) {
   FILE* fp = fopen(path.c_str(), "r");
@@ -66,7 +66,7 @@ void check(G& g, map<int, vector<pair<V, V>>>& l, map<int, vector<pair<V, V>>>& 
     puts("");
 
     auto check_cost = [&](int x,map<int,vector<pair<int,int>>>& mp,string name) {
-      dinic_twosided dc(g);
+      bi_dinitz dc(g);
       for (auto& kv : mp){
         int w = kv.first;
         for (auto& uv : kv.second) {

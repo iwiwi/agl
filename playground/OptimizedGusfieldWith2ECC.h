@@ -375,7 +375,7 @@ class OptimizedGusfieldWith2ECC {
     debug_cut_details.clear();
   }
 
-  void mincut(V s, V t, dinic_twosided& dc_base, disjoint_cut_set& dcs, bool enable_separate_graph = true) {
+  void mincut(V s, V t, bi_dinitz& dc_base, disjoint_cut_set& dcs, bool enable_separate_graph = true) {
     if (sz(dc_base.e[s]) > sz(dc_base.e[t])) swap(s, t);
 
     /*
@@ -413,7 +413,7 @@ class OptimizedGusfieldWith2ECC {
     //s側の頂点とt側の頂点に分類する
     const int F = max_flow_times;
     int sside = 0, tside = 0;
-    if (dc_base.reason_for_finishing_bfs == dinic_twosided::kQsIsEmpty) {
+    if (dc_base.reason_for_finishing_bfs == bi_dinitz::kQsIsEmpty) {
       //s側に属する頂点の親を新しいgroupに移動する
       q.push(s);
       used[s] = F;
@@ -459,8 +459,8 @@ class OptimizedGusfieldWith2ECC {
       * separate phase
       */
       const int separate_upper_bound = 1;
-      const bool sside_separate = (sside == min_side && dc_base.reason_for_finishing_bfs == dinic_twosided::kQsIsEmpty && sside > separate_upper_bound);
-      const bool tside_separate = (tside == min_side && dc_base.reason_for_finishing_bfs == dinic_twosided::kQtIsEmpty && tside > separate_upper_bound);
+      const bool sside_separate = (sside == min_side && dc_base.reason_for_finishing_bfs == bi_dinitz::kQsIsEmpty && sside > separate_upper_bound);
+      const bool tside_separate = (tside == min_side && dc_base.reason_for_finishing_bfs == bi_dinitz::kQtIsEmpty && tside > separate_upper_bound);
       if (sside_separate || tside_separate) {
         sep_count++;
         //gomory_hu algorithm
@@ -532,7 +532,7 @@ class OptimizedGusfieldWith2ECC {
   }
 
   //次数の大きい頂点対をcutする
-  void separete_high_degree_pairs(dinic_twosided& dc_base, disjoint_cut_set& dcs) {
+  void separete_high_degree_pairs(bi_dinitz& dc_base, disjoint_cut_set& dcs) {
     vector<int> vtxs;
     FOR(v, num_vertices_) {
       if (dcs.has_another_id_in_same_group(v)) vtxs.push_back(v);
@@ -560,7 +560,7 @@ class OptimizedGusfieldWith2ECC {
   }
 
   //隣接頂点同士を見て、まだ切れていなかったらcutする
-  void separete_adjacent_pairs(dinic_twosided& dc_base, disjoint_cut_set& dcs) {
+  void separete_adjacent_pairs(bi_dinitz& dc_base, disjoint_cut_set& dcs) {
     FOR(s, num_vertices_) {
       for(auto& to_edge : dc_base.e[s]) {
         const V t = to_edge.to;
@@ -577,7 +577,7 @@ class OptimizedGusfieldWith2ECC {
     }
   }
 
-  void separate_all(dinic_twosided& dc_base, disjoint_cut_set& dcs) {
+  void separate_all(bi_dinitz& dc_base, disjoint_cut_set& dcs) {
     FOR(group_id, num_vertices_) {
       while (dcs.has_two_elements(group_id)) {
         V s, t; tie(s, t) = dcs.get_two_elements(group_id);
@@ -594,7 +594,7 @@ class OptimizedGusfieldWith2ECC {
     }
   }
 
-  void separete_near_pairs(dinic_twosided& dc_base, disjoint_cut_set& dcs) {
+  void separete_near_pairs(bi_dinitz& dc_base, disjoint_cut_set& dcs) {
     vector<int> used(num_vertices_ * 2, -1);
     int used_revision = 0;
 
@@ -631,7 +631,7 @@ class OptimizedGusfieldWith2ECC {
   }
 
   //次数の最も高い頂点に対して、出来る限りの頂点からflowを流してmincutを求める
-  void find_cuts_by_goal_oriented_search(dinic_twosided& dc_base, disjoint_cut_set& dcs) {
+  void find_cuts_by_goal_oriented_search(bi_dinitz& dc_base, disjoint_cut_set& dcs) {
     int max_degree_vtx = 0;
     FOR(v, num_vertices_) if (sz(dc_base.e[max_degree_vtx]) < sz(dc_base.e[v])) max_degree_vtx = v;
 
@@ -644,7 +644,7 @@ class OptimizedGusfieldWith2ECC {
     }
   }
 
-  void verify(dinic_twosided& dc_base, disjoint_cut_set& dcs) {
+  void verify(bi_dinitz& dc_base, disjoint_cut_set& dcs) {
     union_find uf(dc_base.n);
     FOR(i, dc_base.n) for (auto& to_edge : dc_base.e[i]) {
       uf.unite(i, to_edge.to);
@@ -688,10 +688,10 @@ public:
     auto preflow_eq_degree_before = preflow_eq_degree;
     auto flow_eq_0_before = flow_eq_0;
 
-    if(num_vs > 10000) fprintf(stderr, "OptimizedGusfieldWith2ECC::dinic_twosided before init : memory %ld MB\n", jlog_internal::get_memory_usage() / 1024);
+    if(num_vs > 10000) fprintf(stderr, "OptimizedGusfieldWith2ECC::bi_dinitz before init : memory %ld MB\n", jlog_internal::get_memory_usage() / 1024);
     //dinicの初期化
-    dinic_twosided dc_base(std::move(edges), num_vs);
-    if(num_vs > 10000) fprintf(stderr, "OptimizedGusfieldWith2ECC::dinic_twosided after init : memory %ld MB\n", jlog_internal::get_memory_usage() / 1024);
+    bi_dinitz dc_base(std::move(edges), num_vs);
+    if(num_vs > 10000) fprintf(stderr, "OptimizedGusfieldWith2ECC::bi_dinitz after init : memory %ld MB\n", jlog_internal::get_memory_usage() / 1024);
 
     mincut_init();
 

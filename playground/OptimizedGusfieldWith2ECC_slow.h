@@ -63,7 +63,7 @@ public:
     }
     parent_weight_[root_node_].first = -1;
 
-    dinic_twosided dc_base(edges, num_vs);
+    bi_dinitz dc_base(edges, num_vs);
 
   vector<int> used(num_vertices_);
   int used_revision = 0;

@@ -1,5 +1,5 @@
 #pragma once
-#include "dinic_naive.h"
+#include "dinitz.h"
 
 class PlainGusfield{
   int query_dfs(V v, V t, int cost, V par = -1) const {
@@ -41,7 +41,7 @@ public:
     FOR(s, num_vertices_) {
       if (p[s] == -1) continue;
       V t = p[s];
-      dinic_naive dc(num_vertices_);
+      dinitz dc(num_vertices_);
       FOR(v, num_vertices_) {
         if (!uf.is_same(s, v)) continue;
         for (auto& e : g.edges(v)) {

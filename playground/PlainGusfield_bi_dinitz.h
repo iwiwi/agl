@@ -1,5 +1,5 @@
 #pragma once
-#include "dinic_twosided.h"
+#include "bi_dinitz.h"
 
 class PlainGusfield_bi_dinitz{
   int query_dfs(V v, V t, int cost, V par = -1) const {
@@ -38,7 +38,7 @@ public:
       add_edge(root_vtxs[i], root_vtxs[i+1], 0);
     }
 
-    dinic_twosided dc(g);
+    bi_dinitz dc(g);
 
     FOR(s, num_vertices_) {
       if (p[s] == -1) continue;

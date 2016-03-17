@@ -9,13 +9,13 @@ int preflow_eq_degree = 0;
 int flow_eq_0 = 0;
 
 
-#ifdef DEBUG_DINIC_TWOSIDED
+#ifdef DEBUG_bi_dinitz
 #else
    void nopnop() { }
 #  define fprintf(...) nopnop()
 #endif
 
-class dinic_twosided {
+class bi_dinitz {
 public:
   // two sided bfsが終了した理由
   enum reason_for_finishing_bfs_t {
@@ -212,22 +212,22 @@ private:
   }
 
 public:
-  dinic_twosided() : n(0) {}
-  dinic_twosided(const G& g)
+  bi_dinitz() : n(0) {}
+  bi_dinitz(const G& g)
     : n(g.num_vertices()), level(n), iter(n), bfs_revision(n), dfs_revision(n), e(n),
     s_side_bfs_revision(2), t_side_bfs_revision(3), graph_revision(0), special_bfs_root(-1) {
     FOR(v, n) for (auto& e : g.edges(v)) {
       add_undirected_edge(v, to(e), 1);
     }
   }
-  dinic_twosided(const vector<pair<V, V>>& edges, int num_vs)
+  bi_dinitz(const vector<pair<V, V>>& edges, int num_vs)
     : n(num_vs), level(n), iter(n), bfs_revision(n), dfs_revision(n), e(n),
     s_side_bfs_revision(2), t_side_bfs_revision(3), graph_revision(0), special_bfs_root(-1) {
     for (auto& uv : edges) {
       add_undirected_edge(uv.first, uv.second, 1);
     }
   }
-  dinic_twosided(vector<pair<V, V>>&& edges, int num_vs)
+  bi_dinitz(vector<pair<V, V>>&& edges, int num_vs)
     : n(num_vs), level(n), iter(n), bfs_revision(n), dfs_revision(n), e(n),
     s_side_bfs_revision(2), t_side_bfs_revision(3), graph_revision(0), special_bfs_root(-1) {
       edges.shrink_to_fit();

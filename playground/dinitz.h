@@ -1,6 +1,6 @@
 #pragma once
 
-class dinic_naive {
+class dinitz {
   struct E {
     int to, rev, cap;
     E(int to, int rev, int cap) : to(to), rev(rev), cap(cap) {}
@@ -40,7 +40,7 @@ class dinic_naive {
 
   static const int INF = (int)1e8;
 public:
-  dinic_naive(int num_vs)
+  dinitz(int num_vs)
   : level(num_vs), iter(num_vs), e(num_vs) {
   }
 

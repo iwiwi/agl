@@ -11,7 +11,7 @@ DEFINE_string(method, "gusfield", "test, gusfield, print_gomory_hu_tree");
 #define FOR(i,n) for(int i = 0; i < (n); i++)
 #define sz(c) ((int)(c).size())
 
-#include "dinic_twosided.h"
+#include "bi_dinitz.h"
 #include "ConnectedComponentsFilter.h"
 #include "TwoEdgeCCFilter.h"
 #include "OptimizedGusfieldWith2ECC.h"
