@@ -17,8 +17,7 @@ class disjoint_cut_set {
   };
 
   void erase(int node_id) {
-    CHECK(0 <= node_id && node_id < sz(nodes));
-    group_size_[nodes[node_id].root]--;
+    group_size[nodes[node_id].root]--;
 
     int pv = nodes[node_id].pv, nt = nodes[node_id].nt;
     if (pv != -1) {
@@ -33,10 +32,7 @@ class disjoint_cut_set {
   }
 
   void add(int node_id, int group_id) {
-    CHECK(0 <= node_id && node_id < sz(nodes));
-    CHECK(0 <= group_id && group_id < sz(nodes));
-
-    group_size_[group_id]++;
+    group_size[group_id]++;
 
     int nt = root[group_id];
     nodes[node_id].root = group_id;
@@ -49,7 +45,7 @@ class disjoint_cut_set {
   }
 
 public:
-  disjoint_cut_set(int n) : root(n, -1), nodes(n), group_num_(1), group_size_(n) {
+  disjoint_cut_set(int n) : root(n, -1), nodes(n), group_num(1), group_size(n) {
     root[0] = 0;
     nodes[0].pv = -1;
     nodes[n - 1].nt = -1;
@@ -58,12 +54,12 @@ public:
       nodes[i + 1].pv = i;
     }
     FOR(i, n) nodes[i].root = 0;
-    group_size_[0] = n;
+    group_size[0] = n;
   }
 
   void create_new_group(int id) {
     erase(id);
-    add(id, group_num_++);
+    add(id, group_num++);
   }
 
   bool is_same_group(int a, int b) const {
@@ -77,8 +73,6 @@ public:
   }
 
   bool has_another_id_in_same_group(int id) const {
-    if(id >= sz(nodes)) return false;
-
     const int grp_id = nodes[id].root;
     const int rt = root[grp_id];
     CHECK(rt != -1);
@@ -88,8 +82,6 @@ public:
   }
 
   int other_id_in_same_group(int id) const {
-    CHECK(0 <= id && id < sz(nodes));
-  
     const int grp_id = nodes[id].root;
     const int rt = root[grp_id];
     CHECK(rt != -1);
@@ -100,8 +92,6 @@ public:
   }
 
   pair<int, int> get_two_elements(int group_id) const {
-    CHECK(0 <= group_id && group_id < sz(nodes));
-   
     const int rt = root[group_id];
     CHECK(rt != -1);
     const int nxt = nodes[rt].nt;
@@ -110,15 +100,11 @@ public:
   }
 
   bool has_two_elements(int group_id) const {
-    CHECK(0 <= group_id && group_id < sz(nodes));
-  
     auto uv = get_two_elements(group_id);
     return uv.first != -1;
   }
 
   vector<int> get_group(int group_id) const {
-    CHECK(0 <= group_id && group_id < sz(nodes));
-  
     vector<int> ret;
     int cur = root[group_id];
     while(cur != -1){
@@ -129,20 +115,14 @@ public:
   }
 
   int debug_group_id(int id) const {
-    CHECK(0 <= id && id < sz(nodes));
-    
     return nodes[id].root;
   }
 
-  int group_size(int grp_id) const {
-    CHECK(0 <= grp_id && grp_id < sz(nodes));
-
-    return group_size_[grp_id];
+  int size_of_group(int grp_id) const {
+    return group_size[grp_id];
   }
 
-  int debug_group_size(int grp_id) const {
-    CHECK(0 <= grp_id && grp_id < sz(nodes));
-   
+  int debug_size_of_group(int grp_id) const {
     int cnt = 0;
     int cur = root[grp_id];
     while (cur != -1) {
@@ -177,15 +157,15 @@ public:
     }
   }
 
-  int group_num() const {
-    return group_num_;
+  int debug_group_num() const {
+    return group_num;
   }
 
 private:
   vector<int> root;
   vector<Node> nodes;
-  int group_num_;
-  vector<int> group_size_;
+  int group_num;
+  vector<int> group_size;
 };
 
 class gomory_hu_tree_builder {
@@ -433,11 +413,6 @@ class OptimizedGusfieldWith2ECC {
     //s側の頂点とt側の頂点に分類する
     const int F = max_flow_times;
     int sside = 0, tside = 0;
-
-    const int sep_group_id = dcs.debug_group_id(s);
-    const int new_group_id = dcs.group_num();
-    map<int,int> debug_grpid_count;
-
     if (dc_base.reason_for_finishing_bfs == dinic_twosided::kQsIsEmpty) {
       //s側に属する頂点の親を新しいgroupに移動する
       q.push(s);
@@ -445,7 +420,6 @@ class OptimizedGusfieldWith2ECC {
       dcs.create_new_group(s);
       while (!q.empty()) {
         V v = q.front(); q.pop();
-        if(v < num_vertices_) debug_grpid_count[dcs.debug_group_id(v)]++;
         sside++;
         for (auto& e : dc_base.e[v]) {
           const int cap = e.cap(dc_base.graph_revision);
@@ -465,7 +439,6 @@ class OptimizedGusfieldWith2ECC {
       dcs.create_new_group(t);
       while (!q.empty()) {
         V v = q.front(); q.pop();
-        if(v < num_vertices_) debug_grpid_count[dcs.debug_group_id(v)]++;
         tside++;
         for (auto& e : dc_base.e[v]) {
           const int cap = dc_base.e[e.to][e.reverse].cap(dc_base.graph_revision);
@@ -480,23 +453,12 @@ class OptimizedGusfieldWith2ECC {
       sside = num_vertices_ - tside;
     }
 
-    bool separable = true;
-    for(const auto& kv : debug_grpid_count) {
-      if(kv.first == sep_group_id || kv.first == new_group_id) continue;
-      const int gsize = dcs.group_size(kv.first);
-      // CHECK(gsize == kv.second);
-      if(gsize != kv.second) {
-        separable = false;
-        fprintf(stderr, "(%d,%d) couldn't separate (crossed).\n", s, t);
-      } 
-    }
-
     const int min_side = min(tside, sside);
-    if (enable_separate_graph && separable) {
+    if (enable_separate_graph) {
       /*
       * separate phase
       */
-      const int separate_upper_bound = 10;
+      const int separate_upper_bound = 1;
       const bool sside_separate = (sside == min_side && dc_base.reason_for_finishing_bfs == dinic_twosided::kQsIsEmpty && sside > separate_upper_bound);
       const bool tside_separate = (tside == min_side && dc_base.reason_for_finishing_bfs == dinic_twosided::kQtIsEmpty && tside > separate_upper_bound);
       if (sside_separate || tside_separate) {
@@ -689,7 +651,7 @@ class OptimizedGusfieldWith2ECC {
     }
     FOR(g, num_vertices_) {
       auto v = dcs.get_group(g);
-      CHECK(sz(v) == dcs.group_size(g));
+      CHECK(sz(v) == dcs.size_of_group(g));
       FOR(i, sz(v) - 1) {
         int u = v[i], x = v[i + 1];
         CHECK(uf.is_same(u, x));
@@ -753,7 +715,7 @@ public:
       }
     }
 
-    verify(dc_base, dcs);
+    // verify(dc_base, dcs);
 
     // 残った頂点groupをcutする、gomory_hu treeの完成
     gusfield(dc_base, dcs);
