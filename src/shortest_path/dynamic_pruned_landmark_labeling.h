@@ -79,16 +79,16 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::construct(
   }
 
   // DEBUG
-  for (int direction = 0; direction < 2; ++direction) {
-    std::cerr << direction << std::endl;
-    for (int v = 0; v < num_v; ++v) {
-      for (const auto &p : idx[direction][v].spt) {
-        std::cerr << "[" << p.first << "," << p.second << "] ";
-      }
-      std::cerr << std::endl;
-    }
-    std::cerr << std::endl;
-  }
+  // for (int direction = 0; direction < 2; ++direction) {
+  //   std::cerr << direction << std::endl;
+  //   for (int v = 0; v < num_v; ++v) {
+  //     for (const auto &p : idx[direction][v].spt) {
+  //       std::cerr << "[" << p.first << "," << p.second << "] ";
+  //     }
+  //     std::cerr << std::endl;
+  //   }
+  //   std::cerr << std::endl;
+  // }
 }
 
 template <size_t kNumBitParallelRoots>
