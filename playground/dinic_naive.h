@@ -6,11 +6,6 @@ class dinic_naive {
     E(int to, int rev, int cap) : to(to), rev(rev), cap(cap) {}
   };
 
-  void add_undirected_edge(int f, int t, int c) {
-    e[f].push_back(E(t, sz(e[t]), c));
-    e[t].push_back(E(f, sz(e[f]) - 1, c));
-  }
-
   void bfs(int s) {
     level.assign(level.size(), -1);
     queue<int> q;
@@ -45,18 +40,13 @@ class dinic_naive {
 
   static const int INF = (int)1e8;
 public:
-  dinic_naive(const G& g) 
-  : level(g.num_vertices()), iter(g.num_vertices()), e(g.num_vertices()) {
-    for(const auto edge : g.edge_list()){
-      add_undirected_edge(edge.first, edge.second, 1);
-    }
+  dinic_naive(int num_vs)
+  : level(num_vs), iter(num_vs), e(num_vs) {
   }
 
-  dinic_naive(const vector<pair<V, V>>& edges, int num_vs)
-  : level(num_vs), iter(num_vs), e(num_vs) {
-    for(const auto edge : edges){
-      add_undirected_edge(edge.first, edge.second, 1);
-    }
+  void add_undirected_edge(int f, int t, int c) {
+    e[f].push_back(E(t, sz(e[t]), c));
+    e[t].push_back(E(f, sz(e[f]) - 1, c));
   }
 
   int max_flow(int s, int t) {
