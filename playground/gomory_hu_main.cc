@@ -17,6 +17,7 @@ DEFINE_string(method, "gusfield", "test, gusfield, print_gomory_hu_tree");
 #include "OptimizedGusfieldWith2ECC.h"
 #include "OptimizedGusfieldWith2ECC_slow.h"
 #include "PlainGusfield.h"
+#include "PlainGusfield_bi_dinitz.h"
 #include "tree_query.h"
 
 G to_directed_graph(G&& g) {
@@ -349,6 +350,8 @@ int main(int argc, char** argv) {
 
   if (FLAGS_gomory_hu_builder == "PlainGusfield") { 
     main_<PlainGusfield>(std::move(g));
+  } else if (FLAGS_gomory_hu_builder == "PlainGusfield_bi_dinitz") { 
+    main_<PlainGusfield_bi_dinitz>(std::move(g));
   } else if (FLAGS_gomory_hu_builder == "Gusfield") {
     main_<Gusfield>(std::move(g));
   } else if (FLAGS_gomory_hu_builder == "Gusfield_slow") {
