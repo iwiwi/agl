@@ -1,6 +1,8 @@
 #pragma once
 #include "graph/graph.h"
 #include "graph/graph_index_interface.h"
+#include <set>
+#include <queue>
 
 namespace agl {
 template <size_t kNumBitParallelRoots = 16>
@@ -28,14 +30,17 @@ class dynamic_pruned_landmark_labeling
 
   static const W W_INF = 100;
   struct index_t {
-    std::vector<V> spt_v;
-    std::vector<W> spt_d;
+    std::vector<std::pair<V, W>> spt;
+    size_t size() const { return spt.size(); }
   };
 
   std::vector<index_t> idx[2];
 
   std::vector<std::vector<V>> adj[2];
   std::vector<V> inv;
+
+ private:
+  void pruned_BFS(const G &g, V v_from, int direction);
 };
 
 template <size_t kNumBitParallelRoots>
@@ -55,19 +60,66 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::construct(
   {
     std::vector<std::pair<double, V>> decreasing_order(num_v);
     for (V i = 0; i < num_v; ++i) {
-      double deg = adj[0][i].size() + adj[1][i].size() +
-                   (double)agl::random(num_v) / num_v;
-      decreasing_order[i] = {deg, i};
+      double deg = adj[0][i].size() + adj[1][i].size();
+      double t = (double)agl::random(num_v) / num_v;
+      decreasing_order[i] = {deg + t, i};
     }
     std::sort(decreasing_order.rbegin(), decreasing_order.rend());
-    for (int i = 0; i < num_v; ++i) {
-      inv[i] = decreasing_order[i].second;
-    }
+    for (int i = 0; i < num_v; ++i) inv[i] = decreasing_order[i].second;
   }
 
   // Pruned labelling
-  for (int i = 0; i < 2; ++i) {
+  for (int direction = 0; direction < 2; ++direction) {
+    // decreasing order
+    for (const auto &r : inv) pruned_BFS(g, r, direction);
   }
+  for (int direction = 0; direction < 2; ++direction) {
+    for (V v = 0; v < num_v; ++v)
+      sort(idx[direction][v].spt.begin(), idx[direction][v].spt.end());
+  }
+
+  // DEBUG
+  for (int direction = 0; direction < 2; ++direction) {
+    std::cerr << direction << std::endl;
+    for (int v = 0; v < num_v; ++v) {
+      for (const auto &p : idx[direction][v].spt) {
+        std::cerr << "[" << p.first << "," << p.second << "] ";
+      }
+      std::cerr << std::endl;
+    }
+    std::cerr << std::endl;
+  }
+}
+
+template <size_t kNumBitParallelRoots>
+void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::pruned_BFS(
+    const G &g, V v_from, int direction) {
+  V num_v = g.num_vertices();
+
+  std::queue<V> que;
+  que.push(v_from);
+
+  std::vector<W> P(num_v, W_INF);
+  P[v_from] = 0;
+
+  std::vector<std::pair<V, W>> tmp_idx;
+
+  while (!que.empty()) {
+    V u = que.front();
+    que.pop();
+    if (query_distance(g, v_from, u) <= P[u]) continue;
+    tmp_idx.push_back({u, P[u]});
+
+    for (const auto &w : adj[direction][u]) {
+      if (P[w] < W_INF) continue;
+      P[w] = P[u] + 1;
+      que.push(w);
+    }
+  }
+
+  int another = direction ^ 1;
+  for (const auto &p : tmp_idx)
+    idx[another][p.first].spt.push_back({v_from, p.second});
 }
 
 template <size_t kNumBitParallelRoots>
@@ -80,12 +132,13 @@ W dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::query_distance(
   const index_t &idx_from = idx[0][v_from];
   const index_t &idx_to = idx[1][v_to];
 
-  for (int i1 = 0, i2 = 0;
-       i1 < idx_from.spt_v.size() && i2 < idx_to.spt_v.size();) {
-    V v1 = idx_from.spt_v[i1];
-    V v2 = idx_from.spt_v[i2];
+  // TODO bit-parallel
+
+  for (int i1 = 0, i2 = 0; i1 < idx_from.size() && i2 < idx_to.size();) {
+    V v1 = idx_from.spt[i1].first;
+    V v2 = idx_to.spt[i2].first;
     if (v1 == v2) {
-      W td = idx_from.spt_d[i1] + idx_to.spt_d[i2];
+      W td = idx_from.spt[i1].second + idx_to.spt[i2].second;
       if (td < d) d = td;
       i1++;
       i2++;
