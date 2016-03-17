@@ -8,7 +8,7 @@ DEFINE_int32(separete_near_pairs_d, 1, "");
 DEFINE_bool(enable_greedy_tree_packing, true, "");
 DEFINE_bool(enable_logging_max_flow_details, false, "");
 DEFINE_bool(enable_adjacent_cut, true, "");
-DEFINE_bool(enable_special_bfs, true, "");
+DEFINE_bool(enable_goal_oriented_search, true, "");
 
 class disjoint_cut_set {
   struct Node {
@@ -695,7 +695,7 @@ public:
 
     mincut_init();
 
-    if (FLAGS_enable_special_bfs) {
+    if (FLAGS_enable_goal_oriented_search) {
       find_cuts_by_goal_oriented_search(dc_base, dcs);
     }
 
