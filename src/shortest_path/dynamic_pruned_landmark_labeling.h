@@ -29,7 +29,8 @@ class dynamic_pruned_landmark_labeling
   }
 
   static const W W_INF = 100;
-  struct index_t {
+  class index_t {
+   private:
     std::vector<std::pair<V, W>> spt;
     size_t size() const { return spt.size(); }
     void update(V v, W d) {
@@ -49,6 +50,13 @@ class dynamic_pruned_landmark_labeling
       }
       assert(it->first > v);
       spt.insert(it, {v, d});
+    }
+
+   public:
+    std::map<V, W> spm;
+    void spm_update(V v, W d) {
+      if (spm.count(v) && spm[v] <= d) return;
+      spm[v] = d;
     }
   };
 
@@ -88,14 +96,13 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::construct(
   }
 
   // Pruned labelling
-  for (int direction = 0; direction < 2; ++direction) {
-    // decreasing order
-    for (const auto &r : inv) pruned_bfs(g, r, direction);
-  }
-  for (int direction = 0; direction < 2; ++direction) {
-    for (V v = 0; v < num_v; ++v)
-      sort(idx[direction][v].spt.begin(), idx[direction][v].spt.end());
-  }
+  for (const auto &r : inv)
+    for (int direction = 0; direction < 2; ++direction)
+      pruned_bfs(g, r, direction);
+  // for (int direction = 0; direction < 2; ++direction) {
+  //   for (V v = 0; v < num_v; ++v)
+  //     sort(idx[direction][v].spt.begin(), idx[direction][v].spt.end());
+  // }
 }
 
 template <size_t kNumBitParallelRoots>
@@ -114,8 +121,8 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::pruned_bfs(
   while (!que.empty()) {
     V u = que.front();
     que.pop();
-    if (query_distance(g, v_from, u) <= P[u]) continue;
-    tmp_idx.push_back({u, P[u]});
+    if (query_distance(g, v_from, u, direction) <= P[u]) continue;
+    tmp_idx.emplace_back(u, P[u]);
 
     for (const auto &w : adj[direction][u]) {
       if (P[w] < W_INF) continue;
@@ -125,8 +132,11 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::pruned_bfs(
   }
 
   int another = direction ^ 1;
-  for (const auto &p : tmp_idx)
-    idx[another][p.first].spt.push_back({v_from, p.second});
+  for (const auto &p : tmp_idx) {
+    idx[direction][v_from].spm_update(p.first, p.second);
+    idx[another][p.first].spm_update(v_from, p.second);
+  }
+  // idx[another][p.first].spt.emplace_back(v_from, p.second);
 }
 
 template <size_t kNumBitParallelRoots>
@@ -148,17 +158,32 @@ W dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::query_distance(
 
   // TODO bit-parallel
 
-  for (int i1 = 0, i2 = 0; i1 < idx_from.size() && i2 < idx_to.size();) {
-    V v1 = idx_from.spt[i1].first;
-    V v2 = idx_to.spt[i2].first;
+  // for (int i1 = 0, i2 = 0; i1 < idx_from.size() && i2 < idx_to.size();) {
+  //   V v1 = idx_from.spt[i1].first;
+  //   V v2 = idx_to.spt[i2].first;
+  //   if (v1 == v2) {
+  //     W td = idx_from.spt[i1].second + idx_to.spt[i2].second;
+  //     if (td < d) d = td;
+  //     i1++;
+  //     i2++;
+  //   } else {
+  //     i1 += v1 < v2 ? 1 : 0;
+  //     i2 += v1 > v2 ? 1 : 0;
+  //   }
+  // }
+
+  for (auto i1 = idx_from.spm.begin(), i2 = idx_to.spm.begin();
+       i1 != idx_from.spm.end() && i2 != idx_to.spm.end();) {
+    V v1 = i1->first;
+    V v2 = i2->first;
     if (v1 == v2) {
-      W td = idx_from.spt[i1].second + idx_to.spt[i2].second;
+      W td = i1->second + i2->second;
       if (td < d) d = td;
       i1++;
       i2++;
     } else {
-      i1 += v1 < v2 ? 1 : 0;
-      i2 += v1 > v2 ? 1 : 0;
+      if (v1 < v2) i1++;
+      if (v1 > v2) i2++;
     }
   }
   if (d >= W_INF - 2) d = W_INF;
@@ -186,22 +211,22 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::resume_pbfs(
 template <size_t kNumBitParallelRoots>
 void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::add_edge(
     const G &g, V v_from, const E &e) {
-  V v_to = to(e);
-  assert(v_from < g.num_vertices() && v_to < g.num_vertices());
-  if (query_distance(g, v_from, v_to) <= 1) return;
-  adj[0][v_from].push_back(v_to);
-  adj[1][v_to].push_back(v_from);
+  // V v_to = to(e);
+  // assert(v_from < g.num_vertices() && v_to < g.num_vertices());
+  // if (query_distance(g, v_from, v_to) <= 1) return;
+  // adj[0][v_from].push_back(v_to);
+  // adj[1][v_to].push_back(v_from);
 
-  std::vector<std::pair<std::pair<V, W>, int>> tmp;
-  for (const auto &p : idx[1][v_from].spt) tmp.push_back({p, 0});
-  for (const auto &p : idx[0][v_to].spt) tmp.push_back({p, 1});
+  // std::vector<std::pair<std::pair<V, W>, int>> tmp;
+  // for (const auto &p : idx[1][v_from].spt) tmp.push_back({p, 0});
+  // for (const auto &p : idx[0][v_to].spt) tmp.push_back({p, 1});
 
-  std::sort(tmp.begin(), tmp.end());
+  // std::sort(tmp.begin(), tmp.end());
 
-  for (const auto &q : tmp) {
-    auto p = q.first;
-    if (q.second == 0) resume_pbfs(g, p.first, v_to, p.second + 1, 0);
-    if (q.second == 1) resume_pbfs(g, p.first, v_from, p.second + 1, 1);
-  }
+  // for (const auto &q : tmp) {
+  //   auto p = q.first;
+  //   if (q.second == 0) resume_pbfs(g, p.first, v_to, p.second + 1, 0);
+  //   if (q.second == 1) resume_pbfs(g, p.first, v_from, p.second + 1, 1);
+  // }
 }
 }  // namespace agl
