@@ -58,6 +58,10 @@ public:
     group_size_[0] = n;
   }
 
+  const int node_num() const {
+    return sz(nodes);
+  }
+
   void create_new_group(int id) {
     erase(id);
     add(id, group_num++);
@@ -106,7 +110,7 @@ public:
     return ret;
   }
 
-  int debug_group_id(int id) const {
+  int group_id(int id) const {
     return nodes[id].root;
   }
 
@@ -258,6 +262,24 @@ class separator {
       debug_cut_details.clear();
     }
 
+    cross_other_mincut_count_ = 0;
+    auto check_crossed_mincut = [this](const V add) {
+      if(add >= sz(this->mincut_group_revision)) return ;
+      const int group_id = this->dcs_.group_id(add);
+      const int group_size = this->dcs_.group_size(group_id);
+      if(group_size == 1) return;
+
+      const int F = this->used_flag_value();
+      if(this->mincut_group_revision[group_id] != F){
+        this->mincut_group_revision[group_id] = F;
+        this->mincut_group_counter[group_id] = 0;
+      }
+
+      if(this->mincut_group_counter[group_id] == 0) this->cross_other_mincut_count_++;
+      this->mincut_group_counter[group_id]++;
+      if(this->mincut_group_counter[group_id] == group_size) this->cross_other_mincut_count_--;
+    };
+
     //s側の頂点とt側の頂点に分類する
     const int F = used_flag_value();
     int one_side = 0;
@@ -276,6 +298,8 @@ class separator {
           q.push(e.to);
           if (dcs_.is_same_group(t, e.to)) {
             dcs_.move_other_group(e.to, s); //tと同じgroupにいた頂点を、s側のgroupに移動
+          } else {
+            check_crossed_mincut(e.to);
           }
         }
       }
@@ -294,6 +318,8 @@ class separator {
           q.push(e.to);
           if (dcs_.is_same_group(s, e.to)) {
             dcs_.move_other_group(e.to, t); //sと同じgroupにいた頂点を、t側のgroupに移動
+          } else {
+            check_crossed_mincut(e.to);
           }
         }
       }
@@ -364,7 +390,8 @@ public:
 
   separator(bi_dinitz& dz, disjoint_cut_set& dcs, gomory_hu_tree_builder& gh_builder) 
     : dz_(dz), dcs_(dcs), gh_builder_(gh_builder),
-      used(dz.n), max_flow_times(0), gomory_hu_cut_used(dz.n), sep_count_(0) {
+      used(dz.n), max_flow_times(0), gomory_hu_cut_used(dz.n), sep_count_(0),
+      mincut_group_counter(dcs.node_num()), mincut_group_revision(dcs.node_num()) {
   }
 
   void goal_oriented_bfs_init(const V goal){
@@ -377,8 +404,12 @@ public:
     const int one_side = max_flow(s, t);
     if (enable_contraction) {
       const int other_side_estimated = dz_.n - one_side;
+      if(cross_other_mincut_count_ != 0) {
+        fprintf(stderr, "(%d,%d) couldn't separate (crossed).\n", s, t);
+      }
 
-      const bool contract = min(one_side, other_side_estimated) >= FLAGS_contraction_lower_bound;
+      const bool contract = cross_other_mincut_count_ == 0 &&
+        min(one_side, other_side_estimated) >= FLAGS_contraction_lower_bound;
       if(contract) {
         contraction(s, t);
       }
@@ -433,6 +464,9 @@ private:
   map<int, int> debug_cut_details;
   vector<int> gomory_hu_cut_used;
   int sep_count_;
+  vector<int> mincut_group_counter;
+  vector<int> mincut_group_revision;
+  int cross_other_mincut_count_;
 
   int debug_last_max_flow_cost;
 };
