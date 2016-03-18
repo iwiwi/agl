@@ -732,7 +732,7 @@ public:
       }
     }
 
-    sep.debug_verify();
+    // sep.debug_verify();
 
     // 残った頂点groupをcutする、gomory_hu treeの完成
     separate_all(sep);
