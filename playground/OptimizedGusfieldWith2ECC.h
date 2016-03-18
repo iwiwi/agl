@@ -118,41 +118,6 @@ public:
     return group_size_[grp_id];
   }
 
-  int debug_group_size(int grp_id) const {
-    int cnt = 0;
-    int cur = root[grp_id];
-    while (cur != -1) {
-      cnt++;
-      cur = nodes[cur].nt;
-    }
-    return cnt;
-  }
-
-  void debug() {
-    FOR(i, sz(nodes)) {
-      int cur = root[i];
-      if (cur == -1) continue;
-      int cnt = 0;
-      while (cur != -1) {
-        if (cur >= sz(root)) {
-          printf("i = %d, cur = %d\n", i, cur);
-        }
-        CHECK(cur < sz(root));
-        cnt++;
-        cur = nodes[cur].nt;
-      }
-      if (cnt != 1) {
-        cur = root[i];
-        printf("i = %d : ", i);
-        while (cur != -1) {
-          printf("%d, ", cur);
-          cur = nodes[cur].nt;
-        }
-        puts("");
-      }
-    }
-  }
-
   int debug_group_num() const {
     return group_num;
   }
@@ -228,7 +193,32 @@ private:
 class separator {
 
   const int used_flag_value() const {
-    return max_flow_times;
+    return max_flow_times_;
+  }
+
+  // 一定期間置きに進捗を出力する
+  void print_progress_at_regular_intervals(V s, V t, int cost, long long before_max_flow , long long after_max_flow) {
+    if (FLAGS_enable_logging_max_flow_details) {
+      JLOG_ADD_OPEN("separator.max_flow_details") {
+        JLOG_PUT("cost", cost, false);
+        JLOG_PUT("edge_count", after_max_flow - before_max_flow, false);
+      }
+    }
+
+    if (max_flow_times_ % 10000 == 0) {
+      stringstream ss;
+      ss << "max_flow_times_ = " << max_flow_times_ << ", (" << s << "," << t << ") cost = " << cost;
+      JLOG_ADD("separator.progress", ss.str());
+      fprintf(stderr, "getcap_counter = %16lld\n", getcap_counter);
+      fprintf(stderr, "addcap_counter = %16lld\n", addcap_counter);
+      fprintf(stderr, "preflow_eq_degree =     %9d\n", preflow_eq_degree);
+      fprintf(stderr, "flow_eq_0         =     %9d\n", flow_eq_0);
+
+      fprintf(stderr, "cut details : ");
+      for(auto& kv : debug_count_cut_size_for_a_period) fprintf(stderr, "(%d,%d), ", kv.first, kv.second);
+      fprintf(stderr, "\n");
+      debug_count_cut_size_for_a_period.clear();
+    }
   }
 
   int max_flow(const V s, const V t) {
@@ -240,44 +230,26 @@ class separator {
     gh_builder_.add_edge(s, t, cost); //cutした結果をgomory_hu treeの枝を登録
                       // fprintf(stderr, "(%d,%d) : %d\n", s, t, cost);
                       //debug infomation
-    max_flow_times++;
-    if (FLAGS_enable_logging_max_flow_details) {
-      JLOG_ADD_OPEN("gusfield.max_flow_details") {
-        JLOG_PUT("cost", cost, false);
-        JLOG_PUT("edge_count", after_max_flow - before_max_flow, false);
-      }
-    }
-    if (max_flow_times % 10000 == 0) {
-      stringstream ss;
-      ss << "max_flow_times = " << max_flow_times << ", (" << s << "," << t << ") cost = " << cost;
-      JLOG_ADD("gusfield.progress", ss.str());
-      fprintf(stderr, "getcap_counter = %lld\n", getcap_counter);
-      fprintf(stderr, "addcap_counter = %lld\n", addcap_counter);
-      fprintf(stderr, "preflow_eq_degree = %d\n", preflow_eq_degree);
-      fprintf(stderr, "flow_eq_0 = %d\n", flow_eq_0);
-
-      fprintf(stderr, "cut details : ");
-      for(auto& kv : debug_count_cut_size_for_a_period) fprintf(stderr, "(%d,%d), ", kv.first, kv.second);
-      fprintf(stderr, "\n");
-      debug_count_cut_size_for_a_period.clear();
-    }
+    
+    max_flow_times_++;
+    print_progress_at_regular_intervals(s, t, cost, before_max_flow, after_max_flow);
 
     cross_other_mincut_count_ = 0;
     auto check_crossed_mincut = [this](const V add) {
-      if(add >= sz(this->mincut_group_revision)) return ;
+      if(add >= sz(this->mincut_group_revision_)) return ;
       const int group_id = this->dcs_.group_id(add);
       const int group_size = this->dcs_.group_size(group_id);
       if(group_size == 1) return;
 
       const int F = this->used_flag_value();
-      if(this->mincut_group_revision[group_id] != F){
-        this->mincut_group_revision[group_id] = F;
-        this->mincut_group_counter[group_id] = 0;
+      if(this->mincut_group_revision_[group_id] != F){
+        this->mincut_group_revision_[group_id] = F;
+        this->mincut_group_counter_[group_id] = 0;
       }
 
-      if(this->mincut_group_counter[group_id] == 0) this->cross_other_mincut_count_++;
-      this->mincut_group_counter[group_id]++;
-      if(this->mincut_group_counter[group_id] == group_size) this->cross_other_mincut_count_--;
+      if(this->mincut_group_counter_[group_id] == 0) this->cross_other_mincut_count_++;
+      this->mincut_group_counter_[group_id]++;
+      if(this->mincut_group_counter_[group_id] == group_size) this->cross_other_mincut_count_--;
     };
 
     //s側の頂点とt側の頂点に分類する
@@ -287,15 +259,15 @@ class separator {
     if (dz_.reason_for_finishing_bfs == bi_dinitz::kQsIsEmpty) {
       //s側に属する頂点の親を新しいgroupに移動する
       q.push(s);
-      grouping_used[s] = F;
+      grouping_used_[s] = F;
       dcs_.create_new_group(s);
       while (!q.empty()) {
         V v = q.front(); q.pop();
         one_side++;
         for (auto& e : dz_.e[v]) {
           const int cap = e.cap(dz_.graph_revision);
-          if (cap == 0 || grouping_used[e.to] == F) continue;
-          grouping_used[e.to] = F;
+          if (cap == 0 || grouping_used_[e.to] == F) continue;
+          grouping_used_[e.to] = F;
           q.push(e.to);
           if (dcs_.is_same_group(t, e.to)) {
             dcs_.move_other_group(e.to, s); //tと同じgroupにいた頂点を、s側のgroupに移動
@@ -307,15 +279,15 @@ class separator {
     } else {
       //t側に属する頂点の親を,tに変更する
       q.push(t);
-      grouping_used[t] = F;
+      grouping_used_[t] = F;
       dcs_.create_new_group(t);
       while (!q.empty()) {
         V v = q.front(); q.pop();
         one_side++;
         for (auto& e : dz_.e[v]) {
           const int cap = dz_.e[e.to][e.reverse].cap(dz_.graph_revision);
-          if (cap == 0 || grouping_used[e.to] == F) continue;
-          grouping_used[e.to] = F;
+          if (cap == 0 || grouping_used_[e.to] == F) continue;
+          grouping_used_[e.to] = F;
           q.push(e.to);
           if (dcs_.is_same_group(s, e.to)) {
             dcs_.move_other_group(e.to, t); //sと同じgroupにいた頂点を、t側のgroupに移動
@@ -330,15 +302,15 @@ class separator {
   }
 
   void contraction(const V s,const V t) {
-    sep_count_++;
+    contraction_count_++;
     //gomory_hu algorithm
     //縮約後の頂点2つを追加する
     const int sside_new_vtx = dz_.n;
     const int tside_new_vtx = sside_new_vtx + 1;
     FOR(_, 2) {
       dz_.add_vertex();
-      grouping_used.emplace_back();
-      contraction_used.emplace_back();
+      grouping_used_.emplace_back();
+      contraction_used_.emplace_back();
     }
 
     queue<int> q;
@@ -346,40 +318,40 @@ class separator {
     int num_reconnected = 0; //枝を繋ぎ直した回数
     if (dz_.reason_for_finishing_bfs == bi_dinitz::kQsIsEmpty) {
       q.push(s);
-      contraction_used[s] = F;
+      contraction_used_[s] = F;
       while (!q.empty()) {
         V v = q.front(); q.pop();
         for (auto& e : dz_.e[v]) {
           const int cap = e.cap(dz_.graph_revision);
-          if (contraction_used[e.to] == F) continue;
+          if (contraction_used_[e.to] == F) continue;
           if (cap == 0) {
-            if (grouping_used[e.to] != F) {
+            if (grouping_used_[e.to] != F) {
               //辺を上手に張り替える
               dz_.reconnect_edge(e, sside_new_vtx, tside_new_vtx);
               num_reconnected++;
             }
           } else {
-            contraction_used[e.to] = F;
+            contraction_used_[e.to] = F;
             q.push(e.to);
           }
         }
       }
     } else {
       q.push(t);
-      contraction_used[t] = F;
+      contraction_used_[t] = F;
       while (!q.empty()) {
         V v = q.front(); q.pop();
         for (auto& e : dz_.e[v]) {
           const int cap = dz_.e[e.to][e.reverse].cap(dz_.graph_revision);
-          if (contraction_used[e.to] == F) continue;
+          if (contraction_used_[e.to] == F) continue;
           if (cap == 0) {
-            if (grouping_used[e.to] != F) {
+            if (grouping_used_[e.to] != F) {
               //辺を上手に張り替える
               dz_.reconnect_edge(e, tside_new_vtx, sside_new_vtx);
               num_reconnected++;
             }
           } else {
-            contraction_used[e.to] = F;
+            contraction_used_[e.to] = F;
             q.push(e.to);
           }
         }
@@ -392,8 +364,8 @@ public:
 
   separator(bi_dinitz& dz, disjoint_cut_set& dcs, gomory_hu_tree_builder& gh_builder) 
     : dz_(dz), dcs_(dcs), gh_builder_(gh_builder),
-      grouping_used(dz.n), max_flow_times(0), contraction_used(dz.n), sep_count_(0),
-      mincut_group_counter(dcs.node_num()), mincut_group_revision(dcs.node_num()) {
+      max_flow_times_(0), contraction_count_(0), grouping_used_(dz.n), contraction_used_(dz.n), 
+      mincut_group_counter_(dcs.node_num()), mincut_group_revision_(dcs.node_num()) {
   }
 
   void goal_oriented_bfs_init(const V goal){
@@ -425,10 +397,9 @@ public:
   void output_debug_infomation() const {
     if (sz(debug_count_cut_size_all_time) > 10) {
       stringstream debug_count_cut_size_all_time_ss;
-      debug_count_cut_size_all_time_ss << "debug_count_cut_size_all_time : ";
       for (auto& kv : debug_count_cut_size_all_time) debug_count_cut_size_all_time_ss << "(" << kv.first << "," << kv.second << "), ";
       JLOG_ADD("separator.debug_count_cut_size_all_time", debug_count_cut_size_all_time_ss.str());
-      JLOG_ADD("separator.separated_count", sep_count_);
+      JLOG_ADD("separator.contraction_count", contraction_count_);
     }
   }
 
@@ -453,7 +424,7 @@ public:
   const bi_dinitz& get_bi_dinitz() { return dz_; }
   const disjoint_cut_set& get_disjoint_cut_set() { return dcs_; }
 
-  const int sep_count() { return sep_count_; }
+  const int contraction_count() { return contraction_count_; }
 
 private:
 
@@ -461,13 +432,14 @@ private:
   disjoint_cut_set& dcs_;
   gomory_hu_tree_builder& gh_builder_;
 
-  vector<int> grouping_used;
-  int max_flow_times;
-  vector<int> contraction_used;
-  int sep_count_;
-  vector<int> mincut_group_counter;
-  vector<int> mincut_group_revision;
-  int cross_other_mincut_count_;
+  int max_flow_times_; //maxflowを流した回数
+  int contraction_count_; // contractionが呼ばれた回数
+  vector<int> grouping_used_; // 'maxflowを流した後、mincutを求めるbfs'で使うused
+  vector<int> contraction_used_; // 'mincutを元に、頂点縮約を行うbfs'で使うused
+
+  vector<int> mincut_group_counter_;
+  vector<int> mincut_group_revision_;
+  int cross_other_mincut_count_; // 今回のmincutが、他のmincutと何回交わったか
 
   map<int, int> debug_count_cut_size_all_time;
   map<int, int> debug_count_cut_size_for_a_period;
@@ -627,7 +599,7 @@ class OptimizedGusfieldWith2ECC {
 
     if (cut_large_degree_count > 0) {
       JLOG_PUT("separate_high_degree_pairs.cut_large_degree_count", cut_large_degree_count);
-      JLOG_PUT("separate_high_degree_pairs.separated_count", sep.sep_count());
+      JLOG_PUT("separate_high_degree_pairs.separated_count", sep.contraction_count());
     }
   }
 
