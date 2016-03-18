@@ -257,9 +257,9 @@ class separator {
       fprintf(stderr, "flow_eq_0 = %d\n", flow_eq_0);
 
       fprintf(stderr, "cut details : ");
-      for(auto& kv : debug_cut_details) fprintf(stderr, "(%d,%d), ", kv.first, kv.second);
+      for(auto& kv : debug_count_cut_size_for_a_period) fprintf(stderr, "(%d,%d), ", kv.first, kv.second);
       fprintf(stderr, "\n");
-      debug_cut_details.clear();
+      debug_count_cut_size_for_a_period.clear();
     }
 
     cross_other_mincut_count_ = 0;
@@ -281,20 +281,21 @@ class separator {
     };
 
     //s側の頂点とt側の頂点に分類する
+    queue<int> q;
     const int F = used_flag_value();
     int one_side = 0;
     if (dz_.reason_for_finishing_bfs == bi_dinitz::kQsIsEmpty) {
       //s側に属する頂点の親を新しいgroupに移動する
       q.push(s);
-      used[s] = F;
+      grouping_used[s] = F;
       dcs_.create_new_group(s);
       while (!q.empty()) {
         V v = q.front(); q.pop();
         one_side++;
         for (auto& e : dz_.e[v]) {
           const int cap = e.cap(dz_.graph_revision);
-          if (cap == 0 || used[e.to] == F) continue;
-          used[e.to] = F;
+          if (cap == 0 || grouping_used[e.to] == F) continue;
+          grouping_used[e.to] = F;
           q.push(e.to);
           if (dcs_.is_same_group(t, e.to)) {
             dcs_.move_other_group(e.to, s); //tと同じgroupにいた頂点を、s側のgroupに移動
@@ -306,15 +307,15 @@ class separator {
     } else {
       //t側に属する頂点の親を,tに変更する
       q.push(t);
-      used[t] = F;
+      grouping_used[t] = F;
       dcs_.create_new_group(t);
       while (!q.empty()) {
         V v = q.front(); q.pop();
         one_side++;
         for (auto& e : dz_.e[v]) {
           const int cap = dz_.e[e.to][e.reverse].cap(dz_.graph_revision);
-          if (cap == 0 || used[e.to] == F) continue;
-          used[e.to] = F;
+          if (cap == 0 || grouping_used[e.to] == F) continue;
+          grouping_used[e.to] = F;
           q.push(e.to);
           if (dcs_.is_same_group(s, e.to)) {
             dcs_.move_other_group(e.to, t); //sと同じgroupにいた頂点を、t側のgroupに移動
@@ -336,48 +337,49 @@ class separator {
     const int tside_new_vtx = sside_new_vtx + 1;
     FOR(_, 2) {
       dz_.add_vertex();
-      used.emplace_back();
-      gomory_hu_cut_used.emplace_back();
+      grouping_used.emplace_back();
+      contraction_used.emplace_back();
     }
 
+    queue<int> q;
     const int F = used_flag_value();
     int num_reconnected = 0; //枝を繋ぎ直した回数
     if (dz_.reason_for_finishing_bfs == bi_dinitz::kQsIsEmpty) {
       q.push(s);
-      gomory_hu_cut_used[s] = F;
+      contraction_used[s] = F;
       while (!q.empty()) {
         V v = q.front(); q.pop();
         for (auto& e : dz_.e[v]) {
           const int cap = e.cap(dz_.graph_revision);
-          if (gomory_hu_cut_used[e.to] == F) continue;
+          if (contraction_used[e.to] == F) continue;
           if (cap == 0) {
-            if (used[e.to] != F) {
+            if (grouping_used[e.to] != F) {
               //辺を上手に張り替える
               dz_.reconnect_edge(e, sside_new_vtx, tside_new_vtx);
               num_reconnected++;
             }
           } else {
-            gomory_hu_cut_used[e.to] = F;
+            contraction_used[e.to] = F;
             q.push(e.to);
           }
         }
       }
     } else {
       q.push(t);
-      gomory_hu_cut_used[t] = F;
+      contraction_used[t] = F;
       while (!q.empty()) {
         V v = q.front(); q.pop();
         for (auto& e : dz_.e[v]) {
           const int cap = dz_.e[e.to][e.reverse].cap(dz_.graph_revision);
-          if (gomory_hu_cut_used[e.to] == F) continue;
+          if (contraction_used[e.to] == F) continue;
           if (cap == 0) {
-            if (used[e.to] != F) {
+            if (grouping_used[e.to] != F) {
               //辺を上手に張り替える
               dz_.reconnect_edge(e, tside_new_vtx, sside_new_vtx);
               num_reconnected++;
             }
           } else {
-            gomory_hu_cut_used[e.to] = F;
+            contraction_used[e.to] = F;
             q.push(e.to);
           }
         }
@@ -390,7 +392,7 @@ public:
 
   separator(bi_dinitz& dz, disjoint_cut_set& dcs, gomory_hu_tree_builder& gh_builder) 
     : dz_(dz), dcs_(dcs), gh_builder_(gh_builder),
-      used(dz.n), max_flow_times(0), gomory_hu_cut_used(dz.n), sep_count_(0),
+      grouping_used(dz.n), max_flow_times(0), contraction_used(dz.n), sep_count_(0),
       mincut_group_counter(dcs.node_num()), mincut_group_revision(dcs.node_num()) {
   }
 
@@ -416,16 +418,16 @@ public:
     }
 
     // debug infomation
-    cutsize_count[one_side]++;
-    debug_cut_details[one_side]++;
+    debug_count_cut_size_all_time[one_side]++;
+    debug_count_cut_size_for_a_period[one_side]++;
   }
 
   void output_debug_infomation() const {
-    if (sz(cutsize_count) > 10) {
-      stringstream cutsize_count_ss;
-      cutsize_count_ss << "cutsize_count : ";
-      for (auto& kv : cutsize_count) cutsize_count_ss << "(" << kv.first << "," << kv.second << "), ";
-      JLOG_ADD("separator.cutsize_count", cutsize_count_ss.str());
+    if (sz(debug_count_cut_size_all_time) > 10) {
+      stringstream debug_count_cut_size_all_time_ss;
+      debug_count_cut_size_all_time_ss << "debug_count_cut_size_all_time : ";
+      for (auto& kv : debug_count_cut_size_all_time) debug_count_cut_size_all_time_ss << "(" << kv.first << "," << kv.second << "), ";
+      JLOG_ADD("separator.debug_count_cut_size_all_time", debug_count_cut_size_all_time_ss.str());
       JLOG_ADD("separator.separated_count", sep_count_);
     }
   }
@@ -459,17 +461,16 @@ private:
   disjoint_cut_set& dcs_;
   gomory_hu_tree_builder& gh_builder_;
 
-  queue<int> q;
-  vector<int> used;
+  vector<int> grouping_used;
   int max_flow_times;
-  map<int, int> cutsize_count;
-  map<int, int> debug_cut_details;
-  vector<int> gomory_hu_cut_used;
+  vector<int> contraction_used;
   int sep_count_;
   vector<int> mincut_group_counter;
   vector<int> mincut_group_revision;
   int cross_other_mincut_count_;
 
+  map<int, int> debug_count_cut_size_all_time;
+  map<int, int> debug_count_cut_size_for_a_period;
   int debug_last_max_flow_cost;
 };
 
