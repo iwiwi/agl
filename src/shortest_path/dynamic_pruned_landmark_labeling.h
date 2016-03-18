@@ -29,32 +29,9 @@ class dynamic_pruned_landmark_labeling
   }
 
   static const W W_INF = 100;
-  class index_t {
-   private:
-    std::vector<std::pair<V, W>> spt;
-    size_t size() const { return spt.size(); }
-    void update(V v, W d) {
-      auto it = std::lower_bound(
-          spt.begin(), spt.end(), std::make_pair(v, -1),
-          [](std::pair<int, int> lp, std::pair<int, int> rp) -> bool {
-            if (lp.first == rp.first) return lp.second < rp.second;
-            return lp.first < rp.first;
-          });
-      if (it == spt.end()) {
-        spt.emplace_back(v, d);
-        return;
-      }
-      if (it->first == v) {
-        if (it->second > d) it->second = d;
-        return;
-      }
-      assert(it->first > v);
-      spt.insert(it, {v, d});
-    }
-
-   public:
+  struct index_t {
     std::map<V, W> spm;
-    void spm_update(V v, W d) {
+    void update(V v, W d) {
       if (spm.count(v) && spm[v] <= d) return;
       spm[v] = d;
     }
@@ -99,10 +76,6 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::construct(
   for (const auto &r : inv)
     for (int direction = 0; direction < 2; ++direction)
       pruned_bfs(g, r, direction);
-  // for (int direction = 0; direction < 2; ++direction) {
-  //   for (V v = 0; v < num_v; ++v)
-  //     sort(idx[direction][v].spt.begin(), idx[direction][v].spt.end());
-  // }
 }
 
 template <size_t kNumBitParallelRoots>
@@ -133,10 +106,9 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::pruned_bfs(
 
   int another = direction ^ 1;
   for (const auto &p : tmp_idx) {
-    idx[direction][v_from].spm_update(p.first, p.second);
-    idx[another][p.first].spm_update(v_from, p.second);
+    idx[direction][v_from].update(p.first, p.second);
+    idx[another][p.first].update(v_from, p.second);
   }
-  // idx[another][p.first].spt.emplace_back(v_from, p.second);
 }
 
 template <size_t kNumBitParallelRoots>
@@ -157,20 +129,6 @@ W dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::query_distance(
   const index_t &idx_to = idx[another][v_to];
 
   // TODO bit-parallel
-
-  // for (int i1 = 0, i2 = 0; i1 < idx_from.size() && i2 < idx_to.size();) {
-  //   V v1 = idx_from.spt[i1].first;
-  //   V v2 = idx_to.spt[i2].first;
-  //   if (v1 == v2) {
-  //     W td = idx_from.spt[i1].second + idx_to.spt[i2].second;
-  //     if (td < d) d = td;
-  //     i1++;
-  //     i2++;
-  //   } else {
-  //     i1 += v1 < v2 ? 1 : 0;
-  //     i2 += v1 > v2 ? 1 : 0;
-  //   }
-  // }
 
   for (auto i1 = idx_from.spm.begin(), i2 = idx_to.spm.begin();
        i1 != idx_from.spm.end() && i2 != idx_to.spm.end();) {
