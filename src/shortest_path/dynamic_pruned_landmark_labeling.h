@@ -32,36 +32,23 @@ class dynamic_pruned_landmark_labeling
   struct index_t {
     std::vector<std::pair<V, W>> spt;
     size_t size() const { return spt.size(); }
-    void add(V v, W d) {
+    void update(V v, W d) {
       auto it = std::lower_bound(
-          spt.begin(), spt.end(), std::make_pair(v, d),
+          spt.begin(), spt.end(), std::make_pair(v, -1),
           [](std::pair<int, int> lp, std::pair<int, int> rp) -> bool {
             if (lp.first == rp.first) return lp.second < rp.second;
             return lp.first < rp.first;
           });
       if (it == spt.end()) {
-        if (!spt.empty()) {
-          it--;
-          if (it->first == v) {
-            if (it->second <= d) return;
-            spt.erase(it);
-          }
-        }
-        spt.push_back({v, d});
+        spt.emplace_back(v, d);
         return;
       }
       if (it->first == v) {
-        if (it->second <= d) return;
-        spt.erase(it);
-      } else if (it != spt.begin()) {
-        it--;
-        if (it->first == v) {
-          if (it->second <= d) return;
-          spt.erase(it);
-        }
+        if (it->second > d) it->second = d;
+        return;
       }
-      spt.push_back({v, d});
-      std::sort(spt.begin(), spt.end());
+      assert(it->first > v);
+      spt.insert(it, {v, d});
     }
   };
 
@@ -191,7 +178,7 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::resume_pbfs(
     std::tie(v, d) = que.front();
     que.pop();
     if (query_distance(g, v_from, v, direction) <= d) continue;
-    idx[another][v].add(v_from, d);
+    idx[another][v].update(v_from, d);
     for (const auto &w : adj[direction][v]) que.emplace(w, d + 1);
   }
 }
@@ -205,16 +192,14 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::add_edge(
   adj[0][v_from].push_back(v_to);
   adj[1][v_to].push_back(v_from);
 
-  {
-    std::vector<std::pair<V, W>> tmp;
-    for (const auto &p : idx[1][v_from].spt) tmp.push_back(p);
-    for (const auto &p : tmp) resume_pbfs(g, p.first, v_to, p.second + 1, 0);
-  }
+  std::vector<std::pair<std::pair<V, W>, int>> tmp;
+  for (const auto &p : idx[1][v_from].spt) tmp.push_back({p, 0});
+  for (const auto &p : idx[0][v_to].spt) tmp.push_back({p, 1});
 
-  {
-    std::vector<std::pair<V, W>> tmp;
-    for (const auto &p : idx[0][v_to].spt) tmp.push_back(p);
-    for (const auto &p : tmp) resume_pbfs(g, p.first, v_from, p.second + 1, 1);
+  for (const auto &q : tmp) {
+    auto p = q.first;
+    if (q.second == 0) resume_pbfs(g, p.first, v_to, p.second + 1, 0);
+    if (q.second == 1) resume_pbfs(g, p.first, v_from, p.second + 1, 1);
   }
 }
 }  // namespace agl
