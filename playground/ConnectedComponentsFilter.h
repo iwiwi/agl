@@ -7,6 +7,7 @@ public:
   : n(g.num_vertices()), uf_(n), local_indices_(n), handlers_indices_(n), num_connected_components_(0) {
     fprintf(stderr, "ConnectedComponentsFilter::constructor start memory %ld MB\n", jlog_internal::get_memory_usage() / 1024);
 
+    const double start_uf = jlog_internal::get_current_time_sec();
     FOR(v, n) for (auto e : g.edges(v)) {
       V u = to(e);
     uf_.unite(u, v);
@@ -16,15 +17,18 @@ public:
       if (uf_.root(v) != v) local_indices_[v] = ++local_indices_[uf_.root(v)];
       else handlers_indices_[v] = num_connected_components_++;
     }
+    const double end_uf = jlog_internal::get_current_time_sec();
     fprintf(stderr, "num_connected_components = %d\n", num_connected_components_);
 
+    double ccf_time = end_uf - start_uf;
     vector<bool> used(n);
     FOR(v, n) {
       if (uf_.root(v) != v) continue;
+      double start_cc = jlog_internal::get_current_time_sec();
       used[v] = true;
 
       const int num_vs = local_indices_[uf_.root(v)] + 1;
-    local_indices_[uf_.root(v)] = 0;
+      local_indices_[uf_.root(v)] = 0;
       vector<pair<V, V>> edges;
       queue<int> q;
       q.push(v);
@@ -43,9 +47,13 @@ public:
       }
 
       edges.shrink_to_fit();
+      double end_cc = jlog_internal::get_current_time_sec();
+      ccf_time += end_cc - start_cc;
       // fprintf(stderr, "root = %d num_vs = %d, edge_size = %d\n", v, num_vs, sz(edges));
       handlers_.emplace_back(std::move(edges), num_vs);
     }
+
+    JLOG_ADD("time.decompose_connected_components_after_2ecc", ccf_time);
   }
 
   int query(V u, V v) {

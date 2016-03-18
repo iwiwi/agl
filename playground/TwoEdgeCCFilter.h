@@ -39,31 +39,34 @@ public:
   }
 
   TwoEdgeCCFilter(G& g) : n(g.num_vertices()), g(g), uf(n), lowlink(n, -1), order(n, -1) {
+
+    G new_g;
     fprintf(stderr, "TwoEdgeCCFilter::constructor start : memory %ld MB\n", jlog_internal::get_memory_usage() / 1024);
+    JLOG_ADD_BENCHMARK("time.decompose_2_connected_components") {
+      FOR(v, n) for (auto& e : g.edges(v)) {
+        uf.unite(v, to(e));
+      }
 
-    FOR(v, n) for (auto& e : g.edges(v)) {
-      uf.unite(v, to(e));
+      const int num_edges = g.num_edges();
+
+      FOR(v, n) if (uf.root(v) == v) {
+        int cur_ord = 0;
+        lowlink_dfs(v, -1, cur_ord);
+      }
+
+      CHECK(sz(bridge) + sz(biconnected_graphs_edges) == num_edges);
+
+      g.clear();
+      new_g = G(biconnected_graphs_edges, n);
+
+      //dealloc
+      lowlink.clear(); lowlink.shrink_to_fit();
+      order.clear(); order.shrink_to_fit();
+      // bridge.clear(); bridge.shrink_to_fit();
+      biconnected_graphs_edges.clear(); biconnected_graphs_edges.shrink_to_fit();
     }
-
-    const int num_edges = g.num_edges();
-
-    FOR(v, n) if (uf.root(v) == v) {
-      int cur_ord = 0;
-      lowlink_dfs(v, -1, cur_ord);
-    }
-
-    CHECK(sz(bridge) + sz(biconnected_graphs_edges) == num_edges);
-
-    g.clear();
-    G new_g(biconnected_graphs_edges, n);
-
-    //dealloc
-    lowlink.clear(); lowlink.shrink_to_fit();
-    order.clear(); order.shrink_to_fit();
-    // bridge.clear(); bridge.shrink_to_fit();
-    biconnected_graphs_edges.clear(); biconnected_graphs_edges.shrink_to_fit();
-
     fprintf(stderr, "TwoEdgeCCFilter::constructor end, before ConnectedComponentsFilter : memory %ld MB\n", jlog_internal::get_memory_usage() / 1024);
+
     biconnected_graph_handler.reset(new ConnectedComponentsFilter<handler_t>(new_g));
   }
 

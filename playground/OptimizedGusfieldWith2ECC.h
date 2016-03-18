@@ -1,6 +1,7 @@
 #pragma once
 #include "ConnectedComponentsFilter.h"
 #include "greedy_treepacking.h"
+#include "conditional_benchmark.h"
 
 DEFINE_int32(try_greedy_tree_packing, 1, "");
 DEFINE_int32(try_large_degree_pairs, 10, "");
@@ -681,23 +682,18 @@ public:
   OptimizedGusfieldWith2ECC(vector<pair<V, V>>&& edges, int num_vs) :
     num_vertices_(num_vs),
     gh_builder_(num_vs) {
-
     if(num_vs > 10000) fprintf(stderr, "OptimizedGusfieldWith2ECC::constructor start : memory %ld MB\n", jlog_internal::get_memory_usage() / 1024);
     vector<int> degree(num_vertices_);
     for (auto& e : edges) degree[e.first]++, degree[e.second]++;
 
     //次数2の頂点と接続を持つ辺を削除して、探索しやすくする
-    contract_degree_2_vertices(edges, degree);
+    JLOG_ADD_BENCHMARK_IF("time.contract_degree_2_vertices", num_vertices_ > 10000) {
+      contract_degree_2_vertices(edges, degree);
+    }
 
     disjoint_cut_set dcs(num_vs);
 
-    //枝刈り
-    if(num_vertices_ > 10000) {
-      //頂点数の多いグラフのみlogging
-      JLOG_ADD_BENCHMARK("find_cuts_by_tree_packing_time") {
-        find_cuts_by_tree_packing(edges, dcs, degree);
-      }
-    } else {
+    JLOG_ADD_BENCHMARK_IF("time.find_cuts_by_tree_packing", num_vertices_ > 10000) {
       find_cuts_by_tree_packing(edges, dcs, degree);
     }
 
@@ -713,12 +709,14 @@ public:
     separator sep(dz_base, dcs, gh_builder_);
 
     if (FLAGS_enable_goal_oriented_search) {
-      find_cuts_by_goal_oriented_search(sep);
+      JLOG_ADD_BENCHMARK_IF("time.find_cuts_by_goal_oriented_search", num_vertices_ > 10000) {
+        find_cuts_by_goal_oriented_search(sep);
+      }
     }
 
     // 次数の高い頂点対をcutする
     // グラフをなるべく2分するcutを見つけられると有用
-    if (num_vs > 10000) {
+    JLOG_ADD_BENCHMARK_IF("time.separate_high_degree_pairs", num_vertices_ > 10000) {
       separate_high_degree_pairs(sep);
     }
 
@@ -726,16 +724,22 @@ public:
     if (FLAGS_enable_adjacent_cut) {
       CHECK(FLAGS_separate_near_pairs_d >= 1);
       if(FLAGS_separate_near_pairs_d == 1) {
-        separate_adjacent_pairs(sep); 
+        JLOG_ADD_BENCHMARK_IF("time.separate_adjacent_pairs", num_vertices_ > 10000) {
+          separate_adjacent_pairs(sep);
+        }
       } else {
-        separate_near_pairs(sep);
+        JLOG_ADD_BENCHMARK_IF("time.separate_near_pairs", num_vertices_ > 10000) {
+          separate_near_pairs(sep);
+        }
       }
     }
 
     // sep.debug_verify();
 
     // 残った頂点groupをcutする、gomory_hu treeの完成
-    separate_all(sep);
+    JLOG_ADD_BENCHMARK_IF("time.separate_all", num_vertices_ > 10000) {
+      separate_all(sep);
+    }
 
     sep.output_debug_infomation();
 
