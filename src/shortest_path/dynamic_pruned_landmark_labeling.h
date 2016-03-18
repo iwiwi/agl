@@ -32,15 +32,47 @@ class dynamic_pruned_landmark_labeling
   struct index_t {
     std::vector<std::pair<V, W>> spt;
     size_t size() const { return spt.size(); }
+    void add(V v, W d) {
+      auto it = std::lower_bound(
+          spt.begin(), spt.end(), std::make_pair(v, d),
+          [](std::pair<int, int> lp, std::pair<int, int> rp) -> bool {
+            if (lp.first == rp.first) return lp.second < rp.second;
+            return lp.first < rp.first;
+          });
+      if (it == spt.end()) {
+        if (!spt.empty()) {
+          it--;
+          if (it->first == v) {
+            if (it->second <= d) return;
+            spt.erase(it);
+          }
+        }
+        spt.push_back({v, d});
+        return;
+      }
+      if (it->first == v) {
+        if (it->second <= d) return;
+        spt.erase(it);
+      } else if (it != spt.begin()) {
+        it--;
+        if (it->first == v) {
+          if (it->second <= d) return;
+          spt.erase(it);
+        }
+      }
+      spt.push_back({v, d});
+      std::sort(spt.begin(), spt.end());
+    }
   };
 
   std::vector<index_t> idx[2];
 
   std::vector<std::vector<V>> adj[2];
-  std::vector<V> inv;
 
  private:
-  void pruned_BFS(const G &g, V v_from, int direction);
+  void pruned_bfs(const G &g, V v_from, int direction);
+  void resume_pbfs(const G &g, V v_from, V v_to, W d_ft, int direction);
+  W query_distance(const G &g, V v_from, V v_to, int direction);
 };
 
 template <size_t kNumBitParallelRoots>
@@ -56,7 +88,7 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::construct(
     adj[1][p.second].push_back(p.first);
   }
 
-  inv.resize(num_v);
+  std::vector<V> inv(num_v);
   {
     std::vector<std::pair<double, V>> decreasing_order(num_v);
     for (V i = 0; i < num_v; ++i) {
@@ -71,28 +103,16 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::construct(
   // Pruned labelling
   for (int direction = 0; direction < 2; ++direction) {
     // decreasing order
-    for (const auto &r : inv) pruned_BFS(g, r, direction);
+    for (const auto &r : inv) pruned_bfs(g, r, direction);
   }
   for (int direction = 0; direction < 2; ++direction) {
     for (V v = 0; v < num_v; ++v)
       sort(idx[direction][v].spt.begin(), idx[direction][v].spt.end());
   }
-
-  // DEBUG
-  // for (int direction = 0; direction < 2; ++direction) {
-  //   std::cerr << direction << std::endl;
-  //   for (int v = 0; v < num_v; ++v) {
-  //     for (const auto &p : idx[direction][v].spt) {
-  //       std::cerr << "[" << p.first << "," << p.second << "] ";
-  //     }
-  //     std::cerr << std::endl;
-  //   }
-  //   std::cerr << std::endl;
-  // }
 }
 
 template <size_t kNumBitParallelRoots>
-void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::pruned_BFS(
+void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::pruned_bfs(
     const G &g, V v_from, int direction) {
   V num_v = g.num_vertices();
 
@@ -125,12 +145,19 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::pruned_BFS(
 template <size_t kNumBitParallelRoots>
 W dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::query_distance(
     const G &g, V v_from, V v_to) {
+  return query_distance(g, v_from, v_to, 0);
+}
+
+template <size_t kNumBitParallelRoots>
+W dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::query_distance(
+    const G &g, V v_from, V v_to, int direction) {
+  int another = direction ^ 1;
   if (v_from >= g.num_vertices() || v_to >= g.num_vertices())
     return v_from == v_to ? 0 : W_INF;
 
   W d = W_INF;
-  const index_t &idx_from = idx[0][v_from];
-  const index_t &idx_to = idx[1][v_to];
+  const index_t &idx_from = idx[direction][v_from];
+  const index_t &idx_to = idx[another][v_to];
 
   // TODO bit-parallel
 
@@ -152,8 +179,42 @@ W dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::query_distance(
 }
 
 template <size_t kNumBitParallelRoots>
+void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::resume_pbfs(
+    const G &g, V v_from, V v_to, W d_ft, int direction) {
+  int another = direction ^ 1;
+
+  std::queue<std::pair<V, W>> que;
+  que.emplace(v_to, d_ft);
+  while (!que.empty()) {
+    V v;
+    W d;
+    std::tie(v, d) = que.front();
+    que.pop();
+    if (query_distance(g, v_from, v, direction) <= d) continue;
+    idx[another][v].add(v_from, d);
+    for (const auto &w : adj[direction][v]) que.emplace(w, d + 1);
+  }
+}
+
+template <size_t kNumBitParallelRoots>
 void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::add_edge(
     const G &g, V v_from, const E &e) {
-  puts("new edge");
+  V v_to = to(e);
+  assert(v_from < g.num_vertices() && v_to < g.num_vertices());
+  if (query_distance(g, v_from, v_to) <= 1) return;
+  adj[0][v_from].push_back(v_to);
+  adj[1][v_to].push_back(v_from);
+
+  {
+    std::vector<std::pair<V, W>> tmp;
+    for (const auto &p : idx[1][v_from].spt) tmp.push_back(p);
+    for (const auto &p : tmp) resume_pbfs(g, p.first, v_to, p.second + 1, 0);
+  }
+
+  {
+    std::vector<std::pair<V, W>> tmp;
+    for (const auto &p : idx[0][v_to].spt) tmp.push_back(p);
+    for (const auto &p : tmp) resume_pbfs(g, p.first, v_from, p.second + 1, 1);
+  }
 }
 }  // namespace agl
