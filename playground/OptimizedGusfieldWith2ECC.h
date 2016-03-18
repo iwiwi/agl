@@ -432,6 +432,7 @@ public:
 
 
   void debug_verify() const {
+    if(dcs_.node_num() > 10000) fprintf(stderr, "separator::debug_verify... ");
     union_find uf(dz_.n);
     FOR(i, dz_.n) for (const auto& to_edge : dz_.e[i]) {
       uf.unite(i, to_edge.to);
@@ -444,6 +445,7 @@ public:
         CHECK(uf.is_same(u, x));
       }
     }
+    if(dcs_.node_num() > 10000) fprintf(stderr, "OK\n");
   }
 
   const bi_dinitz& get_bi_dinitz() { return dz_; }
