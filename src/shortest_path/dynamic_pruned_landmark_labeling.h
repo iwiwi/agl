@@ -42,7 +42,7 @@ class dynamic_pruned_landmark_labeling
   std::vector<std::vector<V>> adj[2];
 
  private:
-  void pruned_bfs(const G &g, V v_from, int direction);
+  void pruned_bfs(const G &g, V root, int direction);
   void resume_pbfs(const G &g, V v_from, V v_to, W d_ft, int direction);
   W query_distance(const G &g, V v_from, V v_to, int direction);
 };
@@ -73,28 +73,27 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::construct(
   }
 
   // Pruned labelling
-  for (const auto &r : inv)
-    for (int direction = 0; direction < 2; ++direction)
-      pruned_bfs(g, r, direction);
+  for (const auto &r : inv) {
+    pruned_bfs(g, r, 0);
+    pruned_bfs(g, r, 1);
+  }
 }
 
 template <size_t kNumBitParallelRoots>
 void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::pruned_bfs(
-    const G &g, V v_from, int direction) {
+    const G &g, V root, int direction) {
   V num_v = g.num_vertices();
-
   std::queue<V> que;
-  que.push(v_from);
-
+  que.push(root);
   std::vector<W> P(num_v, W_INF);
-  P[v_from] = 0;
+  P[root] = 0;
 
   std::vector<std::pair<V, W>> tmp_idx;
 
   while (!que.empty()) {
     V u = que.front();
     que.pop();
-    if (query_distance(g, v_from, u, direction) <= P[u]) continue;
+    if (query_distance(g, root, u, direction) <= P[u]) continue;
     tmp_idx.emplace_back(u, P[u]);
 
     for (const auto &w : adj[direction][u]) {
@@ -106,8 +105,8 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::pruned_bfs(
 
   int another = direction ^ 1;
   for (const auto &p : tmp_idx) {
-    idx[direction][v_from].update(p.first, p.second);
-    idx[another][p.first].update(v_from, p.second);
+    idx[direction][root].update(p.first, p.second);
+    idx[another][p.first].update(root, p.second);
   }
 }
 

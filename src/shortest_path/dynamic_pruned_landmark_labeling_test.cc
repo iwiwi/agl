@@ -39,7 +39,7 @@ void BFSCheck(const G& g, TypeParam& dpll) {
     t += get_current_time_sec();
   }
   t /= num_v * num_v;
-  cerr << t << " sec/query" << endl;
+  cerr << t * 1000 * 1000 << " micro sec/query" << endl;
 }
 
 template <typename TypeParam>
