@@ -371,11 +371,11 @@ public:
     dz_.goal_oriented_bfs_init(goal);
   }
 
-  void mincut(V s, V t, bool enable_separate_graph = true) {
+  void mincut(V s, V t, bool enable_contraction = true) {
     if (sz(dz_.e[s]) > sz(dz_.e[t])) swap(s, t);
 
     const int one_side = max_flow(s, t);
-    if (enable_separate_graph) {
+    if (enable_contraction) {
       const int other_side_estimated = dz_.n - one_side;
 
       const bool contract = min(one_side, other_side_estimated) >= FLAGS_contraction_lower_bound;
@@ -662,7 +662,7 @@ class OptimizedGusfieldWith2ECC {
     FOR(v, num_vertices_) {
       if (v == max_degree_vtx) continue;
       if (!dcs.is_same_group(v, max_degree_vtx)) continue;
-      //graphの形状が変わると損なので、ここでは enable_separate_graph = false する
+      //graphの形状が変わると損なので、ここでは enable_contraction = false する
       sep.mincut(v, max_degree_vtx, false);
     }
   }
