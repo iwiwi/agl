@@ -196,6 +196,8 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::add_edge(
   for (const auto &p : idx[1][v_from].spt) tmp.push_back({p, 0});
   for (const auto &p : idx[0][v_to].spt) tmp.push_back({p, 1});
 
+  std::sort(tmp.begin(), tmp.end());
+
   for (const auto &q : tmp) {
     auto p = q.first;
     if (q.second == 0) resume_pbfs(g, p.first, v_to, p.second + 1, 0);
