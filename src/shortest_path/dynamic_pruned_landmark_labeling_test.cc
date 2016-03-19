@@ -63,7 +63,7 @@ void DynamicTest(const G& g) {
   cerr << t << " sec/construct" << endl;
 
   auto es = g.edge_list();
-  V trial = 100;
+  V trial = min(100, g.num_vertices() / 2);
   t = -get_current_time_sec();
   for (int add_trial = 0; add_trial < trial; ++add_trial) {
     V v_from = agl::random(g.num_vertices());

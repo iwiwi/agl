@@ -38,8 +38,9 @@ class dynamic_pruned_landmark_labeling
   };
 
   std::vector<index_t> idx[2];
-
   std::vector<std::vector<V>> adj[2];
+  std::vector<V> rank;
+  std::vector<V> inv;
 
  private:
   void pruned_bfs(const G &g, V root, int direction);
@@ -60,7 +61,13 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::construct(
     adj[1][p.second].push_back(p.first);
   }
 
-  std::vector<V> inv(num_v);
+  for (V v = 0; v < num_v; ++v) {
+    idx[0][v].update(v, 0);
+    idx[1][v].update(v, 0);
+  }
+
+  rank.resize(num_v);
+  inv.resize(num_v);
   {
     std::vector<std::pair<double, V>> decreasing_order(num_v);
     for (V i = 0; i < num_v; ++i) {
@@ -70,6 +77,7 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::construct(
     }
     std::sort(decreasing_order.rbegin(), decreasing_order.rend());
     for (int i = 0; i < num_v; ++i) inv[i] = decreasing_order[i].second;
+    for (int i = 0; i < num_v; ++i) rank[inv[i]] = i;
   }
 
   // Pruned labelling
@@ -77,6 +85,16 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::construct(
     pruned_bfs(g, r, 0);
     pruned_bfs(g, r, 1);
   }
+
+  // // DEBUG
+  // for (int dir = 0; dir < 2; ++dir) {
+  //   for (int v = 0; v < num_v; ++v) {
+  //     std::cerr << v << " ";
+  //     for (const auto &p : idx[dir][v].spm)
+  //       std::cerr << "[" << p.first << "," << p.second << "] ";
+  //     std::cerr << std::endl;
+  //   }
+  // }
 }
 
 template <size_t kNumBitParallelRoots>
@@ -93,7 +111,7 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::pruned_bfs(
   while (!que.empty()) {
     V u = que.front();
     que.pop();
-    if (query_distance(g, root, u, direction) <= P[u]) continue;
+    if (u != root && query_distance(g, root, u, direction) <= P[u]) continue;
     tmp_idx.emplace_back(u, P[u]);
 
     for (const auto &w : adj[direction][u]) {
@@ -104,10 +122,7 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::pruned_bfs(
   }
 
   int another = direction ^ 1;
-  for (const auto &p : tmp_idx) {
-    idx[direction][root].update(p.first, p.second);
-    idx[another][p.first].update(root, p.second);
-  }
+  for (const auto &p : tmp_idx) idx[another][p.first].update(root, p.second);
 }
 
 template <size_t kNumBitParallelRoots>
@@ -168,22 +183,23 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::resume_pbfs(
 template <size_t kNumBitParallelRoots>
 void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::add_edge(
     const G &g, V v_from, const E &e) {
-  // V v_to = to(e);
-  // assert(v_from < g.num_vertices() && v_to < g.num_vertices());
-  // if (query_distance(g, v_from, v_to) <= 1) return;
-  // adj[0][v_from].push_back(v_to);
-  // adj[1][v_to].push_back(v_from);
+  assert(false);
+  V v_to = to(e);
+  assert(v_from < g.num_vertices() && v_to < g.num_vertices());
+  if (query_distance(g, v_from, v_to) <= 1) return;
+  adj[0][v_from].push_back(v_to);
+  adj[1][v_to].push_back(v_from);
 
-  // std::vector<std::pair<std::pair<V, W>, int>> tmp;
-  // for (const auto &p : idx[1][v_from].spt) tmp.push_back({p, 0});
-  // for (const auto &p : idx[0][v_to].spt) tmp.push_back({p, 1});
+  std::vector<std::pair<std::pair<V, W>, int>> tmp;
+  for (const auto &p : idx[1][v_from].spm) tmp.emplace_back(p, 0);
+  for (const auto &p : idx[0][v_to].spm) tmp.emplace_back(p, 1);
 
-  // std::sort(tmp.begin(), tmp.end());
+  std::sort(tmp.begin(), tmp.end());
 
-  // for (const auto &q : tmp) {
-  //   auto p = q.first;
-  //   if (q.second == 0) resume_pbfs(g, p.first, v_to, p.second + 1, 0);
-  //   if (q.second == 1) resume_pbfs(g, p.first, v_from, p.second + 1, 1);
-  // }
+  for (const auto &q : tmp) {
+    const auto &p = q.first;
+    if (q.second == 0) resume_pbfs(g, p.first, v_to, p.second + 1, 0);
+    if (q.second == 1) resume_pbfs(g, p.first, v_from, p.second + 1, 1);
+  }
 }
 }  // namespace agl
