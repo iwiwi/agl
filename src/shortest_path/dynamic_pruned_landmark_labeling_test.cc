@@ -32,8 +32,12 @@ bool BFSCheck(const G& g, TypeParam& dpll) {
   double t = 0;
   const W INF = 100;
   V num_v = g.num_vertices();
+  int cnt = 0;
   for (V from = 0; from < num_v; ++from) {
-    cerr << "BFS from " << from << endl;
+    if (cnt < from * 100 / num_v) {
+      cnt++;
+      cerr << "#";
+    }
     vector<W> dist(num_v, INF);
     queue<V> que;
     que.push(from);
@@ -58,6 +62,7 @@ bool BFSCheck(const G& g, TypeParam& dpll) {
     }
     t += get_current_time_sec();
   }
+  cerr << endl;
   t /= num_v * num_v;
   cerr << t * 1000 * 1000 << " micro sec/query" << endl;
   return true;
@@ -135,7 +140,7 @@ TYPED_TEST(dpll_test, small_ba) {
 }
 
 TYPED_TEST(dpll_test, medium_ba) {
-  for (int trial = 0; trial < 100; ++trial) {
+  for (int trial = 0; trial < 10; ++trial) {
     V m = agl::random(10) + 2;
     V n = agl::random(1000) + m;
     auto es = generate_ba(n, m);
@@ -150,6 +155,7 @@ TYPED_TEST(dpll_test, large_ba) {
     V n = agl::random(10000) + m;
     auto es = generate_ba(n, m);
     G g(es);
+    pretty_print(g);
     ASSERT_TRUE(Test<TypeParam>(g));
   }
 }
@@ -194,7 +200,7 @@ TYPED_TEST(dpll_test, dynamic_small_ba) {
 }
 
 TYPED_TEST(dpll_test, dynamic_medium_ba) {
-  for (int trial = 0; trial < 100; ++trial) {
+  for (int trial = 0; trial < 10; ++trial) {
     V m = agl::random(10) + 2;
     V n = agl::random(1000) + m;
     auto es = generate_ba(n, m);
@@ -209,6 +215,7 @@ TYPED_TEST(dpll_test, dynamic_large_ba) {
     V n = agl::random(10000) + m;
     auto es = generate_ba(n, m);
     G g(es);
+    pretty_print(g);
     ASSERT_TRUE(DynamicTest<TypeParam>(g));
   }
 }
