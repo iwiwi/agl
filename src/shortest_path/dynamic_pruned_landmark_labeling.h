@@ -43,9 +43,9 @@ class dynamic_pruned_landmark_labeling
   std::vector<V> inv;
 
  private:
-  void pruned_bfs(const G &g, V root, int direction);
-  void resume_pbfs(const G &g, V v_from, V v_to, W d_ft, int direction);
-  W query_distance(const G &g, V v_from, V v_to, int direction);
+  void pruned_bfs(V root, int direction);
+  void resume_pbfs(V v_from, V v_to, W d_ft, int direction);
+  W query_distance(V v_from, V v_to, int direction);
 };
 
 template <size_t kNumBitParallelRoots>
@@ -82,8 +82,8 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::construct(
 
   // Pruned labelling
   for (const auto &r : inv) {
-    pruned_bfs(g, r, 0);
-    pruned_bfs(g, r, 1);
+    pruned_bfs(r, 0);
+    pruned_bfs(r, 1);
   }
 
   // // DEBUG
@@ -99,8 +99,8 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::construct(
 
 template <size_t kNumBitParallelRoots>
 void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::pruned_bfs(
-    const G &g, V root, int direction) {
-  V num_v = g.num_vertices();
+    V root, int direction) {
+  V num_v = adj[0].size();
   std::queue<V> que;
   que.push(root);
   std::vector<W> P(num_v, W_INF);
@@ -111,7 +111,7 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::pruned_bfs(
   while (!que.empty()) {
     V u = que.front();
     que.pop();
-    if (u != root && query_distance(g, root, u, direction) <= P[u]) continue;
+    if (u != root && query_distance(root, u, direction) <= P[u]) continue;
     tmp_idx.emplace_back(u, P[u]);
 
     for (const auto &w : adj[direction][u]) {
@@ -128,15 +128,15 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::pruned_bfs(
 template <size_t kNumBitParallelRoots>
 W dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::query_distance(
     const G &g, V v_from, V v_to) {
-  return query_distance(g, v_from, v_to, 0);
+  return query_distance(v_from, v_to, 0);
 }
 
 template <size_t kNumBitParallelRoots>
 W dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::query_distance(
-    const G &g, V v_from, V v_to, int direction) {
+    V v_from, V v_to, int direction) {
   int another = direction ^ 1;
-  if (v_from >= g.num_vertices() || v_to >= g.num_vertices())
-    return v_from == v_to ? 0 : W_INF;
+  assert(v_from < adj[0].size() && v_to < adj[0].size());
+  if (v_from == v_to) return 0;
 
   W d = W_INF;
   const index_t &idx_from = idx[direction][v_from];
@@ -164,42 +164,57 @@ W dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::query_distance(
 
 template <size_t kNumBitParallelRoots>
 void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::resume_pbfs(
-    const G &g, V v_from, V v_to, W d_ft, int direction) {
+    V neighbor_a, V v_b, W d_nab, int direction) {
   int another = direction ^ 1;
 
   std::queue<std::pair<V, W>> que;
-  que.emplace(v_to, d_ft);
+  que.emplace(v_b, d_nab);
   while (!que.empty()) {
     V v;
     W d;
     std::tie(v, d) = que.front();
     que.pop();
-    if (query_distance(g, v_from, v, direction) <= d) continue;
-    idx[another][v].update(v_from, d);
+    if (query_distance(neighbor_a, v, direction) <= d) continue;
+    idx[another][v].update(neighbor_a, d);
     for (const auto &w : adj[direction][v]) que.emplace(w, d + 1);
   }
 }
 
 template <size_t kNumBitParallelRoots>
 void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::add_edge(
-    const G &g, V v_from, const E &e) {
-  assert(false);
-  V v_to = to(e);
-  assert(v_from < g.num_vertices() && v_to < g.num_vertices());
-  if (query_distance(g, v_from, v_to) <= 1) return;
-  adj[0][v_from].push_back(v_to);
-  adj[1][v_to].push_back(v_from);
+    const G &g, V v_a, const E &e) {
+  V v_b = to(e);
+  assert(v_a < g.num_vertices() && v_b < g.num_vertices());
+  if (query_distance(g, v_a, v_b) <= 1) return;
+  adj[0][v_a].push_back(v_b);
+  adj[1][v_b].push_back(v_a);
 
-  std::vector<std::pair<std::pair<V, W>, int>> tmp;
-  for (const auto &p : idx[1][v_from].spm) tmp.emplace_back(p, 0);
-  for (const auto &p : idx[0][v_to].spm) tmp.emplace_back(p, 1);
+  std::vector<std::tuple<V, W, int>> tmp;
+  for (const auto &p : idx[1][v_a].spm) {
+    V r = rank[p.first];
+    V d = p.second;
+    tmp.emplace_back(r, d, 0);
+  }
+  for (const auto &p : idx[0][v_b].spm) {
+    V r = rank[p.first];
+    V d = p.second;
+    tmp.emplace_back(r, d, 1);
+  }
 
   std::sort(tmp.begin(), tmp.end());
 
   for (const auto &q : tmp) {
-    const auto &p = q.first;
-    if (q.second == 0) resume_pbfs(g, p.first, v_to, p.second + 1, 0);
-    if (q.second == 1) resume_pbfs(g, p.first, v_from, p.second + 1, 1);
+    V r, t;
+    W d;
+    std::tie(r, d, t) = q;
+    if (t == 0) {
+      V neighbor_a = inv[r];
+      resume_pbfs(neighbor_a, v_b, d + 1, 0);
+    }
+    if (t == 1) {
+      V neighbor_b = inv[r];
+      resume_pbfs(neighbor_b, v_a, d + 1, 1);
+    }
   }
 }
 }  // namespace agl
