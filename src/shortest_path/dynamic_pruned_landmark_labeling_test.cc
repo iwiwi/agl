@@ -33,6 +33,7 @@ bool BFSCheck(const G& g, TypeParam& dpll) {
   const W INF = 100;
   V num_v = g.num_vertices();
   for (V from = 0; from < num_v; ++from) {
+    cerr << "BFS from " << from << endl;
     vector<W> dist(num_v, INF);
     queue<V> que;
     que.push(from);
