@@ -13,21 +13,17 @@ class dynamic_pruned_landmark_labeling
   virtual ~dynamic_pruned_landmark_labeling() {}
   virtual void construct(const G &g) override;
   virtual W query_distance(const G &g, V v_from, V v_to) override;
-
   virtual void add_edge(const G &g, V v_from, const E &e) override;
-
   virtual void remove_edge(const G &g, V v_from, V v_to) override {
     assert(false);
   }
-
   virtual void add_vertices(const G &g, V old_num_vertices) override {
     assert(false);
   }
-
   virtual void remove_vertices(const G &, V old_num_vertices) override {
     assert(false);
   }
-
+  // private:
   static const W W_INF = 100;
   struct index_t {
     std::map<V, W> spm;

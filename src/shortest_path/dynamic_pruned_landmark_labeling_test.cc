@@ -100,7 +100,7 @@ bool DynamicTest(const G& g) {
     addition.emplace_back(v_from, v_to);
   }
   t += get_current_time_sec();
-  cerr << (t / trial) << " sec/add" << endl;
+  cerr << (t / trial) * 1000 << " ms/add" << endl;
   G g_mod(es);
 
   if (BFSCheck(g_mod, dpll)) {
