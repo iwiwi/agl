@@ -23,7 +23,7 @@ class dynamic_pruned_landmark_labeling
   virtual void remove_vertices(const G &, V old_num_vertices) override {
     assert(false);
   }
-  // private:
+
   static const W W_INF = 100;
   struct index_t {
     std::map<V, W> spm;
@@ -57,11 +57,6 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::construct(
     adj[1][p.second].push_back(p.first);
   }
 
-  for (V v = 0; v < num_v; ++v) {
-    idx[0][v].update(v, 0);
-    idx[1][v].update(v, 0);
-  }
-
   rank.resize(num_v);
   inv.resize(num_v);
   {
@@ -76,21 +71,13 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::construct(
     for (int i = 0; i < num_v; ++i) rank[inv[i]] = i;
   }
 
+  std::vector<bool> bp_used(num_v);
+
   // Pruned labelling
   for (const auto &r : inv) {
     pruned_bfs(r, 0);
     pruned_bfs(r, 1);
   }
-
-  // // DEBUG
-  // for (int dir = 0; dir < 2; ++dir) {
-  //   for (int v = 0; v < num_v; ++v) {
-  //     std::cerr << v << " ";
-  //     for (const auto &p : idx[dir][v].spm)
-  //       std::cerr << "[" << p.first << "," << p.second << "] ";
-  //     std::cerr << std::endl;
-  //   }
-  // }
 }
 
 template <size_t kNumBitParallelRoots>
@@ -139,6 +126,11 @@ W dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::query_distance(
   const index_t &idx_to = idx[another][v_to];
 
   // TODO bit-parallel
+
+  for (auto &p : idx_from.spm)
+    if (p.first == v_to && d > p.second) d = p.second;
+  for (auto &p : idx_to.spm)
+    if (p.first == v_from && d > p.second) d = p.second;
 
   for (auto i1 = idx_from.spm.begin(), i2 = idx_to.spm.begin();
        i1 != idx_from.spm.end() && i2 != idx_to.spm.end();) {
