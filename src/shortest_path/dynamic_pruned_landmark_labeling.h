@@ -3,6 +3,7 @@
 #include "graph/graph_index_interface.h"
 #include <set>
 #include <queue>
+#include <bitset>
 
 namespace agl {
 template <size_t kNumBitParallelRoots = 16>
@@ -24,7 +25,7 @@ class dynamic_pruned_landmark_labeling
     assert(false);
   }
 
-  static const W W_INF = 100;
+  const W W_INF = 100;
   struct index_t {
     W bpspt_d[kNumBitParallelRoots];
     uint64_t bpspt_s[kNumBitParallelRoots][2];
@@ -44,7 +45,131 @@ class dynamic_pruned_landmark_labeling
   void pruned_bfs(V root, int direction);
   void resume_pbfs(V v_from, V v_to, W d_ft, int direction);
   W query_distance(V v_from, V v_to, int direction);
+  std::vector<bool> bit_parallel();
 };
+
+template <size_t kNumBitParallelRoots>
+std::vector<bool>
+dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::bit_parallel() {
+  V num_v = rank.size();
+  std::vector<bool> used(num_v, false);
+  V root_rank = 0;
+  for (int bp_i = 0; bp_i < kNumBitParallelRoots; ++bp_i) {
+    // Select Root
+    while (root_rank < num_v && used[inv[root_rank]]) root_rank++;
+    if (root_rank == num_v) {
+      for (V v = 0; v < num_v; ++v) {
+        idx[0][v].bpspt_d[bp_i] = W_INF;
+        idx[1][v].bpspt_d[bp_i] = W_INF;
+      }
+      continue;
+    }
+    V root = inv[root_rank];
+    used[root] = true;
+
+    // Select Roots
+    std::set<V> neighbor_ranks;
+    for (V v : adj[0][root]) neighbor_ranks.insert(rank[v]);
+    for (V v : adj[1][root]) neighbor_ranks.insert(rank[v]);
+
+    std::vector<V> selected_roots;
+    for (V r : neighbor_ranks) {
+      V v = inv[r];
+      if (used[v]) continue;
+      // used[v] = true;
+      selected_roots.push_back(v);
+      if (selected_roots.size() == 64) break;
+    }
+
+    // DEBUG
+    // std::cerr << "root=" << root << std::endl;
+    // std::cerr << "selected roots [";
+    // for (auto &v : selected_roots) std::cerr << v << ",";
+    // std::cerr << "]" << std::endl;
+
+    for (int direction = 0; direction < 2; ++direction) {
+      int another = direction ^ 1;
+
+      std::vector<W> tmp_d(num_v, W_INF);
+      std::vector<std::pair<uint64_t, uint64_t>> tmp_s(num_v, {0, 0});
+      std::queue<std::pair<V, W>> que;
+
+      que.emplace(root, 0);
+      tmp_d[root] = 0;
+
+      for (size_t i = 0; i < selected_roots.size(); ++i) {
+        V v = selected_roots[i];
+        if (!std::binary_search(adj[direction][root].begin(),
+                                adj[direction][root].end(), v))
+          continue;
+        que.emplace(v, 1);
+        tmp_d[v] = 1;
+        tmp_s[v].first = 1ULL << i;
+      }
+
+      for (W d = 0; !que.empty(); ++d) {
+        std::vector<std::pair<V, V>> sibling_es;
+        std::vector<std::pair<V, V>> child_es;
+        while (!que.empty() && que.front().second == d) {
+          V v = que.front().first;
+          que.pop();
+
+          for (V tv : adj[direction][v]) {
+            W td = d + 1;
+            if (d == tmp_d[tv]) {
+              if (v >= tv) continue;
+              sibling_es.emplace_back(v, tv);
+            } else if (d < tmp_d[tv]) {
+              if (tmp_d[tv] == W_INF) {
+                que.emplace(tv, td);
+                tmp_d[tv] = td;
+              }
+              child_es.emplace_back(v, tv);
+            }
+          }
+        }
+
+        for (auto &p : sibling_es) {
+          V v, w;
+          std::tie(v, w) = p;
+          tmp_s[v].second |= tmp_s[w].first;
+          tmp_s[w].second |= tmp_s[v].first;
+        }
+        for (auto &p : child_es) {
+          V v, c;
+          std::tie(v, c) = p;
+          tmp_s[c].first |= tmp_s[v].first;
+          tmp_s[c].second |= tmp_s[v].second;
+        }
+      }
+
+      for (V v = 0; v < num_v; ++v) {
+        idx[another][v].bpspt_d[bp_i] = tmp_d[v];
+        idx[another][v].bpspt_s[bp_i][0] = tmp_s[v].first;
+        idx[another][v].bpspt_s[bp_i][1] = tmp_s[v].second & ~tmp_s[v].first;
+      }
+    }
+  }
+
+  // DEBUG
+  // for (V v = 0; v < num_v; ++v) {
+  //   std::cerr << "v=" << v << std::endl;
+  //   for (int dir = 0; dir < 2; ++dir) {
+  //     std::cerr << "dir=" << dir << std::endl;
+  //     for (int bp_i = 0; bp_i < kNumBitParallelRoots; ++bp_i) {
+  //       std::cout << "bp_i=" << bp_i << std::endl;
+  //       std::cout <<
+  //       static_cast<std::bitset<8>>(idx[dir][v].bpspt_s[bp_i][0])
+  //                 << std::endl;
+  //       std::cout <<
+  //       static_cast<std::bitset<8>>(idx[dir][v].bpspt_s[bp_i][1])
+  //                 << std::endl;
+  //       std::cout << idx[dir][v].bpspt_d[bp_i] << std::endl;
+  //     }
+  //   }
+  // }
+  return used;
+}
 
 template <size_t kNumBitParallelRoots>
 void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::construct(
@@ -77,99 +202,7 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::construct(
     for (int i = 0; i < num_v; ++i) rank[inv[i]] = i;
   }
 
-  std::vector<bool> used(num_v, false);
-  {
-    V root = 0;
-    for (int bp_i = 0; bp_i < kNumBitParallelRoots; ++bp_i) {
-      // Select Root
-      while (root < num_v && used[root]) root++;
-      if (root == num_v) {
-        for (V v = 0; v < num_v; ++v) {
-          idx[0][v].bpspt_d[bp_i] = W_INF;
-          idx[1][v].bpspt_d[bp_i] = W_INF;
-        }
-        continue;
-      }
-      used[root] = true;
-
-      // Select Roots
-      std::set<V> neighbor_ranks;
-      for (V v : adj[0][root]) neighbor_ranks.insert(rank[v]);
-      for (V v : adj[1][root]) neighbor_ranks.insert(rank[v]);
-
-      std::vector<V> selected_roots;
-      for (V r : neighbor_ranks) {
-        V v = inv[r];
-        if (used[v]) continue;
-        used[v] = true;
-        selected_roots.push_back(v);
-        if (selected_roots.size() == 64) break;
-      }
-
-      for (int direction = 0; direction < 2; ++direction) {
-        int another = direction ^ 1;
-
-        std::vector<W> tmp_d(num_v, W_INF);
-        std::vector<std::pair<uint64_t, uint64_t>> tmp_s(num_v, {0, 0});
-        std::queue<std::pair<V, W>> que;
-
-        que.emplace(root, 0);
-        tmp_d[root] = 0;
-
-        for (size_t i = 0; i < selected_roots.size(); ++i) {
-          V v = selected_roots[i];
-          if (!std::binary_search(adj[direction][root].begin(),
-                                  adj[direction][root].end(), v))
-            continue;
-          que.emplace(v, 1);
-          tmp_d[v] = 1;
-          tmp_s[v].first = 1ULL << i;
-        }
-
-        for (W d = 0; !que.empty(); ++d) {
-          std::vector<std::pair<V, V>> sibling_es;
-          std::vector<std::pair<V, V>> child_es;
-          while (!que.empty() && que.front().second == d) {
-            V v = que.front().first;
-            que.pop();
-
-            for (V tv : adj[direction][v]) {
-              W td = d + 1;
-              if (d == tmp_d[tv]) {
-                if (v >= tv) continue;
-                sibling_es.emplace_back(v, tv);
-              } else if (d < tmp_d[tv]) {
-                if (tmp_d[tv] == W_INF) {
-                  que.emplace(tv, td);
-                  tmp_d[tv] = td;
-                }
-                child_es.emplace_back(v, tv);
-              }
-            }
-          }
-
-          for (auto &p : sibling_es) {
-            V v, w;
-            std::tie(v, w) = p;
-            tmp_s[v].second |= tmp_s[w].first;
-            tmp_s[w].second |= tmp_s[v].first;
-          }
-          for (auto &p : child_es) {
-            V v, c;
-            std::tie(v, c) = p;
-            tmp_s[c].first |= tmp_s[v].first;
-            tmp_s[c].second |= tmp_s[v].second;
-          }
-        }
-
-        for (V v = 0; v < num_v; ++v) {
-          idx[another][v].bpspt_d[bp_i] = tmp_d[v];
-          idx[another][v].bpspt_s[bp_i][0] = tmp_s[v].first;
-          idx[another][v].bpspt_s[bp_i][1] = tmp_s[v].second & ~tmp_s[v].first;
-        }
-      }
-    }
-  }
+  std::vector<bool> used = bit_parallel();
 
   // Pruned labelling
   for (const auto &v : inv) {
