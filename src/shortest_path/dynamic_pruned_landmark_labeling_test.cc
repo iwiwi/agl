@@ -5,7 +5,8 @@ using namespace std;
 using namespace agl;
 using testing::Types;
 
-typedef Types<dynamic_pruned_landmark_labeling<0>> dpll_types;
+typedef Types<dynamic_pruned_landmark_labeling<0>,
+              dynamic_pruned_landmark_labeling<2>> dpll_types;
 
 template <typename T>
 class dpll_test : public testing::Test {};
@@ -64,7 +65,7 @@ bool BFSCheck(const G& g, TypeParam& dpll) {
   }
   cerr << endl;
   t /= num_v * num_v;
-  cerr << t * 1000 * 1000 << " micro sec/query" << endl;
+  cerr << t * 1000 * 1000 << " us/query" << endl;
   return true;
 }
 
@@ -166,27 +167,6 @@ TYPED_TEST(dpll_test, dynamic_small_grid) {
   TypeParam dpll;
   dpll.construct(g);
   ASSERT_TRUE(DynamicTest<TypeParam>(g));
-}
-
-TYPED_TEST(dpll_test, dynamic_tedukuri) {
-  unweighted_edge_list es = {
-      {0, 1},  {0, 2},  {0, 6}, {1, 2}, {1, 3},  {1, 4},  {1, 7},  {2, 3},
-      {2, 4},  {2, 5},  {2, 7}, {2, 8}, {2, 11}, {3, 5},  {3, 9},  {3, 10},
-      {3, 11}, {3, 12}, {4, 6}, {6, 9}, {7, 8},  {8, 12}, {9, 10},
-  };
-  G g1(es);
-  TypeParam dpll;
-  dpll.construct(g1);
-
-  unweighted_edge_list addition = {
-      {5, 10}, {0, 10}, {6, 5}, {10, 8}, {7, 9}, {0, 2},
-  };
-  for (const auto& p : addition) {
-    es.emplace_back(p.first, p.second);
-    dpll.add_edge(g1, p.first, p.second);
-  }
-  G g2(es);
-  ASSERT_TRUE(BFSCheck(g2, dpll));
 }
 
 TYPED_TEST(dpll_test, dynamic_small_ba) {
