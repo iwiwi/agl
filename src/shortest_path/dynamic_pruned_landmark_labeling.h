@@ -72,6 +72,9 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::construct(
   }
 
   std::vector<bool> bp_used(num_v);
+  for (int i_bp = 0; i_bp < kNumBitParallelRoots; ++i_bp) {
+    /* code */
+  }
 
   // Pruned labelling
   for (const auto &r : inv) {
