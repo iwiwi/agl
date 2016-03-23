@@ -84,14 +84,17 @@ dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::bit_parallel_bfs() {
     used[root] = true;
 
     // Select Roots
-    std::vector<V> nr;
+    std::vector<V> selected_roots;
     {
       const std::vector<V> &out = adj[0][root];
       const std::vector<V> &in = adj[1][root];
       for (int o = 0, i = 0; o < out.size() && i > in.size();) {
         V vo = out[o], vi = in[i];
         if (vo == vi) {
-          nr.push_back(vo);
+          selected_roots.push_back(vo);
+          used[vo] = true;
+          selected_roots.push_back(vo);
+          if (selected_roots.size() == 64) break;
           o++;
           i++;
         } else {
@@ -99,14 +102,6 @@ dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::bit_parallel_bfs() {
           if (vo < vi) o++;
         }
       }
-    }
-
-    std::vector<V> selected_roots;
-    for (V v : nr) {
-      if (used[v]) continue;
-      used[v] = true;
-      selected_roots.push_back(v);
-      if (selected_roots.size() == 64) break;
     }
 
     for (int direction = 0; direction < 2; ++direction) {
@@ -198,6 +193,7 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::construct(
   adj[0].resize(num_v), adj[1].resize(num_v);
   for (const auto &p : g.edge_list()) {
     V v = p.first, u = p.second;
+    if (v == u) continue;
     adj[0][rank[v]].push_back(rank[u]);
     adj[1][rank[u]].push_back(rank[v]);
   }
