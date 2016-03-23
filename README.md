@@ -1,10 +1,11 @@
 # box_cover
 ```
-box_cover --type gen --graph "flower 2000 2 2" --rad_analytical --sketch_k 128 --upper_param 1.0 --pass 100000 --rad_max 100000 --final_coverage 1.0 --method sketch
+box_cover --force_undirected --type gen --graph "flower 2000 2 2" --rad_analytical --sketch_k 128 --upper_param 1.0 --pass 100000 --rad_max 100000 --final_coverage 1.0 --method sketch
 ```
 
 |オプション||
 |:--|:--|
+|force_undirected|絶対つけよう|
 |type|使用するグラフのファイルタイプ。生成させる場合は gen にする|
 |exp_tag|実験管理タグ。JLOGファイル名の先頭に追加する文字列|
 |final_coverage|Sketch の最終的なカバレッジ。デフォルトは1.0|
