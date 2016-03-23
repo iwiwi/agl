@@ -69,14 +69,18 @@ dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::bit_parallel() {
 
     // Select Roots
     std::set<V> neighbor_ranks;
-    for (V v : adj[0][root]) neighbor_ranks.insert(rank[v]);
-    for (V v : adj[1][root]) neighbor_ranks.insert(rank[v]);
+    {
+      std::set<V> tmp_neighbor;
+      for (V v : adj[0][root]) tmp_neighbor.insert(rank[v]);
+      for (V v : adj[1][root])
+        if (tmp_neighbor.count(rank[v])) neighbor_ranks.insert(rank[v]);
+    }
 
     std::vector<V> selected_roots;
     for (V r : neighbor_ranks) {
       V v = inv[r];
       if (used[v]) continue;
-      // used[v] = true;
+      used[v] = true;
       selected_roots.push_back(v);
       if (selected_roots.size() == 64) break;
     }

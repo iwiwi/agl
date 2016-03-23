@@ -5,8 +5,10 @@ using namespace std;
 using namespace agl;
 using testing::Types;
 
-typedef Types<dynamic_pruned_landmark_labeling<0>,
-              dynamic_pruned_landmark_labeling<2>> dpll_types;
+typedef Types<
+    dynamic_pruned_landmark_labeling<0>, dynamic_pruned_landmark_labeling<2>,
+    dynamic_pruned_landmark_labeling<4>, dynamic_pruned_landmark_labeling<8>,
+    dynamic_pruned_landmark_labeling<16>> dpll_types;
 
 template <typename T>
 class dpll_test : public testing::Test {};
