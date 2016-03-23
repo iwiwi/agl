@@ -46,6 +46,7 @@ class dynamic_pruned_landmark_labeling
   void resume_pbfs(V v_from, V v_to, W d_ft, int direction);
   W query_distance(V v_from, V v_to, int direction);
   std::vector<bool> bit_parallel();
+  void partial_bp_bfs(int bp_i, V v_from, V v_to);
 };
 
 template <size_t kNumBitParallelRoots>
@@ -180,23 +181,23 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::construct(
     const G &g) {
   V num_v = g.num_vertices();
   assert(num_v >= 3);
-  idx[0].resize(num_v), idx[1].resize(num_v);
 
   rank.resize(num_v);
   inv.resize(num_v);
   {
-    std::vector<std::pair<double, V>> decreasing_order(num_v);
     std::vector<V> deg(num_v, 0);
     for (const auto &p : g.edge_list()) deg[p.first]++, deg[p.second]++;
-    for (V i = 0; i < num_v; ++i) {
-      double t = (double)agl::random(num_v) / num_v;
-      decreasing_order[i] = {deg[i] + t, i};
-    }
-    std::sort(decreasing_order.rbegin(), decreasing_order.rend());
-    for (int i = 0; i < num_v; ++i) inv[i] = decreasing_order[i].second;
+
+    std::vector<std::pair<double, V>> sorting_v(num_v);
+    for (V v = 0; v < num_v; ++v)
+      sorting_v[v] = {deg[v] + (double)agl::random(num_v) / num_v, v};
+
+    std::sort(sorting_v.rbegin(), sorting_v.rend());
+    for (int i = 0; i < num_v; ++i) inv[i] = sorting_v[i].second;
     for (int i = 0; i < num_v; ++i) rank[inv[i]] = i;
   }
 
+  idx[0].resize(num_v), idx[1].resize(num_v);
   adj[0].resize(num_v), adj[1].resize(num_v);
   for (const auto &p : g.edge_list()) {
     V v = p.first, u = p.second;
@@ -264,7 +265,6 @@ W dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::query_distance(
   const index_t &idx_from = idx[direction][v_from];
   const index_t &idx_to = idx[another][v_to];
 
-  // TODO bit-parallel
   for (int bp_i = 0; bp_i < kNumBitParallelRoots; ++bp_i) {
     W td = idx_from.bpspt_d[bp_i] + idx_to.bpspt_d[bp_i];
     if (td - 2 > d) continue;
@@ -319,30 +319,29 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::resume_pbfs(
 }
 
 template <size_t kNumBitParallelRoots>
+void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::partial_bp_bfs(
+    int bp_i, V v_from, V v_to) {}
+
+template <size_t kNumBitParallelRoots>
 void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::add_edge(
     const G &g, V v_a, const E &e) {
   V v_b = to(e);
-  assert(v_a < g.num_vertices() && v_b < g.num_vertices());
-  if (query_distance(g, v_a, v_b) <= 1) return;
-
   v_a = rank[v_a], v_b = rank[v_b];
+  assert(v_a < g.num_vertices() && v_b < g.num_vertices());
+  if (query_distance(v_a, v_b, 0) <= 1) return;
+
   adj[0][v_a].push_back(v_b);
   adj[1][v_b].push_back(v_a);
   std::sort(adj[0][v_a].begin(), adj[0][v_a].end());
   std::sort(adj[1][v_b].begin(), adj[1][v_b].end());
 
-  std::vector<std::tuple<V, W, int>> tmp;
-  for (const auto &p : idx[1][v_a].spm) {
-    V r = p.first;
-    V d = p.second;
-    tmp.emplace_back(r, d, 0);
-  }
-  for (const auto &p : idx[0][v_b].spm) {
-    V r = p.first;
-    V d = p.second;
-    tmp.emplace_back(r, d, 1);
+  for (int bp_i = 0; bp_i < kNumBitParallelRoots; ++bp_i) {
+    partial_bp_bfs(bp_i, v_a, v_b);
   }
 
+  std::vector<std::tuple<V, W, int>> tmp;
+  for (const auto &p : idx[1][v_a].spm) tmp.emplace_back(p.first, p.second, 0);
+  for (const auto &p : idx[0][v_b].spm) tmp.emplace_back(p.first, p.second, 1);
   std::sort(tmp.begin(), tmp.end());
 
   for (const auto &q : tmp) {
