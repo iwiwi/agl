@@ -45,13 +45,13 @@ class dynamic_pruned_landmark_labeling
   void pruned_bfs(V root, int direction);
   void resume_pbfs(V v_from, V v_to, W d_ft, int direction);
   W query_distance(V v_from, V v_to, int direction);
-  std::vector<bool> bit_parallel();
+  std::vector<bool> bit_parallel_bfs();
   void partial_bp_bfs(int bp_i, V v_from, V v_to);
 };
 
 template <size_t kNumBitParallelRoots>
 std::vector<bool>
-dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::bit_parallel() {
+dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::bit_parallel_bfs() {
   V num_v = rank.size();
   std::vector<bool> used(num_v, false);
   V root_rank = 0;
@@ -209,7 +209,7 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::construct(
     std::sort(adj[1][v].begin(), adj[1][v].end());
   }
 
-  std::vector<bool> used = bit_parallel();
+  std::vector<bool> used = bit_parallel_bfs();
 
   // Pruned labelling
   for (int v = 0; v < num_v; ++v) {
