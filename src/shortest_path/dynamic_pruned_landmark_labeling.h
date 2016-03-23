@@ -29,10 +29,26 @@ class dynamic_pruned_landmark_labeling
   struct index_t {
     W bpspt_d[kNumBitParallelRoots];
     uint64_t bpspt_s[kNumBitParallelRoots][2];
-    std::map<V, W> spm;
+    std::vector<std::pair<V, W>> spt_p;
     void update(V v, W d) {
-      if (spm.count(v) && spm[v] <= d) return;
-      spm[v] = d;
+      if (spt_p.empty() || spt_p.rbegin()->first < v) {
+        spt_p.emplace_back(v, d);
+        return;
+      }
+      auto it =
+          std::lower_bound(spt_p.begin(), spt_p.end(), std::make_pair(v, -1));
+      if (it->first == v) {
+        if (it->second > d) it->second = d;
+        return;
+      }
+      if (it->first > v) {
+        spt_p.insert(it, std::make_pair(v, d));
+        return;
+      }
+      if (it == spt_p.end()) {
+        spt_p.emplace_back(v, d);
+        return;
+      }
     }
   };
 
@@ -284,13 +300,13 @@ W dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::query_distance_(
     if (td < d) d = td;
   }
 
-  for (auto &p : idx_from.spm)
+  for (auto &p : idx_from.spt_p)
     if (p.first == v_to && d > p.second) d = p.second;
-  for (auto &p : idx_to.spm)
+  for (auto &p : idx_to.spt_p)
     if (p.first == v_from && d > p.second) d = p.second;
 
-  for (auto i1 = idx_from.spm.begin(), i2 = idx_to.spm.begin();
-       i1 != idx_from.spm.end() && i2 != idx_to.spm.end();) {
+  for (auto i1 = idx_from.spt_p.begin(), i2 = idx_to.spt_p.begin();
+       i1 != idx_from.spt_p.end() && i2 != idx_to.spt_p.end();) {
     V v1 = i1->first;
     V v2 = i2->first;
     if (v1 == v2) {
@@ -380,8 +396,10 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::add_edge(
   }
 
   std::vector<std::tuple<V, W, int>> tmp;
-  for (const auto &p : idx[1][v_a].spm) tmp.emplace_back(p.first, p.second, 0);
-  for (const auto &p : idx[0][v_b].spm) tmp.emplace_back(p.first, p.second, 1);
+  for (const auto &p : idx[1][v_a].spt_p)
+    tmp.emplace_back(p.first, p.second, 0);
+  for (const auto &p : idx[0][v_b].spt_p)
+    tmp.emplace_back(p.first, p.second, 1);
   std::sort(tmp.begin(), tmp.end());
 
   for (const auto &q : tmp) {

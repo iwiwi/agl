@@ -44,7 +44,6 @@ bool BFSCheck(const G& g, TypeParam& dpll) {
       if (dist[j] == INF) continue;
       EXPECT_EQ(dist[j], dpll.query_distance(g, from, j)) << from << "->" << j;
       if (dist[j] != dpll.query_distance(g, from, j)) {
-        cerrIndex(g, dpll);
         return false;
       }
     }
