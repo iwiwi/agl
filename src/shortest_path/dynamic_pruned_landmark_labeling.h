@@ -171,6 +171,8 @@ dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::bit_parallel_bfs() {
 template <size_t kNumBitParallelRoots>
 void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::construct(
     const G &g) {
+  double timer = -get_current_time_sec();
+
   V num_v = g.num_vertices();
   assert(num_v >= 3);
 
@@ -202,8 +204,15 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::construct(
     std::sort(adj[1][v].begin(), adj[1][v].end());
   }
 
-  std::vector<bool> used = bit_parallel_bfs();
+  timer += get_current_time_sec();
+  std::cerr << "Initialize: " << timer << " sec" << std::endl;
 
+  timer = -get_current_time_sec();
+  std::vector<bool> used = bit_parallel_bfs();
+  timer += get_current_time_sec();
+  std::cerr << "Bit-Parallel: " << timer << " sec" << std::endl;
+
+  timer = -get_current_time_sec();
   // Pruned labelling
   for (V v = 0; v < num_v; ++v) {
     if (used[v]) continue;
@@ -211,6 +220,8 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::construct(
     pruned_bfs(v, 1, used);
     used[v] = true;
   }
+  timer += get_current_time_sec();
+  std::cerr << "Pruned BFS: " << timer << " sec" << std::endl;
 }
 
 template <size_t kNumBitParallelRoots>
