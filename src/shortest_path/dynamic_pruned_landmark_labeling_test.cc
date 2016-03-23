@@ -15,21 +15,6 @@ class dpll_test : public testing::Test {};
 TYPED_TEST_CASE(dpll_test, dpll_types);
 
 template <typename TypeParam>
-void cerrIndex(const G& g, TypeParam& dpll) {
-  V num_v = g.num_vertices();
-  for (int direction = 0; direction < 2; ++direction) {
-    cerr << direction << endl;
-    for (V v = 0; v < num_v; ++v) {
-      cerr << v << " ";
-      for (const auto& p : dpll.idx[direction][v].spm) {
-        cerr << "[" << p.first << "," << p.second << "] ";
-      }
-      cerr << endl;
-    }
-  }
-}
-
-template <typename TypeParam>
 bool BFSCheck(const G& g, TypeParam& dpll) {
   // pretty_print(g);
   double t = 0;

@@ -44,7 +44,7 @@ class dynamic_pruned_landmark_labeling
  private:
   void pruned_bfs(V root, int direction);
   void resume_pbfs(V v_from, V v_to, W d_ft, int direction);
-  W query_distance(V v_from, V v_to, int direction);
+  W query_distance_(V v_from, V v_to, int direction);
   std::vector<bool> bit_parallel_bfs();
   void partial_bp_bfs(int bp_i, V v_from, V v_to, int direction);
 };
@@ -240,7 +240,7 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::pruned_bfs(
   while (!que.empty()) {
     V u = que.front();
     que.pop();
-    if (u != root && query_distance(root, u, direction) <= P[u]) continue;
+    if (u != root && query_distance_(root, u, direction) <= P[u]) continue;
     tmp_idx.emplace_back(u, P[u]);
 
     for (const auto &w : adj[direction][u]) {
@@ -258,11 +258,11 @@ template <size_t kNumBitParallelRoots>
 W dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::query_distance(
     const G &g, V v_from, V v_to) {
   v_from = rank[v_from], v_to = rank[v_to];
-  return query_distance(v_from, v_to, 0);
+  return query_distance_(v_from, v_to, 0);
 }
 
 template <size_t kNumBitParallelRoots>
-W dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::query_distance(
+W dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::query_distance_(
     V v_from, V v_to, int direction) {
   int another = direction ^ 1;
   assert(v_from < adj[0].size() && v_to < adj[0].size());
@@ -319,7 +319,7 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::resume_pbfs(
     W d;
     std::tie(v, d) = que.front();
     que.pop();
-    if (query_distance(neighbor_a, v, direction) <= d) continue;
+    if (query_distance_(neighbor_a, v, direction) <= d) continue;
     idx[another][v].update(neighbor_a, d);
     for (const auto &w : adj[direction][v]) que.emplace(w, d + 1);
   }
@@ -368,7 +368,7 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::add_edge(
   V v_b = to(e);
   v_a = rank[v_a], v_b = rank[v_b];
   assert(v_a < g.num_vertices() && v_b < g.num_vertices());
-  if (query_distance(v_a, v_b, 0) <= 1) return;
+  if (query_distance_(v_a, v_b, 0) <= 1) return;
 
   adj[0][v_a].push_back(v_b);
   adj[1][v_b].push_back(v_a);
