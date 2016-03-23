@@ -58,7 +58,7 @@ class dynamic_pruned_landmark_labeling
   std::vector<V> inv;
 
  private:
-  void pruned_bfs(V root, int direction);
+  void pruned_bfs(V root, int direction, const std::vector<bool> &used);
   void resume_pbfs(V v_from, V v_to, W d_ft, int direction);
   W query_distance_(V v_from, V v_to, int direction);
   std::vector<bool> bit_parallel_bfs();
@@ -108,12 +108,6 @@ dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::bit_parallel_bfs() {
       selected_roots.push_back(v);
       if (selected_roots.size() == 64) break;
     }
-
-    // DEBUG
-    // std::cerr << "root=" << root << std::endl;
-    // std::cerr << "selected roots [";
-    // for (auto &v : selected_roots) std::cerr << v << ",";
-    // std::cerr << "]" << std::endl;
 
     for (int direction = 0; direction < 2; ++direction) {
       int another = direction ^ 1;
@@ -179,23 +173,6 @@ dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::bit_parallel_bfs() {
     }
   }
 
-  // DEBUG
-  // for (V v = 0; v < num_v; ++v) {
-  //   std::cerr << "v=" << v << std::endl;
-  //   for (int dir = 0; dir < 2; ++dir) {
-  //     std::cerr << "dir=" << dir << std::endl;
-  //     for (int bp_i = 0; bp_i < kNumBitParallelRoots; ++bp_i) {
-  //       std::cout << "bp_i=" << bp_i << std::endl;
-  //       std::cout <<
-  //       static_cast<std::bitset<8>>(idx[dir][v].bpspt_s[bp_i][0])
-  //                 << std::endl;
-  //       std::cout <<
-  //       static_cast<std::bitset<8>>(idx[dir][v].bpspt_s[bp_i][1])
-  //                 << std::endl;
-  //       std::cout << idx[dir][v].bpspt_d[bp_i] << std::endl;
-  //     }
-  //   }
-  // }
   return used;
 }
 
@@ -235,16 +212,17 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::construct(
   std::vector<bool> used = bit_parallel_bfs();
 
   // Pruned labelling
-  for (int v = 0; v < num_v; ++v) {
+  for (V v = 0; v < num_v; ++v) {
     if (used[v]) continue;
-    pruned_bfs(v, 0);
-    pruned_bfs(v, 1);
+    pruned_bfs(v, 0, used);
+    pruned_bfs(v, 1, used);
+    used[v] = true;
   }
 }
 
 template <size_t kNumBitParallelRoots>
 void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::pruned_bfs(
-    V root, int direction) {
+    V root, int direction, const std::vector<bool> &used) {
   V num_v = adj[0].size();
   std::queue<V> que;
   que.push(root);
@@ -256,6 +234,7 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::pruned_bfs(
   while (!que.empty()) {
     V u = que.front();
     que.pop();
+    if (used[u]) continue;
     if (u != root && query_distance_(root, u, direction) <= P[u]) continue;
     tmp_idx.emplace_back(u, P[u]);
 
