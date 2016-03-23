@@ -36,7 +36,7 @@ class dynamic_pruned_landmark_labeling
         return;
       }
       auto it =
-          std::lower_bound(spt_p.begin(), spt_p.end(), std::make_pair(v, -1));
+          std::lower_bound(spt_p.begin(), spt_p.end(), std::make_pair(v, 0));
       if (it->first == v) {
         if (it->second > d) it->second = d;
         return;
@@ -121,9 +121,6 @@ dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::bit_parallel_bfs() {
 
       for (size_t i = 0; i < selected_roots.size(); ++i) {
         V v = selected_roots[i];
-        if (!std::binary_search(adj[direction][root].begin(),
-                                adj[direction][root].end(), v))
-          continue;
         que.emplace(v, 1);
         tmp_d[v] = 1;
         tmp_s[v].first = 1ULL << i;
