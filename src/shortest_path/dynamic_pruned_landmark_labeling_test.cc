@@ -6,9 +6,11 @@ using namespace agl;
 using testing::Types;
 
 typedef Types<
-    dynamic_pruned_landmark_labeling<0>, dynamic_pruned_landmark_labeling<2>,
-    dynamic_pruned_landmark_labeling<4>, dynamic_pruned_landmark_labeling<8>,
-    dynamic_pruned_landmark_labeling<16>> dpll_types;
+    dynamic_pruned_landmark_labeling<0>, dynamic_pruned_landmark_labeling<1>,
+    dynamic_pruned_landmark_labeling<2>, dynamic_pruned_landmark_labeling<4>,
+    dynamic_pruned_landmark_labeling<8>, dynamic_pruned_landmark_labeling<16>,
+    dynamic_pruned_landmark_labeling<32>,
+    dynamic_pruned_landmark_labeling<64>> dpll_types;
 
 template <typename T>
 class dpll_test : public testing::Test {};
@@ -188,16 +190,3 @@ TYPED_TEST(dpll_test, dynamic_large_ba) {
     ASSERT_TRUE(DynamicTest<TypeParam>(g));
   }
 }
-
-// TEST(dpll_test, bp_tedukuri) {
-//   auto es = generate_grid(4, 4);
-//   G g(es);
-//   dynamic_pruned_landmark_labeling<2> dpll;
-//   dpll.construct(g);
-
-//   while (true) {
-//     V i, j;
-//     cin >> i >> j;
-//     cerr << dpll.query_distance(g, i, j) << endl;
-//   }
-// }
