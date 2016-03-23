@@ -93,17 +93,20 @@ bool DynamicTest(const G& g) {
   if (BFSCheck(g_mod, dpll)) {
     return true;
   } else {
-    set<pair<V, V>> s;
-    for (const auto& p : g.edge_list()) {
-      cerr << "{" << p.first << "," << p.second << "},";
-      s.insert(p);
+    // DEBUG
+    if (g.edge_list().size() < 300) {
+      set<pair<V, V>> s;
+      for (const auto& p : g.edge_list()) {
+        cerr << "{" << p.first << "," << p.second << "},";
+        s.insert(p);
+      }
+      cerr << endl;
+      cerr << "---" << endl;
+      for (const auto& p : addition) {
+        cerr << "{" << p.first << "," << p.second << "},";
+      }
+      cerr << endl;
     }
-    cerr << endl;
-    cerr << "---" << endl;
-    for (const auto& p : addition) {
-      cerr << "{" << p.first << "," << p.second << "},";
-    }
-    cerr << endl;
     pretty_print(g);
     pretty_print(g_mod);
     return false;

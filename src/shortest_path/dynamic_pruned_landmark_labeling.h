@@ -62,7 +62,7 @@ class dynamic_pruned_landmark_labeling
   void resume_pbfs(V v_from, V v_to, W d_ft, int direction);
   W query_distance_(V v_from, V v_to, int direction);
   std::vector<bool> bit_parallel_bfs();
-  void partial_bp_bfs(int bp_i, V v_from, V v_to, int direction);
+  void partial_bp_bfs(int bp_i, V v_from, int direction);
 };
 
 template <size_t kNumBitParallelRoots>
@@ -343,39 +343,49 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::resume_pbfs(
 
 template <size_t kNumBitParallelRoots>
 void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::partial_bp_bfs(
-    int bp_i, V v_from, V v_to, int direction) {
-  // const V num_v = rank.size();
-  // const int another = direction ^ 1;
-  // const index_t &idx_from = idx[direction][v_from];
-  // const index_t &idx_to = idx[another][v_to];
-  // std::vector<bool> queued(num_v);
-  // std::queue<std::pair<V, W>> que;
+    int bp_i, V v_from, int direction) {
+  V another = direction ^ 1;
+  const index_t &idx_from = idx[another][v_from];
+  const W base_d = idx_from.bpspt_d[bp_i];
+  if (base_d == W_INF) return;
 
-  // W base_d = std::min(idx_from.bpspt_d[bp_i], idx_to.bpspt_d[bp_i]);
-  // if (base_d == W_INF) return;
-  // if (idx_from.bpspt_d[bp_i] == base_d) {
-  //   queued[v_from] = true;
-  //   que.emplace(v_from, base_d);
-  // }
-  // if (idx_to.bpspt_d[bp_i] == base_d) {
-  //   queued[v_to] = true;
-  //   que.emplace(v_to, base_d);
-  // }
+  std::queue<std::pair<V, W>> que;
+  que.emplace(v_from, base_d);
+  for (W d = base_d; !que.empty(); ++d) {
+    std::vector<V> tmp;
+    while (!que.empty() && que.front().second == d) {
+      V v = que.front().first;
+      const index_t &idx_v = idx[another][v];
+      que.pop();
+      tmp.push_back(v);
 
-  // for (W d = base_d; !que.empty(); ++d) {
-  //   while (!que.empty() && que.front().second == d) {
-  //     V v = que.front().first;
-  //     que.pop();
+      for (V tv : adj[direction][v]) {
+        index_t &idx_tv = idx[another][tv];
+        if (d == idx_tv.bpspt_d[bp_i])
+          idx_tv.bpspt_s[bp_i][1] |= idx_v.bpspt_s[bp_i][0];
+        if (d + 1 < idx_tv.bpspt_d[bp_i]) {
+          idx_tv.bpspt_s[bp_i][1] =
+              (idx_tv.bpspt_d[bp_i] == d + 2 ? idx_tv.bpspt_s[bp_i][0] : 0);
 
-  //     for (V tv : adj[direction][v]) {
-  //       W td = d + 1;
-  //       if (d == idx[direction][tv].bp_spd[bp_i]) {
-  //         uint64_t ts = idx[direction][tv].bpspt_s[bp_i][1] |
-  //                       idx[direction][v].bpspt_s[bp_i][0];
-  //       }
-  //     }
-  //   }
-  // }
+          idx_tv.bpspt_s[bp_i][0] = 0;
+          idx_tv.bpspt_d[bp_i] = d + 1;
+          que.emplace(tv, d + 1);
+        }
+      }
+    }
+
+    for (V v : tmp) {
+      const index_t &idx_v = idx[another][v];
+      for (V tv : adj[direction][v]) {
+        index_t &idx_tv = idx[another][tv];
+        if (idx_tv.bpspt_d[bp_i] == d + 1) {
+          // Set propagation (2)
+          idx_tv.bpspt_s[bp_i][0] |= idx_v.bpspt_s[bp_i][0];
+          idx_tv.bpspt_s[bp_i][1] |= idx_v.bpspt_s[bp_i][1];
+        }
+      }
+    }
+  }
 }
 
 template <size_t kNumBitParallelRoots>
@@ -392,7 +402,8 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::add_edge(
   std::sort(adj[1][v_b].begin(), adj[1][v_b].end());
 
   for (int bp_i = 0; bp_i < kNumBitParallelRoots; ++bp_i) {
-    partial_bp_bfs(bp_i, v_a, v_b, 0);
+    partial_bp_bfs(bp_i, v_a, 0);
+    partial_bp_bfs(bp_i, v_b, 1);
   }
 
   std::vector<std::tuple<V, W, int>> tmp;
