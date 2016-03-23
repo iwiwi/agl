@@ -69,7 +69,7 @@ vector<vector<V>> build_sketch(const G &g, const W radius, const int k,
 vector<vector<V>> build_sketch(const G &g, const W radius, const int k,
                                const vector<V> &rank, const vector<V> &inv,
                                const coverage_manager &cm, bool &use_memb,
-                               long long size_upper_bound);
+                               size_t size_upper_bound);
 
 void naive_select_greedily(const G &g, const vector<vector<V>> &X,
                            vector<V> &centers, vector<bool> &centered,

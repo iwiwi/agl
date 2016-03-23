@@ -531,7 +531,7 @@ vector<vector<V>> build_sketch(const G &g, const W radius, const int k,
 vector<vector<V>> build_sketch(const G &g, const W radius, const int k,
                                const vector<V> &rank, const vector<V> &inv,
                                const coverage_manager &cm, bool &use_memb,
-                               long long size_upper_bound) {
+                               size_t size_upper_bound) {
   V num_v = g.num_vertices();
   vector<set<V>> X(num_v);
   vector<vector<V>> previous_added(num_v);
@@ -539,8 +539,8 @@ vector<vector<V>> build_sketch(const G &g, const W radius, const int k,
   //
   // Build-Sketches O((n+m)*rad)
   //
-  long long using_k = use_memb ? X[0].max_size() - 1 : k;
-  long long total_size = 0;
+  size_t using_k = use_memb ? X[0].max_size() - 1 : k;
+  size_t total_size = 0;
 
   for (V i = 0; i < num_v; ++i) {
     if (cm.v_covered(i)) continue;
@@ -972,9 +972,8 @@ vector<V> box_cover_sketch(const G &g, W radius, const int k,
     cerr << pass_trial << "-th building..." << endl;
 
     timer = -get_current_time_sec();
-    long long size_lim = num_v * k * upper_param;
-    vector<vector<V>> X =
-        build_sketch(g, radius, k, rank, inv, cm, use_memb, size_lim);
+    vector<vector<V>> X = build_sketch(g, radius, k, rank, inv, cm, use_memb,
+                                       num_v * k * upper_param);
     timer += get_current_time_sec();
     cerr << timer << " sec built" << endl;
 
