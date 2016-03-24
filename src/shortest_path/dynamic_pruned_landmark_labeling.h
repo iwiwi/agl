@@ -45,10 +45,7 @@ class dynamic_pruned_landmark_labeling
         spt_p.insert(it, std::make_pair(v, d));
         return;
       }
-      if (it == spt_p.end()) {
-        spt_p.emplace_back(v, d);
-        return;
-      }
+      assert(false);
     }
   };
 
