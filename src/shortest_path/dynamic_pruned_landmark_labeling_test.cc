@@ -191,4 +191,4 @@ TYPED_TEST(dpll_test, dynamic_large_ba) {
   }
 }
 
-TYPED_TEST(dpll_test, random) {}
+TYPED_TEST(dpll_test, bit_parallel_construct) {}
