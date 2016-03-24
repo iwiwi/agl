@@ -93,7 +93,7 @@ dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::bit_parallel_bfs() {
     std::vector<V> selected_roots;
     const std::vector<V> &adjo = adj[0][root];
     const std::vector<V> &adji = adj[1][root];
-    for (int o = 0, i = 0; o < adjo.size() && i > adji.size();) {
+    for (int o = 0, i = 0; o < adjo.size() && i < adji.size();) {
       V vo = adjo[o], vi = adji[i];
       if (vo == vi) {
         used[vo] = true;
