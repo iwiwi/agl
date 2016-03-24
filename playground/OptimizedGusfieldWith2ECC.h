@@ -422,8 +422,8 @@ public:
     if(dcs_.node_num() > 10000) fprintf(stderr, "OK\n");
   }
 
-  const bi_dinitz& get_bi_dinitz() { return dz_; }
-  const disjoint_cut_set& get_disjoint_cut_set() { return dcs_; }
+  const bi_dinitz& get_bi_dinitz() const { return dz_; }
+  const disjoint_cut_set& get_disjoint_cut_set() const { return dcs_; }
 
   const int contraction_count() { return contraction_count_; }
 
