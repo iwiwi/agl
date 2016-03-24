@@ -192,9 +192,10 @@ TYPED_TEST(dpll_test, dynamic_large_ba) {
 }
 
 TEST(dpll_test, bit_parallel_construct) {
-  for (int trial = 0; trial < 10; ++trial) {
+  const int test_s = 10;
+  for (int trial = 0; trial < test_s; ++trial) {
     V m = agl::random(10) + 2;
-    V n = agl::random(10000) + 1 + m;
+    V n = agl::random(5000) + 1 + m;
     auto es = generate_ba(n, m);
     G g(es);
     dynamic_pruned_landmark_labeling<16> dpll;
@@ -242,5 +243,6 @@ TEST(dpll_test, bit_parallel_construct) {
           ASSERT_TRUE(qd <= td) << i << "->" << j;
         }
     }
+    cerr << (trial + 1) << "/" << test_s << " has been finished." << endl;
   }
 }

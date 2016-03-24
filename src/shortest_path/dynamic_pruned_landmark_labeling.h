@@ -257,7 +257,7 @@ template <size_t kNumBitParallelRoots>
 void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::pruned_bfs(
     V root, int direction, const std::vector<bool> &used) {
   int another = direction ^ 1;
-  V num_v = adj[0].size();
+  V num_v = rank.size();
   std::queue<V> que;
   que.push(root);
   std::vector<W> P(num_v, W_INF);
