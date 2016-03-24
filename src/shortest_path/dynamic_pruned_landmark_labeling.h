@@ -211,11 +211,11 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::construct(
 
   timer = -get_current_time_sec();
   // Pruned labelling
-  for (V v = 0; v < num_v; ++v) {
-    if (used[v]) continue;
-    pruned_bfs(v, 0, used);
-    pruned_bfs(v, 1, used);
-    used[v] = true;
+  for (V root = 0; root < num_v; ++root) {
+    if (used[root]) continue;
+    pruned_bfs(root, 0, used);
+    pruned_bfs(root, 1, used);
+    used[root] = true;
   }
   timer += get_current_time_sec();
   std::cerr << "Pruned BFS: " << timer << " sec" << std::endl;
@@ -224,20 +224,19 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::construct(
 template <size_t kNumBitParallelRoots>
 void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::pruned_bfs(
     V root, int direction, const std::vector<bool> &used) {
+  int another = direction ^ 1;
   V num_v = adj[0].size();
   std::queue<V> que;
   que.push(root);
   std::vector<W> P(num_v, W_INF);
   P[root] = 0;
 
-  std::vector<std::pair<V, W>> tmp_idx;
-
   while (!que.empty()) {
     V u = que.front();
     que.pop();
     if (used[u]) continue;
     if (u != root && query_distance_(root, u, direction) <= P[u]) continue;
-    tmp_idx.emplace_back(u, P[u]);
+    idx[another][u].update(root, P[u]);
 
     for (const auto &w : adj[direction][u]) {
       if (P[w] < W_INF) continue;
@@ -245,9 +244,6 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::pruned_bfs(
       que.push(w);
     }
   }
-
-  int another = direction ^ 1;
-  for (const auto &p : tmp_idx) idx[another][p.first].update(root, p.second);
 }
 
 template <size_t kNumBitParallelRoots>
