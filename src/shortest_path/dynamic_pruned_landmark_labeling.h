@@ -74,7 +74,7 @@ class dynamic_pruned_landmark_labeling
 template <size_t kNumBitParallelRoots>
 std::vector<bool>
 dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::bit_parallel_bfs() {
-  V num_v = rank.size();
+  const V num_v = rank.size();
   std::vector<bool> used(num_v, false);
   V root = 0;
   for (int bp_i = 0; bp_i < kNumBitParallelRoots; ++bp_i) {
@@ -91,22 +91,19 @@ dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::bit_parallel_bfs() {
 
     // Select Roots
     std::vector<V> selected_roots;
-    {
-      const std::vector<V> &out = adj[0][root];
-      const std::vector<V> &in = adj[1][root];
-      for (int o = 0, i = 0; o < out.size() && i > in.size();) {
-        V vo = out[o], vi = in[i];
-        if (vo == vi) {
-          selected_roots.push_back(vo);
-          used[vo] = true;
-          selected_roots.push_back(vo);
-          if (selected_roots.size() == 64) break;
-          o++;
-          i++;
-        } else {
-          if (vo > vi) i++;
-          if (vo < vi) o++;
-        }
+    const std::vector<V> &adjo = adj[0][root];
+    const std::vector<V> &adji = adj[1][root];
+    for (int o = 0, i = 0; o < adjo.size() && i > adji.size();) {
+      V vo = adjo[o], vi = adji[i];
+      if (vo == vi) {
+        used[vo] = true;
+        selected_roots.push_back(vo);
+        if (selected_roots.size() == 64) break;
+        o++;
+        i++;
+      } else {
+        if (vo > vi) i++;
+        if (vo < vi) o++;
       }
     }
 
