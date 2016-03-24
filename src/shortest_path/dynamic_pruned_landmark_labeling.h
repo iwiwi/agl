@@ -47,12 +47,20 @@ class dynamic_pruned_landmark_labeling
       }
       assert(false);
     }
+    size_t size() const { return spt_p.size(); }
   };
 
   std::vector<index_t> idx[2];
   std::vector<std::vector<V>> adj[2];
   std::vector<V> rank;
   std::vector<V> inv;
+
+  size_t total_label_num() {
+    size_t sum = 0;
+    for (int i = 0; i < 2; ++i)
+      for (const index_t &j : idx[i]) sum += j.size();
+    return sum;
+  }
 
  private:
   void bfs_together(V root, const std::vector<bool> &used);
@@ -178,14 +186,19 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::construct(
   inv.resize(num_v);
   {
     std::vector<V> deg(num_v, 0);
-    for (const auto &p : g.edge_list()) deg[p.first]++, deg[p.second]++;
+    for (const auto &p : g.edge_list())
+      if (p.first != p.second) deg[p.first]++, deg[p.second]++;
 
     std::vector<std::pair<double, V>> sorting_v(num_v);
-    for (V v = 0; v < num_v; ++v)
-      sorting_v[v] = {deg[v] + (double)agl::random(num_v) / num_v, v};
+    for (V v = 0; v < num_v; ++v) {
+      double t = (double)agl::random(num_v) / num_v;
+      sorting_v[v] = std::make_pair(deg[v] + t, v);
+    }
 
     std::sort(sorting_v.rbegin(), sorting_v.rend());
-    for (int i = 0; i < num_v; ++i) inv[i] = sorting_v[i].second;
+    for (int i = 0; i < num_v; ++i) {
+      inv[i] = sorting_v[i].second;
+    }
     for (int i = 0; i < num_v; ++i) rank[inv[i]] = i;
   }
 

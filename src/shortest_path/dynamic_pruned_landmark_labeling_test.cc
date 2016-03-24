@@ -191,17 +191,4 @@ TYPED_TEST(dpll_test, dynamic_large_ba) {
   }
 }
 
-TYPED_TEST(dpll_test, construct_bench) {
-  double timer = 0;
-  for (int trial = 0; trial < 5; ++trial) {
-    V m = agl::random(10) + 2;
-    V n = agl::random(10000) + 1 + m;
-    auto es = generate_ba(n, m);
-    G g(es);
-    TypeParam dpll;
-    timer -= get_current_time_sec();
-    dpll.construct(g);
-    timer += get_current_time_sec();
-  }
-  cerr << timer << " sec" << endl;
-}
+TYPED_TEST(dpll_test, random) {}
