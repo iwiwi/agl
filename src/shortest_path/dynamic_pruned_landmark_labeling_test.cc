@@ -191,4 +191,52 @@ TYPED_TEST(dpll_test, dynamic_large_ba) {
   }
 }
 
-TYPED_TEST(dpll_test, bit_parallel_construct) {}
+TEST(dpll_test, bit_parallel_construct) {
+  for (int trial = 0; trial < 100; ++trial) {
+    V m = agl::random(10) + 2;
+    V n = agl::random(10000) + 1 + m;
+    auto es = generate_ba(n, m);
+    G g(es);
+    dynamic_pruned_landmark_labeling<16> dpll;
+    dpll.init_graph(g);
+
+    // Bit-Parallel Labeling
+    vector<bool> used(g.num_vertices(), false);
+    dpll.bit_parallel_bfs(used);
+
+    double t = 0;
+    const W INF = 100;
+    V num_v = g.num_vertices();
+    int query_cnt = 0;
+    for (V from = 0; from < num_v; ++from) {
+      V from_rank = dpll.rank[from];
+      if (!used[from_rank]) continue;
+
+      vector<W> dist(num_v, INF);
+      queue<V> que;
+      que.push(from);
+      dist[from] = 0;
+      while (!que.empty()) {
+        V v = que.front();
+        que.pop();
+        for (const auto& u : g.neighbors(v)) {
+          if (dist[u] < INF) continue;
+          dist[u] = dist[v] + 1;
+          que.push(u);
+        }
+      }
+
+      t = -get_current_time_sec();
+      for (int j = 0; j < num_v; ++j) {
+        if (dist[j] == INF) continue;
+        W q = dpll.query_distance(g, from, j);
+        ASSERT_EQ(dist[j], q) << from << "->" << j;
+        query_cnt++;
+      }
+      t += get_current_time_sec();
+    }
+    t /= num_v * num_v;
+    cerr << query_cnt << " queries" << endl;
+    cerr << t * 1000 * 1000 << " us/query" << endl;
+  }
+}
