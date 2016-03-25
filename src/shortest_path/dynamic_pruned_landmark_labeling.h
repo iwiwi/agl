@@ -64,7 +64,6 @@ class dynamic_pruned_landmark_labeling
 
   // private:
   void load_graph(const G &g);
-  void bfs_together(V root, const std::vector<bool> &used);
   void pruned_bfs(V root, int direction, const std::vector<bool> &used);
   void resume_pbfs(V v_from, V v_to, uint8_t d_ft, int direction);
   uint8_t query_distance_(V v_from, V v_to, int direction);
