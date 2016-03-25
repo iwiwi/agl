@@ -191,58 +191,60 @@ TYPED_TEST(dpll_test, dynamic_large_ba) {
   }
 }
 
-TEST(dpll_test, bit_parallel_construct) {
-  const int test_s = 10;
-  for (int trial = 0; trial < test_s; ++trial) {
-    V m = agl::random(10) + 2;
-    V n = agl::random(5000) + 1 + m;
-    auto es = generate_ba(n, m);
-    G g(es);
-    dynamic_pruned_landmark_labeling<16> dpll;
-    dpll.init_graph(g);
+TYPED_TEST(dpll_test, bit_parallel_construct) {
+  V m = 2;
+  V n = 2000;
+  auto es = generate_ba(n, m);
+  G g(es);
+  TypeParam dpll;
+  dpll.init_graph(g);
 
-    // Bit-Parallel Labeling
-    vector<bool> used(g.num_vertices(), false);
-    dpll.bit_parallel_bfs(used);
+  // Bit-Parallel Labeling
+  vector<bool> used(g.num_vertices(), false);
+  dpll.bit_parallel_bfs(used);
 
-    const W INF = 100;
-    V num_v = g.num_vertices();
-    vector<vector<W>> dists(num_v, vector<W>(num_v, INF));
-    int query_cnt = 0;
-    for (V from = 0; from < num_v; ++from) {
-      V from_rank = dpll.rank[from];
-      if (!used[from_rank]) continue;
+  const W INF = 100;
+  V num_v = g.num_vertices();
+  vector<vector<W>> dists(num_v, vector<W>(num_v, INF));
+  int query_cnt = 0;
+  for (V from = 0; from < num_v; ++from) {
+    V from_rank = dpll.rank[from];
+    if (!used[from_rank]) continue;
 
-      queue<V> que;
-      que.push(from);
-      dists[from][from] = 0;
-      while (!que.empty()) {
-        V v = que.front();
-        que.pop();
-        for (const auto& u : g.neighbors(v)) {
-          if (dists[from][u] < INF) continue;
-          dists[from][u] = dists[from][v] + 1;
-          que.push(u);
-        }
-      }
-
-      for (int j = 0; j < num_v; ++j) {
-        if (dists[from][j] == INF) continue;
-        W q = dpll.query_distance(g, from, j);
-        ASSERT_EQ(dists[from][j], q) << from << "->" << j;
-        query_cnt++;
+    queue<V> que;
+    que.push(from);
+    dists[from][from] = 0;
+    while (!que.empty()) {
+      V v = que.front();
+      que.pop();
+      for (const auto& u : g.neighbors(v)) {
+        if (dists[from][u] < INF) continue;
+        dists[from][u] = dists[from][v] + 1;
+        que.push(u);
       }
     }
-    for (int k = 0; k < num_v; ++k) {
-      V k_rank = dpll.rank[k];
-      if (!used[k_rank]) continue;
-      for (int i = 0; i < num_v; ++i)
-        for (int j = 0; j < num_v; ++j) {
-          W td = dists[i][k] + dists[k][j];
-          W qd = dpll.query_distance(g, i, j);
-          ASSERT_TRUE(qd <= td) << i << "->" << j;
-        }
+
+    for (int j = 0; j < num_v; ++j) {
+      if (dists[from][j] == INF) continue;
+      W q = dpll.query_distance(g, from, j);
+      ASSERT_EQ(dists[from][j], q) << from << "->" << j;
+      query_cnt++;
     }
-    cerr << (trial + 1) << "/" << test_s << " has been finished." << endl;
   }
+  for (int k = 0; k < num_v; ++k) {
+    V k_rank = dpll.rank[k];
+    if (!used[k_rank]) continue;
+    for (int i = 0; i < num_v; ++i)
+      for (int j = 0; j < num_v; ++j) {
+        W td = dists[i][k] + dists[k][j];
+        W qd = dpll.query_distance(g, i, j);
+        ASSERT_TRUE(qd <= td) << i << "->" << j;
+      }
+  }
+  int cnt = 0;
+  for (int i = 0; i < num_v; ++i) {
+    V k_rank = dpll.rank[i];
+    if (used[k_rank]) cnt++;
+  }
+  cerr << cnt << endl;
 }
