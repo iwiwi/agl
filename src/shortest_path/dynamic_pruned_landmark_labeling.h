@@ -90,7 +90,6 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::construct(
     if (used[root]) continue;
     pruned_bfs(root, 0, used);
     pruned_bfs(root, 1, used);
-    // bfs_together(root, used);
     used[root] = true;
   }
 }
@@ -222,36 +221,6 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::init_graph(
   for (V v = 0; v < num_v; ++v) {
     std::sort(adj[0][v].begin(), adj[0][v].end());
     std::sort(adj[1][v].begin(), adj[1][v].end());
-  }
-}
-
-template <size_t kNumBitParallelRoots>
-void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::bfs_together(
-    V root, const std::vector<bool> &used) {
-  V num_v = rank.size();
-  std::queue<std::pair<V, int>> que;
-  que.emplace(root, 0);
-  que.emplace(root, 1);
-  std::vector<uint8_t> P[2];
-  P[0].assign(num_v, D_INF), P[1].assign(num_v, D_INF);
-  P[0][root] = 0, P[1][root] = 0;
-
-  while (!que.empty()) {
-    V u;
-    int direction;
-    std::tie(u, direction) = que.front();
-    que.pop();
-    int another = direction ^ 1;
-    if (used[u]) continue;
-    if (u != root && query_distance_(root, u, direction) <= P[direction][u])
-      continue;
-    idx[another][u].update(root, P[direction][u]);
-
-    for (const auto &w : adj[direction][u]) {
-      if (P[direction][w] < D_INF) continue;
-      P[direction][w] = P[direction][u] + 1;
-      que.emplace(w, direction);
-    }
   }
 }
 
