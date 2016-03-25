@@ -197,7 +197,7 @@ TYPED_TEST(dpll_test, bit_parallel_construct) {
   auto es = generate_ba(n, m);
   G g(es);
   TypeParam dpll;
-  dpll.init_graph(g);
+  dpll.load_graph(g);
 
   // Bit-Parallel Labeling
   vector<bool> used(g.num_vertices(), false);
