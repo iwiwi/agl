@@ -86,6 +86,8 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::construct(
   timer += get_current_time_sec();
   std::cerr << timer << " sec load" << std::endl;
 
+  bfs_dist.assign(num_v, D_INF);
+  bfs_que.resize(num_v);
   timer = -get_current_time_sec();
   // Bit-Parallel Labeling
   std::vector<bool> used(num_v, false);
@@ -95,8 +97,6 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::construct(
 
   timer = -get_current_time_sec();
   // Pruned labelling
-  bfs_dist.assign(num_v, D_INF);
-  bfs_que.resize(num_v);
   for (V root = 0; root < num_v; ++root) {
     if (used[root]) continue;
     pruned_bfs(root, 0, used);
@@ -144,37 +144,35 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::bit_parallel_bfs(
       }
     }
 
+    std::vector<std::pair<uint64_t, uint64_t>> tmp_s(num_v, {0, 0});
     for (int direction = 0; direction < 2; ++direction) {
       int another = direction ^ 1;
 
-      std::vector<uint8_t> tmp_d(num_v, D_INF);
-      std::vector<std::pair<uint64_t, uint64_t>> tmp_s(num_v, {0, 0});
-      std::vector<V> que(num_v);
       int q_head = 0, q_tail = 0;
 
-      que[q_tail++] = root;
-      tmp_d[root] = 0;
+      bfs_que[q_tail++] = root;
+      bfs_dist[root] = 0;
 
       for (size_t i = 0; i < selected_roots.size(); ++i) {
         V v = selected_roots[i];
-        que[q_tail++] = v;
-        tmp_d[v] = 1;
+        bfs_que[q_tail++] = v;
+        bfs_dist[v] = 1;
         tmp_s[v].first = 1ULL << i;
       }
 
       for (uint8_t d = 0; q_head < q_tail; ++d) {
         std::vector<std::pair<V, V>> sibling_es;
         std::vector<std::pair<V, V>> child_es;
-        while (q_head < q_tail && tmp_d[que[q_head]] == d) {
-          V v = que[q_head++];
+        while (q_head < q_tail && bfs_dist[bfs_que[q_head]] == d) {
+          V v = bfs_que[q_head++];
           for (V tv : adj[direction][v]) {
             uint8_t td = d + 1;
-            if (d > tmp_d[tv]) continue;
-            if (d == tmp_d[tv] && v < tv) sibling_es.emplace_back(v, tv);
-            if (d < tmp_d[tv]) child_es.emplace_back(v, tv);
-            if (tmp_d[tv] == D_INF) {
-              tmp_d[tv] = td;
-              que[q_tail++] = tv;
+            if (d > bfs_dist[tv]) continue;
+            if (d == bfs_dist[tv] && v < tv) sibling_es.emplace_back(v, tv);
+            if (d < bfs_dist[tv]) child_es.emplace_back(v, tv);
+            if (bfs_dist[tv] == D_INF) {
+              bfs_dist[tv] = td;
+              bfs_que[q_tail++] = tv;
             }
           }
         }
@@ -194,10 +192,12 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::bit_parallel_bfs(
       }
 
       for (V v = 0; v < num_v; ++v) {
-        idx[another][v].bpspt_d[bp_i] = tmp_d[v];
+        idx[another][v].bpspt_d[bp_i] = bfs_dist[v];
         idx[another][v].bpspt_s[bp_i][0] = tmp_s[v].first;
         idx[another][v].bpspt_s[bp_i][1] = tmp_s[v].second & ~tmp_s[v].first;
+        tmp_s[v].first = 0, tmp_s[v].second = 0;
       }
+      for (int i = 0; i < q_tail; ++i) bfs_dist[bfs_que[i]] = D_INF;
     }
   }
 }
@@ -247,12 +247,12 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::pruned_bfs(
 
   while (q_head < q_tail) {
     V u = bfs_que[q_head++];
-    if (used[u]) continue;
     if (u != root && query_distance_(root, u, direction) <= bfs_dist[u])
       continue;
     idx[another][u].update(root, bfs_dist[u]);
 
     for (const auto &w : adj[direction][u]) {
+      if (used[w]) continue;
       if (bfs_dist[w] < D_INF) continue;
       bfs_dist[w] = bfs_dist[u] + 1;
       bfs_que[q_tail++] = w;
