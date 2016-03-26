@@ -289,9 +289,15 @@ uint8_t dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::query_distance_(
   }
 
   for (auto &p : idx_from.spt_p)
-    if (p.first == v_to && d > p.second) d = p.second;
+    if (p.first == v_to) {
+      if (d > p.second) d = p.second;
+      break;
+    }
   for (auto &p : idx_to.spt_p)
-    if (p.first == v_from && d > p.second) d = p.second;
+    if (p.first == v_from) {
+      if (d > p.second) d = p.second;
+      break;
+    }
 
   for (auto i1 = idx_from.spt_p.begin(), i2 = idx_to.spt_p.begin();
        i1 != idx_from.spt_p.end() && i2 != idx_to.spt_p.end();) {
