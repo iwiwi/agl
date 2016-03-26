@@ -82,15 +82,16 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::construct(
   size_t num_e = g.num_edges();
   assert(num_v >= 3);
 
-  double timer = -get_current_time_sec();
   // Initialize
+  double timer = -get_current_time_sec();
   load_graph(g);
   timer += get_current_time_sec();
   std::cerr << timer << " sec load" << std::endl;
 
-  timer = -get_current_time_sec();
-  // Bit-Parallel Labeling
   std::vector<bool> used(num_v, false);
+
+  // Bit-Parallel Labeling
+  timer = -get_current_time_sec();
   bit_parallel_bfs(used, num_e);
   timer += get_current_time_sec();
   std::cerr << timer << " sec bit-parallel" << std::endl;
