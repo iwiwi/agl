@@ -88,8 +88,6 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::construct(
   timer += get_current_time_sec();
   std::cerr << timer << " sec load" << std::endl;
 
-  bfs_dist.assign(num_v, D_INF);
-  bfs_que.resize(num_v);
   timer = -get_current_time_sec();
   // Bit-Parallel Labeling
   std::vector<bool> used(num_v, false);
@@ -245,6 +243,8 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::load_graph(
     std::sort(adj[0][v].begin(), adj[0][v].end());
     std::sort(adj[1][v].begin(), adj[1][v].end());
   }
+  bfs_dist.assign(num_v, D_INF);
+  bfs_que.resize(num_v);
 }
 
 template <size_t kNumBitParallelRoots>
