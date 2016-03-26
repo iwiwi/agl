@@ -201,7 +201,7 @@ TYPED_TEST(dpll_test, bit_parallel_construct) {
 
   // Bit-Parallel Labeling
   vector<bool> used(g.num_vertices(), false);
-  dpll.bit_parallel_bfs(used);
+  dpll.bit_parallel_bfs(used, g.num_edges());
 
   const W INF = 100;
   V num_v = g.num_vertices();
