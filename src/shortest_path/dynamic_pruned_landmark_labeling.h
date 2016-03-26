@@ -72,6 +72,7 @@ class dynamic_pruned_landmark_labeling
   // Reusable containers
   std::vector<uint8_t> bfs_dist;
   std::vector<V> bfs_que;
+  V bp_roots[64];
 };
 
 template <size_t kNumBitParallelRoots>
@@ -129,16 +130,15 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::bit_parallel_bfs(
     used[root] = true;
 
     // Select Roots
-    std::vector<V> selected_roots;
-    const std::vector<V> &adjo = adj[0][root];
-    const std::vector<V> &adji = adj[1][root];
-    for (int o = 0, i = 0; o < adjo.size() && i < adji.size();) {
-      V vo = adjo[o], vi = adji[i];
+    V selected_num = 0;
+    for (int o = 0, i = 0;
+         o < adj[0][root].size() && i < adj[1][root].size();) {
+      V vo = adj[0][root][o], vi = adj[1][root][i];
       if (vo == vi) {
         if (!used[vo]) {
           used[vo] = true;
-          selected_roots.push_back(vo);
-          if (selected_roots.size() == 64) break;
+          bp_roots[selected_num++] = vo;
+          if (selected_num == 64) break;
         }
         o++;
         i++;
@@ -156,8 +156,8 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::bit_parallel_bfs(
       bfs_que[q_tail++] = root;
       bfs_dist[root] = 0;
 
-      for (size_t i = 0; i < selected_roots.size(); ++i) {
-        V v = selected_roots[i];
+      for (size_t i = 0; i < selected_num; ++i) {
+        V v = bp_roots[i];
         bfs_que[q_tail++] = v;
         bfs_dist[v] = 1;
         tmp_s[v].first = 1ULL << i;
@@ -167,13 +167,19 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::bit_parallel_bfs(
         size_t num_sibling_es = 0, num_child_es = 0;
         while (q_head < q_tail && bfs_dist[bfs_que[q_head]] == d) {
           V v = bfs_que[q_head++];
-          for (V tv : adj[direction][v]) {
+          for (const V &tv : adj[direction][v]) {
             uint8_t td = d + 1;
             if (d > bfs_dist[tv]) continue;
-            if (d == bfs_dist[tv] && v < tv)
-              sibling_es[num_sibling_es++] = std::make_pair(v, tv);
-            if (d < bfs_dist[tv])
-              child_es[num_child_es++] = std::make_pair(v, tv);
+            if (d == bfs_dist[tv] && v < tv) {
+              sibling_es[num_sibling_es].first = v;
+              sibling_es[num_sibling_es].second = tv;
+              num_sibling_es++;
+            }
+            if (d < bfs_dist[tv]) {
+              child_es[num_child_es].first = v;
+              child_es[num_child_es].second = tv;
+              num_child_es++;
+            }
             if (bfs_dist[tv] == D_INF) {
               bfs_dist[tv] = td;
               bfs_que[q_tail++] = tv;
@@ -287,7 +293,7 @@ uint8_t dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::query_distance_(
 
   for (int bp_i = 0; bp_i < kNumBitParallelRoots; ++bp_i) {
     uint8_t td = idx_from.bpspt_d[bp_i] + idx_to.bpspt_d[bp_i];
-    if (td - 2 > d) continue;
+    if (td - 2 >= d) continue;
     if (idx_from.bpspt_s[bp_i][0] & idx_to.bpspt_s[bp_i][0]) {
       td -= 2;
     } else if ((idx_from.bpspt_s[bp_i][1] & idx_to.bpspt_s[bp_i][0]) |
@@ -297,20 +303,20 @@ uint8_t dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::query_distance_(
     if (td < d) d = td;
   }
 
-  for (auto i1 = idx_from.spt_p.begin(), i2 = idx_to.spt_p.begin();
-       i1 != idx_from.spt_p.end() && i2 != idx_to.spt_p.end();) {
-    V v1 = i1->first;
-    V v2 = i2->first;
+  for (auto it1 = idx_from.spt_p.begin(), it2 = idx_to.spt_p.begin();
+       it1 != idx_from.spt_p.end() && it2 != idx_to.spt_p.end();) {
+    V v1 = it1->first;
+    V v2 = it2->first;
     if (v1 == v2) {
-      uint8_t td = i1->second + i2->second;
+      uint8_t td = it1->second + it2->second;
       if (td < d) d = td;
-      i1++;
-      i2++;
+      it1++;
+      it2++;
     } else {
-      if (v1 == v_to && i1->second < d) d = i1->second;
-      if (v2 == v_from && i2->second < d) d = i2->second;
-      if (v1 < v2) i1++;
-      if (v1 > v2) i2++;
+      if (v1 == v_to && it1->second < d) d = it1->second;
+      if (v2 == v_from && it2->second < d) d = it2->second;
+      if (v1 < v2) it1++;
+      if (v1 > v2) it2++;
     }
   }
   if (d >= D_INF - 2) d = D_INF;
