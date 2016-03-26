@@ -270,6 +270,8 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::pruned_bfs(
 template <size_t kNumBitParallelRoots>
 W dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::query_distance(
     const G &g, V v_from, V v_to) {
+  assert(v_from < rank.size() && v_to < rank.size());
+  if (v_from == v_to) return 0;
   v_from = rank[v_from], v_to = rank[v_to];
   return query_distance_(v_from, v_to, 0);
 }
@@ -278,8 +280,6 @@ template <size_t kNumBitParallelRoots>
 uint8_t dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::query_distance_(
     V v_from, V v_to, int direction) {
   int another = direction ^ 1;
-  assert(v_from < adj[0].size() && v_to < adj[0].size());
-  if (v_from == v_to) return 0;
 
   uint8_t d = D_INF;
   const index_t &idx_from = idx[direction][v_from];
@@ -288,26 +288,14 @@ uint8_t dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::query_distance_(
   for (int bp_i = 0; bp_i < kNumBitParallelRoots; ++bp_i) {
     uint8_t td = idx_from.bpspt_d[bp_i] + idx_to.bpspt_d[bp_i];
     if (td - 2 > d) continue;
-    auto &from_masks = idx_from.bpspt_s[bp_i];
-    auto &to_masks = idx_to.bpspt_s[bp_i];
-    if (from_masks[0] & to_masks[0]) {
+    if (idx_from.bpspt_s[bp_i][0] & idx_to.bpspt_s[bp_i][0]) {
       td -= 2;
-    } else if ((from_masks[1] & to_masks[0]) | (from_masks[0] & to_masks[1])) {
+    } else if ((idx_from.bpspt_s[bp_i][1] & idx_to.bpspt_s[bp_i][0]) |
+               (idx_from.bpspt_s[bp_i][0] & idx_to.bpspt_s[bp_i][1])) {
       td -= 1;
     }
     if (td < d) d = td;
   }
-
-  for (auto &p : idx_from.spt_p)
-    if (p.first == v_to) {
-      if (d > p.second) d = p.second;
-      break;
-    }
-  for (auto &p : idx_to.spt_p)
-    if (p.first == v_from) {
-      if (d > p.second) d = p.second;
-      break;
-    }
 
   for (auto i1 = idx_from.spt_p.begin(), i2 = idx_to.spt_p.begin();
        i1 != idx_from.spt_p.end() && i2 != idx_to.spt_p.end();) {
@@ -319,6 +307,8 @@ uint8_t dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::query_distance_(
       i1++;
       i2++;
     } else {
+      if (v1 == v_to && i1->second < d) d = i1->second;
+      if (v2 == v_from && i2->second < d) d = i2->second;
       if (v1 < v2) i1++;
       if (v1 > v2) i2++;
     }
