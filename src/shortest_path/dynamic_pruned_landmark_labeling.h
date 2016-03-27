@@ -472,7 +472,7 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::add_edge(
   assert(v_a >= 0 && v_b >= 0);
   assert(v_a < num_v && v_b < num_v);
   v_a = rank[v_a], v_b = rank[v_b];
-  if (distance_less(v_a, v_b, 0, 1) <= 1) return;
+  if (std::binary_search(adj[0][v_a].begin(), adj[0][v_a].end(), v_b)) return;
 
   adj[0][v_a].push_back(v_b);
   adj[1][v_b].push_back(v_a);
