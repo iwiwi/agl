@@ -89,7 +89,6 @@ class dynamic_pruned_landmark_labeling
 template <size_t kNumBitParallelRoots>
 void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>
 ::construct(const G &g) {
-  num_v = g.num_vertices();
   size_t num_e = g.num_edges();
   assert(num_v >= 3);
 
@@ -223,6 +222,7 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>
 template <size_t kNumBitParallelRoots>
 void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>
 ::load_graph(const G &g) {
+  num_v = g.num_vertices();
   rank.resize(num_v);
   inv.resize(num_v);
   {
