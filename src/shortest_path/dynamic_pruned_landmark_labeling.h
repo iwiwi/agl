@@ -87,27 +87,19 @@ class dynamic_pruned_landmark_labeling
 * \param g graph
 */
 template <size_t kNumBitParallelRoots>
-void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::construct(
-    const G &g) {
+void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>
+::construct(const G &g) {
   num_v = g.num_vertices();
   size_t num_e = g.num_edges();
   assert(num_v >= 3);
 
   // Initialize
-  double timer = -get_current_time_sec();
   load_graph(g);
-  timer += get_current_time_sec();
-  std::cerr << timer << " sec load" << std::endl;
 
   std::vector<bool> used(num_v, false);
-
   // Bit-Parallel Labeling
-  timer = -get_current_time_sec();
   bit_parallel_bfs(used, num_e);
-  timer += get_current_time_sec();
-  std::cerr << timer << " sec bit-parallel" << std::endl;
 
-  timer = -get_current_time_sec();
   // Pruned labelling
   for (V root = 0; root < num_v; ++root) {
     if (used[root]) continue;
@@ -115,8 +107,6 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::construct(
     pruned_bfs(root, 1, used);
     used[root] = true;
   }
-  timer += get_current_time_sec();
-  std::cerr << timer << " sec pruned-bfs" << std::endl;
 }
 
 /**
@@ -125,8 +115,8 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::construct(
 * \param num_e the number of edges of the given graph
 */
 template <size_t kNumBitParallelRoots>
-void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::bit_parallel_bfs(
-    std::vector<bool> &used, const size_t num_e) {
+void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>
+::bit_parallel_bfs(std::vector<bool> &used, const size_t num_e) {
   V root = 0;
   std::vector<std::pair<uint64_t, uint64_t>> tmp_s(num_v, {0, 0});
   std::vector<std::pair<V, V>> sibling_es(num_e);
@@ -231,8 +221,8 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::bit_parallel_bfs(
 * \param g graph
 */
 template <size_t kNumBitParallelRoots>
-void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::load_graph(
-    const G &g) {
+void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>
+::load_graph(const G &g) {
   rank.resize(num_v);
   inv.resize(num_v);
   {
@@ -273,8 +263,8 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::load_graph(
 * \param used vector to record the vertices used as the root of BFS
 */
 template <size_t kNumBitParallelRoots>
-void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::pruned_bfs(
-    V root, int direction, const std::vector<bool> &used) {
+void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>
+::pruned_bfs(V root, int direction, const std::vector<bool> &used) {
   int another = direction ^ 1;
   int q_head = 0, q_tail = 0;
   bfs_que[q_tail++] = root;
@@ -306,8 +296,8 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::pruned_bfs(
 * \param v_to the end vertex of shortest path
 */
 template <size_t kNumBitParallelRoots>
-W dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::query_distance(
-    const G &g, V v_from, V v_to) {
+W dynamic_pruned_landmark_labeling<kNumBitParallelRoots>
+::query_distance(const G &g, V v_from, V v_to) {
   assert(v_from >= 0 && v_to >= 0);
   assert(v_from < rank.size() && v_to < rank.size());
   if (v_from == v_to) return 0;
@@ -326,8 +316,8 @@ W dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::query_distance(
 * which is equal to or shorter than upper_limit.
 */
 template <size_t kNumBitParallelRoots>
-uint8_t dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::distance_less(
-    V v_from, V v_to, int direction, uint8_t upper_limit) {
+uint8_t dynamic_pruned_landmark_labeling<kNumBitParallelRoots>
+::distance_less(V v_from, V v_to, int direction, uint8_t upper_limit) {
   int another = direction ^ 1;
 
   uint8_t d = D_INF;
@@ -379,8 +369,8 @@ uint8_t dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::distance_less(
 * \param direction direction
 */
 template <size_t kNumBitParallelRoots>
-void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::partial_bfs(
-    V v_from, V v_end, uint8_t base_d, int direction) {
+void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>
+::partial_bfs(V v_from, V v_end, uint8_t base_d, int direction) {
   int another = direction ^ 1;
 
   int q_head = 0, q_tail = 0;
@@ -409,8 +399,8 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::partial_bfs(
 * \param direction direction
 */
 template <size_t kNumBitParallelRoots>
-void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::partial_bp_bfs(
-    int bp_i, V v_from, int direction) {
+void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>
+::partial_bp_bfs(int bp_i, V v_from, int direction) {
   V another = direction ^ 1;
   const index_t &idx_from = idx[another][v_from];
   const uint8_t base_d = idx_from.bpspt_d[bp_i];
@@ -466,8 +456,8 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::partial_bp_bfs(
 * \param e new edge
 */
 template <size_t kNumBitParallelRoots>
-void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::add_edge(
-    const G &g, V v_a, const E &e) {
+void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>
+::add_edge(const G &g, V v_a, const E &e) {
   V v_b = to(e);
   assert(v_a >= 0 && v_b >= 0);
   assert(v_a < num_v && v_b < num_v);
