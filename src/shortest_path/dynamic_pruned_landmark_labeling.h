@@ -372,14 +372,14 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::partial_bp_bfs(
   const uint8_t base_d = idx_from.bpspt_d[bp_i];
   if (base_d == D_INF) return;
 
-  std::queue<std::pair<V, uint8_t>> que;
-  que.emplace(v_from, base_d);
-  for (uint8_t d = base_d; !que.empty(); ++d) {
+  int q_head = 0, q_tail = 0;
+  bfs_que[q_tail++] = v_from;
+  bfs_dist[v_from] = base_d;
+  for (uint8_t d = base_d; q_head < q_tail; ++d) {
     std::vector<V> tmp;
-    while (!que.empty() && que.front().second == d) {
-      V v = que.front().first;
+    while (q_head < q_tail && bfs_dist[bfs_que[q_head]] == d) {
+      V v = bfs_que[q_head++];
       const index_t &idx_v = idx[another][v];
-      que.pop();
       tmp.push_back(v);
 
       for (V tv : adj[direction][v]) {
@@ -392,7 +392,8 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::partial_bp_bfs(
 
           idx_tv.bpspt_s[bp_i][0] = 0;
           idx_tv.bpspt_d[bp_i] = d + 1;
-          que.emplace(tv, d + 1);
+          bfs_dist[tv] = d + 1;
+          bfs_que[q_tail++] = tv;
         }
       }
     }
@@ -408,6 +409,9 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::partial_bp_bfs(
         }
       }
     }
+  }
+  for (int i = 0; i < q_tail; ++i) {
+    bfs_dist[bfs_que[i]] = D_INF;
   }
 }
 
