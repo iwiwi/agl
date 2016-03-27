@@ -345,16 +345,22 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::resume_pbfs(
     V neighbor_a, V v_b, uint8_t d_nab, int direction) {
   int another = direction ^ 1;
 
-  std::queue<std::pair<V, uint8_t>> que;
-  que.emplace(v_b, d_nab);
-  while (!que.empty()) {
-    V v;
-    uint8_t d;
-    std::tie(v, d) = que.front();
-    que.pop();
+  int q_head = 0, q_tail = 0;
+  bfs_que[q_tail++] = v_b;
+  bfs_dist[v_b] = d_nab;
+  while (q_head < q_tail) {
+    V v = bfs_que[q_head++];
+    uint8_t d = bfs_dist[v];
     if (distance_less(neighbor_a, v, direction, d) <= d) continue;
     idx[another][v].update(neighbor_a, d);
-    for (const auto &w : adj[direction][v]) que.emplace(w, d + 1);
+    for (const auto &w : adj[direction][v]) {
+      if (bfs_dist[w] < D_INF) continue;
+      bfs_dist[w] = d + 1;
+      bfs_que[q_tail++] = w;
+    }
+  }
+  for (int i = 0; i < q_tail; ++i) {
+    bfs_dist[bfs_que[i]] = D_INF;
   }
 }
 
