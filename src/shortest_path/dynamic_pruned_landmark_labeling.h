@@ -409,8 +409,9 @@ template <size_t kNumBitParallelRoots>
 void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::add_edge(
     const G &g, V v_a, const E &e) {
   V v_b = to(e);
+  V num_v = g.num_vertices();
   assert(v_a >= 0 && v_b >= 0);
-  assert(v_a < g.num_vertices() && v_b < g.num_vertices());
+  assert(v_a < num_v && v_b < num_v);
   v_a = rank[v_a], v_b = rank[v_b];
   if (distance_less(v_a, v_b, 0, 1) <= 1) return;
 
@@ -424,22 +425,22 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::add_edge(
     partial_bp_bfs(bp_i, v_b, 1);
   }
 
-  std::vector<std::tuple<V, uint8_t, int>> tmp;
-  for (int i = 0; i < idx[1][v_a].size(); ++i)
-    tmp.emplace_back(idx[1][v_a].spt_v[i], idx[1][v_a].spt_d[i], 0);
-  for (int i = 0; i < idx[0][v_b].size(); ++i)
-    tmp.emplace_back(idx[0][v_b].spt_v[i], idx[0][v_b].spt_d[i], 1);
-  std::sort(tmp.begin(), tmp.end());
-
-  for (const auto &q : tmp) {
-    V r, t;
-    uint8_t d;
-    std::tie(r, d, t) = q;
-    if (t == 0) {
-      resume_pbfs(r, v_b, d + 1, 0);
-    }
-    if (t == 1) {
-      resume_pbfs(r, v_a, d + 1, 1);
+  index_t &idx_a = idx[1][v_a];
+  index_t &idx_b = idx[0][v_b];
+  for (int ia = 0, ib = 0; ia < idx_a.size() || ib < idx_b.size();) {
+    V r_a = ia < idx_a.size() ? idx_a.spt_v[ia] : num_v;
+    V r_b = ib < idx_b.size() ? idx_b.spt_v[ib] : num_v;
+    if (r_a == r_b) {
+      resume_pbfs(r_a, v_b, idx_a.spt_d[ia] + 1, 0);
+      resume_pbfs(r_b, v_a, idx_b.spt_d[ib] + 1, 1);
+      ia++;
+      ib++;
+    } else if (r_a > r_b) {
+      resume_pbfs(r_b, v_a, idx_b.spt_d[ib] + 1, 1);
+      ib++;
+    } else {
+      resume_pbfs(r_a, v_b, idx_a.spt_d[ia] + 1, 0);
+      ia++;
     }
   }
 }
