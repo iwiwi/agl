@@ -278,6 +278,7 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::pruned_bfs(
 template <size_t kNumBitParallelRoots>
 W dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::query_distance(
     const G &g, V v_from, V v_to) {
+  assert(v_from >= 0 && v_to >= 0);
   assert(v_from < rank.size() && v_to < rank.size());
   if (v_from == v_to) return 0;
   v_from = rank[v_from], v_to = rank[v_to];
@@ -400,8 +401,9 @@ template <size_t kNumBitParallelRoots>
 void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::add_edge(
     const G &g, V v_a, const E &e) {
   V v_b = to(e);
-  v_a = rank[v_a], v_b = rank[v_b];
+  assert(v_a >= 0 && v_b >= 0);
   assert(v_a < g.num_vertices() && v_b < g.num_vertices());
+  v_a = rank[v_a], v_b = rank[v_b];
   if (distance_less(v_a, v_b, 0, 1) <= 1) return;
 
   adj[0][v_a].push_back(v_b);
