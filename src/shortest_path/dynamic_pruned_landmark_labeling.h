@@ -318,8 +318,7 @@ uint8_t dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::distance_less(
     }
   }
 
-  for (size_t i1 = 0, i2 = 0;
-       i1 < idx_from.spt_v.size() && i2 < idx_to.spt_v.size();) {
+  for (size_t i1 = 0, i2 = 0; i1 < idx_from.size() && i2 < idx_to.size();) {
     V v1 = idx_from.spt_v[i1];
     V v2 = idx_to.spt_v[i2];
     if (v1 == v2) {
