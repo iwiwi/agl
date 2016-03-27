@@ -1,9 +1,6 @@
 #pragma once
 #include "graph/graph.h"
 #include "graph/graph_index_interface.h"
-#include <set>
-#include <queue>
-#include <bitset>
 
 namespace agl {
 template <size_t kNumBitParallelRoots = 16>
@@ -376,11 +373,10 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::partial_bp_bfs(
   bfs_que[q_tail++] = v_from;
   bfs_dist[v_from] = base_d;
   for (uint8_t d = base_d; q_head < q_tail; ++d) {
-    std::vector<V> tmp;
+    int old_head = q_head;
     while (q_head < q_tail && bfs_dist[bfs_que[q_head]] == d) {
       V v = bfs_que[q_head++];
       const index_t &idx_v = idx[another][v];
-      tmp.push_back(v);
 
       for (V tv : adj[direction][v]) {
         index_t &idx_tv = idx[another][tv];
@@ -398,7 +394,8 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::partial_bp_bfs(
       }
     }
 
-    for (V v : tmp) {
+    for (int i = old_head; i < q_head; ++i) {
+      V v = bfs_que[i];
       const index_t &idx_v = idx[another][v];
       for (V tv : adj[direction][v]) {
         index_t &idx_tv = idx[another][tv];
