@@ -345,16 +345,21 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::resume_pbfs(
     V neighbor_a, V v_b, uint8_t d_nab, int direction) {
   int another = direction ^ 1;
 
-  std::queue<std::pair<V, uint8_t>> que;
-  que.emplace(v_b, d_nab);
-  while (!que.empty()) {
-    V v;
-    uint8_t d;
-    std::tie(v, d) = que.front();
-    que.pop();
+  int q_head = 0, q_tail = 0;
+  bfs_que[q_tail++] = v_b;
+  bfs_dist[v_b] = d_nab;
+  while (q_head < q_tail) {
+    V v = bfs_que[q_head++];
+    uint8_t d = bfs_dist[v];
     if (distance_less(neighbor_a, v, direction, d) <= d) continue;
     idx[another][v].update(neighbor_a, d);
-    for (const auto &w : adj[direction][v]) que.emplace(w, d + 1);
+    for (const auto &w : adj[direction][v]) {
+      bfs_dist[w] = d + 1;
+      bfs_que[q_tail++] = w;
+    }
+  }
+  for (int i = 0; i < q_tail; ++i) {
+    bfs_dist[bfs_que[i]] = D_INF;
   }
 }
 
@@ -366,14 +371,14 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::partial_bp_bfs(
   const uint8_t base_d = idx_from.bpspt_d[bp_i];
   if (base_d == D_INF) return;
 
-  std::queue<std::pair<V, uint8_t>> que;
-  que.emplace(v_from, base_d);
-  for (uint8_t d = base_d; !que.empty(); ++d) {
+  int q_head = 0, q_tail = 0;
+  bfs_que[q_tail++] = v_from;
+  bfs_dist[v_from] = base_d;
+  for (uint8_t d = base_d; q_head < q_tail; ++d) {
     std::vector<V> tmp;
-    while (!que.empty() && que.front().second == d) {
-      V v = que.front().first;
+    while (q_head < q_tail && bfs_dist[bfs_que[q_head]] == d) {
+      V v = bfs_que[q_head++];
       const index_t &idx_v = idx[another][v];
-      que.pop();
       tmp.push_back(v);
 
       for (V tv : adj[direction][v]) {
@@ -386,7 +391,8 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::partial_bp_bfs(
 
           idx_tv.bpspt_s[bp_i][0] = 0;
           idx_tv.bpspt_d[bp_i] = d + 1;
-          que.emplace(tv, d + 1);
+          bfs_dist[tv] = d + 1;
+          bfs_que[q_tail++] = tv;
         }
       }
     }
@@ -402,6 +408,9 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::partial_bp_bfs(
         }
       }
     }
+  }
+  for (int i = 0; i < q_tail; ++i) {
+    bfs_dist[bfs_que[i]] = D_INF;
   }
 }
 
