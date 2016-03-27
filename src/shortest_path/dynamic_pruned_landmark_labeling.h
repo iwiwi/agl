@@ -29,25 +29,34 @@ class dynamic_pruned_landmark_labeling
   struct index_t {
     uint8_t bpspt_d[kNumBitParallelRoots];
     uint64_t bpspt_s[kNumBitParallelRoots][2];
-    std::vector<std::pair<V, uint8_t>> spt_p;
+    std::vector<V> spt_v;
+    std::vector<uint8_t> spt_d;
     void update(V v, uint8_t d) {
-      if (spt_p.empty() || spt_p.rbegin()->first < v) {
-        spt_p.emplace_back(v, d);
+      if (spt_v.empty() || spt_v.back() < v) {
+        spt_v.emplace_back(v);
+        spt_d.emplace_back(d);
         return;
       }
-      auto it = std::lower_bound(spt_p.begin(), spt_p.end(),
-                                 std::make_pair(v, (uint8_t)0));
-      if (it->first == v) {
-        if (it->second > d) it->second = d;
+      size_t i;
+      for (i = 0; i < spt_v.size(); ++i) {
+        if (spt_v[i] >= v) break;
+      }
+      assert(i < spt_v.size());
+      if (spt_v[i] == v) {
+        if (spt_d[i] > d) spt_d[i] = d;
         return;
       }
-      if (it->first > v) {
-        spt_p.insert(it, std::make_pair(v, d));
-        return;
+      assert(spt_v[i] > v);
+      spt_v.push_back(spt_v.back());
+      spt_d.push_back(spt_d.back());
+      for (size_t j = spt_v.size() - 1; j > i; --j) {
+        spt_v[j] = spt_v[j - 1];
+        spt_d[j] = spt_d[j - 1];
       }
-      assert(false);
+      spt_v[i] = v;
+      spt_d[i] = d;
     }
-    size_t size() const { return spt_p.size(); }
+    size_t size() const { return spt_v.size(); }
   };
 
   std::vector<index_t> idx[2];
@@ -309,23 +318,23 @@ uint8_t dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::distance_less(
     }
   }
 
-  for (auto it1 = idx_from.spt_p.begin(), it2 = idx_to.spt_p.begin();
-       it1 != idx_from.spt_p.end() && it2 != idx_to.spt_p.end();) {
-    V v1 = it1->first;
-    V v2 = it2->first;
+  for (size_t i1 = 0, i2 = 0;
+       i1 < idx_from.spt_v.size() && i2 < idx_to.spt_v.size();) {
+    V v1 = idx_from.spt_v[i1];
+    V v2 = idx_to.spt_v[i2];
     if (v1 == v2) {
-      uint8_t td = it1->second + it2->second;
+      uint8_t td = idx_from.spt_d[i1] + idx_to.spt_d[i2];
       if (td < d) {
         d = td;
         if (d <= upper_limit) return d;
       }
-      it1++;
-      it2++;
+      i1++;
+      i2++;
     } else {
-      if (v1 == v_to && it1->second <= d) return it1->second;
-      if (v2 == v_from && it2->second <= d) return it2->second;
-      if (v1 < v2) it1++;
-      if (v1 > v2) it2++;
+      if (v1 == v_to && idx_from.spt_d[i1] <= d) return idx_from.spt_d[i1];
+      if (v2 == v_from && idx_to.spt_d[i2] <= d) return idx_to.spt_d[i2];
+      if (v1 < v2) i1++;
+      if (v1 > v2) i2++;
     }
   }
   if (d >= D_INF - 2) d = D_INF;
@@ -417,10 +426,10 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::add_edge(
   }
 
   std::vector<std::tuple<V, uint8_t, int>> tmp;
-  for (const auto &p : idx[1][v_a].spt_p)
-    tmp.emplace_back(p.first, p.second, 0);
-  for (const auto &p : idx[0][v_b].spt_p)
-    tmp.emplace_back(p.first, p.second, 1);
+  for (int i = 0; i < idx[1][v_a].size(); ++i)
+    tmp.emplace_back(idx[1][v_a].spt_v[i], idx[1][v_a].spt_d[i], 0);
+  for (int i = 0; i < idx[0][v_b].size(); ++i)
+    tmp.emplace_back(idx[0][v_b].spt_v[i], idx[0][v_b].spt_d[i], 1);
   std::sort(tmp.begin(), tmp.end());
 
   for (const auto &q : tmp) {
