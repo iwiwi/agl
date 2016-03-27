@@ -3,7 +3,7 @@
 
 int main(int argc, char **argv) {
   G g = easy_cui_init(argc, argv);
-  dynamic_pruned_landmark_labeling<16> dpll;
+  dynamic_pruned_landmark_labeling<64> dpll;
   JLOG_PUT_BENCHMARK("result.construct") dpll.construct(g);
   JLOG_PUT("result.average_label_size",
            (dpll.total_label_num() / g.num_vertices()));
