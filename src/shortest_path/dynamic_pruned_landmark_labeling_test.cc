@@ -267,9 +267,9 @@ TYPED_TEST(dpll_test, undirected_index) {
 }
 
 TYPED_TEST(dpll_test, online_update) {
-  for (int trial = 0; trial < 100; ++trial) {
+  for (int trial = 0; trial < 5; ++trial) {
     V m = agl::random(10) + 2;
-    V n = agl::random(1000) + 1 + m;
+    V n = agl::random(300) + 1 + m;
     auto es = generate_ba(n, m);
     G g(es);
     TypeParam dpll;
