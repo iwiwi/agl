@@ -54,7 +54,7 @@ bool BFSCheck(const G& g, TypeParam& dpll) {
   }
   cerr << endl;
   t /= num_v * num_v;
-  cerr << t * 1000 * 1000 << " us/query" << endl;
+  // cerr << t * 1000 * 1000 << " us/query" << endl;
   return true;
 }
 
@@ -64,7 +64,7 @@ bool Test(const G& g) {
   double t = -get_current_time_sec();
   dpll.construct(g);
   t += get_current_time_sec();
-  cerr << t << " sec/construct" << endl;
+  // cerr << t << " sec/construct" << endl;
 
   return BFSCheck(g, dpll);
 }
@@ -76,7 +76,7 @@ bool DynamicTest(const G& g) {
   double t = -get_current_time_sec();
   dpll.construct(g);
   t += get_current_time_sec();
-  cerr << t << " sec/construct" << endl;
+  // cerr << t << " sec/construct" << endl;
 
   auto es = g.edge_list();
   V trial = min(100, g.num_vertices() / 2);
@@ -90,7 +90,7 @@ bool DynamicTest(const G& g) {
     addition.emplace_back(v_from, v_to);
   }
   t += get_current_time_sec();
-  cerr << (t / trial) * 1000 << " ms/add" << endl;
+  // cerr << (t / trial) * 1000 << " ms/add" << endl;
   G g_mod(es);
 
   if (BFSCheck(g_mod, dpll)) {
