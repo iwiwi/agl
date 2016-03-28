@@ -249,3 +249,19 @@ TYPED_TEST(dpll_test, bit_parallel_construct) {
   }
   cerr << cnt << endl;
 }
+
+TYPED_TEST(dpll_test, undirected_index) {
+  for (int trial = 0; trial < 100; ++trial) {
+    V m = agl::random(10) + 2;
+    V n = agl::random(1000) + 1 + m;
+    auto es = generate_ba(n, m);
+    G g(make_undirected(es));
+    TypeParam dpll;
+    dpll.construct(g);
+    V num_v = g.num_vertices();
+    for (int v = 0; v < num_v; ++v) {
+      ASSERT_EQ(dpll.idx[0][v].spt_v, dpll.idx[1][v].spt_v);
+      ASSERT_EQ(dpll.idx[0][v].spt_d, dpll.idx[1][v].spt_d);
+    }
+  }
+}
