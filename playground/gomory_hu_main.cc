@@ -4,8 +4,6 @@
 #pragma comment(linker, "/STACK:3200000") 
 #endif
 
-DEFINE_int32(num_query, 1000, "");
-DEFINE_int64(node_pair_random_seed, 922337203685477583LL, "");
 DEFINE_string(method, "gusfield", "test, gusfield, print_gomory_hu_tree");
 
 #define FOR(i,n) for(int i = 0; i < (n); i++)
@@ -18,7 +16,6 @@ DEFINE_string(method, "gusfield", "test, gusfield, print_gomory_hu_tree");
 #include "OptimizedGusfieldWith2ECC_slow.h"
 #include "PlainGusfield.h"
 #include "PlainGusfield_bi_dinitz.h"
-#include "tree_query.h"
 
 G to_directed_graph(G&& g) {
   vector<pair<V, V>> ret;
@@ -192,25 +189,6 @@ void test(G&& g) {
   }
 }
 
-void test2(G&& g) {
-  Gusfield gf(g);
-  stringstream ss;
-  gf.print_gomory_hu_tree(ss);
-  auto query = tree_query::from_file(ss);
-
-  const int n = g.num_vertices();
-  FOR(i, n) {
-    for (int j = i + 1; j < n; j++) {
-      int a1 = gf.query(i, j);
-      int a2 = query.query(i, j);
-      if (a1 != a2) {
-        cout << i << " " << j << endl;
-        cout << "?" << endl;
-      }
-    }
-  }
-}
-
 void tester() {
   test(to_directed_graph(built_in_graph("karate_club")));
   test(to_directed_graph(built_in_graph("dolphin")));
@@ -243,83 +221,6 @@ void main_(G&& g) {
   JLOG_PUT("gtp_edge_use_all", gtp_edge_use);
 }
 
-void from_file(G&& g) {
-  if (FLAGS_validation_data_path == "") {
-    auto gname = graph_name();
-    FLAGS_validation_data_path = gname + ".tree";
-  }
-
-  tree_query query = tree_query::from_file(FLAGS_validation_data_path);
-  {
-    set<int> sta;
-    int deg1count = 0;
-    int cnt = 0;
-    FOR(v,g.num_vertices()) {
-      int hoge = 0;
-      int t = -1;
-      for(auto& e : query.edges_[v]) {
-        int w = e.second;
-        hoge = max(hoge,w);
-        if(w == hoge) t = e.first;
-      }
-      int deg = g.degree(v,D(0)) + g.degree(v, D(1));
-      if(hoge == deg){
-        cnt++;
-        sta.insert(t);
-      }
-      if(deg == 1) deg1count++;
-    }
-    fprintf(stderr, "mincut eq degree count : %d\n",cnt);
-    fprintf(stderr, "|sta| : %d\n",sz(sta));
-    fprintf(stderr, "deg1count : %d\n",deg1count);
-
-    vector<pair<int,V>> vp;
-    FOR(v,g.num_vertices()) {
-      int deg = g.degree(v,D(0)) + g.degree(v, D(1));
-      vp.emplace_back(deg, v);
-    }
-    sort(vp.rbegin(),vp.rend());
-    set<int> st;
-    const int top_degs = 10;
-    FOR(i,top_degs) {
-      auto v = vp[i].second;
-      auto ssm = query.single_source_mincut(v);
-      int able_to_find = 0;
-      FOR(to, g.num_vertices()){
-        int deg = g.degree(to,D(0)) + g.degree(to, D(1));
-        if(ssm[to] == deg) {
-          able_to_find++;
-          st.insert(to);
-        }
-      }
-      fprintf(stderr, "%d(deg = %d) : degree tree packing can be able to find %d vertices.\n", v, vp[i].first, able_to_find);
-      fprintf(stderr,"top_degs = %d, can be able to find %d vertices.\n ",i + 1, sz(st) );
-
-      if(i == 0){
-        stringstream ss;
-        ss << "|" << graph_name() <<"(V=" <<g.num_vertices() << ")|" << able_to_find << "|";
-
-        JLOG_ADD("greedy_tree_packing_upperbound",ss.str());
-      }
-    }
-
-  }
-
-  {
-    // (s,t) mincutした後の両側の両側の頂点数を求める
-    auto st_count = query.child_num();
-    map<int,int> bias;
-    for(auto& itr : st_count) {
-        V s,t; int st_mincut_bias;
-        tie(s,t,st_mincut_bias) = itr;
-        bias[st_mincut_bias]++;
-    }
-    for(auto& kv : bias) {
-      fprintf(stderr, "  %d : %d\n",kv.first, kv.second);
-    }
-  }
-}
-
 DEFINE_bool(to_directed_graph,true, "");
 DEFINE_string(write_directed_graph_name,"", "");
 
@@ -340,11 +241,6 @@ int main(int argc, char** argv) {
       output = FLAGS_graph + ".directed"; 
     }
     write_graph_binary(g, output.c_str());
-    exit(0);
-  }
-
-  if (FLAGS_gomory_hu_builder == "fromfile") {
-    from_file(std::move(g));
     exit(0);
   }
 

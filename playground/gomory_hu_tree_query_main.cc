@@ -1,12 +1,18 @@
-#pragma once
+#include <easy_cui.h>
+
+using namespace std;
+
+DEFINE_int32(num_query, 10000000, "");
+DEFINE_int64(node_pair_random_seed, 922337203685477583LL, "");
+DEFINE_string(tree_path, "", "");
 
 class tree_query {
 
-  void build() {
+  void build(vector<vector<pair<V, int>>>& edges) {
     depth_.resize(num_vertices_, -1);
     parent_weight_.resize(num_vertices_, make_pair(-2, -2));
 
-    FOR(v, num_vertices_) {
+    for(V v = 0; v < num_vertices_; v++) {
       if (depth_[v] >= 0) continue;
 
       depth_[v] = 0;
@@ -15,7 +21,7 @@ class tree_query {
       q.push(v);
       while (!q.empty()) {
         int u = q.front(); q.pop();
-        for (auto& to_weight : edges_[u]) {
+        for (auto& to_weight : edges[u]) {
           int to, weight; tie(to, weight) = to_weight;
           if (depth_[to] >= 0) continue;
           depth_[to] = depth_[u] + 1;
@@ -25,15 +31,6 @@ class tree_query {
           q.push(to);
         }
       }
-    }
-  }
-
-  void single_source_mincut_dfs(V v, V par, int mn, vector<int>& ans) const {
-    ans[v] = mn;
-    for (auto& to : edges_[v]) {
-      if (to.first == par) continue;
-      int nmn = min(mn, to.second);
-      single_source_mincut_dfs(to.first, v, nmn, ans);
     }
   }
 
@@ -50,50 +47,21 @@ public:
     while (is >> s >> v >> weight) input.emplace_back(s, v, weight);
     return tree_query(std::move(input));
   }
+  tree_query() {}
 
   tree_query(vector<tuple<V, V, int>> input) {
-    num_vertices_ = sz(input) + 1;
+    num_vertices_ = (int)input.size() + 1;
 
-    edges_.resize(num_vertices_);
+    vector<vector<pair<V, int>>> edges(num_vertices_);
     vector<int> depth_;
     for (auto& e : input) {
       int s, v, weight; tie(s, v, weight) = e;
-      edges_[s].emplace_back(v, weight);
-      edges_[v].emplace_back(s, weight);
+      edges[s].emplace_back(v, weight);
+      edges[v].emplace_back(s, weight);
     }
     input.clear(); input.shrink_to_fit();
 
-    build();
-  }
-
-  vector<int> single_source_mincut(V u) const {
-    vector<int> ans(num_vertices_, numeric_limits<int>::max());
-    single_source_mincut_dfs(u, -1, numeric_limits<int>::max(), ans);
-    return ans;
-  }
-
-  int dfs1(V v, V par, vector<int>& childs,vector<int>& par2) {
-    childs[v] = 1;
-    par2[v] = par;
-    for(auto& to : edges_[v]) {
-      if(to.first == par) continue;
-      childs[v] += dfs1(to.first, v, childs, par2);
-    }
-    return childs[v];
-  }
-
-  //(u,v,lr)
-  vector<tuple<V,V,int>> child_num()  {
-    vector<int> directed_graph_childs(num_vertices_);
-    vector<int> par2(num_vertices_);
-    dfs1(0, -1, directed_graph_childs, par2);
-    vector<tuple<V,V,int>> ret(num_vertices_);
-    FOR(v, num_vertices_) {
-      int l = directed_graph_childs[v];
-      int r = num_vertices_ - l;
-      ret[v] = make_tuple(v, par2[v], min(l,r));
-    }
-    return ret;
+    build(edges);
   }
 
   int query(V u, V v) const {
@@ -107,10 +75,38 @@ public:
     }
     return ans;
   }
+
+  const int num_vertices() { return num_vertices_; }
   
 public:
   int num_vertices_;
   vector<pair<V, int>> parent_weight_;
-  vector<vector<pair<V, int>>> edges_;
   vector<int> depth_;
 };
+
+
+void from_file() {
+  tree_query tq;
+  JLOG_PUT_BENCHMARK("initialize_time") {
+    tq = tree_query::from_file(FLAGS_tree_path);
+  }
+
+  agl::random_type random(FLAGS_node_pair_random_seed);
+  JLOG_PUT_BENCHMARK("query_time") {
+    for(int i = 0; i < FLAGS_num_query; i++) {
+      V s = random() % tq.num_vertices();
+      V t = random() % (tq.num_vertices() - 1);
+      if(s <= t) t++;
+      tq.query(s, t);
+    }
+  }
+}
+
+int main(int argc, char** argv) {
+  JLOG_INIT(&argc, argv);
+  gflags::ParseCommandLineFlags(&argc, &argv, true);
+
+  from_file();
+
+  return 0;
+}
