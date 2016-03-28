@@ -265,3 +265,41 @@ TYPED_TEST(dpll_test, undirected_index) {
     }
   }
 }
+
+TYPED_TEST(dpll_test, online_update) {
+  for (int trial = 0; trial < 100; ++trial) {
+    V m = agl::random(10) + 2;
+    V n = agl::random(1000) + 1 + m;
+    auto es = generate_ba(n, m);
+    G g(es);
+    TypeParam dpll;
+    dpll.construct(g);
+    V num_v = g.num_vertices();
+    vector<vector<W>> dist(num_v, vector<W>(num_v, 100));
+    for (const auto& p : es) dist[p.first][p.second] = 1;
+    for (int i = 0; i < num_v; ++i) dist[i][i] = 0;
+    for (int k = 0; k < num_v; ++k) {
+      for (int i = 0; i < num_v; ++i) {
+        for (int j = 0; j < num_v; ++j)
+          dist[i][j] = min(dist[i][j], dist[i][k] + dist[k][j]);
+      }
+    }
+
+    for (int i = 0; i < num_v; ++i) {
+      for (int j = 0; j < num_v; ++j) {
+        ASSERT_EQ(dist[i][j], dpll.query_distance(g, i, j));
+      }
+    }
+
+    for (int add = 0; add < 100; ++add) {
+      V v_from = agl::random(num_v), v_to = agl::random(num_v);
+      for (int i = 0; i < num_v; ++i)
+        for (int j = 0; j < num_v; ++j)
+          dist[i][j] = min(dist[i][j], dist[i][v_from] + 1 + dist[v_to][j]);
+      dpll.add_edge(g, v_from, v_to);
+      for (int i = 0; i < num_v; ++i)
+        for (int j = 0; j < num_v; ++j)
+          ASSERT_EQ(dist[i][j], dpll.query_distance(g, i, j));
+    }
+  }
+}
