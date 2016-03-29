@@ -265,7 +265,7 @@ TYPED_TEST(dpll_test, undirected_index) {
     dpll.construct(g);
     V num_v = g.num_vertices();
     for (int v = 0; v < num_v; ++v)
-      ASSERT_EQ(dpll.get_labels(v, kFwd), dpll.get_labels(v, kBwd));
+      ASSERT_EQ(dpll.get_label(v, kFwd), dpll.get_label(v, kBwd));
   }
 }
 
@@ -342,7 +342,7 @@ TYPED_TEST(dpll_test, death_test) {
   G g(es);
   TypeParam dpll;
   dpll.construct(g);
-  ASSERT_DEATH(dpll.get_labels(g.num_vertices(), kFwd), "");
+  ASSERT_DEATH(dpll.get_label(g.num_vertices(), kFwd), "");
   ASSERT_DEATH(dpll.query_distance(g, g.num_vertices(), 0), "");
   ASSERT_DEATH(dpll.query_distance(g, g.num_vertices() - 1, -1), "");
   ASSERT_DEATH(dpll.add_edge(g, g.num_vertices(), 0), "");

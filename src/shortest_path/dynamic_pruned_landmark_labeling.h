@@ -26,7 +26,7 @@ class dynamic_pruned_landmark_labeling
     for (V v = old_num_vertices; v < num_v; ++v) rank[v] = v, inv[v] = v;
   }
 
-  std::vector<std::pair<V, W>> get_labels(V v, D dir = kFwd);
+  std::vector<std::pair<V, W>> get_label(V v, D dir = kFwd);
   size_t total_label_num();
 
   // Test functions
@@ -99,7 +99,7 @@ size_t dynamic_pruned_landmark_labeling<kNumBitParallelRoots>
 
 template <size_t kNumBitParallelRoots>
 std::vector<std::pair<V, W>> dynamic_pruned_landmark_labeling<kNumBitParallelRoots>
-::get_labels(V v, D dir) {
+::get_label(V v, D dir) {
   assert(v < num_v);
   int direction = dir == kFwd ? 0 : 1;
   std::vector<std::pair<V, W>> ret(idx[direction][v].size());
