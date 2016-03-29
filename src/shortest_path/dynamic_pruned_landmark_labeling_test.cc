@@ -72,14 +72,14 @@ bool bfs_check(const G& g, TypeParam& dpll) {
 }
 
 template <typename TypeParam>
-bool Test(const G& g) {
+bool construct_test(const G& g) {
   TypeParam dpll;
   dpll.construct(g);
   return bfs_check(g, dpll);
 }
 
 template <typename TypeParam>
-bool DynamicTest(G& g) {
+bool dynamic_test(G& g) {
   TypeParam dpll;
   dpll.construct(g);
 
@@ -119,7 +119,7 @@ bool DynamicTest(G& g) {
 TYPED_TEST(dpll_test, small_grid) {
   auto es = generate_grid(3, 3);
   G g(es);
-  ASSERT_TRUE(Test<TypeParam>(g));
+  ASSERT_TRUE(construct_test<TypeParam>(g));
 }
 
 TYPED_TEST(dpll_test, small_ba) {
@@ -128,7 +128,7 @@ TYPED_TEST(dpll_test, small_ba) {
     V n = agl::random(50) + m + 1;
     auto es = generate_ba(n, m);
     G g(es);
-    ASSERT_TRUE(Test<TypeParam>(g));
+    ASSERT_TRUE(construct_test<TypeParam>(g));
   }
 }
 
@@ -138,7 +138,7 @@ TYPED_TEST(dpll_test, medium_ba) {
     V n = agl::random(1000) + m + 1;
     auto es = generate_ba(n, m);
     G g(es);
-    ASSERT_TRUE(Test<TypeParam>(g));
+    ASSERT_TRUE(construct_test<TypeParam>(g));
   }
 }
 
@@ -149,7 +149,7 @@ TYPED_TEST(dpll_test, large_ba) {
     auto es = generate_ba(n, m);
     G g(es);
     pretty_print(g);
-    ASSERT_TRUE(Test<TypeParam>(g));
+    ASSERT_TRUE(construct_test<TypeParam>(g));
   }
 }
 
@@ -158,7 +158,7 @@ TYPED_TEST(dpll_test, dynamic_small_grid) {
   G g(es);
   TypeParam dpll;
   dpll.construct(g);
-  ASSERT_TRUE(DynamicTest<TypeParam>(g));
+  ASSERT_TRUE(dynamic_test<TypeParam>(g));
 }
 
 TYPED_TEST(dpll_test, dynamic_small_ba) {
@@ -167,7 +167,7 @@ TYPED_TEST(dpll_test, dynamic_small_ba) {
     V n = agl::random(20) + 1 + m;
     auto es = generate_ba(n, m);
     G g(es);
-    ASSERT_TRUE(DynamicTest<TypeParam>(g));
+    ASSERT_TRUE(dynamic_test<TypeParam>(g));
   }
 }
 
@@ -177,7 +177,7 @@ TYPED_TEST(dpll_test, dynamic_medium_ba) {
     V n = agl::random(1000) + 1 + m;
     auto es = generate_ba(n, m);
     G g(es);
-    ASSERT_TRUE(DynamicTest<TypeParam>(g));
+    ASSERT_TRUE(dynamic_test<TypeParam>(g));
   }
 }
 
@@ -188,7 +188,7 @@ TYPED_TEST(dpll_test, dynamic_large_ba) {
     auto es = generate_ba(n, m);
     G g(es);
     pretty_print(g);
-    ASSERT_TRUE(DynamicTest<TypeParam>(g));
+    ASSERT_TRUE(dynamic_test<TypeParam>(g));
   }
 }
 
