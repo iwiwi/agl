@@ -50,7 +50,6 @@ TYPED_TEST_CASE(dpll_test, dpll_types);
 
 template <typename TypeParam>
 bool BFSCheck(const G& g, TypeParam& dpll) {
-  // pretty_print(g);
   double t = 0;
   const W INF = 100;
   V num_v = g.num_vertices();
@@ -85,7 +84,6 @@ bool BFSCheck(const G& g, TypeParam& dpll) {
   }
   cerr << endl;
   t /= num_v * num_v;
-  // cerr << t * 1000 * 1000 << " us/query" << endl;
   return true;
 }
 
@@ -95,7 +93,6 @@ bool Test(const G& g) {
   double t = -get_current_time_sec();
   dpll.construct(g);
   t += get_current_time_sec();
-  // cerr << t << " sec/construct" << endl;
 
   return BFSCheck(g, dpll);
 }
