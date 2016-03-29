@@ -85,7 +85,7 @@ bool BFSCheck(const G& g, TypeParam& dpll) {
   }
   cerr << endl;
   t /= num_v * num_v;
-  cerr << t * 1000 * 1000 << " us/query" << endl;
+  // cerr << t * 1000 * 1000 << " us/query" << endl;
   return true;
 }
 
@@ -95,7 +95,7 @@ bool Test(const G& g) {
   double t = -get_current_time_sec();
   dpll.construct(g);
   t += get_current_time_sec();
-  cerr << t << " sec/construct" << endl;
+  // cerr << t << " sec/construct" << endl;
 
   return BFSCheck(g, dpll);
 }
@@ -107,7 +107,7 @@ bool DynamicTest(const G& g) {
   double t = -get_current_time_sec();
   dpll.construct(g);
   t += get_current_time_sec();
-  cerr << t << " sec/construct" << endl;
+  // cerr << t << " sec/construct" << endl;
 
   auto es = g.edge_list();
   V trial = min(100, g.num_vertices() / 2);
@@ -121,7 +121,7 @@ bool DynamicTest(const G& g) {
     addition.emplace_back(v_from, v_to);
   }
   t += get_current_time_sec();
-  cerr << (t / trial) * 1000 << " ms/add" << endl;
+  // cerr << (t / trial) * 1000 << " ms/add" << endl;
   G g_mod(es);
 
   if (BFSCheck(g_mod, dpll)) {
@@ -297,9 +297,9 @@ TYPED_TEST(dpll_test, undirected_index) {
 }
 
 TYPED_TEST(dpll_test, online_update) {
-  for (int trial = 0; trial < 100; ++trial) {
+  for (int trial = 0; trial < 5; ++trial) {
     V m = agl::random(10) + 2;
-    V n = agl::random(1000) + 1 + m;
+    V n = agl::random(300) + 1 + m;
     auto es = generate_ba(n, m);
     G g(es);
     TypeParam dpll;
