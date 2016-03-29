@@ -8,8 +8,8 @@ using testing::Types;
 
 namespace agl {
 template <size_t kNumBitParallelRoots>
-std::vector<bool> dynamic_pruned_landmark_labeling<kNumBitParallelRoots>
-::test_bit_parallel_used(const G& g) {
+std::vector<bool> dynamic_pruned_landmark_labeling<
+    kNumBitParallelRoots>::test_bit_parallel_used(const G& g) {
   load_graph(g);
   vector<bool> used(g.num_vertices(), false);
   bit_parallel_bfs(g, used);
@@ -17,8 +17,8 @@ std::vector<bool> dynamic_pruned_landmark_labeling<kNumBitParallelRoots>
 }
 
 template <size_t kNumBitParallelRoots>
-std::vector<V> dynamic_pruned_landmark_labeling<kNumBitParallelRoots>
-::test_get_rank() {
+std::vector<V>
+dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::test_get_rank() {
   return rank;
 }
 }  // namespace agl
@@ -332,4 +332,24 @@ TYPED_TEST(dpll_test, add_vertices) {
   g.add_vertices(50);
   dpll.add_vertices(g, old_num_vertices);
   ASSERT_EQ(dpll.test_get_rank().size(), g.num_vertices());
+}
+
+TYPED_TEST(dpll_test, death_test) {
+  V m = agl::random(10) + 2;
+  V n = agl::random(1000) + 1 + m;
+  auto es = generate_ba(n, m);
+  G g(es);
+  TypeParam dpll;
+  dpll.construct(g);
+  ASSERT_DEATH(dpll.get_labels(g.num_vertices(), kFwd), "");
+  ASSERT_DEATH(dpll.query_distance(g, g.num_vertices(), 0), "");
+  ASSERT_DEATH(dpll.query_distance(g, g.num_vertices() - 1, -1), "");
+  ASSERT_DEATH(dpll.add_edge(g, g.num_vertices(), 0), "");
+  ASSERT_DEATH(dpll.add_edge(g, g.num_vertices() - 1, -1), "");
+  ASSERT_DEATH(dpll.remove_edge(g, 0, 1), "");
+
+  auto es2 = generate_path(2);
+  G g2(es2);
+  TypeParam dpll2;
+  ASSERT_DEATH(dpll2.construct(g2), "");
 }
