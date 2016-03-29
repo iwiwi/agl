@@ -73,6 +73,7 @@ class dynamic_pruned_landmark_labeling
                   const std::vector<bool> &used);
   void partial_bfs(const G &g, V v_from, V v_to, uint8_t d_ft, int direction);
   void partial_bp_bfs(const G &g, int bp_i, V v_from, int direction);
+  void resize();
 
   // Reusable containers
   std::vector<uint8_t> bfs_dist;
@@ -237,6 +238,15 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::bit_parallel_bfs(
   }
 }
 
+template <size_t kNumBitParallelRoots>
+void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::resize() {
+  rank.resize(num_v);
+  inv.resize(num_v);
+  idx[0].resize(num_v), idx[1].resize(num_v);
+  bfs_dist.assign(num_v, D_INF);
+  bfs_que.resize(num_v);
+}
+
 /**
 * Load and relabel the given graph
 * \param g graph
@@ -245,8 +255,7 @@ template <size_t kNumBitParallelRoots>
 void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::load_graph(
     const G &g) {
   num_v = g.num_vertices();
-  rank.resize(num_v);
-  inv.resize(num_v);
+  resize();
   {
     std::vector<V> deg(num_v, 0);
     for (const auto &p : g.edge_list())
@@ -261,10 +270,6 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::load_graph(
     for (int i = 0; i < num_v; ++i) inv[i] = sorting_v[i].second;
     for (int i = 0; i < num_v; ++i) rank[inv[i]] = i;
   }
-
-  idx[0].resize(num_v), idx[1].resize(num_v);
-  bfs_dist.assign(num_v, D_INF);
-  bfs_que.resize(num_v);
 }
 
 /**
