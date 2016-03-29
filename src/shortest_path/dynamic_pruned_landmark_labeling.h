@@ -17,7 +17,7 @@ class dynamic_pruned_landmark_labeling
   virtual void remove_vertices(const G &g, V old_num_vertices) override {}
   virtual void add_vertices(const G &g, V old_num_vertices) override {}
 
-  std::vector<std::pair<V, W>> get_labels(V v, bool forward = true);
+  std::vector<std::pair<V, W>> get_labels(V v, D dir = kFwd);
   size_t total_label_num();
 
   // Test functions
@@ -72,8 +72,8 @@ class dynamic_pruned_landmark_labeling
   uint8_t distance_less(V v_from, V v_to, int direction, uint8_t upper_limit);
   void pruned_bfs(const G &g, V root, int direction,
                   const std::vector<bool> &used);
-  void partial_bfs(V v_from, V v_to, uint8_t d_ft, int direction);
-  void partial_bp_bfs(int bp_i, V v_from, int direction);
+  void partial_bfs(const G &g, V v_from, V v_to, uint8_t d_ft, int direction);
+  void partial_bp_bfs(const G &g, int bp_i, V v_from, int direction);
 
   // Reusable containers
   std::vector<uint8_t> bfs_dist;
@@ -91,10 +91,10 @@ dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::total_label_num() {
 }
 
 template <size_t kNumBitParallelRoots>
-std::vector<std::pair<V, W>> dynamic_pruned_landmark_labeling<
-    kNumBitParallelRoots>::get_labels(V v, bool forward) {
+std::vector<std::pair<V, W>>
+dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::get_labels(V v, D dir) {
   assert(v < num_v);
-  int direction = forward ? 0 : 1;
+  int direction = dir == kFwd ? 0 : 1;
   std::vector<std::pair<V, W>> ret(idx[direction][v].size());
   for (int i = 0; i < idx[direction][v].size(); ++i) {
     ret[i].first = idx[direction][v].spt_v[i];
@@ -394,8 +394,9 @@ uint8_t dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::distance_less(
 */
 template <size_t kNumBitParallelRoots>
 void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::partial_bfs(
-    V v_from, V v_end, uint8_t base_d, int direction) {
+    const G &g, V v_from, V v_end, uint8_t base_d, int direction) {
   int another = direction ^ 1;
+  D dir = direction == 0 ? kFwd : kBwd;
 
   int q_head = 0, q_tail = 0;
   bfs_que[q_tail++] = v_end;
@@ -405,7 +406,8 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::partial_bfs(
     uint8_t d = bfs_dist[v];
     if (distance_less(v_from, v, direction, d) <= d) continue;
     idx[another][v].update(v_from, d);
-    for (const auto &w : adj[direction][v]) {
+    for (V nv : g.neighbors(inv[v], dir)) {
+      V w = rank[nv];
       if (bfs_dist[w] < D_INF) continue;
       bfs_dist[w] = d + 1;
       bfs_que[q_tail++] = w;
@@ -424,8 +426,9 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::partial_bfs(
 */
 template <size_t kNumBitParallelRoots>
 void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::partial_bp_bfs(
-    int bp_i, V v_from, int direction) {
+    const G &g, int bp_i, V v_from, int direction) {
   V another = direction ^ 1;
+  D dir = direction == 0 ? kFwd : kBwd;
   const index_t &idx_from = idx[another][v_from];
   const uint8_t base_d = idx_from.bpspt_d[bp_i];
   if (base_d == D_INF) return;
@@ -439,7 +442,8 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::partial_bp_bfs(
       V v = bfs_que[q_head++];
       const index_t &idx_v = idx[another][v];
 
-      for (V tv : adj[direction][v]) {
+      for (V nv : g.neighbors(inv[v], dir)) {
+        V tv = rank[nv];
         index_t &idx_tv = idx[another][tv];
         if (d == idx_tv.bpspt_d[bp_i])
           idx_tv.bpspt_s[bp_i][1] |= idx_v.bpspt_s[bp_i][0];
@@ -458,7 +462,8 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::partial_bp_bfs(
     for (int i = old_head; i < q_head; ++i) {
       V v = bfs_que[i];
       const index_t &idx_v = idx[another][v];
-      for (V tv : adj[direction][v]) {
+      for (V nv : g.neighbors(inv[v], dir)) {
+        V tv = rank[nv];
         index_t &idx_tv = idx[another][tv];
         if (idx_tv.bpspt_d[bp_i] == d + 1) {
           // Set propagation (2)
@@ -494,8 +499,8 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::add_edge(
   std::sort(adj[1][v_b].begin(), adj[1][v_b].end());
 
   for (int bp_i = 0; bp_i < kNumBitParallelRoots; ++bp_i) {
-    partial_bp_bfs(bp_i, v_a, 0);
-    partial_bp_bfs(bp_i, v_b, 1);
+    partial_bp_bfs(g, bp_i, v_a, 0);
+    partial_bp_bfs(g, bp_i, v_b, 1);
   }
 
   index_t &idx_a = idx[1][v_a];
@@ -504,15 +509,15 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::add_edge(
     V r_a = ia < idx_a.size() ? idx_a.spt_v[ia] : num_v;
     V r_b = ib < idx_b.size() ? idx_b.spt_v[ib] : num_v;
     if (r_a == r_b) {
-      partial_bfs(r_a, v_b, idx_a.spt_d[ia] + 1, 0);
-      partial_bfs(r_b, v_a, idx_b.spt_d[ib] + 1, 1);
+      partial_bfs(g, r_a, v_b, idx_a.spt_d[ia] + 1, 0);
+      partial_bfs(g, r_b, v_a, idx_b.spt_d[ib] + 1, 1);
       ia++;
       ib++;
     } else if (r_a > r_b) {
-      partial_bfs(r_b, v_a, idx_b.spt_d[ib] + 1, 1);
+      partial_bfs(g, r_b, v_a, idx_b.spt_d[ib] + 1, 1);
       ib++;
     } else {
-      partial_bfs(r_a, v_b, idx_a.spt_d[ia] + 1, 0);
+      partial_bfs(g, r_a, v_b, idx_a.spt_d[ia] + 1, 0);
       ia++;
     }
   }
