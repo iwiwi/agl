@@ -1,6 +1,7 @@
 #pragma once
 #include "graph/graph.h"
 #include "graph/graph_index_interface.h"
+#include <set>
 
 namespace agl {
 template <size_t kNumBitParallelRoots = 16>
@@ -67,7 +68,7 @@ class dynamic_pruned_landmark_labeling
   std::vector<V> rank, inv;
 
   void load_graph(const G &g);
-  void bit_parallel_bfs(std::vector<bool> &used, const size_t num_e);
+  void bit_parallel_bfs(const G &g, std::vector<bool> &used);
   uint8_t distance_less(V v_from, V v_to, int direction, uint8_t upper_limit);
   void pruned_bfs(V root, int direction, const std::vector<bool> &used);
   void partial_bfs(V v_from, V v_to, uint8_t d_ft, int direction);
@@ -109,14 +110,13 @@ template <size_t kNumBitParallelRoots>
 void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::construct(
     const G &g) {
   assert(g.num_vertices() >= 3);
-  size_t num_e = g.num_edges();
 
   // Initialize
   load_graph(g);
 
   std::vector<bool> used(num_v, false);
   // Bit-Parallel Labeling
-  bit_parallel_bfs(used, num_e);
+  bit_parallel_bfs(g, used);
 
   // Pruned labelling
   for (V root = 0; root < num_v; ++root) {
@@ -134,8 +134,9 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::construct(
 */
 template <size_t kNumBitParallelRoots>
 void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::bit_parallel_bfs(
-    std::vector<bool> &used, const size_t num_e) {
+    const G &g, std::vector<bool> &used) {
   V root = 0;
+  size_t num_e = g.num_edges();
   std::vector<std::pair<uint64_t, uint64_t>> tmp_s(num_v, {0, 0});
   std::vector<std::pair<V, V>> sibling_es(num_e);
   std::vector<std::pair<V, V>> child_es(num_e);
@@ -152,22 +153,20 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::bit_parallel_bfs(
     used[root] = true;
 
     // Select Roots
+    std::vector<V> neighbors;
+    {
+      std::set<V> tmp;
+      for (V v : g.neighbors(inv[root]))
+        if (!used[rank[v]]) tmp.insert(rank[v]);
+      for (V v : g.neighbors(inv[root], kBwd))
+        if (tmp.count(rank[v])) neighbors.push_back(rank[v]);
+    }
+    std::sort(neighbors.begin(), neighbors.end());
     V selected_num = 0;
-    for (int o = 0, i = 0;
-         o < adj[0][root].size() && i < adj[1][root].size();) {
-      V vo = adj[0][root][o], vi = adj[1][root][i];
-      if (vo == vi) {
-        if (!used[vo]) {
-          used[vo] = true;
-          bp_roots[selected_num++] = vo;
-          if (selected_num == 64) break;
-        }
-        o++;
-        i++;
-      } else {
-        if (vo > vi) i++;
-        if (vo < vi) o++;
-      }
+    for (V v : neighbors) {
+      used[v] = true;
+      bp_roots[selected_num++] = v;
+      if (selected_num == 64) break;
     }
 
     for (int direction = 0; direction < 2; ++direction) {

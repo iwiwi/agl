@@ -12,7 +12,7 @@ std::vector<bool> dynamic_pruned_landmark_labeling<
     kNumBitParallelRoots>::test_bit_parallel_used(const G& g) {
   load_graph(g);
   vector<bool> used(g.num_vertices(), false);
-  bit_parallel_bfs(used, g.num_edges());
+  bit_parallel_bfs(g, used);
   return used;
 }
 
