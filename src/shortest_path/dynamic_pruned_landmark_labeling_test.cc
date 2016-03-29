@@ -35,7 +35,7 @@ class dpll_test : public testing::Test {};
 TYPED_TEST_CASE(dpll_test, dpll_types);
 
 template <typename TypeParam>
-bool BFSCheck(const G& g, TypeParam& dpll) {
+bool bfs_check(const G& g, TypeParam& dpll) {
   double t = 0;
   const W INF = 100;
   V num_v = g.num_vertices();
@@ -58,7 +58,6 @@ bool BFSCheck(const G& g, TypeParam& dpll) {
         que.push(u);
       }
     }
-    t = -get_current_time_sec();
     for (int j = 0; j < num_v; ++j) {
       if (dist[j] == INF) continue;
       EXPECT_EQ(dist[j], dpll.query_distance(g, from, j)) << from << "->" << j;
@@ -66,7 +65,6 @@ bool BFSCheck(const G& g, TypeParam& dpll) {
         return false;
       }
     }
-    t += get_current_time_sec();
   }
   cerr << endl;
   t /= num_v * num_v;
@@ -76,11 +74,8 @@ bool BFSCheck(const G& g, TypeParam& dpll) {
 template <typename TypeParam>
 bool Test(const G& g) {
   TypeParam dpll;
-  double t = -get_current_time_sec();
   dpll.construct(g);
-  t += get_current_time_sec();
-
-  return BFSCheck(g, dpll);
+  return bfs_check(g, dpll);
 }
 
 template <typename TypeParam>
@@ -99,7 +94,7 @@ bool DynamicTest(G& g) {
     addition.emplace_back(v_from, v_to);
   }
 
-  if (BFSCheck(g, dpll)) {
+  if (bfs_check(g, dpll)) {
     return true;
   } else {
     // DEBUG
