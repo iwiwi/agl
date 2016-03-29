@@ -12,14 +12,8 @@ class dynamic_pruned_landmark_labeling
   virtual void construct(const G &g) override;
   virtual W query_distance(const G &g, V v_from, V v_to) override;
   virtual void add_edge(const G &g, V v_from, const E &e) override;
-  virtual void remove_edge(const G &g, V v_from, V v_to) override {
-    erase_edge(rank[v_from], rank[v_to]);
-  }
-  virtual void remove_vertices(const G &g, V old_num_vertices) override {
-    V new_num_v = g.num_vertices();
-    for (V v = new_num_v; v < old_num_vertices; ++v)
-      for (V rank_to : adj[0][rank[v]]) erase_edge(rank[v], rank_to);
-  }
+  virtual void remove_edge(const G &g, V v_from, V v_to) override {}
+  virtual void remove_vertices(const G &g, V old_num_vertices) override {}
   virtual void add_vertices(const G &g, V old_num_vertices) override {}
 
   std::vector<std::pair<V, W>> get_labels(V v, bool forward = true);
@@ -78,29 +72,12 @@ class dynamic_pruned_landmark_labeling
   void pruned_bfs(V root, int direction, const std::vector<bool> &used);
   void partial_bfs(V v_from, V v_to, uint8_t d_ft, int direction);
   void partial_bp_bfs(int bp_i, V v_from, int direction);
-  void erase_edge(V rank_from, V rank_to);
 
   // Reusable containers
   std::vector<uint8_t> bfs_dist;
   std::vector<V> bfs_que;
   V bp_roots[64];
 };
-
-template <size_t kNumBitParallelRoots>
-void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::erase_edge(
-    V rank_from, V rank_to) {
-  std::vector<V> adj_from = adj[0][rank_from], adj_to = adj[1][rank_to];
-  for (auto it = adj_from.begin(); it != adj_from.end(); ++it)
-    if (*it == rank_to) {
-      adj_from.erase(it);
-      break;
-    }
-  for (auto it = adj_to.begin(); it != adj_to.end(); ++it)
-    if (*it == rank_from) {
-      adj_to.erase(it);
-      break;
-    }
-}
 
 template <size_t kNumBitParallelRoots>
 size_t
