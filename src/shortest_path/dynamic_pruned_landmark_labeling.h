@@ -70,7 +70,8 @@ class dynamic_pruned_landmark_labeling
   void load_graph(const G &g);
   void bit_parallel_bfs(const G &g, std::vector<bool> &used);
   uint8_t distance_less(V v_from, V v_to, int direction, uint8_t upper_limit);
-  void pruned_bfs(V root, int direction, const std::vector<bool> &used);
+  void pruned_bfs(const G &g, V root, int direction,
+                  const std::vector<bool> &used);
   void partial_bfs(V v_from, V v_to, uint8_t d_ft, int direction);
   void partial_bp_bfs(int bp_i, V v_from, int direction);
 
@@ -121,8 +122,8 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::construct(
   // Pruned labelling
   for (V root = 0; root < num_v; ++root) {
     if (used[root]) continue;
-    pruned_bfs(root, 0, used);
-    pruned_bfs(root, 1, used);
+    pruned_bfs(g, root, 0, used);
+    pruned_bfs(g, root, 1, used);
     used[root] = true;
   }
 }
@@ -171,6 +172,7 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::bit_parallel_bfs(
 
     for (int direction = 0; direction < 2; ++direction) {
       int another = direction ^ 1;
+      D tmp_dir = direction == 0 ? kFwd : kBwd;
 
       int q_head = 0, q_tail = 0;
 
@@ -188,7 +190,9 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::bit_parallel_bfs(
         size_t num_sibling_es = 0, num_child_es = 0;
         while (q_head < q_tail && bfs_dist[bfs_que[q_head]] == d) {
           V v = bfs_que[q_head++];
-          for (const V &tv : adj[direction][v]) {
+
+          for (const V &nv : g.neighbors(inv[v], tmp_dir)) {
+            V tv = rank[nv];
             uint8_t td = d + 1;
             if (d > bfs_dist[tv]) continue;
             if (d == bfs_dist[tv] && v < tv) {
@@ -282,8 +286,9 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::load_graph(
 */
 template <size_t kNumBitParallelRoots>
 void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::pruned_bfs(
-    V root, int direction, const std::vector<bool> &used) {
+    const G &g, V root, int direction, const std::vector<bool> &used) {
   int another = direction ^ 1;
+  D dir = direction == 0 ? kFwd : kBwd;
   int q_head = 0, q_tail = 0;
   bfs_que[q_tail++] = root;
   bfs_dist[root] = 0;
@@ -295,7 +300,8 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::pruned_bfs(
       continue;
     idx[another][u].update(root, bfs_dist[u]);
 
-    for (const auto &w : adj[direction][u]) {
+    for (const auto &nu : g.neighbors(inv[u], dir)) {
+      V w = rank[nu];
       if (used[w]) continue;
       if (bfs_dist[w] < D_INF) continue;
       bfs_dist[w] = bfs_dist[u] + 1;
