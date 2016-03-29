@@ -116,8 +116,6 @@ std::vector<std::pair<V, W>> dynamic_pruned_landmark_labeling<kNumBitParallelRoo
 template <size_t kNumBitParallelRoots>
 void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>
 ::construct(const G &g) {
-  assert(g.num_vertices() >= 3);
-
   // Initialize
   load_graph(g);
 
@@ -250,7 +248,14 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>
 ::resize() {
   rank.resize(num_v);
   inv.resize(num_v);
+  V old_idx_size = idx[0].size();
   idx[0].resize(num_v), idx[1].resize(num_v);
+  for (V v = old_idx_size; v < num_v; ++v) {
+    for (int bp_i = 0; bp_i < kNumBitParallelRoots; ++bp_i) {
+      idx[0][v].bpspt_d[bp_i] = D_INF;
+      idx[1][v].bpspt_d[bp_i] = D_INF;
+    }
+  }
   bfs_dist.assign(num_v, D_INF);
   bfs_que.resize(num_v);
 }
@@ -365,9 +370,9 @@ uint8_t dynamic_pruned_landmark_labeling<kNumBitParallelRoots>
     }
   }
 
-  for (size_t i1 = 0, i2 = 0; i1 < idx_from.size() && i2 < idx_to.size();) {
-    V v1 = idx_from.spt_v[i1];
-    V v2 = idx_to.spt_v[i2];
+  for (size_t i1 = 0, i2 = 0; i1 < idx_from.size() || i2 < idx_to.size();) {
+    V v1 = (i1 < idx_from.size() ? idx_from.spt_v[i1] : num_v);
+    V v2 = (i2 < idx_to.size() ? idx_to.spt_v[i2] : num_v);
     if (v1 == v2) {
       uint8_t td = idx_from.spt_d[i1] + idx_to.spt_d[i2];
       if (td < d) {
@@ -516,6 +521,10 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>
       partial_bfs(g, r_a, v_b, idx_a.spt_d[ia] + 1, 0);
       ia++;
     }
+  }
+  if (idx_a.size() == 0 && idx_b.size() == 0) {
+    idx[0][inv[v_a]].update(v_b, 1);
+    idx[1][inv[v_b]].update(v_a, 1);
   }
 }
 }  // namespace agl

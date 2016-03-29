@@ -85,7 +85,6 @@ bool Test(const G& g) {
 
 template <typename TypeParam>
 bool DynamicTest(G& g) {
-  // pretty_print(g);
   TypeParam dpll;
   dpll.construct(g);
 
@@ -348,9 +347,67 @@ TYPED_TEST(dpll_test, death_test) {
   ASSERT_DEATH(dpll.add_edge(g, g.num_vertices(), 0), "");
   ASSERT_DEATH(dpll.add_edge(g, g.num_vertices() - 1, -1), "");
   ASSERT_DEATH(dpll.remove_edge(g, 0, 1), "");
+}
 
-  auto es2 = generate_path(2);
-  G g2(es2);
-  TypeParam dpll2;
-  ASSERT_DEATH(dpll2.construct(g2), "");
+TYPED_TEST(dpll_test, small_case) {
+  {
+    unweighted_edge_list es = {};
+    G g(es);
+    TypeParam dpll;
+    dpll.construct(g);
+    ASSERT_EQ(dpll.test_get_rank().size(), 0);
+    g.add_vertices(1);
+    dpll.add_vertices(g, 0);
+    ASSERT_EQ(dpll.test_get_rank().size(), 1);
+    g.add_vertices(2);
+    dpll.add_vertices(g, 1);
+    ASSERT_EQ(dpll.test_get_rank().size(), 2);
+    g.add_edge(0, 1);
+    dpll.add_edge(g, 0, 1);
+    ASSERT_EQ(dpll.query_distance(g, 0, 1), 1);
+    g.add_vertices(3);
+    dpll.add_vertices(g, 2);
+    ASSERT_EQ(dpll.test_get_rank().size(), 3);
+    g.add_edge(1, 2);
+    dpll.add_edge(g, 1, 2);
+    ASSERT_EQ(dpll.query_distance(g, 0, 2), 2);
+    g.add_vertices(4);
+    dpll.add_vertices(g, 3);
+    ASSERT_EQ(dpll.test_get_rank().size(), 4);
+    g.add_edge(3, 1);
+    dpll.add_edge(g, 3, 1);
+    ASSERT_EQ(dpll.query_distance(g, 3, 1), 1);
+  }
+  {
+    unweighted_edge_list es = {{0, 1}};
+    G g(es);
+    TypeParam dpll;
+    dpll.construct(g);
+    ASSERT_EQ(dpll.test_get_rank().size(), 2);
+    ASSERT_EQ(dpll.query_distance(g, 0, 1), 1);
+    ASSERT_EQ(dpll.query_distance(g, 1, 0), 100);
+    g.add_vertices(3);
+    dpll.add_vertices(g, 2);
+    g.add_edge(1, 2);
+    dpll.add_edge(g, 1, 2);
+    ASSERT_EQ(dpll.query_distance(g, 1, 2), 1);
+  }
+  {
+    unweighted_edge_list es = {{1, 0}};
+    G g(es);
+    TypeParam dpll;
+    dpll.construct(g);
+    ASSERT_EQ(dpll.test_get_rank().size(), 2);
+    ASSERT_EQ(dpll.query_distance(g, 0, 1), 100);
+    ASSERT_EQ(dpll.query_distance(g, 1, 0), 1);
+  }
+  {
+    unweighted_edge_list es = {{1, 0}};
+    G g(make_undirected(es));
+    TypeParam dpll;
+    dpll.construct(g);
+    ASSERT_EQ(dpll.test_get_rank().size(), 2);
+    ASSERT_EQ(dpll.query_distance(g, 0, 1), 1);
+    ASSERT_EQ(dpll.query_distance(g, 1, 0), 1);
+  }
 }
