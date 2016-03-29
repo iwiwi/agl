@@ -23,16 +23,18 @@ dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::test_get_rank() {
 }
 
 template <size_t kNumBitParallelRoots>
-std::vector<V> dynamic_pruned_landmark_labeling<
-    kNumBitParallelRoots>::test_label_v(V v, bool forward) {
-  int direction = forward ? 0 : 1;
+std::vector<V>
+dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::test_label_v(V v,
+                                                                     D dir) {
+  int direction = dir == kFwd ? 0 : 1;
   return idx[direction][v].spt_v;
 }
 
 template <size_t kNumBitParallelRoots>
-std::vector<uint8_t> dynamic_pruned_landmark_labeling<
-    kNumBitParallelRoots>::test_label_d(V v, bool forward) {
-  int direction = forward ? 0 : 1;
+std::vector<uint8_t>
+dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::test_label_d(V v,
+                                                                     D dir) {
+  int direction = dir == kFwd ? 0 : 1;
   return idx[direction][v].spt_d;
 }
 }  // namespace agl
@@ -279,8 +281,8 @@ TYPED_TEST(dpll_test, undirected_index) {
     dpll.construct(g);
     V num_v = g.num_vertices();
     for (int v = 0; v < num_v; ++v) {
-      ASSERT_EQ(dpll.test_label_v(v, true), dpll.test_label_v(v, false));
-      ASSERT_EQ(dpll.test_label_d(v, true), dpll.test_label_d(v, false));
+      ASSERT_EQ(dpll.test_label_v(v, kFwd), dpll.test_label_v(v, kBwd));
+      ASSERT_EQ(dpll.test_label_d(v, kFwd), dpll.test_label_d(v, kBwd));
     }
   }
 }

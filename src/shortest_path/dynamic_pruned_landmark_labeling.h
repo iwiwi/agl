@@ -23,8 +23,8 @@ class dynamic_pruned_landmark_labeling
   // Test functions
   std::vector<bool> test_bit_parallel_used(const G &g);
   std::vector<V> test_get_rank();
-  std::vector<V> test_label_v(V v, bool forward = true);
-  std::vector<uint8_t> test_label_d(V v, bool forward = true);
+  std::vector<V> test_label_v(V v, D dir = kFwd);
+  std::vector<uint8_t> test_label_d(V v, D dir = kFwd);
 
  private:
   struct index_t {
