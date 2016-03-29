@@ -64,7 +64,6 @@ class dynamic_pruned_landmark_labeling
   V num_v;
 
   std::vector<index_t> idx[2];
-  std::vector<std::vector<V>> adj[2];
   std::vector<V> rank, inv;
 
   void load_graph(const G &g);
@@ -263,17 +262,6 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::load_graph(
   }
 
   idx[0].resize(num_v), idx[1].resize(num_v);
-  adj[0].resize(num_v), adj[1].resize(num_v);
-  for (const auto &p : g.edge_list()) {
-    V v = p.first, u = p.second;
-    if (v == u) continue;
-    adj[0][rank[v]].push_back(rank[u]);
-    adj[1][rank[u]].push_back(rank[v]);
-  }
-  for (V v = 0; v < num_v; ++v) {
-    std::sort(adj[0][v].begin(), adj[0][v].end());
-    std::sort(adj[1][v].begin(), adj[1][v].end());
-  }
   bfs_dist.assign(num_v, D_INF);
   bfs_que.resize(num_v);
 }
@@ -491,12 +479,6 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::add_edge(
   assert(v_a >= 0 && v_b >= 0);
   assert(v_a < num_v && v_b < num_v);
   v_a = rank[v_a], v_b = rank[v_b];
-  if (std::binary_search(adj[0][v_a].begin(), adj[0][v_a].end(), v_b)) return;
-
-  adj[0][v_a].push_back(v_b);
-  adj[1][v_b].push_back(v_a);
-  std::sort(adj[0][v_a].begin(), adj[0][v_a].end());
-  std::sort(adj[1][v_b].begin(), adj[1][v_b].end());
 
   for (int bp_i = 0; bp_i < kNumBitParallelRoots; ++bp_i) {
     partial_bp_bfs(g, bp_i, v_a, 0);
