@@ -299,6 +299,7 @@ TYPED_TEST(dpll_test, online_update) {
       for (int i = 0; i < num_v; ++i)
         for (int j = 0; j < num_v; ++j)
           dist[i][j] = min(dist[i][j], dist[i][v_from] + 1 + dist[v_to][j]);
+      g.add_edge(v_from, v_to);
       dpll.add_edge(g, v_from, v_to);
       for (int i = 0; i < num_v; ++i)
         for (int j = 0; j < num_v; ++j)
