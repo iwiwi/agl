@@ -12,15 +12,18 @@ class dynamic_pruned_landmark_labeling
   virtual void construct(const G &g) override;
   virtual W query_distance(const G &g, V v_from, V v_to) override;
   virtual void add_edge(const G &g, V v_from, const E &e) override;
-  virtual void remove_edge(const G &g, V v_from, V v_to) override {
-    assert(false);
-  }
-  virtual void add_vertices(const G &g, V old_num_vertices) override {
-    assert(false);
-  }
-  virtual void remove_vertices(const G &, V old_num_vertices) override {
-    assert(false);
-  }
+  virtual void remove_edge(const G &g, V v_from, V v_to) override {}
+  virtual void add_vertices(const G &g, V old_num_vertices) override {}
+  virtual void remove_vertices(const G &g, V old_num_vertices) override {}
+
+  std::vector<std::pair<V, W>> get_labels(V v, bool forward = true);
+  size_t total_label_num();
+
+  // Test functions
+  std::vector<bool> test_bit_parallel_used(const G &g);
+  std::vector<V> test_get_rank();
+  std::vector<V> test_label_v(V v, bool forward = true);
+  std::vector<uint8_t> test_label_d(V v, bool forward = true);
 
  private:
   struct index_t {
@@ -56,36 +59,47 @@ class dynamic_pruned_landmark_labeling
     size_t size() const { return spt_v.size(); }
   };
 
- public:
-  std::vector<index_t> idx[2];
-  std::vector<V> rank;
-
-  size_t total_label_num() {
-    size_t sum = 0;
-    for (int i = 0; i < 2; ++i)
-      for (const index_t &j : idx[i]) sum += j.size();
-    return sum;
-  }
-  void load_graph(const G &g);
-  void bit_parallel_bfs(std::vector<bool> &used, const size_t num_e);
-
- private:
   const uint8_t D_INF = 100;
   V num_v;
 
+  std::vector<index_t> idx[2];
+  std::vector<std::vector<V>> adj[2];
+  std::vector<V> rank;
+
+  void load_graph(const G &g);
+  void bit_parallel_bfs(std::vector<bool> &used, const size_t num_e);
   uint8_t distance_less(V v_from, V v_to, int direction, uint8_t upper_limit);
   void pruned_bfs(V root, int direction, const std::vector<bool> &used);
   void partial_bfs(V v_from, V v_to, uint8_t d_ft, int direction);
   void partial_bp_bfs(int bp_i, V v_from, int direction);
-
-  std::vector<V> inv;
-  std::vector<std::vector<V>> adj[2];
 
   // Reusable containers
   std::vector<uint8_t> bfs_dist;
   std::vector<V> bfs_que;
   V bp_roots[64];
 };
+
+template <size_t kNumBitParallelRoots>
+size_t
+dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::total_label_num() {
+  size_t sum = 0;
+  for (int i = 0; i < 2; ++i)
+    for (const index_t &j : idx[i]) sum += j.size();
+  return sum;
+}
+
+template <size_t kNumBitParallelRoots>
+std::vector<std::pair<V, W>> dynamic_pruned_landmark_labeling<
+    kNumBitParallelRoots>::get_labels(V v, bool forward) {
+  assert(v < num_v);
+  int direction = forward ? 0 : 1;
+  std::vector<std::pair<V, W>> ret(idx[direction][v].size());
+  for (int i = 0; i < idx[direction][v].size(); ++i) {
+    ret[i].first = idx[direction][v].spt_v[i];
+    ret[i].second = idx[direction][v].spt_d[i];
+  }
+  return ret;
+}
 
 /**
 * Construct the data structure from the given graph.
@@ -229,7 +243,7 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::load_graph(
     const G &g) {
   num_v = g.num_vertices();
   rank.resize(num_v);
-  inv.resize(num_v);
+  std::vector<V> inv(num_v);
   {
     std::vector<V> deg(num_v, 0);
     for (const auto &p : g.edge_list())

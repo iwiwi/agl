@@ -6,6 +6,37 @@ using namespace std;
 using namespace agl;
 using testing::Types;
 
+namespace agl {
+template <size_t kNumBitParallelRoots>
+std::vector<bool> dynamic_pruned_landmark_labeling<
+    kNumBitParallelRoots>::test_bit_parallel_used(const G& g) {
+  load_graph(g);
+  vector<bool> used(g.num_vertices(), false);
+  bit_parallel_bfs(used, g.num_edges());
+  return used;
+}
+
+template <size_t kNumBitParallelRoots>
+std::vector<V>
+dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::test_get_rank() {
+  return rank;
+}
+
+template <size_t kNumBitParallelRoots>
+std::vector<V> dynamic_pruned_landmark_labeling<
+    kNumBitParallelRoots>::test_label_v(V v, bool forward) {
+  int direction = forward ? 0 : 1;
+  return idx[direction][v].spt_v;
+}
+
+template <size_t kNumBitParallelRoots>
+std::vector<uint8_t> dynamic_pruned_landmark_labeling<
+    kNumBitParallelRoots>::test_label_d(V v, bool forward) {
+  int direction = forward ? 0 : 1;
+  return idx[direction][v].spt_d;
+}
+}  // namespace agl
+
 typedef Types<
     dynamic_pruned_landmark_labeling<0>, dynamic_pruned_landmark_labeling<1>,
     dynamic_pruned_landmark_labeling<2>, dynamic_pruned_landmark_labeling<4>,
@@ -198,18 +229,17 @@ TYPED_TEST(dpll_test, bit_parallel_construct) {
   auto es = generate_ba(n, m);
   G g(es);
   TypeParam dpll;
-  dpll.load_graph(g);
 
   // Bit-Parallel Labeling
-  vector<bool> used(g.num_vertices(), false);
-  dpll.bit_parallel_bfs(used, g.num_edges());
+  vector<bool> used = dpll.test_bit_parallel_used(g);
+  vector<V> rank = dpll.test_get_rank();
 
   const W INF = 100;
   V num_v = g.num_vertices();
   vector<vector<W>> dists(num_v, vector<W>(num_v, INF));
   int query_cnt = 0;
   for (V from = 0; from < num_v; ++from) {
-    V from_rank = dpll.rank[from];
+    V from_rank = rank[from];
     if (!used[from_rank]) continue;
 
     queue<V> que;
@@ -233,7 +263,7 @@ TYPED_TEST(dpll_test, bit_parallel_construct) {
     }
   }
   for (int k = 0; k < num_v; ++k) {
-    V k_rank = dpll.rank[k];
+    V k_rank = rank[k];
     if (!used[k_rank]) continue;
     for (int i = 0; i < num_v; ++i)
       for (int j = 0; j < num_v; ++j) {
@@ -244,7 +274,7 @@ TYPED_TEST(dpll_test, bit_parallel_construct) {
   }
   int cnt = 0;
   for (int i = 0; i < num_v; ++i) {
-    V k_rank = dpll.rank[i];
+    V k_rank = rank[i];
     if (used[k_rank]) cnt++;
   }
   cerr << cnt << endl;
@@ -260,8 +290,8 @@ TYPED_TEST(dpll_test, undirected_index) {
     dpll.construct(g);
     V num_v = g.num_vertices();
     for (int v = 0; v < num_v; ++v) {
-      ASSERT_EQ(dpll.idx[0][v].spt_v, dpll.idx[1][v].spt_v);
-      ASSERT_EQ(dpll.idx[0][v].spt_d, dpll.idx[1][v].spt_d);
+      ASSERT_EQ(dpll.test_label_v(v, true), dpll.test_label_v(v, false));
+      ASSERT_EQ(dpll.test_label_d(v, true), dpll.test_label_d(v, false));
     }
   }
 }
