@@ -27,7 +27,7 @@ class dynamic_pruned_landmark_labeling
   }
 
   std::vector<std::pair<V, W>> get_label(V v, D dir = kFwd);
-  size_t total_label_num();
+  double average_label_size();
 
   // Test functions
   std::vector<bool> test_bit_parallel_used(const G &g);
@@ -89,12 +89,12 @@ class dynamic_pruned_landmark_labeling
 };
 
 template <size_t kNumBitParallelRoots>
-size_t dynamic_pruned_landmark_labeling<kNumBitParallelRoots>
-::total_label_num() {
+double dynamic_pruned_landmark_labeling<kNumBitParallelRoots>
+::average_label_size() {
   size_t sum = 0;
   for (int i = 0; i < 2; ++i)
     for (const index_t &j : idx[i]) sum += j.size();
-  return sum;
+  return (double)sum / num_v;
 }
 
 template <size_t kNumBitParallelRoots>
