@@ -22,7 +22,7 @@ class dynamic_pruned_landmark_labeling
     assert(false);
   }
 
-  const uint8_t D_INF = 100;
+ private:
   struct index_t {
     uint8_t bpspt_d[kNumBitParallelRoots];
     uint64_t bpspt_s[kNumBitParallelRoots][2];
@@ -56,11 +56,9 @@ class dynamic_pruned_landmark_labeling
     size_t size() const { return spt_v.size(); }
   };
 
-  V num_v;
+ public:
   std::vector<index_t> idx[2];
-  std::vector<std::vector<V>> adj[2];
   std::vector<V> rank;
-  std::vector<V> inv;
 
   size_t total_label_num() {
     size_t sum = 0;
@@ -68,14 +66,21 @@ class dynamic_pruned_landmark_labeling
       for (const index_t &j : idx[i]) sum += j.size();
     return sum;
   }
-
-  // private:
   void load_graph(const G &g);
+  void bit_parallel_bfs(std::vector<bool> &used, const size_t num_e);
+
+ private:
+  const uint8_t D_INF = 100;
+  V num_v;
+
+  uint8_t distance_less(V v_from, V v_to, int direction, uint8_t upper_limit);
   void pruned_bfs(V root, int direction, const std::vector<bool> &used);
   void partial_bfs(V v_from, V v_to, uint8_t d_ft, int direction);
-  uint8_t distance_less(V v_from, V v_to, int direction, uint8_t upper_limit);
-  void bit_parallel_bfs(std::vector<bool> &used, const size_t num_e);
   void partial_bp_bfs(int bp_i, V v_from, int direction);
+
+  std::vector<V> inv;
+  std::vector<std::vector<V>> adj[2];
+
   // Reusable containers
   std::vector<uint8_t> bfs_dist;
   std::vector<V> bfs_que;
