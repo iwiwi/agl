@@ -163,9 +163,9 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::bit_parallel_bfs(
     }
     std::sort(neighbors.begin(), neighbors.end());
     V selected_num = 0;
-    for (V v : neighbors) {
-      used[v] = true;
-      bp_roots[selected_num++] = v;
+    for (V rank_v : neighbors) {
+      used[rank_v] = true;
+      bp_roots[selected_num++] = rank_v;
       if (selected_num == 64) break;
     }
 
@@ -226,9 +226,10 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::bit_parallel_bfs(
       }
 
       for (V v = 0; v < num_v; ++v) {
-        idx[another][v].bpspt_d[bp_i] = bfs_dist[v];
-        idx[another][v].bpspt_s[bp_i][0] = tmp_s[v].first;
-        idx[another][v].bpspt_s[bp_i][1] = tmp_s[v].second & ~tmp_s[v].first;
+        idx[another][inv[v]].bpspt_d[bp_i] = bfs_dist[v];
+        idx[another][inv[v]].bpspt_s[bp_i][0] = tmp_s[v].first;
+        idx[another][inv[v]].bpspt_s[bp_i][1] =
+            tmp_s[v].second & ~tmp_s[v].first;
         tmp_s[v].first = 0, tmp_s[v].second = 0;
       }
       for (int i = 0; i < q_tail; ++i) bfs_dist[bfs_que[i]] = D_INF;
@@ -286,7 +287,7 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::pruned_bfs(
     if (u != root &&
         distance_less(root, u, direction, bfs_dist[u]) <= bfs_dist[u])
       continue;
-    idx[another][u].update(root, bfs_dist[u]);
+    idx[another][inv[u]].update(root, bfs_dist[u]);
 
     for (const auto &nu : g.neighbors(inv[u], dir)) {
       V w = rank[nu];
@@ -333,8 +334,8 @@ uint8_t dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::distance_less(
   int another = direction ^ 1;
 
   uint8_t d = D_INF;
-  const index_t &idx_from = idx[direction][v_from];
-  const index_t &idx_to = idx[another][v_to];
+  const index_t &idx_from = idx[direction][inv[v_from]];
+  const index_t &idx_to = idx[another][inv[v_to]];
 
   for (int bp_i = 0; bp_i < kNumBitParallelRoots; ++bp_i) {
     uint8_t td = idx_from.bpspt_d[bp_i] + idx_to.bpspt_d[bp_i];
@@ -393,7 +394,7 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::partial_bfs(
     V v = bfs_que[q_head++];
     uint8_t d = bfs_dist[v];
     if (distance_less(v_from, v, direction, d) <= d) continue;
-    idx[another][v].update(v_from, d);
+    idx[another][inv[v]].update(v_from, d);
     for (V nv : g.neighbors(inv[v], dir)) {
       V w = rank[nv];
       if (bfs_dist[w] < D_INF) continue;
@@ -417,7 +418,7 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::partial_bp_bfs(
     const G &g, int bp_i, V v_from, int direction) {
   V another = direction ^ 1;
   D dir = direction == 0 ? kFwd : kBwd;
-  const index_t &idx_from = idx[another][v_from];
+  const index_t &idx_from = idx[another][inv[v_from]];
   const uint8_t base_d = idx_from.bpspt_d[bp_i];
   if (base_d == D_INF) return;
 
@@ -428,11 +429,11 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::partial_bp_bfs(
     int old_head = q_head;
     while (q_head < q_tail && bfs_dist[bfs_que[q_head]] == d) {
       V v = bfs_que[q_head++];
-      const index_t &idx_v = idx[another][v];
+      const index_t &idx_v = idx[another][inv[v]];
 
       for (V nv : g.neighbors(inv[v], dir)) {
         V tv = rank[nv];
-        index_t &idx_tv = idx[another][tv];
+        index_t &idx_tv = idx[another][inv[tv]];
         if (d == idx_tv.bpspt_d[bp_i])
           idx_tv.bpspt_s[bp_i][1] |= idx_v.bpspt_s[bp_i][0];
         if (d + 1 < idx_tv.bpspt_d[bp_i]) {
@@ -449,10 +450,10 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::partial_bp_bfs(
 
     for (int i = old_head; i < q_head; ++i) {
       V v = bfs_que[i];
-      const index_t &idx_v = idx[another][v];
+      const index_t &idx_v = idx[another][inv[v]];
       for (V nv : g.neighbors(inv[v], dir)) {
         V tv = rank[nv];
-        index_t &idx_tv = idx[another][tv];
+        index_t &idx_tv = idx[another][inv[tv]];
         if (idx_tv.bpspt_d[bp_i] == d + 1) {
           // Set propagation (2)
           idx_tv.bpspt_s[bp_i][0] |= idx_v.bpspt_s[bp_i][0];
@@ -485,8 +486,8 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::add_edge(
     partial_bp_bfs(g, bp_i, v_b, 1);
   }
 
-  index_t &idx_a = idx[1][v_a];
-  index_t &idx_b = idx[0][v_b];
+  index_t &idx_a = idx[1][inv[v_a]];
+  index_t &idx_b = idx[0][inv[v_b]];
   for (int ia = 0, ib = 0; ia < idx_a.size() || ib < idx_b.size();) {
     V r_a = ia < idx_a.size() ? idx_a.spt_v[ia] : num_v;
     V r_b = ib < idx_b.size() ? idx_b.spt_v[ib] : num_v;
