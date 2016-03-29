@@ -104,14 +104,10 @@ template <typename TypeParam>
 bool DynamicTest(G& g) {
   // pretty_print(g);
   TypeParam dpll;
-  double t = -get_current_time_sec();
   dpll.construct(g);
-  t += get_current_time_sec();
-  // cerr << t << " sec/construct" << endl;
 
   auto es = g.edge_list();
   V trial = min(100, g.num_vertices() / 2);
-  t = -get_current_time_sec();
   vector<pair<V, V>> addition;
   for (int add_trial = 0; add_trial < trial; ++add_trial) {
     V v_from = agl::random(g.num_vertices());
@@ -120,8 +116,6 @@ bool DynamicTest(G& g) {
     dpll.add_edge(g, v_from, v_to);
     addition.emplace_back(v_from, v_to);
   }
-  t += get_current_time_sec();
-  // cerr << (t / trial) * 1000 << " ms/add" << endl;
 
   if (BFSCheck(g, dpll)) {
     return true;
