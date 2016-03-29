@@ -101,7 +101,7 @@ bool Test(const G& g) {
 }
 
 template <typename TypeParam>
-bool DynamicTest(const G& g) {
+bool DynamicTest(G& g) {
   // pretty_print(g);
   TypeParam dpll;
   double t = -get_current_time_sec();
@@ -116,15 +116,14 @@ bool DynamicTest(const G& g) {
   for (int add_trial = 0; add_trial < trial; ++add_trial) {
     V v_from = agl::random(g.num_vertices());
     V v_to = agl::random(g.num_vertices());
+    g.add_edge(v_from, v_to);
     dpll.add_edge(g, v_from, v_to);
-    es.emplace_back(v_from, v_to);
     addition.emplace_back(v_from, v_to);
   }
   t += get_current_time_sec();
   // cerr << (t / trial) * 1000 << " ms/add" << endl;
-  G g_mod(es);
 
-  if (BFSCheck(g_mod, dpll)) {
+  if (BFSCheck(g, dpll)) {
     return true;
   } else {
     // DEBUG
@@ -142,7 +141,6 @@ bool DynamicTest(const G& g) {
       cerr << endl;
     }
     pretty_print(g);
-    pretty_print(g_mod);
     return false;
   }
 }
