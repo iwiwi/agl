@@ -21,22 +21,6 @@ std::vector<V>
 dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::test_get_rank() {
   return rank;
 }
-
-template <size_t kNumBitParallelRoots>
-std::vector<V>
-dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::test_label_v(V v,
-                                                                     D dir) {
-  int direction = dir == kFwd ? 0 : 1;
-  return idx[direction][v].spt_v;
-}
-
-template <size_t kNumBitParallelRoots>
-std::vector<uint8_t>
-dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::test_label_d(V v,
-                                                                     D dir) {
-  int direction = dir == kFwd ? 0 : 1;
-  return idx[direction][v].spt_d;
-}
 }  // namespace agl
 
 typedef Types<
@@ -280,10 +264,8 @@ TYPED_TEST(dpll_test, undirected_index) {
     TypeParam dpll;
     dpll.construct(g);
     V num_v = g.num_vertices();
-    for (int v = 0; v < num_v; ++v) {
-      ASSERT_EQ(dpll.test_label_v(v, kFwd), dpll.test_label_v(v, kBwd));
-      ASSERT_EQ(dpll.test_label_d(v, kFwd), dpll.test_label_d(v, kBwd));
-    }
+    for (int v = 0; v < num_v; ++v)
+      ASSERT_EQ(dpll.get_labels(v, kFwd), dpll.get_labels(v, kBwd));
   }
 }
 
@@ -323,4 +305,31 @@ TYPED_TEST(dpll_test, online_update) {
           ASSERT_EQ(dist[i][j], dpll.query_distance(g, i, j));
     }
   }
+}
+
+TYPED_TEST(dpll_test, remove_vertices) {
+  auto es = generate_ba(50, 2);
+  G g(es);
+  g.add_vertices(100);
+  TypeParam dpll;
+  dpll.construct(g);
+  ASSERT_EQ(dpll.test_get_rank().size(), g.num_vertices());
+
+  V old_num_vertices = g.num_vertices();
+  g.remove_vertices(50);
+  dpll.remove_vertices(g, old_num_vertices);
+  ASSERT_EQ(dpll.test_get_rank().size(), g.num_vertices());
+}
+
+TYPED_TEST(dpll_test, add_vertices) {
+  auto es = generate_ba(50, 2);
+  G g(es);
+  TypeParam dpll;
+  dpll.construct(g);
+  ASSERT_EQ(dpll.test_get_rank().size(), g.num_vertices());
+
+  V old_num_vertices = g.num_vertices();
+  g.add_vertices(50);
+  dpll.add_vertices(g, old_num_vertices);
+  ASSERT_EQ(dpll.test_get_rank().size(), g.num_vertices());
 }

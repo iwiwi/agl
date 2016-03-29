@@ -13,9 +13,18 @@ class dynamic_pruned_landmark_labeling
   virtual void construct(const G &g) override;
   virtual W query_distance(const G &g, V v_from, V v_to) override;
   virtual void add_edge(const G &g, V v_from, const E &e) override;
-  virtual void remove_edge(const G &g, V v_from, V v_to) override {}
-  virtual void remove_vertices(const G &g, V old_num_vertices) override {}
-  virtual void add_vertices(const G &g, V old_num_vertices) override {}
+  virtual void remove_edge(const G &g, V v_from, V v_to) override {
+    assert(false);
+  }
+  virtual void remove_vertices(const G &g, V old_num_vertices) override {
+    num_v = g.num_vertices();
+    resize();
+  }
+  virtual void add_vertices(const G &g, V old_num_vertices) override {
+    num_v = g.num_vertices();
+    resize();
+    for (V v = old_num_vertices; v < num_v; ++v) rank[v] = v, inv[v] = v;
+  }
 
   std::vector<std::pair<V, W>> get_labels(V v, D dir = kFwd);
   size_t total_label_num();
@@ -23,8 +32,6 @@ class dynamic_pruned_landmark_labeling
   // Test functions
   std::vector<bool> test_bit_parallel_used(const G &g);
   std::vector<V> test_get_rank();
-  std::vector<V> test_label_v(V v, D dir = kFwd);
-  std::vector<uint8_t> test_label_d(V v, D dir = kFwd);
 
  private:
   struct index_t {
