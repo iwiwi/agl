@@ -85,7 +85,6 @@ class dynamic_pruned_landmark_labeling
   // Reusable containers
   std::vector<uint8_t> bfs_dist;
   std::vector<V> bfs_que;
-  V bp_roots[64];
 };
 
 template <size_t kNumBitParallelRoots>
@@ -148,6 +147,7 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>
   std::vector<std::pair<uint64_t, uint64_t>> tmp_s(num_v, {0, 0});
   std::vector<std::pair<V, V>> sibling_es(num_e);
   std::vector<std::pair<V, V>> child_es(num_e);
+  V bp_roots[64];
   for (int bp_i = 0; bp_i < kNumBitParallelRoots; ++bp_i) {
     // Select Root
     while (root < num_v && used[root]) root++;
