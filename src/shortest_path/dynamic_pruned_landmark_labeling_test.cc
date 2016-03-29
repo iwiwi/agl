@@ -8,8 +8,8 @@ using testing::Types;
 
 namespace agl {
 template <size_t kNumBitParallelRoots>
-std::vector<bool> dynamic_pruned_landmark_labeling<
-    kNumBitParallelRoots>::test_bit_parallel_used(const G& g) {
+std::vector<bool> dynamic_pruned_landmark_labeling<kNumBitParallelRoots>
+::test_bit_parallel_used(const G& g) {
   load_graph(g);
   vector<bool> used(g.num_vertices(), false);
   bit_parallel_bfs(g, used);
@@ -18,7 +18,8 @@ std::vector<bool> dynamic_pruned_landmark_labeling<
 
 template <size_t kNumBitParallelRoots>
 std::vector<V>
-dynamic_pruned_landmark_labeling<kNumBitParallelRoots>::test_get_rank() {
+dynamic_pruned_landmark_labeling<kNumBitParallelRoots>
+::test_get_rank() {
   return rank;
 }
 }  // namespace agl
