@@ -4,16 +4,16 @@ template<class handler_t>
 class connected_components_filter {
 public:
   connected_components_filter(const G& g) 
-  : n(g.num_vertices()), uf_(n), local_indices_(n), handlers_indices_(n), num_connected_components_(0) {
+  : n_(g.num_vertices()), uf_(n_), local_indices_(n_), handlers_indices_(n_), num_connected_components_(0) {
     fprintf(stderr, "connected_components_filter::constructor start memory %ld MB\n", jlog_internal::get_memory_usage() / 1024);
 
     const double start_uf = jlog_internal::get_current_time_sec();
-    FOR(v, n) for (auto e : g.edges(v)) {
+    FOR(v, n_) for (auto e : g.edges(v)) {
       V u = to(e);
     uf_.unite(u, v);
     }
     num_connected_components_ = 0;
-    FOR(v, n) {
+    FOR(v, n_) {
       if (uf_.root(v) != v) local_indices_[v] = ++local_indices_[uf_.root(v)];
       else handlers_indices_[v] = num_connected_components_++;
     }
@@ -21,8 +21,8 @@ public:
     fprintf(stderr, "num_connected_components = %d\n", num_connected_components_);
 
     double ccf_time = end_uf - start_uf;
-    vector<bool> used(n);
-    FOR(v, n) {
+    vector<bool> used(n_);
+    FOR(v, n_) {
       if (uf_.root(v) != v) continue;
       double start_cc = jlog_internal::get_current_time_sec();
       used[v] = true;
@@ -73,7 +73,7 @@ public:
   const int handlers_index(int v) { return handlers_indices_[uf_.root(v)]; }
 
 private:
-  const int n;
+  const int n_;
   union_find uf_;
   vector<int> local_indices_, handlers_indices_;
   vector<handler_t> handlers_;

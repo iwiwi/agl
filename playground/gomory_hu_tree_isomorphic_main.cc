@@ -3,9 +3,6 @@
 DEFINE_string(s1, "s1.txt", "gomory-hu tree 1");
 DEFINE_string(s2, "s2.txt", "gomory-hu tree 2");
 
-#define FOR(i,n) for(int i = 0; i < (n); i++)
-#define sz(c) ((int)(c).size())
-
 #include "bi_dinitz.h"
 
 map<int, vector<pair<V, V>>> load(const string& path) {
@@ -21,9 +18,9 @@ map<int, vector<pair<V, V>>> load(const string& path) {
 void check(G& g, map<int, vector<pair<V, V>>>& l, map<int, vector<pair<V, V>>>& r) {
   using ull = unsigned long long;
   int n = 1;
-  for (auto& kv : l) n += sz(kv.second);
+  for (auto& kv : l) n += int(kv.second.size());
   vector<ull> zobrist_hash(n);
-  FOR(i, n) zobrist_hash[i] = (ull(agl::random()) << 32) | ull(agl::random());
+  for(int i = 0; i < n; i++) zobrist_hash[i] = (ull(agl::random()) << 32) | ull(agl::random());
 
   union_find ufl(n), ufr(n);
   vector<ull> hl = zobrist_hash, hr = zobrist_hash;
@@ -34,8 +31,8 @@ void check(G& g, map<int, vector<pair<V, V>>>& l, map<int, vector<pair<V, V>>>& 
 
   auto on_mismatched = [&](V u) {
     set<int> onlyl,onlyr,intersect;
-    FOR(a, n) if (ufl.is_same(u, a)) onlyl.insert(a);
-    FOR(a, n) if (ufr.is_same(u, a)) {
+    for(int a = 0; a < n; a++) if (ufl.is_same(u, a)) onlyl.insert(a);
+    for(int a = 0; a < n; a++) if (ufr.is_same(u, a)) {
       if(onlyl.count(a)) onlyl.erase(a), intersect.insert(a);
       else onlyr.insert(a);
     } 
@@ -94,8 +91,8 @@ void check(G& g, map<int, vector<pair<V, V>>>& l, map<int, vector<pair<V, V>>>& 
   };
 
   for (const int w : weight) {
-    if(sz(l[w]) != sz(r[w])) printf("*");
-    printf("w = %d, L : %d , R : %d", w, sz(l[w]), sz(r[w]));
+    if(l[w].size() != r[w].size()) printf("*");
+    printf("w = %d, L : %d , R : %d", w, int(l[w].size()), int(r[w].size()));
     puts("");
   }
 

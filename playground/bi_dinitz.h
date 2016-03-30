@@ -1,6 +1,5 @@
 #pragma once
 
-DEFINE_int32(flow_iter, 1, "");
 DEFINE_int32(goal_oriented_dfs_aster_ub, 2, "");
 
 long long getcap_counter = 0;
@@ -67,16 +66,16 @@ private:
     bfs_revision[s] = s_side_bfs_revision;
     bfs_revision[t] = t_side_bfs_revision;
 
-    size_t qs_next_get_cap = sz(e[s]);
-    size_t qt_next_get_cap = sz(e[t]);
+    size_t qs_next_get_cap = e[s].size();
+    size_t qt_next_get_cap = e[t].size();
     int slevel = 0, tlevel = 0;
-    while (sz(qs) != 0 && sz(qt) != 0) {
+    while (qs.size() != 0 && qt.size() != 0) {
       bool path_found = false;
       if (qs_next_get_cap <= qt_next_get_cap) {
-        int size = sz(qs);
-        FOR(_, size) {
+        int size = int(qs.size());
+        for(int _ = 0; _ < size; _++) {
           const int v = qs.front(); qs.pop();
-          qs_next_get_cap -= sz(e[v]);
+          qs_next_get_cap -= e[v].size();
           for (auto& t : e[v]) {
             if (t.cap(graph_revision) == 0 || bfs_revision[t.to] == s_side_bfs_revision) continue;
             if (bfs_revision[t.to] == t_side_bfs_revision) {
@@ -85,16 +84,16 @@ private:
             }
             bfs_revision[t.to] = s_side_bfs_revision;
             level[t.to].first = slevel + 1;
-            qs_next_get_cap += sz(e[t.to]);
+            qs_next_get_cap += e[t.to].size();
             qs.push(t.to);
           }
         }
         slevel++;
       } else {
-        int size = sz(qt);
-        FOR(_, size) {
+        int size = int(qt.size());
+        for(int _ = 0; _ < size; _++) {
           const int v = qt.front(); qt.pop();
-          qt_next_get_cap -= sz(e[v]);
+          qt_next_get_cap -= e[v].size();
           for (auto& t : e[v]) {
             if (e[t.to][t.reverse].cap(graph_revision) == 0 || bfs_revision[t.to] == t_side_bfs_revision) continue;
             if (bfs_revision[t.to] == s_side_bfs_revision) {
@@ -103,7 +102,7 @@ private:
             }
             bfs_revision[t.to] = t_side_bfs_revision;
             level[t.to].second = tlevel + 1;
-            qt_next_get_cap += sz(e[t.to]);
+            qt_next_get_cap += e[t.to].size();
             qt.push(t.to);
           }
         }
@@ -126,7 +125,7 @@ private:
       dfs_revision[v] = bfs_revision[v];
       iter[v] = 0;
     }
-    for (int &i = iter[v]; i < sz(e[v]); i++) {
+    for (int &i = iter[v]; i < int(e[v].size()); i++) {
       E& _e = e[v][i];
       const int cap = _e.cap(graph_revision);
       if (cap == 0 || bfs_revision[_e.to] / 2 != s_side_bfs_revision / 2) continue;
@@ -148,12 +147,12 @@ private:
   }
 
   void add_undirected_edge(int f, int t, int c) {
-    e[f].push_back(E(t, sz(e[t]), c));
-    e[t].push_back(E(f, sz(e[f]) - 1, c));
+    e[f].push_back(E(t, int(e[t].size()), c));
+    e[t].push_back(E(f, int(e[f].size()) - 1, c));
   }
 
   void reset_rivision() {
-    FOR(v, n) for (auto& e_ : e[v]) e_.reset();
+    for(int v = 0; v < n; v++) for (auto& e_ : e[v]) e_.reset();
     memset(bfs_revision.data(), 0, sizeof(bfs_revision[0]) * bfs_revision.size());
     memset(dfs_revision.data(), 0, sizeof(dfs_revision[0]) * dfs_revision.size());
     s_side_bfs_revision = 2;
@@ -169,7 +168,7 @@ private:
       dfs_revision[v] = s_side_bfs_revision;
       iter[v] = 0;
     }
-    for (int &i = iter[v]; i < sz(e[v]); i++) {
+    for (int &i = iter[v]; i < int(e[v].size()); i++) {
       E& to_edge = e[v][i];
       int to = to_edge.to;
       int add_aster_cost = goal_oriented_bfs_depth[to] - goal_oriented_bfs_depth[v] + 1;
@@ -216,7 +215,7 @@ public:
   bi_dinitz(const G& g)
     : n(g.num_vertices()), level(n), iter(n), bfs_revision(n), dfs_revision(n), e(n),
     s_side_bfs_revision(2), t_side_bfs_revision(3), graph_revision(0), goal_oriented_bfs_root(-1) {
-    FOR(v, n) for (auto& e : g.edges(v)) {
+    for(int v = 0; v < n; v++) for (auto& e : g.edges(v)) {
       add_undirected_edge(v, to(e), 1);
     }
   }
@@ -288,7 +287,7 @@ public:
       preflow = goal_oriented_dfs(s);
     }
 
-    if(preflow == sz(e[s])) {
+    if(preflow == int(e[s].size())) {
       reason_for_finishing_bfs = kQsIsEmpty;
     } else {
       s_side_bfs_revision += 2;
@@ -310,7 +309,7 @@ public:
     }
     // fprintf(stderr, "(%d,%d) : preflow = %d, flow = %d\n", s, t, preflow, flow);
     if(flow == 0 && preflow > 0) {
-      if(sz(e[s]) == preflow) {
+      if(int(e[s].size()) == preflow) {
         preflow_eq_degree++;
       }
       flow_eq_0++;
@@ -322,16 +321,7 @@ public:
   }
 
   int max_flow(int s, int t) {
-    auto b1 = getcap_counter;
     int ans = max_flow_core(s, t);
-    auto b2 = getcap_counter;
-    FOR(_, FLAGS_flow_iter - 1) {
-      max_flow_core(s, t);
-      auto b3 = getcap_counter;
-      CHECK(b3 - b2 == b2 - b1);
-      b1 = b2;
-      b2 = b3;
-    }
     return ans;
   }
 
@@ -385,14 +375,14 @@ public:
     }
 
     //sort edges by depth order
-    FOR(v, n) {
+    for(int v = 0; v < n; v++) {
       // dep[l.to]は3つの値しか取らないので高速化可能
       sort(e[v].begin(), e[v].end(), [&dep = goal_oriented_bfs_depth](const E& l, const E& r) {
         return dep[l.to] < dep[r.to];
       });
 
       //reset reverse edge's "reverse" value
-      FOR(i, sz(e[v])) {
+      for(int i = 0; i < int(e[v].size()); i++) {
         const E& to_edge = e[v][i];
         E& rev = e[to_edge.to][to_edge.reverse];
         rev.reverse = i;

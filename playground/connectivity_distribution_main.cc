@@ -1,8 +1,5 @@
 #include <easy_cui.h>
 
-#define FOR(i,n) for(int i = 0; i < (n); i++)
-#define sz(c) ((int)(c).size())
-
 class union_find_with_size {
 private:
     int n;
