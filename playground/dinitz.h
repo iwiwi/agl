@@ -63,9 +63,7 @@ public:
     }
   }
 
-  vector<E>& edges(V v) {
-    return e_[v];
-  }
+  vector<E>& edges(V v) { return e_[v]; }
 
 private:
   vector<int> level_,iter_;

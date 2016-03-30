@@ -54,7 +54,7 @@ public:
       used[s] = true;
       while (!q.empty()) {
         V v = q.front(); q.pop();
-        for (auto& e : dc.e[v]) {
+        for (auto& e : dc.edges(v)) {
           if (dc.cap(e) == 0 || used[dc.to(e)]) continue;
           used[dc.to(e)] = true;
           q.push(dc.to(e));

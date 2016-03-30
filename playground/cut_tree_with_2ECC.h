@@ -3,7 +3,7 @@
 #include "conditional_benchmark.h"
 
 DEFINE_int32(try_greedy_tree_packing, 1, "");
-DEFINE_int32(try_large_degree_pairs, 10, "");
+DEFINE_int32(try_large_degreepairs, 10, "");
 DEFINE_int32(separate_near_pairs_d, 1, "");
 DEFINE_int32(contraction_lower_bound, 2, "");
 DEFINE_bool(enable_greedy_tree_packing, true, "");
@@ -215,16 +215,16 @@ class separator {
       fprintf(stderr, "flow_eq_0         =     %9d\n", flow_eq_0);
 
       fprintf(stderr, "cut details : ");
-      for(auto& kv : debug_count_cut_size_for_a_period) fprintf(stderr, "(%d,%d), ", kv.first, kv.second);
+      for(auto& kv : debug_count_cut_size_for_a_period_) fprintf(stderr, "(%d,%d), ", kv.first, kv.second);
       fprintf(stderr, "\n");
-      debug_count_cut_size_for_a_period.clear();
+      debug_count_cut_size_for_a_period_.clear();
     }
   }
 
   int max_flow(const V s, const V t) {
     const long long before_max_flow = getcap_counter;
     int cost = dz_.max_flow(s, t);
-    debug_last_max_flow_cost = cost;
+    debug_last_max_flow_cost_ = cost;
     const long long after_max_flow = getcap_counter;
 
     gh_builder_.add_edge(s, t, cost); //cutした結果をgomory_hu treeの枝を登録
@@ -264,7 +264,7 @@ class separator {
       while (!q.empty()) {
         V v = q.front(); q.pop();
         one_side++;
-        for (auto& e : dz_.e[v]) {
+        for (auto& e : dz_.edges(v)) {
           const int cap = dz_.cap(e);
           if (cap == 0 || grouping_used_[dz_.to(e)] == F) continue;
           grouping_used_[dz_.to(e)] = F;
@@ -284,7 +284,7 @@ class separator {
       while (!q.empty()) {
         V v = q.front(); q.pop();
         one_side++;
-        for (auto& e : dz_.e[v]) {
+        for (auto& e : dz_.edges(v)) {
           const int cap = dz_.cap(dz_.rev(e));
           if (cap == 0 || grouping_used_[dz_.to(e)] == F) continue;
           grouping_used_[dz_.to(e)] = F;
@@ -321,7 +321,7 @@ class separator {
       contraction_used_[s] = F;
       while (!q.empty()) {
         V v = q.front(); q.pop();
-        for (auto& e : dz_.e[v]) {
+        for (auto& e : dz_.edges(v)) {
           const int cap = dz_.cap(e);
           if (contraction_used_[dz_.to(e)] == F) continue;
           if (cap == 0) {
@@ -341,7 +341,7 @@ class separator {
       contraction_used_[t] = F;
       while (!q.empty()) {
         V v = q.front(); q.pop();
-        for (auto& e : dz_.e[v]) {
+        for (auto& e : dz_.edges(v)) {
           const int cap = dz_.cap(dz_.rev(e));
           if (contraction_used_[dz_.to(e)] == F) continue;
           if (cap == 0) {
@@ -357,7 +357,7 @@ class separator {
         }
       }
     }
-    CHECK(num_reconnected == debug_last_max_flow_cost); // 枝を繋ぎ直した回数 == maxflow
+    CHECK(num_reconnected == debug_last_max_flow_cost_); // 枝を繋ぎ直した回数 == maxflow
   }
 
 public:
@@ -373,7 +373,7 @@ public:
   }
 
   void mincut(V s, V t, bool enable_contraction = true) {
-    if (dz_.e[s].size() > dz_.e[t].size()) swap(s, t);
+    if (dz_.edges(s).size() > dz_.edges(t).size()) swap(s, t);
 
     const int one_side = max_flow(s, t);
     if (enable_contraction) {
@@ -390,15 +390,15 @@ public:
     }
 
     // debug infomation
-    debug_count_cut_size_all_time[one_side]++;
-    debug_count_cut_size_for_a_period[one_side]++;
+    debug_count_cut_size_all_time_[one_side]++;
+    debug_count_cut_size_for_a_period_[one_side]++;
   }
 
   void output_debug_infomation() const {
-    if (debug_count_cut_size_all_time.size() > 10) {
-      stringstream debug_count_cut_size_all_time_ss;
-      for (auto& kv : debug_count_cut_size_all_time) debug_count_cut_size_all_time_ss << "(" << kv.first << "," << kv.second << "), ";
-      JLOG_ADD("separator.debug_count_cut_size_all_time", debug_count_cut_size_all_time_ss.str());
+    if (debug_count_cut_size_all_time_.size() > 10) {
+      stringstream ss;
+      for (auto& kv : debug_count_cut_size_all_time_) ss << "(" << kv.first << "," << kv.second << "), ";
+      JLOG_ADD("separator.debug_count_cut_size_all_time_", ss.str());
       JLOG_ADD("separator.contraction_count", contraction_count_);
     }
   }
@@ -407,7 +407,7 @@ public:
   void debug_verify() const {
     if(dcs_.node_num() > 10000) fprintf(stderr, "separator::debug_verify... ");
     union_find uf(dz_.n());
-    for(int i = 0; i < dz_.n(); i++) for (const auto& to_edge : dz_.e[i]) {
+    for(int i = 0; i < dz_.n(); i++) for (const auto& to_edge : dz_.edges(i)) {
       uf.unite(i, dz_.to(to_edge));
     }
     for(int g = 0; g < dcs_.debug_group_num(); g++) {
@@ -441,9 +441,9 @@ private:
   vector<int> mincut_group_revision_;
   int cross_other_mincut_count_; // 今回のmincutが、他のmincutと何回交わったか
 
-  map<int, int> debug_count_cut_size_all_time;
-  map<int, int> debug_count_cut_size_for_a_period;
-  int debug_last_max_flow_cost;
+  map<int, int> debug_count_cut_size_all_time_;
+  map<int, int> debug_count_cut_size_for_a_period_;
+  int debug_last_max_flow_cost_;
 };
 
 class cut_tree_with_2ECC {
@@ -542,7 +542,7 @@ class cut_tree_with_2ECC {
     }
   }
 
-  void contract_degree_2_vertices(vector<pair<V,V>>& edges, vector<int>& degree) {
+  void contract_degree2_vertices(vector<pair<V,V>>& edges, vector<int>& degree) {
     const int n = int(degree.size());
     vector<vector<int>> e(n);
 
@@ -573,7 +573,7 @@ class cut_tree_with_2ECC {
   }
 
   //次数の大きい頂点対をcutする
-  void separate_high_degree_pairs(separator& sep) {
+  void separate_high_degreepairs(separator& sep) {
     const disjoint_cut_set& dcs = sep.get_disjoint_cut_set();
     const bi_dinitz& dz = sep.get_bi_dinitz();
 
@@ -581,25 +581,25 @@ class cut_tree_with_2ECC {
     for(int v = 0; v < num_vertices_; v++) {
       if (dcs.group_size(v) >= 2) vtxs.push_back(v);
     }
-    const int tries = max(min(FLAGS_try_large_degree_pairs, int(vtxs.size()) - 1), 0);
+    const int tries = max(min(FLAGS_try_large_degreepairs, int(vtxs.size()) - 1), 0);
     partial_sort(vtxs.begin(), vtxs.begin() + tries, vtxs.end(), [&dz](V l, V r) {
-      return dz.e[l].size() > dz.e[r].size();
+      return dz.edges(l).size() > dz.edges(r).size();
     });
 
-    int cut_large_degree_count = 0;
+    int cut_large_degreecount = 0;
     for (int i = 1; i <= tries; i++) {
       for (int pari = 0; pari < i; pari++) {
         V s = vtxs[i];
         V t = vtxs[pari];
         if (!dcs.is_same_group(s, t)) continue;
         sep.mincut(s, t);
-        cut_large_degree_count++;
+        cut_large_degreecount++;
       }
     }
 
-    if (cut_large_degree_count > 0) {
-      JLOG_PUT("separate_high_degree_pairs.cut_large_degree_count", cut_large_degree_count);
-      JLOG_PUT("separate_high_degree_pairs.separated_count", sep.contraction_count());
+    if (cut_large_degreecount > 0) {
+      JLOG_PUT("separate_high_degreepairs.cut_large_degreecount", cut_large_degreecount);
+      JLOG_PUT("separate_high_degreepairs.separated_count", sep.contraction_count());
     }
   }
 
@@ -609,7 +609,7 @@ class cut_tree_with_2ECC {
     const disjoint_cut_set& dcs = sep.get_disjoint_cut_set();
 
     for(int s = 0; s < num_vertices_; s++) {
-      for(const auto& to_edge : dz.e[s]) {
+      for(const auto& to_edge : dz.edges(s)) {
         const V t = dz.to(to_edge);
         if (!dcs.is_same_group(s, t)) continue;
         sep.mincut(s, t);
@@ -643,7 +643,7 @@ class cut_tree_with_2ECC {
         const int loop_num = int(q.size());
         for(int _ = 0; _ < loop_num; _++) {
           const V v = q.front(); q.pop();
-          for(auto& to_edge : dz.e[v]) {
+          for(auto& to_edge : dz.edges(v)) {
               const V t = dz.to(to_edge);
               if(used[t] == used_revision) continue;
               used[t] = used_revision;
@@ -664,16 +664,16 @@ class cut_tree_with_2ECC {
     const bi_dinitz& dz = sep.get_bi_dinitz();
     const disjoint_cut_set& dcs = sep.get_disjoint_cut_set();
     
-    int max_degree_vtx = 0;
+    int max_degreevtx = 0;
     for(int v = 0; v < num_vertices_; v++) 
-      if (dz.e[max_degree_vtx].size() < dz.e[v].size()) max_degree_vtx = v;
+      if (dz.edges(max_degreevtx).size() < dz.edges(v).size()) max_degreevtx = v;
 
-    sep.goal_oriented_bfs_init(max_degree_vtx);
+    sep.goal_oriented_bfs_init(max_degreevtx);
     for(int v = 0; v < num_vertices_; v++) {
-      if (v == max_degree_vtx) continue;
-      if (!dcs.is_same_group(v, max_degree_vtx)) continue;
+      if (v == max_degreevtx) continue;
+      if (!dcs.is_same_group(v, max_degreevtx)) continue;
       //graphの形状が変わると損なので、ここでは enable_contraction = false する
-      sep.mincut(v, max_degree_vtx, false);
+      sep.mincut(v, max_degreevtx, false);
     }
   }
 
@@ -687,8 +687,8 @@ public:
     for (auto& e : edges) degree[e.first]++, degree[e.second]++;
 
     //次数2の頂点と接続を持つ辺を削除して、探索しやすくする
-    JLOG_ADD_BENCHMARK_IF("time.contract_degree_2_vertices", num_vertices_ > 10000) {
-      contract_degree_2_vertices(edges, degree);
+    JLOG_ADD_BENCHMARK_IF("time.contract_degree2_vertices", num_vertices_ > 10000) {
+      contract_degree2_vertices(edges, degree);
     }
 
     disjoint_cut_set dcs(num_vs);
@@ -698,7 +698,7 @@ public:
     }
 
     //debug infomation
-    auto preflow_eq_degree_before = preflow_eq_degree;
+    auto preflow_eq_degreebefore = preflow_eq_degree;
     auto flow_eq_0_before = flow_eq_0;
 
     if(num_vs > 10000) fprintf(stderr, "cut_tree_with_2ECC::bi_dinitz before init : memory %ld MB\n", jlog_internal::get_memory_usage() / 1024);
@@ -716,8 +716,8 @@ public:
 
     // 次数の高い頂点対をcutする
     // グラフをなるべく2分するcutを見つけられると有用
-    JLOG_ADD_BENCHMARK_IF("time.separate_high_degree_pairs", num_vertices_ > 10000) {
-      separate_high_degree_pairs(sep);
+    JLOG_ADD_BENCHMARK_IF("time.separate_high_degreepairs", num_vertices_ > 10000) {
+      separate_high_degreepairs(sep);
     }
 
     //まず隣接頂点対からcutしていく
@@ -745,12 +745,12 @@ public:
 
     gh_builder_.build();
 
-    auto preflow_eq_degree_after = preflow_eq_degree;
+    auto preflow_eq_degreeafter = preflow_eq_degree;
     auto flow_eq_0_after = flow_eq_0;
 
     if (num_vertices_ > 10000) {
       JLOG_OPEN("sp_dfs") {
-        JLOG_ADD("preflow_eq_degree", preflow_eq_degree_after - preflow_eq_degree_before);
+        JLOG_ADD("preflow_eq_degree", preflow_eq_degreeafter - preflow_eq_degreebefore);
         JLOG_ADD("flow_eq_0", flow_eq_0_after - flow_eq_0_before);
       }
     }
