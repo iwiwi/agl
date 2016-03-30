@@ -7,7 +7,6 @@ long long addcap_counter = 0;
 int preflow_eq_degree = 0;
 int flow_eq_0 = 0;
 
-
 class bi_dinitz {
 public:
   // two sided bfsが終了した理由

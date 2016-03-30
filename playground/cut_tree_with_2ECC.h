@@ -766,5 +766,6 @@ public:
 
 private:
   const int num_vertices_;
+  //todo .ccと.hに分ける時に、std::unique_ptrで囲む
   gomory_hu_tree_builder gh_builder_;
 };
