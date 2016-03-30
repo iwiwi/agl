@@ -64,14 +64,14 @@ def build(bld):
       name     = n,
       source   = cc,
       target   = n,
-      use      = ['agl', 'gflags'],
+      use      = ['agl', 'gflags', 'jlog'],
       includes = ['src', 'playground', '3rd_party'])
 
   bld.program(
     name     = 'test',
     source   = cc_file_test,
     target   = 'test',
-    use      = ['agl', 'gflags', 'gtest'],
+    use      = ['agl', 'gflags', 'gtest', 'jlog'],
     includes = ['src', 'playground', '3rd_party'])
 
   bld.program(
@@ -79,7 +79,7 @@ def build(bld):
     features = 'testt',
     source   = cc_file_test,
     target   = 'testt',
-    use      = ['agl', 'gflags', 'gtest'],
+    use      = ['agl', 'gflags', 'gtest', 'jlog'],
     includes = ['src', 'playground', '3rd_party'])
 
 from waflib.Build import BuildContext

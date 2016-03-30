@@ -47,10 +47,10 @@
 #include <stdint.h>
 #include <vector>
 #include <unistd.h>
+#include <math.h>
 
 extern std::string FLAGS_jlog_out;
 extern bool FLAGS_jlog_suppress_log;
-extern std::string FLAGS_jlog_file_name;
 
 namespace jlog_internal {
 double get_current_time_sec();
@@ -79,11 +79,11 @@ struct json_parent : json_node {
 
 template<typename value_t> struct json_leaf : json_node {
   std::string value;
-  
+
   virtual void set_value(value_t v) {
-    std::stringstream ss;
-    ss << v;
-    ss >> value;
+    std::ostringstream oss;
+    oss << v;
+    value = oss.str();
   }
 
   virtual void print(std::ostream &os, int, bool last) {
@@ -103,15 +103,43 @@ template<> struct json_leaf<std::string> : json_node {
   }
 };
 
+template<> struct json_leaf<bool> : json_node {
+  bool value;
+
+  virtual void set_value(bool v) {
+    value = v;
+  }
+
+  virtual void print(std::ostream &os, int, bool last) {
+    os << (value ? "true" : "false") << (last ? "" : ",") << std::endl;
+  }
+};
+
 template<typename value_t> struct json_leaf_numerical : json_node {
   value_t value;
-  
+
   virtual void set_value(value_t v) {
     value = v;
   }
-  
+
   virtual void print(std::ostream &os, int, bool last) {
     os << value << (last ? "" : ",") << std::endl;
+  }
+};
+
+template<typename value_t> struct json_leaf_real : json_node {
+  value_t value;
+
+  virtual void set_value(value_t v) {
+    value = v;
+  }
+
+  virtual void print(std::ostream &os, int, bool last) {
+    if (isnan(value) || isinf(value)) {
+      os << "\"" << value << (last ? "\"" : "\",") << std::endl;
+    } else {
+      os << value << (last ? "" : ",") << std::endl;
+    }
   }
 };
 
@@ -123,23 +151,11 @@ template<> struct json_leaf<unsigned int> : json_leaf_numerical<unsigned int> {}
 template<> struct json_leaf<int> : json_leaf_numerical<int> {};
 template<> struct json_leaf<unsigned short> : json_leaf_numerical<unsigned short> {};
 template<> struct json_leaf<short> : json_leaf_numerical<short> {};
-template<> struct json_leaf<long double> : json_leaf_numerical<long double> {};
-template<> struct json_leaf<double> : json_leaf_numerical<double> {};
-template<> struct json_leaf<float> : json_leaf_numerical<float> {};
+template<> struct json_leaf<long double> : json_leaf_real<long double> {};
+template<> struct json_leaf<double> : json_leaf_real<double> {};
+template<> struct json_leaf<float> : json_leaf_real<float> {};
 template<> struct json_leaf<const char*> : json_leaf<std::string> {};
 template<> struct json_leaf<char*> : json_leaf<std::string> {};
-
-template<> struct json_leaf<bool> : json_node {
-  bool value;
-  
-  virtual void set_value(bool v) {
-    value = v;
-  }
-  
-  virtual void print(std::ostream &os, int, bool last) {
-    os << (value ? "true" : "false") << (last ? "" : ",") << std::endl;
-  }
-};
 
 struct json_array : json_node {
   std::vector<json_node*> children;
@@ -159,10 +175,10 @@ struct json_array : json_node {
 class jlog {
  public:
   template<typename value_t>
-  static void jlog_put(const char *path, value_t value,
-                       bool glog) {
+  static void jlog_put(const char *path, value_t value, bool glog) {
+    if (instance_.ignore_nest_level_ > 0) return;
     if (instance_.filename_.empty() && !instance_.already_warned_) {
-      std::cerr << "WARNING: Logging without calling JLOG_INIT is written to STDOUT" << std::endl;
+      std::cerr << "WARNING: Logging without calling JLOG_INIT is written to STDERR" << std::endl;
       instance_.already_warned_ = true;
     }
 
@@ -177,17 +193,17 @@ class jlog {
   }
 
   template<typename value_t>
-  static void jlog_add(const char *path, value_t value,
-                       bool glog) {
+  static void jlog_add(const char *path, value_t value, bool glog) {
+    if (instance_.ignore_nest_level_ > 0) return;
     if (instance_.filename_.empty() && !instance_.already_warned_) {
-      std::cerr << "WARNING: Logging without calling JLOG_INIT is written to STDOUT" << std::endl;
+      std::cerr << "WARNING: Logging without calling JLOG_INIT is written to STDERR" << std::endl;
       instance_.already_warned_ = true;
     }
-    
+
     if (instance_.nested_glog_flag_ && glog) {
       LOG() << path << " = " << value << std::endl;
     }
-    
+
     json_node *&jn = instance_.reach_path(path);
     if (jn == NULL) jn = new json_array;
     json_array *ja = dynamic_cast<json_array*>(jn);
@@ -210,27 +226,22 @@ class jlog {
     struct ::tm tm_time;
     localtime_r(&timestamp, &tm_time);
 
-    if(FLAGS_jlog_file_name != "") {
-      instance_.filename_ = FLAGS_jlog_file_name;
-    } else {
-      std::ostringstream os;
-      os.fill('0');
-      os << instance_.program_name_ << "."
-         << u.nodename << "."
-         // << getenv("USER") << "."
-         << "jlog."
-         << std::setw(2) << (1900 + tm_time.tm_year) % 100
-         << std::setw(2) << 1+tm_time.tm_mon
-         << std::setw(2) << tm_time.tm_mday
-         << '-'
-         << std::setw(2) << tm_time.tm_hour
-         << std::setw(2) << tm_time.tm_min
-         << std::setw(2) << tm_time.tm_sec
-         << '.'
-         << getpid();
+    std::ostringstream os;
+    os.fill('0');
+    os << instance_.program_name_ << "."
+       << u.nodename << "."
+       << "jlog."
+       << std::setw(2) << (1900 + tm_time.tm_year) % 100
+       << std::setw(2) << 1+tm_time.tm_mon
+       << std::setw(2) << tm_time.tm_mday
+       << '-'
+       << std::setw(2) << tm_time.tm_hour
+       << std::setw(2) << tm_time.tm_min
+       << std::setw(2) << tm_time.tm_sec
+       << '.'
+       << getpid();
 
-      instance_.filename_ = os.str();
-    }
+    instance_.filename_ = os.str();
     LOG() << "JLOG: " << instance_.filename_ << std::endl;
 
     jlog_put("run.program", instance_.program_name_, true);
@@ -270,14 +281,14 @@ class jlog {
     return std::cerr;
   }
 
-  jlog() : already_warned_(false), nested_glog_flag_(true) {
+  jlog() : already_warned_(false), nested_glog_flag_(true), ignore_nest_level_(0) {
     current_ = &root_;
   }
 
   ~jlog() {
     if (filename_.empty()) {
       if (!root_.children.empty()) {
-        // root_.print(std::cout, 0, true);
+        root_.print(std::cerr, 0, true);
       }
     } else {
       jlog_put("run.time", get_current_time_sec() - start_time_, true);
@@ -290,7 +301,7 @@ class jlog {
       if (!ofs) {
         perror("ofstream");
         LOG() << "JLOG: Failed to open output file, write to STDERR" << std::endl;
-        root_.print(std::cout, 0, true);
+        root_.print(std::cerr, 0, true);
       }
       root_.print(ofs, 0, true);
       LOG() << "JLOG: " << FLAGS_jlog_out + "/" + filename_ << std::endl;
@@ -332,6 +343,7 @@ class jlog {
   json_node *current_;
   bool already_warned_;
   bool nested_glog_flag_;
+  int ignore_nest_level_;
 
   static std::ostream null_ostream;
 
@@ -343,18 +355,20 @@ class jlog {
 
   friend class jlog_opener;
   friend class jlog_add_opener;
+  friend class jlog_benchmarker;
+  friend class jlog_ignorer;
 };
 
 class jlog_opener {
  public:
   jlog_opener(bool add, const char *path, bool glog = true) {
+    prev_ = jlog::instance_.current_;
+    if (jlog::instance_.ignore_nest_level_ > 0) return;
     if (add == false) {
-      prev_ = jlog::instance_.current_;
       json_node *& jn = jlog::instance_.reach_path(path);
       if (jn == NULL) jn = new json_parent;
       jlog::instance_.current_ = jn;
     } else {
-      prev_ = jlog::instance_.current_;
       json_node *& jn = jlog::instance_.reach_path(path);
       if (jn == NULL) jn = new json_array;
       json_array *ja = dynamic_cast<json_array*>(jn);
@@ -368,6 +382,7 @@ class jlog_opener {
   }
 
   ~jlog_opener() {
+    if (jlog::instance_.ignore_nest_level_ > 0) return;
     jlog::instance_.current_ = prev_;
     jlog::instance_.nested_glog_flag_ = prev_glog_flag_;
   }
@@ -385,10 +400,12 @@ class jlog_benchmarker {
  public:
   jlog_benchmarker(bool add, const char *path, bool glog = true)
       : path_(path), add_(add), glog_(glog) {
+    if (jlog::instance_.ignore_nest_level_ > 0) return;
     start_ = get_current_time_sec();
   }
 
   ~jlog_benchmarker() {
+    if (jlog::instance_.ignore_nest_level_ > 0) return;
     double r = get_current_time_sec() - start_;
     if (add_) {
       jlog::jlog_add(path_, r, glog_);
@@ -407,6 +424,52 @@ class jlog_benchmarker {
   double start_;
   bool glog_;
 };
+
+class jlog_ignorer {
+ public:
+  jlog_ignorer() {
+    jlog::instance_.ignore_nest_level_++;
+  }
+
+  ~jlog_ignorer() {
+    jlog::instance_.ignore_nest_level_--;
+  }
+
+  operator bool() {
+    return false;
+  }
+};
+
+class jlog_conditional {
+ public:
+  jlog_conditional(bool add, const char *path, bool condition, bool glog = true)
+      : path_(path), add_(add), condition_(condition), glog_(glog) {
+    if(condition_) start_ = get_current_time_sec();
+  }
+
+  ~jlog_conditional() {
+    if(condition_) {
+    double r = get_current_time_sec() - start_;
+      if (add_) {
+        jlog::jlog_add(path_, r, glog_);
+      } else {
+        jlog::jlog_put(path_, r, glog_);
+      }
+    }
+  }
+
+  operator bool() {
+    return false;
+  }
+
+ private:
+  const char *path_;
+  bool add_;
+  bool condition_;
+  double start_;
+  bool glog_;
+};
+
 }  // namespace jlog_internal
 
 #define JLOG_OPEN(...)                                              \
@@ -424,6 +487,20 @@ class jlog_benchmarker {
 #define JLOG_ADD_BENCHMARK(...)                                     \
   if (jlog_internal::jlog_benchmarker o__                           \
       = jlog_internal::jlog_benchmarker(true, __VA_ARGS__)); else
+
+#define JLOG_IGNORE                                                 \
+  if (jlog_internal::jlog_ignorer o__                               \
+      = jlog_internal::jlog_ignorer()); else
+
+
+#define JLOG_PUT_BENCHMARK_IF(...)                                  \
+  if (jlog_internal::jlog_conditional o__                           \
+      = jlog_internal::jlog_conditional(false, __VA_ARGS__)); else
+
+#define JLOG_ADD_BENCHMARK_IF(...)                                  \
+  if (jlog_internal::jlog_conditional o__                           \
+      = jlog_internal::jlog_conditional(true, __VA_ARGS__)); else
+
 
 template<typename value_t>
 inline void JLOG_PUT(const char *path, value_t value, bool glog = true) {

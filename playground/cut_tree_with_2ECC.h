@@ -1,6 +1,5 @@
 #pragma once
 #include "greedy_treepacking.h"
-#include "conditional_benchmark.h"
 
 DEFINE_int32(try_greedy_tree_packing, 1, "");
 DEFINE_int32(try_large_degreepairs, 10, "");

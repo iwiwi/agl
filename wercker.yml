@@ -1,4 +1,5 @@
 box: bendiken/cxx14@0.0.8
+command-timeout: 60
 build:
   steps:
     - script:
