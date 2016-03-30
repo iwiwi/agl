@@ -1,7 +1,7 @@
 #pragma once
-#include "dinitz.h"
+#include "bi_dinitz.h"
 
-class PlainGusfield{
+class plain_gusfield_bi_dinitz{
   int query_dfs(V v, V t, int cost, V par = -1) const {
     if (v == t) return cost;
     for (const auto& to_cost : binary_tree_edges_[v]) {
@@ -21,7 +21,7 @@ public:
       binary_tree_edges_[t].emplace_back(s, cost);
   }
 
-  PlainGusfield(G& g) : num_vertices_(g.num_vertices()), binary_tree_edges_(g.num_vertices()) {
+  plain_gusfield_bi_dinitz(G& g) : num_vertices_(g.num_vertices()), binary_tree_edges_(g.num_vertices()) {
     union_find uf(num_vertices_);
 
     FOR(v, num_vertices_) for (auto& e : g.edges(v)) {
@@ -38,21 +38,15 @@ public:
       add_edge(root_vtxs[i], root_vtxs[i+1], 0);
     }
 
+    bi_dinitz dc(g);
+
     FOR(s, num_vertices_) {
       if (p[s] == -1) continue;
       V t = p[s];
-      dinitz dc(num_vertices_);
-      FOR(v, num_vertices_) {
-        if (!uf.is_same(s, v)) continue;
-        for (auto& e : g.edges(v)) {
-          dc.add_undirected_edge(v, to(e), 1);
-        }
-      }
 
       int cost = dc.max_flow(s, t);
       // fprintf(stderr, "(%d,%d) cost = %d\n", s, t, cost);
       add_edge(s, t, cost);
-
 
       vector<char> used(num_vertices_);
       queue<int> q;
@@ -61,7 +55,7 @@ public:
       while (!q.empty()) {
         V v = q.front(); q.pop();
         for (auto& e : dc.e[v]) {
-          if (e.cap == 0 || used[e.to]) continue;
+          if (e.cap(dc.graph_revision) == 0 || used[e.to]) continue;
           used[e.to] = true;
           q.push(e.to);
           if (p[e.to] == t) p[e.to] = s;
