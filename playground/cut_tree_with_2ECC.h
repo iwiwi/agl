@@ -209,10 +209,10 @@ class separator {
       stringstream ss;
       ss << "max_flow_times_ = " << max_flow_times_ << ", (" << s << "," << t << ") cost = " << cost;
       JLOG_ADD("separator.progress", ss.str());
-      fprintf(stderr, "getcap_counter = %16lld\n", getcap_counter);
-      fprintf(stderr, "addcap_counter = %16lld\n", addcap_counter);
-      fprintf(stderr, "preflow_eq_degree =     %9d\n", preflow_eq_degree);
-      fprintf(stderr, "flow_eq_0         =     %9d\n", flow_eq_0);
+      fprintf(stderr, "getcap_counter = %16lld\n", logging::getcap_counter);
+      fprintf(stderr, "addcap_counter = %16lld\n", logging::addcap_counter);
+      fprintf(stderr, "preflow_eq_degree =     %9d\n", logging::preflow_eq_degree);
+      fprintf(stderr, "flow_eq_0         =     %9d\n", logging::flow_eq_0);
 
       fprintf(stderr, "cut details : ");
       for(auto& kv : debug_count_cut_size_for_a_period_) fprintf(stderr, "(%d,%d), ", kv.first, kv.second);
@@ -222,10 +222,10 @@ class separator {
   }
 
   int max_flow(const V s, const V t) {
-    const long long before_max_flow = getcap_counter;
+    const long long before_max_flow = logging::getcap_counter;
     int cost = dz_.max_flow(s, t);
     debug_last_max_flow_cost_ = cost;
-    const long long after_max_flow = getcap_counter;
+    const long long after_max_flow = logging::getcap_counter;
 
     gh_builder_.add_edge(s, t, cost); //cutした結果をgomory_hu treeの枝を登録
                       // fprintf(stderr, "(%d,%d) : %d\n", s, t, cost);
@@ -485,18 +485,18 @@ class cut_tree_with_2ECC {
         if (degree[v] == 2) continue; // 自明なcutがある
 
         //debug infomation
-        auto gtp_edge_count_before = gtp_edge_count;
-        auto gtp_edge_miss_before = gtp_edge_miss;
-        auto gtp_edge_use_before = gtp_edge_use;
+        auto gtp_edge_count_before = logging::gtp_edge_count;
+        auto gtp_edge_miss_before = logging::gtp_edge_miss;
+        auto gtp_edge_use_before = logging::gtp_edge_use;
 
         auto packing = packing_base;
         packing.arborescence_packing(v);
 
         //debug infomation
         if (num_vertices_ > 10000) { 
-          JLOG_ADD("find_cuts_by_tree_packing.gtp_edge_count", gtp_edge_count - gtp_edge_count_before);
-          JLOG_ADD("find_cuts_by_tree_packing.gtp_edge_miss", gtp_edge_miss - gtp_edge_miss_before);
-          JLOG_ADD("find_cuts_by_tree_packing.gtp_edge_use", gtp_edge_use - gtp_edge_use_before);
+          JLOG_ADD("find_cuts_by_tree_packing.gtp_edge_count", logging::gtp_edge_count - gtp_edge_count_before);
+          JLOG_ADD("find_cuts_by_tree_packing.gtp_edge_miss", logging::gtp_edge_miss - gtp_edge_miss_before);
+          JLOG_ADD("find_cuts_by_tree_packing.gtp_edge_use", logging::gtp_edge_use - gtp_edge_use_before);
         }
 
 
@@ -698,8 +698,8 @@ public:
     }
 
     //debug infomation
-    auto preflow_eq_degreebefore = preflow_eq_degree;
-    auto flow_eq_0_before = flow_eq_0;
+    auto preflow_eq_degreebefore = logging::preflow_eq_degree;
+    auto flow_eq_0_before = logging::flow_eq_0;
 
     if(num_vs > 10000) fprintf(stderr, "cut_tree_with_2ECC::bi_dinitz before init : memory %ld MB\n", jlog_internal::get_memory_usage() / 1024);
     //dinicの初期化
@@ -745,8 +745,8 @@ public:
 
     gh_builder_.build();
 
-    auto preflow_eq_degreeafter = preflow_eq_degree;
-    auto flow_eq_0_after = flow_eq_0;
+    auto preflow_eq_degreeafter = logging::preflow_eq_degree;
+    auto flow_eq_0_after = logging::flow_eq_0;
 
     if (num_vertices_ > 10000) {
       JLOG_OPEN("sp_dfs") {

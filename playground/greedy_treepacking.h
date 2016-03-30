@@ -1,9 +1,12 @@
 #pragma once
 
 DEFINE_int32(gtp_dfs_edge_max, 1000000000, "");
+
+namespace logging {
 long long gtp_edge_count = 0;
 long long gtp_edge_miss = 0;
 long long gtp_edge_use = 0;
+} //namespace logging
 
 // ある頂点からdfsをして、貪欲にtree packingを求める
 class greedy_treepacking {
@@ -41,15 +44,15 @@ class greedy_treepacking {
     const int rem_edges = min(to_edges.size(), FLAGS_gtp_dfs_edge_max);
     for(int i = 0; i < rem_edges; i++) {
       V to = to_edges.current();
-      gtp_edge_count++;
+      logging::gtp_edge_count++;
       if (used_revision_[to] == vertices_revision_) {
         to_edges.advance();
-        gtp_edge_miss++;
+        logging::gtp_edge_miss++;
       } else {
         to_edges.remove_current();
         inedge_count_[to]++; // in-edgeの本数が増える
         dfs(to);
-        gtp_edge_use++;
+        logging::gtp_edge_use++;
       }
     }
   }
@@ -75,7 +78,7 @@ public:
     for(int i = 0; i < edges_[from].size(); i++) {
       if(vertices_revision_% 1000 == 0) {
         stringstream ss;
-        ss << "revision = " << vertices_revision_ << ", gtp_edge_count = " << gtp_edge_count << ", gtp_edge_use = " << gtp_edge_use;
+        ss << "revision = " << vertices_revision_ << ", gtp_edge_count = " << logging::gtp_edge_count << ", gtp_edge_use = " << logging::gtp_edge_use;
         JLOG_ADD("greedy_treepacking.progress", ss.str());
       }
       dfs(from);
