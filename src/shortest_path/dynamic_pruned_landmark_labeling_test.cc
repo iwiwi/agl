@@ -19,7 +19,7 @@ std::vector<bool> dynamic_pruned_landmark_labeling<kNumBitParallelRoots>
 template <size_t kNumBitParallelRoots>
 std::vector<V> dynamic_pruned_landmark_labeling<kNumBitParallelRoots>
 ::test_get_rank() {
-  return rank;
+  return rank_;
 }
 }  // namespace agl
 
