@@ -266,13 +266,13 @@ class separator {
         one_side++;
         for (auto& e : dz_.e[v]) {
           const int cap = e.cap(dz_.graph_revision);
-          if (cap == 0 || grouping_used_[e.to] == F) continue;
-          grouping_used_[e.to] = F;
-          q.push(e.to);
-          if (dcs_.is_same_group(t, e.to)) {
-            dcs_.move_other_group(e.to, s); //tと同じgroupにいた頂点を、s側のgroupに移動
+          if (cap == 0 || grouping_used_[e.to_] == F) continue;
+          grouping_used_[e.to_] = F;
+          q.push(e.to_);
+          if (dcs_.is_same_group(t, e.to_)) {
+            dcs_.move_other_group(e.to_, s); //tと同じgroupにいた頂点を、s側のgroupに移動
           } else {
-            check_crossed_mincut(e.to);
+            check_crossed_mincut(e.to_);
           }
         }
       }
@@ -285,14 +285,14 @@ class separator {
         V v = q.front(); q.pop();
         one_side++;
         for (auto& e : dz_.e[v]) {
-          const int cap = dz_.e[e.to][e.reverse].cap(dz_.graph_revision);
-          if (cap == 0 || grouping_used_[e.to] == F) continue;
-          grouping_used_[e.to] = F;
-          q.push(e.to);
-          if (dcs_.is_same_group(s, e.to)) {
-            dcs_.move_other_group(e.to, t); //sと同じgroupにいた頂点を、t側のgroupに移動
+          const int cap = dz_.e[e.to_][e.reverse].cap(dz_.graph_revision);
+          if (cap == 0 || grouping_used_[e.to_] == F) continue;
+          grouping_used_[e.to_] = F;
+          q.push(e.to_);
+          if (dcs_.is_same_group(s, e.to_)) {
+            dcs_.move_other_group(e.to_, t); //sと同じgroupにいた頂点を、t側のgroupに移動
           } else {
-            check_crossed_mincut(e.to);
+            check_crossed_mincut(e.to_);
           }
         }
       }
@@ -323,16 +323,16 @@ class separator {
         V v = q.front(); q.pop();
         for (auto& e : dz_.e[v]) {
           const int cap = e.cap(dz_.graph_revision);
-          if (contraction_used_[e.to] == F) continue;
+          if (contraction_used_[e.to_] == F) continue;
           if (cap == 0) {
-            if (grouping_used_[e.to] != F) {
+            if (grouping_used_[e.to_] != F) {
               //辺を上手に張り替える
               dz_.reconnect_edge(e, sside_new_vtx, tside_new_vtx);
               num_reconnected++;
             }
           } else {
-            contraction_used_[e.to] = F;
-            q.push(e.to);
+            contraction_used_[e.to_] = F;
+            q.push(e.to_);
           }
         }
       }
@@ -342,17 +342,17 @@ class separator {
       while (!q.empty()) {
         V v = q.front(); q.pop();
         for (auto& e : dz_.e[v]) {
-          const int cap = dz_.e[e.to][e.reverse].cap(dz_.graph_revision);
-          if (contraction_used_[e.to] == F) continue;
+          const int cap = dz_.e[e.to_][e.reverse].cap(dz_.graph_revision);
+          if (contraction_used_[e.to_] == F) continue;
           if (cap == 0) {
-            if (grouping_used_[e.to] != F) {
+            if (grouping_used_[e.to_] != F) {
               //辺を上手に張り替える
               dz_.reconnect_edge(e, tside_new_vtx, sside_new_vtx);
               num_reconnected++;
             }
           } else {
-            contraction_used_[e.to] = F;
-            q.push(e.to);
+            contraction_used_[e.to_] = F;
+            q.push(e.to_);
           }
         }
       }
@@ -408,7 +408,7 @@ public:
     if(dcs_.node_num() > 10000) fprintf(stderr, "separator::debug_verify... ");
     union_find uf(dz_.n);
     for(int i = 0; i < dz_.n; i++) for (const auto& to_edge : dz_.e[i]) {
-      uf.unite(i, to_edge.to);
+      uf.unite(i, to_edge.to_);
     }
     for(int g = 0; g < dcs_.debug_group_num(); g++) {
       auto v = dcs_.get_group(g);
@@ -610,7 +610,7 @@ class cut_tree_with_2ECC {
 
     for(int s = 0; s < num_vertices_; s++) {
       for(const auto& to_edge : dz.e[s]) {
-        const V t = to_edge.to;
+        const V t = to_edge.to_;
         if (!dcs.is_same_group(s, t)) continue;
         sep.mincut(s, t);
       }
@@ -644,7 +644,7 @@ class cut_tree_with_2ECC {
         for(int _ = 0; _ < loop_num; _++) {
           const V v = q.front(); q.pop();
           for(auto& to_edge : dz.e[v]) {
-              const V t = to_edge.to;
+              const V t = to_edge.to_;
               if(used[t] == used_revision) continue;
               used[t] = used_revision;
               q.push(t);

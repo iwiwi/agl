@@ -55,10 +55,10 @@ public:
       while (!q.empty()) {
         V v = q.front(); q.pop();
         for (auto& e : dc.e[v]) {
-          if (e.cap(dc.graph_revision) == 0 || used[e.to]) continue;
-          used[e.to] = true;
-          q.push(e.to);
-          if (p[e.to] == t) p[e.to] = s;
+          if (e.cap(dc.graph_revision) == 0 || used[e.to_]) continue;
+          used[e.to_] = true;
+          q.push(e.to_);
+          if (p[e.to_] == t) p[e.to_] = s;
         }
       }
     }

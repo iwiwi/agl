@@ -2,21 +2,21 @@
 
 class dinitz {
   struct E {
-    int to, rev, cap;
-    E(int to, int rev, int cap) : to(to), rev(rev), cap(cap) {}
+    int to_, rev_, cap_;
+    E(int to, int rev_, int cap_) : to_(to), rev_(rev_), cap_(cap_) {}
   };
 
   void bfs(int s) {
-    level.assign(level.size(), -1);
+    level_.assign(level_.size(), -1);
     queue<int> q;
-    level[s] = 0;
+    level_[s] = 0;
     q.push(s);
     while (!q.empty()) {
       int v = q.front(); q.pop();
-      for (auto t : e[v]) {
-        if (t.cap > 0 && level[t.to] < 0) {
-          level[t.to] = level[v] + 1;
-          q.push(t.to);
+      for (auto& t : e_[v]) {
+        if (t.cap_ > 0 && level_[t.to_] < 0) {
+          level_[t.to_] = level_[v] + 1;
+          q.push(t.to_);
         }
       }
     }
@@ -24,13 +24,13 @@ class dinitz {
 
   int dfs(int v, int t, int f) {
     if (v == t) return f;
-    for (int &i = iter[v]; i < int(e[v].size()); i++) {
-      E& _e = e[v][i];
-      if (_e.cap > 0 && level[v] < level[_e.to]) {
-        int d = dfs(_e.to, t, min(f, _e.cap));
+    for (int &i = iter_[v]; i < int(e_[v].size()); i++) {
+      E& _e = e_[v][i];
+      if (_e.cap_ > 0 && level_[v] < level_[_e.to_]) {
+        int d = dfs(_e.to_, t, min(f, _e.cap_));
         if (d > 0) {
-          _e.cap -= d;
-          e[_e.to][_e.rev].cap += d;
+          _e.cap_ -= d;
+          e_[_e.to_][_e.rev_].cap_ += d;
           return d;
         }
       }
@@ -41,12 +41,12 @@ class dinitz {
   static const int INF = (int)1e8;
 public:
   dinitz(int num_vs)
-  : level(num_vs), iter(num_vs), e(num_vs) {
+  : level_(num_vs), iter_(num_vs), e_(num_vs) {
   }
 
   void add_undirected_edge(int f, int t, int c) {
-    e[f].push_back(E(t, int(e[t].size()), c));
-    e[t].push_back(E(f, int(e[f].size()) - 1, c));
+    e_[f].push_back(E(t, int(e_[t].size()), c));
+    e_[t].push_back(E(f, int(e_[f].size()) - 1, c));
   }
 
   int max_flow(int s, int t) {
@@ -54,8 +54,8 @@ public:
     int flow = 0;
     while (true) {
       bfs(s);
-      if (level[t] < 0) return flow;
-      iter.assign(iter.size(), 0);
+      if (level_[t] < 0) return flow;
+      iter_.assign(iter_.size(), 0);
       int f;
       while ((f = dfs(s, t, INF)) > 0) {
         flow += f;
@@ -63,6 +63,11 @@ public:
     }
   }
 
-  vector<int> level,iter;
-  vector<vector<E>> e;
+  vector<E>& edges(V v) {
+    return e_[v];
+  }
+
+private:
+  vector<int> level_,iter_;
+  vector<vector<E>> e_;
 };

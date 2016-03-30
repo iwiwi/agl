@@ -20,13 +20,13 @@ private:
   class E {
     static const int init_cap_ = 1;
   private: int revision_;
-  public:  int to;
+  public:  int to_;
   private: int cap_ : 3;
   public:  unsigned int reverse : 29;
   
   public:
     E(int to, int reverse, int cap) :
-      revision_(0),to(to),  cap_(cap), reverse(reverse) {
+      revision_(0),to_(to),  cap_(cap), reverse(reverse) {
       CHECK(init_cap_ == cap);
     }
 
@@ -56,13 +56,13 @@ private:
   bool bi_dfs(int s, int t) {
     queue<int> qs, qt;
     qs.push(s); qt.push(t);
-    level[s].first = level[t].second = 0;
-    bfs_revision[s] = s_side_bfs_revision;
-    bfs_revision[t] = t_side_bfs_revision;
+    level_[s].first = level_[t].second = 0;
+    bfs_revision_[s] = s_side_bfs_revision_;
+    bfs_revision_[t] = t_side_bfs_revision_;
 
     size_t qs_next_get_cap = e[s].size();
     size_t qt_next_get_cap = e[t].size();
-    int slevel = 0, tlevel = 0;
+    int slevel_ = 0, tlevel_ = 0;
     while (qs.size() != 0 && qt.size() != 0) {
       bool path_found = false;
       if (qs_next_get_cap <= qt_next_get_cap) {
@@ -71,38 +71,38 @@ private:
           const int v = qs.front(); qs.pop();
           qs_next_get_cap -= e[v].size();
           for (auto& t : e[v]) {
-            if (t.cap(graph_revision) == 0 || bfs_revision[t.to] == s_side_bfs_revision) continue;
-            if (bfs_revision[t.to] == t_side_bfs_revision) {
+            if (t.cap(graph_revision) == 0 || bfs_revision_[t.to_] == s_side_bfs_revision_) continue;
+            if (bfs_revision_[t.to_] == t_side_bfs_revision_) {
               path_found = true;
               continue;
             }
-            bfs_revision[t.to] = s_side_bfs_revision;
-            level[t.to].first = slevel + 1;
-            qs_next_get_cap += e[t.to].size();
-            qs.push(t.to);
+            bfs_revision_[t.to_] = s_side_bfs_revision_;
+            level_[t.to_].first = slevel_ + 1;
+            qs_next_get_cap += e[t.to_].size();
+            qs.push(t.to_);
           }
         }
-        slevel++;
+        slevel_++;
       } else {
         int size = int(qt.size());
         for(int _ = 0; _ < size; _++) {
           const int v = qt.front(); qt.pop();
           qt_next_get_cap -= e[v].size();
           for (auto& t : e[v]) {
-            if (e[t.to][t.reverse].cap(graph_revision) == 0 || bfs_revision[t.to] == t_side_bfs_revision) continue;
-            if (bfs_revision[t.to] == s_side_bfs_revision) {
+            if (e[t.to_][t.reverse].cap(graph_revision) == 0 || bfs_revision_[t.to_] == t_side_bfs_revision_) continue;
+            if (bfs_revision_[t.to_] == s_side_bfs_revision_) {
               path_found = true;
               continue;
             }
-            bfs_revision[t.to] = t_side_bfs_revision;
-            level[t.to].second = tlevel + 1;
-            qt_next_get_cap += e[t.to].size();
-            qt.push(t.to);
+            bfs_revision_[t.to_] = t_side_bfs_revision_;
+            level_[t.to_].second = tlevel_ + 1;
+            qt_next_get_cap += e[t.to_].size();
+            qt.push(t.to_);
           }
         }
-        tlevel++;
+        tlevel_++;
       }
-      // fprintf(stderr, "slevel : %d, tlevel : %d\n",slevel, tlevel);
+      // fprintf(stderr, "slevel_ : %d, tlevel_ : %d\n",slevel_, tlevel_);
       if (path_found) return true;
     }
 
@@ -110,30 +110,30 @@ private:
     return false;
   }
 
-  int dfs(int v, int t, bool use_slevel, int f) {
+  int dfs(int v, int t, bool use_slevel_, int f) {
     // goal_oriented_dfs_aster_ub >= 3 を設定すると、dfs中に同じ辺を使ってしまい、辺のコストが破綻して f < 0 となることがある
     CHECK(f >= 0); 
 
     if (v == t) return f;
-    if (dfs_revision[v] != bfs_revision[v]) {
-      dfs_revision[v] = bfs_revision[v];
-      iter[v] = 0;
+    if (dfs_revision_[v] != bfs_revision_[v]) {
+      dfs_revision_[v] = bfs_revision_[v];
+      iter_[v] = 0;
     }
-    for (int &i = iter[v]; i < int(e[v].size()); i++) {
+    for (int &i = iter_[v]; i < int(e[v].size()); i++) {
       E& _e = e[v][i];
       const int cap = _e.cap(graph_revision);
-      if (cap == 0 || bfs_revision[_e.to] / 2 != s_side_bfs_revision / 2) continue;
+      if (cap == 0 || bfs_revision_[_e.to_] / 2 != s_side_bfs_revision_ / 2) continue;
 
       bool rec;
-      if (use_slevel) rec = bfs_revision[_e.to] == t_side_bfs_revision || level[v].first < level[_e.to].first;
-      else rec = bfs_revision[_e.to] == t_side_bfs_revision && level[v].second > level[_e.to].second;
+      if (use_slevel_) rec = bfs_revision_[_e.to_] == t_side_bfs_revision_ || level_[v].first < level_[_e.to_].first;
+      else rec = bfs_revision_[_e.to_] == t_side_bfs_revision_ && level_[v].second > level_[_e.to_].second;
       if (!rec) continue;
 
-      bool next_slevel = use_slevel && bfs_revision[_e.to] == s_side_bfs_revision;
-      int d = dfs(_e.to, t, next_slevel, min(f, cap));
+      bool next_slevel_ = use_slevel_ && bfs_revision_[_e.to_] == s_side_bfs_revision_;
+      int d = dfs(_e.to_, t, next_slevel_, min(f, cap));
       if (d > 0) {
         _e.add_cap(-d, graph_revision);
-        e[_e.to][_e.reverse].add_cap(d, graph_revision);
+        e[_e.to_][_e.reverse].add_cap(d, graph_revision);
         return d;
       }
     }
@@ -147,25 +147,25 @@ private:
 
   void reset_rivision() {
     for(int v = 0; v < n; v++) for (auto& e_ : e[v]) e_.reset();
-    memset(bfs_revision.data(), 0, sizeof(bfs_revision[0]) * bfs_revision.size());
-    memset(dfs_revision.data(), 0, sizeof(dfs_revision[0]) * dfs_revision.size());
-    s_side_bfs_revision = 2;
-    t_side_bfs_revision = 3;
+    memset(bfs_revision_.data(), 0, sizeof(bfs_revision_[0]) * bfs_revision_.size());
+    memset(dfs_revision_.data(), 0, sizeof(dfs_revision_[0]) * dfs_revision_.size());
+    s_side_bfs_revision_ = 2;
+    t_side_bfs_revision_ = 3;
     graph_revision = 0;
   }
 
   int goal_oriented_dfs_inner(int v, int flow,int astar_cost) {
-    if (v == goal_oriented_bfs_root)
+    if (v == goal_oriented_bfs_root_)
       return flow;
 
-    if (dfs_revision[v] != s_side_bfs_revision) {
-      dfs_revision[v] = s_side_bfs_revision;
-      iter[v] = 0;
+    if (dfs_revision_[v] != s_side_bfs_revision_) {
+      dfs_revision_[v] = s_side_bfs_revision_;
+      iter_[v] = 0;
     }
-    for (int &i = iter[v]; i < int(e[v].size()); i++) {
+    for (int &i = iter_[v]; i < int(e[v].size()); i++) {
       E& to_edge = e[v][i];
-      int to = to_edge.to;
-      int add_aster_cost = goal_oriented_bfs_depth[to] - goal_oriented_bfs_depth[v] + 1;
+      int to = to_edge.to_;
+      int add_aster_cost = goal_oriented_bfs_depth_[to] - goal_oriented_bfs_depth_[v] + 1;
       if(add_aster_cost == 2) return 0; //コストの増える頂点は辿らない
       int n_astar_cost = astar_cost + add_aster_cost;
       if (n_astar_cost > FLAGS_goal_oriented_dfs_aster_ub) {
@@ -177,7 +177,7 @@ private:
       int d = goal_oriented_dfs_inner(to, min(flow, cap), n_astar_cost);
       if (d > 0) {
         to_edge.add_cap(-d, graph_revision);
-        e[to_edge.to][to_edge.reverse].add_cap(d, graph_revision);
+        e[to_edge.to_][to_edge.reverse].add_cap(d, graph_revision);
         return d;
       }
     }
@@ -185,20 +185,20 @@ private:
     return 0;
   }
 
-  //v -> goal_oriented_bfs_root にflowを出来る限り送る
+  //v -> goal_oriented_bfs_root_ にflowを出来る限り送る
   int goal_oriented_dfs(int v) {
     int flow = 0;
-    s_side_bfs_revision += 2;
-    t_side_bfs_revision += 2;
+    s_side_bfs_revision_ += 2;
+    t_side_bfs_revision_ += 2;
 
     for (auto it = e[v].begin(); it != e[v].end(); ++it) {
       auto& to_edge = *it;
       while (to_edge.cap(graph_revision) > 0) {
-        int add = goal_oriented_dfs_inner(to_edge.to, to_edge.cap(graph_revision), 0);
+        int add = goal_oriented_dfs_inner(to_edge.to_, to_edge.cap(graph_revision), 0);
         if (add == 0) break;
         flow += add;
         to_edge.add_cap(-add, graph_revision);
-        e[to_edge.to][to_edge.reverse].add_cap(add, graph_revision);
+        e[to_edge.to_][to_edge.reverse].add_cap(add, graph_revision);
       }
     }
     return flow;
@@ -207,22 +207,22 @@ private:
 public:
   bi_dinitz() : n(0) {}
   bi_dinitz(const G& g)
-    : n(g.num_vertices()), level(n), iter(n), bfs_revision(n), dfs_revision(n), e(n),
-    s_side_bfs_revision(2), t_side_bfs_revision(3), graph_revision(0), goal_oriented_bfs_root(-1) {
+    : n(g.num_vertices()), level_(n), iter_(n), bfs_revision_(n), dfs_revision_(n), e(n),
+    s_side_bfs_revision_(2), t_side_bfs_revision_(3), graph_revision(0), goal_oriented_bfs_root_(-1) {
     for(int v = 0; v < n; v++) for (auto& e : g.edges(v)) {
       add_undirected_edge(v, to(e), 1);
     }
   }
   bi_dinitz(const vector<pair<V, V>>& edges, int num_vs)
-    : n(num_vs), level(n), iter(n), bfs_revision(n), dfs_revision(n), e(n),
-    s_side_bfs_revision(2), t_side_bfs_revision(3), graph_revision(0), goal_oriented_bfs_root(-1) {
+    : n(num_vs), level_(n), iter_(n), bfs_revision_(n), dfs_revision_(n), e(n),
+    s_side_bfs_revision_(2), t_side_bfs_revision_(3), graph_revision(0), goal_oriented_bfs_root_(-1) {
     for (auto& uv : edges) {
       add_undirected_edge(uv.first, uv.second, 1);
     }
   }
   bi_dinitz(vector<pair<V, V>>&& edges, int num_vs)
-    : n(num_vs), level(n), iter(n), bfs_revision(n), dfs_revision(n), e(n),
-    s_side_bfs_revision(2), t_side_bfs_revision(3), graph_revision(0), goal_oriented_bfs_root(-1) {
+    : n(num_vs), level_(n), iter_(n), bfs_revision_(n), dfs_revision_(n), e(n),
+    s_side_bfs_revision_(2), t_side_bfs_revision_(3), graph_revision(0), goal_oriented_bfs_root_(-1) {
       edges.shrink_to_fit();
 
       //こまめに解放しながら辺を追加していく
@@ -241,33 +241,33 @@ public:
   }
 
   void add_vertex() {
-    level.emplace_back();
-    iter.emplace_back();
-    bfs_revision.emplace_back();
-    dfs_revision.emplace_back();
+    level_.emplace_back();
+    iter_.emplace_back();
+    bfs_revision_.emplace_back();
+    dfs_revision_.emplace_back();
     e.emplace_back();
     n++;
   }
 
   void reconnect_edge(E& rm, int sside_vtx, int tside_vtx) {
-    const int to = rm.to;
+    const int to = rm.to_;
     const int to_rev = rm.reverse;
     E& rm_rev = e[to][to_rev];
-    const int from = rm_rev.to;
+    const int from = rm_rev.to_;
     const int from_rev = rm_rev.reverse;
 
     add_undirected_edge(sside_vtx, tside_vtx, 1);
     E& se = e[sside_vtx].back();
     E& te = e[tside_vtx].back();
 
-    rm.to = sside_vtx;
+    rm.to_ = sside_vtx;
     rm.reverse = te.reverse;
-    rm_rev.to = tside_vtx;
+    rm_rev.to_ = tside_vtx;
     rm_rev.reverse = se.reverse;
 
-    se.to = from;
+    se.to_ = from;
     se.reverse = from_rev;
-    te.to = to;
+    te.to_ = to;
     te.reverse = to_rev;
   }
 
@@ -277,18 +277,18 @@ public:
 
     int flow = 0;
     int preflow = 0;
-    if (goal_oriented_bfs_root == t) {
+    if (goal_oriented_bfs_root_ == t) {
       preflow = goal_oriented_dfs(s);
     }
 
     if(preflow == int(e[s].size())) {
       reason_for_finishing_bfs = kQsIsEmpty;
     } else {
-      s_side_bfs_revision += 2;
-      t_side_bfs_revision += 2;
+      s_side_bfs_revision_ += 2;
+      t_side_bfs_revision_ += 2;
 
       int bfs_counter = 0;
-      for (; ; s_side_bfs_revision += 2, t_side_bfs_revision += 2) {
+      for (; ; s_side_bfs_revision_ += 2, t_side_bfs_revision_ += 2) {
         // fprintf(stderr, "bfs_start\n");
         bool path_found = bi_dfs(s, t);
         bfs_counter++;
@@ -321,49 +321,49 @@ public:
 
   bool path_dont_exists_to_t(const int v) const {
     if (reason_for_finishing_bfs == kQsIsEmpty) {
-      //sから到達可能な頂点のbfs_revisionには、必ずs_side_bfs_revisionが代入されている
-      return bfs_revision[v] == s_side_bfs_revision;
+      //sから到達可能な頂点のbfs_revision_には、必ずs_side_bfs_revision_が代入されている
+      return bfs_revision_[v] == s_side_bfs_revision_;
     } else {
       //tから到達不可能
-      return bfs_revision[v] != t_side_bfs_revision;
+      return bfs_revision_[v] != t_side_bfs_revision_;
     }
   }
 
   bool path_dont_exists_from_s(const int v) const {
     if (reason_for_finishing_bfs == kQsIsEmpty) {
       //sから到達不可能
-      return bfs_revision[v] != s_side_bfs_revision;
+      return bfs_revision_[v] != s_side_bfs_revision_;
     } else {
-      //tから到達可能な頂点のbfs_revisionには、必ずt_side_bfs_revisionが代入されている
-      return bfs_revision[v] == t_side_bfs_revision;
+      //tから到達可能な頂点のbfs_revision_には、必ずt_side_bfs_revision_が代入されている
+      return bfs_revision_[v] == t_side_bfs_revision_;
     }
   }
 
   //フローを流す前に実行する
   void reset_graph() {
     graph_revision++;
-    if (s_side_bfs_revision >= numeric_limits<decltype(s_side_bfs_revision)>::max() / 2) {
+    if (s_side_bfs_revision_ >= numeric_limits<decltype(s_side_bfs_revision_)>::max() / 2) {
       reset_rivision();
     }
   }
 
   //rootを起点にbfsをして、 s -> rootのflowを高速化する
   void goal_oriented_bfs_init(int root) {
-    goal_oriented_bfs_root = root;
-    goal_oriented_bfs_depth.clear();
-    goal_oriented_bfs_depth.resize(n, n); // bfsの深さをn(=INF)で初期化
+    goal_oriented_bfs_root_ = root;
+    goal_oriented_bfs_depth_.clear();
+    goal_oriented_bfs_depth_.resize(n, n); // bfsの深さをn(=INF)で初期化
 
-    // set goal_oriented_bfs_depth
+    // set goal_oriented_bfs_depth_
     queue<int> q;
     q.push(root);
-    goal_oriented_bfs_depth[root] = 0;
+    goal_oriented_bfs_depth_[root] = 0;
     while (!q.empty()) {
       const int v = q.front(); q.pop();
-      const int ndepth = goal_oriented_bfs_depth[v] + 1;
+      const int ndepth = goal_oriented_bfs_depth_[v] + 1;
       for (auto& to_edge : e[v]) {
-        if (goal_oriented_bfs_depth[to_edge.to] > ndepth) {
-          goal_oriented_bfs_depth[to_edge.to] = ndepth;
-          q.push(to_edge.to);
+        if (goal_oriented_bfs_depth_[to_edge.to_] > ndepth) {
+          goal_oriented_bfs_depth_[to_edge.to_] = ndepth;
+          q.push(to_edge.to_);
         }
       }
     }
@@ -371,14 +371,14 @@ public:
     //sort edges by depth order
     for(int v = 0; v < n; v++) {
       // dep[l.to]は3つの値しか取らないので高速化可能
-      sort(e[v].begin(), e[v].end(), [&dep = goal_oriented_bfs_depth](const E& l, const E& r) {
-        return dep[l.to] < dep[r.to];
+      sort(e[v].begin(), e[v].end(), [&dep = goal_oriented_bfs_depth_](const E& l, const E& r) {
+        return dep[l.to_] < dep[r.to_];
       });
 
       //reset reverse edge's "reverse" value
       for(int i = 0; i < int(e[v].size()); i++) {
         const E& to_edge = e[v][i];
-        E& rev = e[to_edge.to][to_edge.reverse];
+        E& rev = e[to_edge.to_][to_edge.reverse];
         rev.reverse = i;
       }
     }
@@ -386,15 +386,21 @@ public:
   }
 
 
+public:
   int n;
-  vector<pair<int, int>> level;
-  vector<int> iter;
-  vector<int> bfs_revision, dfs_revision;
+private:
+  vector<pair<int, int>> level_;
+  vector<int> iter_;
+  vector<int> bfs_revision_, dfs_revision_;
+public:
   vector<vector<E>> e;
-  int s_side_bfs_revision, t_side_bfs_revision;
+private:
+  int s_side_bfs_revision_, t_side_bfs_revision_;
+public:
   int graph_revision;
   reason_for_finishing_bfs_t reason_for_finishing_bfs;
 
-  int goal_oriented_bfs_root;
-  vector<int> goal_oriented_bfs_depth;
+private:
+  int goal_oriented_bfs_root_;
+  vector<int> goal_oriented_bfs_depth_;
 };
