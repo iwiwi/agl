@@ -8,12 +8,6 @@ int preflow_eq_degree = 0;
 int flow_eq_0 = 0;
 
 
-#ifdef DEBUG_bi_dinitz
-#else
-   void nopnop() { }
-#  define fprintf(...) nopnop()
-#endif
-
 class bi_dinitz {
 public:
   // two sided bfsが終了した理由
@@ -108,7 +102,7 @@ private:
         }
         tlevel++;
       }
-      fprintf(stderr, "slevel : %d, tlevel : %d\n",slevel, tlevel);
+      // fprintf(stderr, "slevel : %d, tlevel : %d\n",slevel, tlevel);
       if (path_found) return true;
     }
 
@@ -295,7 +289,7 @@ public:
 
       int bfs_counter = 0;
       for (; ; s_side_bfs_revision += 2, t_side_bfs_revision += 2) {
-        fprintf(stderr, "bfs_start\n");
+        // fprintf(stderr, "bfs_start\n");
         bool path_found = bi_dfs(s, t);
         bfs_counter++;
         if (!path_found) break;
@@ -305,7 +299,7 @@ public:
           flow += f;
         }
       }
-      fprintf(stderr, "bfs_counter : %d\n", bfs_counter);
+      // fprintf(stderr, "bfs_counter : %d\n", bfs_counter);
     }
     // fprintf(stderr, "(%d,%d) : preflow = %d, flow = %d\n", s, t, preflow, flow);
     if(flow == 0 && preflow > 0) {
@@ -314,8 +308,8 @@ public:
       }
       flow_eq_0++;
     } else {
-      fprintf(stderr, "getcap_counter : %lld\n", getcap_counter);
-      fprintf(stderr, "addcap_counter : %lld\n", addcap_counter);
+      // fprintf(stderr, "getcap_counter : %lld\n", getcap_counter);
+      // fprintf(stderr, "addcap_counter : %lld\n", addcap_counter);
     }
     return flow + preflow;
   }
@@ -359,7 +353,7 @@ public:
     goal_oriented_bfs_depth.clear();
     goal_oriented_bfs_depth.resize(n, n); // bfsの深さをn(=INF)で初期化
 
-                    // set goal_oriented_bfs_depth
+    // set goal_oriented_bfs_depth
     queue<int> q;
     q.push(root);
     goal_oriented_bfs_depth[root] = 0;
@@ -404,5 +398,3 @@ public:
   int goal_oriented_bfs_root;
   vector<int> goal_oriented_bfs_depth;
 };
-
-#undef fprintf
