@@ -10,6 +10,7 @@ DEFINE_bool(enable_logging_max_flow_details, false, "");
 DEFINE_bool(enable_adjacent_cut, true, "");
 DEFINE_bool(enable_goal_oriented_search, true, "");
 
+namespace agl {
 class disjoint_cut_set {
   struct Node {
     int pv, nt;
@@ -768,3 +769,4 @@ private:
   //todo .ccと.hに分ける時に、std::unique_ptrで囲む
   gomory_hu_tree_builder gh_builder_;
 };
+} // namespace agl

@@ -1,17 +1,19 @@
 #pragma once
 #include "connected_components_filter.h"
 
+namespace agl {
+
 // 2ECC = 2-edge connected components
 template<class handler_t>
 class two_edge_CC_filter {
 public:
 
-  void lowlink__dfs(int v, int par, int& cur_ord) {
+  void lowlink_dfs(int v, int par, int& cur_ord) {
     lowlink_[v] = order_[v] = cur_ord++;
     for(int dir = 0; dir < 2; dir++) for (auto to : g_.edges(v, D(dir))) {
       if (to == par) continue;
       if (order_[to] == -1) {
-        lowlink__dfs(to, v, cur_ord);
+        lowlink_dfs(to, v, cur_ord);
         lowlink_[v] = min(lowlink_[v], lowlink_[to]);
         if (order_[v] < lowlink_[to]) bridge_.emplace_back(v, to);
         else biconnected_graphs_edges_.emplace_back(v, to);
@@ -49,7 +51,7 @@ public:
 
       for(int v = 0; v < n_; v++) if (uf_.root(v) == v) {
         int cur_ord = 0;
-        lowlink__dfs(v, -1, cur_ord);
+        lowlink_dfs(v, -1, cur_ord);
       }
 
       CHECK(bridge_.size() + biconnected_graphs_edges_.size() == size_t(num_edges));
@@ -110,3 +112,4 @@ private:
 
   unique_ptr<connected_components_filter<handler_t>> biconnected_graph_handler_;
 };
+} //namespace agl

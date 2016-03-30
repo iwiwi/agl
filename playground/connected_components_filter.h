@@ -1,5 +1,6 @@
 #pragma once
 
+namespace agl {
 template<class handler_t>
 class connected_components_filter {
 public:
@@ -78,3 +79,4 @@ private:
   vector<handler_t> handlers_;
   int num_connected_components_;
 };
+} //namespace agl

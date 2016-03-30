@@ -2,6 +2,7 @@
 
 DEFINE_int32(gtp_dfs_edge_max, 1000000000, "");
 
+namespace agl {
 namespace logging {
 long long gtp_edge_count = 0;
 long long gtp_edge_miss = 0;
@@ -97,3 +98,4 @@ private:
   vector<int> used_revision_;
   int vertices_revision_;
 };
+} // namespace agl

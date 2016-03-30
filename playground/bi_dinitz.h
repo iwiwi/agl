@@ -2,6 +2,7 @@
 
 DEFINE_int32(goal_oriented_dfs_aster_ub, 2, "");
 
+namespace agl {
 namespace logging {
 long long getcap_counter = 0;
 long long addcap_counter = 0;
@@ -411,3 +412,4 @@ private:
   int goal_oriented_bfs_root_;
   vector<int> goal_oriented_bfs_depth_;
 };
+} //namespace agl
