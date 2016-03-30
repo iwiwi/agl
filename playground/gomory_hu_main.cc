@@ -69,13 +69,6 @@ void main_(G&& g) {
   }
 
   JLOG_PUT("try_greedy_tree_packing", FLAGS_try_greedy_tree_packing);
-  JLOG_PUT("getcap_counter", logging::getcap_counter);
-  JLOG_PUT("addcap_counter", logging::addcap_counter);
-  JLOG_PUT("preflow_eq_degree", logging::preflow_eq_degree);
-  JLOG_PUT("flow_eq_0", logging::flow_eq_0);
-  JLOG_PUT("gtp_edge_count_all", logging::gtp_edge_count);
-  JLOG_PUT("gtp_edge_miss_all", logging::gtp_edge_miss);
-  JLOG_PUT("gtp_edge_use_all", logging::gtp_edge_use);
 }
 
 DEFINE_string(write_directed_graph_name,"", "");

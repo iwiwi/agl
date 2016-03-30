@@ -6,7 +6,6 @@ DEFINE_int32(try_large_degreepairs, 10, "");
 DEFINE_int32(separate_near_pairs_d, 1, "");
 DEFINE_int32(contraction_lower_bound, 2, "");
 DEFINE_bool(enable_greedy_tree_packing, true, "");
-DEFINE_bool(enable_logging_max_flow_details, false, "");
 DEFINE_bool(enable_adjacent_cut, true, "");
 DEFINE_bool(enable_goal_oriented_search, true, "");
 
@@ -197,23 +196,11 @@ class separator {
   }
 
   // 一定期間置きに進捗を出力する
-  void print_progress_at_regular_intervals(V s, V t, int cost, long long before_max_flow , long long after_max_flow) {
-    if (FLAGS_enable_logging_max_flow_details) {
-      JLOG_ADD_OPEN("separator.max_flow_details") {
-        JLOG_PUT("cost", cost, false);
-        JLOG_PUT("edge_count", after_max_flow - before_max_flow, false);
-      }
-    }
-
+  void print_progress_at_regular_intervals(V s, V t, int cost) {
     if (max_flow_times_ % 10000 == 0) {
       stringstream ss;
       ss << "max_flow_times_ = " << max_flow_times_ << ", (" << s << "," << t << ") cost = " << cost;
       JLOG_ADD("separator.progress", ss.str());
-      fprintf(stderr, "getcap_counter = %16lld\n", logging::getcap_counter);
-      fprintf(stderr, "addcap_counter = %16lld\n", logging::addcap_counter);
-      fprintf(stderr, "preflow_eq_degree =     %9d\n", logging::preflow_eq_degree);
-      fprintf(stderr, "flow_eq_0         =     %9d\n", logging::flow_eq_0);
-
       fprintf(stderr, "cut details : ");
       for(auto& kv : debug_count_cut_size_for_a_period_) fprintf(stderr, "(%d,%d), ", kv.first, kv.second);
       fprintf(stderr, "\n");
@@ -222,17 +209,15 @@ class separator {
   }
 
   int max_flow(const V s, const V t) {
-    const long long before_max_flow = logging::getcap_counter;
     int cost = dz_.max_flow(s, t);
     debug_last_max_flow_cost_ = cost;
-    const long long after_max_flow = logging::getcap_counter;
 
     gh_builder_.add_edge(s, t, cost); //cutした結果をgomory_hu treeの枝を登録
                       // fprintf(stderr, "(%d,%d) : %d\n", s, t, cost);
                       //debug infomation
     
     max_flow_times_++;
-    print_progress_at_regular_intervals(s, t, cost, before_max_flow, after_max_flow);
+    print_progress_at_regular_intervals(s, t, cost);
 
     cross_other_mincut_count_ = 0;
     auto check_crossed_mincut = [this](const V add) {
@@ -485,20 +470,8 @@ class cut_tree_with_2ECC {
         if (degree[v] == 2) continue; // 自明なcutがある
 
         //debug infomation
-        auto gtp_edge_count_before = logging::gtp_edge_count;
-        auto gtp_edge_miss_before = logging::gtp_edge_miss;
-        auto gtp_edge_use_before = logging::gtp_edge_use;
-
         auto packing = packing_base;
         packing.arborescence_packing(v);
-
-        //debug infomation
-        if (num_vertices_ > 10000) { 
-          JLOG_ADD("find_cuts_by_tree_packing.gtp_edge_count", logging::gtp_edge_count - gtp_edge_count_before);
-          JLOG_ADD("find_cuts_by_tree_packing.gtp_edge_miss", logging::gtp_edge_miss - gtp_edge_miss_before);
-          JLOG_ADD("find_cuts_by_tree_packing.gtp_edge_use", logging::gtp_edge_use - gtp_edge_use_before);
-        }
-
 
         if (current_parent[v] != -1) {
           current_parent[v] = v; // 閉路が出来上がるのを防ぐために、親を自分自身であると登録しておく
@@ -682,7 +655,6 @@ public:
   cut_tree_with_2ECC(vector<pair<V, V>>&& edges, int num_vs) :
     num_vertices_(num_vs),
     gh_builder_(num_vs) {
-    if(num_vs > 10000) fprintf(stderr, "cut_tree_with_2ECC::constructor start : memory %ld MB\n", jlog_internal::get_memory_usage() / 1024);
     vector<int> degree(num_vertices_);
     for (auto& e : edges) degree[e.first]++, degree[e.second]++;
 
@@ -697,14 +669,8 @@ public:
       find_cuts_by_tree_packing(edges, dcs, degree);
     }
 
-    //debug infomation
-    auto preflow_eq_degreebefore = logging::preflow_eq_degree;
-    auto flow_eq_0_before = logging::flow_eq_0;
-
-    if(num_vs > 10000) fprintf(stderr, "cut_tree_with_2ECC::bi_dinitz before init : memory %ld MB\n", jlog_internal::get_memory_usage() / 1024);
     //dinicの初期化
     bi_dinitz dz_base(std::move(edges), num_vs);
-    if(num_vs > 10000) fprintf(stderr, "cut_tree_with_2ECC::bi_dinitz after init : memory %ld MB\n", jlog_internal::get_memory_usage() / 1024);
 
     separator sep(dz_base, dcs, gh_builder_);
 
@@ -744,16 +710,6 @@ public:
     sep.output_debug_infomation();
 
     gh_builder_.build();
-
-    auto preflow_eq_degreeafter = logging::preflow_eq_degree;
-    auto flow_eq_0_after = logging::flow_eq_0;
-
-    if (num_vertices_ > 10000) {
-      JLOG_OPEN("sp_dfs") {
-        JLOG_ADD("preflow_eq_degree", preflow_eq_degreeafter - preflow_eq_degreebefore);
-        JLOG_ADD("flow_eq_0", flow_eq_0_after - flow_eq_0_before);
-      }
-    }
   }
 
   int query(V u, V v) const {

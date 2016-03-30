@@ -3,12 +3,6 @@
 DEFINE_int32(goal_oriented_dfs_aster_ub, 2, "");
 
 namespace agl {
-namespace logging {
-long long getcap_counter = 0;
-long long addcap_counter = 0;
-int preflow_eq_degree = 0;
-int flow_eq_0 = 0;
-} //namespace logging
 
 class bi_dinitz {
 public:
@@ -30,7 +24,7 @@ public:
         revision_ = currenct_revision;
         cap_ = init_cap_;
       }
-      logging::getcap_counter++;
+      // logging::getcap_counter++;
       return cap_;
     }
     void add_cap(int val, int currenct_revision) {
@@ -38,7 +32,7 @@ public:
         revision_ = currenct_revision;
         cap_ = init_cap_;
       }
-      logging::addcap_counter++;
+      // logging::addcap_counter++;
       cap_ += val;
     }
 
@@ -309,12 +303,12 @@ public:
     // fprintf(stderr, "(%d,%d) : preflow = %d, flow = %d\n", s, t, preflow, flow);
     if(flow == 0 && preflow > 0) {
       if(int(e_[s].size()) == preflow) {
-        logging::preflow_eq_degree++;
+        // logging::preflow_eq_degree++;
       }
-      logging::flow_eq_0++;
+      // logging::flow_eq_0++;
     } else {
-      // fprintf(stderr, "logging::getcap_counter : %lld\n", logging::getcap_counter);
-      // fprintf(stderr, "logging::addcap_counter : %lld\n", logging::addcap_counter);
+      // fprintf(stderr, "// logging::getcap_counter : %lld\n", // logging::getcap_counter);
+      // fprintf(stderr, "// logging::addcap_counter : %lld\n", // logging::addcap_counter);
     }
     return flow + preflow;
   }
