@@ -1,6 +1,8 @@
 #pragma once
+#include <base/base.h>
+#include <graph/graph.h>
 
-DEFINE_int32(gtp_dfs_edge_max, 1000000000, "");
+DECLARE_int32(gtp_dfs_edge_max);
 
 namespace agl {
 
@@ -25,67 +27,27 @@ class greedy_treepacking {
     }
     const V current() const { return to_[idx_]; }
     void remove_current() { 
-      swap(to_[idx_], to_.back());
+      std::swap(to_[idx_], to_.back());
       to_.pop_back();
       if (int(to_.size()) == idx_) idx_ = 0;
     }
   public:
     int rem_size_, idx_;
-    vector<V> to_;
+    std::vector<V> to_;
   };
 
-  void dfs(int v) {
-    used_revision_[v] = vertices_revision_;
-    auto& to_edges = edges_[v];
-    const int rem_edges = min(to_edges.size(), FLAGS_gtp_dfs_edge_max);
-    for(int i = 0; i < rem_edges; i++) {
-      V to = to_edges.current();
-      // logging::gtp_edge_count++;
-      if (used_revision_[to] == vertices_revision_) {
-        to_edges.advance();
-        // logging::gtp_edge_miss++;
-      } else {
-        to_edges.remove_current();
-        inedge_count_[to]++; // in-edgeの本数が増える
-        dfs(to);
-        // logging::gtp_edge_use++;
-      }
-    }
-  }
-
+  void dfs(int v);
 public:
-  greedy_treepacking(const vector<pair<V, V>>& edges, int num_vs) :
-    n_(num_vs), edges_(n_), inedge_count_(n_), used_revision_(n_), vertices_revision_(1) {
-    for (auto& e : edges) {
-      edges_[e.first].add(e.second);
-      edges_[e.second].add(e.first);
-    }
+  greedy_treepacking(const std::vector<std::pair<V, V>>& edges, int num_vs);
+  void arborescence_packing(int from);
 
-    for(auto& e : edges_) {
-      sort(e.to_.begin(), e.to_.end(), [&edges_ = this->edges_](const V l,const V r) {
-        int a = edges_[l].size();
-        int b = edges_[r].size();
-        return a < b;
-      });
-    }
-  }
-
-  void arborescence_packing(int from) {
-    for(int i = 0; i < edges_[from].size(); i++) {
-      dfs(from);
-      vertices_revision_++;
-    }
-  }
-
-  int inedge_count(int v) const {
-    return inedge_count_[v];
-  }
+  int inedge_count(int v) const { return inedge_count_[v]; }
 
 private:
   int n_;
-  vector<vecE> edges_;
-  vector<int> inedge_count_; // dfs tree packingで、その頂点に何本のin-edgeがあるか
-  vector<int> used_revision_;
+  std::vector<vecE> edges_;
+  std::vector<int> inedge_count_; // dfs tree packingで、その頂点に何本のin-edgeがあるか
+  std::vector<int> used_revision_;
   int vertices_revision_;
 };
 } // namespace agl
