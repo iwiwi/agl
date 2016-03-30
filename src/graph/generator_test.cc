@@ -70,6 +70,54 @@ TEST(gen_ba, random_num_vertices) {
   }
 }
 
+TEST(gen_ba, corner_case) {
+  for (int trial = 0; trial < 10; ++trial) {
+    V M = 2;
+    V N = M + agl::random(1000);
+    auto es = generate_ba(N, M);
+
+    // Number of edges
+    size_t expected_edge_num = M * (M - 1) / 2 + (N - M) * M;
+    ASSERT_EQ(es.size(), expected_edge_num);
+
+    G g(es);
+    pretty_print(g);
+    ASSERT_TRUE(is_connected(g));
+
+    // Check degree
+    G ug(make_undirected(es));
+    for (V v : ug.vertices()) {
+      ASSERT_TRUE(ug.degree(v) >= (size_t)M);
+    }
+  }
+}
+
+TEST(gen_ba, check_double_edge) {
+  for (int trial = 0; trial < 10; ++trial) {
+    V M = 2;
+    V N = M + agl::random(1000);
+    auto es = generate_ba(N, M);
+
+    // Number of edges
+    size_t expected_edge_num = M * (M - 1) / 2 + (N - M) * M;
+    ASSERT_EQ(es.size(), expected_edge_num);
+
+    G g(es);
+    pretty_print(g);
+    ASSERT_TRUE(is_connected(g));
+
+    set<pair<V, V>> s;
+    for (const auto &e : es) s.insert(e);
+    ASSERT_EQ(s.size(), es.size());
+
+    // Check degree
+    G ug(make_undirected(es));
+    for (V v : ug.vertices()) {
+      ASSERT_TRUE(ug.degree(v) >= (size_t)M);
+    }
+  }
+}
+
 TEST(gen_dms, small_case) {
   V N = 5;
   V M = 2;
@@ -354,5 +402,30 @@ TEST(gen_shm, random_trial) {
       while (deg % t == 0) deg /= t;
       ASSERT_TRUE(deg == initial_num - 1 || deg == 1 || deg == 2);
     }
+  }
+}
+
+TEST(gen_shm, small_world) {
+  for (int trial = 0; trial < 10; ++trial) {
+    V initial_num = 5;
+    V required_num = initial_num;
+    int t = 2;
+    int generation = agl::random(5) + 1;
+    size_t max_deg = initial_num - 1;
+    size_t expected_edge_num = initial_num - 1;
+    for (int i = 1; i < generation; ++i) {
+      required_num = required_num + 2 * t * expected_edge_num;
+      expected_edge_num = expected_edge_num * (2 * t + 2);
+      max_deg *= t + 1;
+    }
+    auto es = generate_shm(required_num, initial_num, t, 1.0);
+
+    // Number of edges
+    ASSERT_EQ(es.size(), expected_edge_num);
+    G g(make_undirected(es));
+    pretty_print(g);
+    ASSERT_TRUE(is_connected(g));
+    ASSERT_EQ(g.num_vertices(), required_num);
+    ASSERT_EQ(g.degree(0), max_deg);
   }
 }

@@ -70,7 +70,7 @@ unweighted_edge_list generate_cycle(V num_vertices) {
  * \param final_num is a number of finally generated network.
  */
 unweighted_edge_list generate_ba(V final_num, V initial_num) {
-  CHECK(initial_num > 2);
+  CHECK(initial_num >= 2);
   unweighted_edge_list es;
   for (int v = 0; v < initial_num; ++v) {
     for (int u = 0; u < v; ++u) {
@@ -83,7 +83,7 @@ unweighted_edge_list generate_ba(V final_num, V initial_num) {
     std::uniform_int_distribution<size_t> rng(0, es.size() - 1);
     while (next.size() < (size_t)initial_num) {
       size_t e = rng(agl::random);
-      V u = rng(agl::random) % 2 ? es[e].first : es[e].second;
+      V u = agl::random() % 2 ? es[e].first : es[e].second;
       next.insert(u);
     }
     for (auto u : next) {
@@ -441,7 +441,9 @@ unweighted_edge_list generate_uv_flower(V required_num, V u, V v) {
  * \param t decides the fractal dimension of this graph. The fractal dimension D
  * of this graph will be D = log(2t + 1) / log3
  */
-unweighted_edge_list generate_shm(V required_num, V initial_num, int t) {
+unweighted_edge_list generate_shm(V required_num, V initial_num, int t, double P) {
+  assert(P >= 0.0 && P <= 1.0);
+  std::uniform_real_distribution<> p_rng(0.0, 1.0);
   assert(t >= 2 && initial_num >= 3);
   unweighted_edge_list es;
   vector<vector<V>> adj(initial_num);
@@ -487,6 +489,12 @@ unweighted_edge_list generate_shm(V required_num, V initial_num, int t) {
       next[ns].push_back(nt);
       next[nt].push_back(ns);
     }
+    if (p_rng(agl::random) <= P)
+      for (auto e : es) {
+        next_es.emplace_back(e);
+        next[e.second].push_back(e.first);
+        next[e.first].push_back(e.second);
+      }
     es.swap(next_es);
     adj.swap(next);
   }

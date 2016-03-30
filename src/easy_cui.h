@@ -154,10 +154,12 @@ GraphType easy_cui_init(int argc, char **argv) {
     } else if (family == "shm") {
       V required_num, initial_num;
       int t;
+      double P;
       if (!(iss >> required_num)) required_num = 101;
       if (!(iss >> initial_num)) initial_num = 5;
       if (!(iss >> t)) t = 2;
-      es = generate_shm(required_num, initial_num, t);
+      if (!(iss >> P)) P = 0.0;
+      es = generate_shm(required_num, initial_num, t, P);
     } else {
       FAIL_MSG("Unknown generator family: " + family);
     }
