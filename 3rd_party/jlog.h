@@ -361,8 +361,8 @@ class jlog {
 
 class jlog_opener {
  public:
-  jlog_opener(bool add, const char *path, bool glog = true) {
-    prev_ = jlog::instance_.current_;
+  jlog_opener(bool add, const char *path, bool glog = true) 
+      : prev_(jlog::instance_.current_), prev_glog_flag_(false) {
     if (jlog::instance_.ignore_nest_level_ > 0) return;
     if (add == false) {
       json_node *& jn = jlog::instance_.reach_path(path);
