@@ -79,10 +79,10 @@ int main(int argc, char** argv) {
   fclose(ip);
 
   fprintf(stderr, "to undirected graph\n");
-  fprintf(stderr, "nodes = %d, edges = %lld\n", num_nodes, st.size());
+  fprintf(stderr, "nodes = %d, edges = %lld\n", num_nodes, (ll)st.size());
   FILE* op = fopen(output_file_name.c_str(), "wb");
   fprintf(op, "c agl to goldberg gam format.\n");
-  fprintf(op, "p cut %d %lld\n", num_nodes, st.size());
+  fprintf(op, "p cut %d %lld\n", num_nodes, (ll)st.size());
   for(auto& uv : st) {
     fprintf(op, "a %d %d 1\n",uv.first + 1, uv.second + 1);
   }
