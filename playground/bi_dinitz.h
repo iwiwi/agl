@@ -18,10 +18,12 @@ public:
 private:
 
   class E {
+    friend class bi_dinitz;
+
     static const int init_cap_ = 1;
-  private: int revision_;
-  public:  int to_;
-  private: int cap_ : 3;
+    int revision_;
+    int to_;
+    int cap_ : 3;
   public:  unsigned int reverse : 29;
   
   public:
@@ -106,7 +108,7 @@ private:
       if (path_found) return true;
     }
 
-    reason_for_finishing_bfs = (qs.empty()) ? kQsIsEmpty : kQtIsEmpty;
+    reason_for_finishing_bfs_ = (qs.empty()) ? kQsIsEmpty : kQtIsEmpty;
     return false;
   }
 
@@ -145,8 +147,8 @@ private:
     e[t].push_back(E(f, int(e[f].size()) - 1, c));
   }
 
-  void reset_rivision() {
-    for(int v = 0; v < n; v++) for (auto& e_ : e[v]) e_.reset();
+  void reset_revision() {
+    for(int v = 0; v < n_; v++) for (auto& e_ : e[v]) e_.reset();
     memset(bfs_revision_.data(), 0, sizeof(bfs_revision_[0]) * bfs_revision_.size());
     memset(dfs_revision_.data(), 0, sizeof(dfs_revision_[0]) * dfs_revision_.size());
     s_side_bfs_revision_ = 2;
@@ -205,23 +207,23 @@ private:
   }
 
 public:
-  bi_dinitz() : n(0) {}
+  bi_dinitz() : n_(0) {}
   bi_dinitz(const G& g)
-    : n(g.num_vertices()), level_(n), iter_(n), bfs_revision_(n), dfs_revision_(n), e(n),
+    : n_(g.num_vertices()), level_(n_), iter_(n_), bfs_revision_(n_), dfs_revision_(n_), e(n_),
     s_side_bfs_revision_(2), t_side_bfs_revision_(3), graph_revision(0), goal_oriented_bfs_root_(-1) {
-    for(int v = 0; v < n; v++) for (auto& e : g.edges(v)) {
-      add_undirected_edge(v, to(e), 1);
+    for(int v = 0; v < n_; v++) for (auto& e : g.edges(v)) {
+      add_undirected_edge(v, agl::to(e), 1);
     }
   }
   bi_dinitz(const vector<pair<V, V>>& edges, int num_vs)
-    : n(num_vs), level_(n), iter_(n), bfs_revision_(n), dfs_revision_(n), e(n),
+    : n_(num_vs), level_(n_), iter_(n_), bfs_revision_(n_), dfs_revision_(n_), e(n_),
     s_side_bfs_revision_(2), t_side_bfs_revision_(3), graph_revision(0), goal_oriented_bfs_root_(-1) {
     for (auto& uv : edges) {
       add_undirected_edge(uv.first, uv.second, 1);
     }
   }
   bi_dinitz(vector<pair<V, V>>&& edges, int num_vs)
-    : n(num_vs), level_(n), iter_(n), bfs_revision_(n), dfs_revision_(n), e(n),
+    : n_(num_vs), level_(n_), iter_(n_), bfs_revision_(n_), dfs_revision_(n_), e(n_),
     s_side_bfs_revision_(2), t_side_bfs_revision_(3), graph_revision(0), goal_oriented_bfs_root_(-1) {
       edges.shrink_to_fit();
 
@@ -246,7 +248,7 @@ public:
     bfs_revision_.emplace_back();
     dfs_revision_.emplace_back();
     e.emplace_back();
-    n++;
+    n_++;
   }
 
   void reconnect_edge(E& rm, int sside_vtx, int tside_vtx) {
@@ -282,7 +284,7 @@ public:
     }
 
     if(preflow == int(e[s].size())) {
-      reason_for_finishing_bfs = kQsIsEmpty;
+      reason_for_finishing_bfs_ = kQsIsEmpty;
     } else {
       s_side_bfs_revision_ += 2;
       t_side_bfs_revision_ += 2;
@@ -320,7 +322,7 @@ public:
   }
 
   bool path_dont_exists_to_t(const int v) const {
-    if (reason_for_finishing_bfs == kQsIsEmpty) {
+    if (reason_for_finishing_bfs_ == kQsIsEmpty) {
       //sから到達可能な頂点のbfs_revision_には、必ずs_side_bfs_revision_が代入されている
       return bfs_revision_[v] == s_side_bfs_revision_;
     } else {
@@ -330,7 +332,7 @@ public:
   }
 
   bool path_dont_exists_from_s(const int v) const {
-    if (reason_for_finishing_bfs == kQsIsEmpty) {
+    if (reason_for_finishing_bfs_ == kQsIsEmpty) {
       //sから到達不可能
       return bfs_revision_[v] != s_side_bfs_revision_;
     } else {
@@ -343,7 +345,7 @@ public:
   void reset_graph() {
     graph_revision++;
     if (s_side_bfs_revision_ >= numeric_limits<decltype(s_side_bfs_revision_)>::max() / 2) {
-      reset_rivision();
+      reset_revision();
     }
   }
 
@@ -351,7 +353,7 @@ public:
   void goal_oriented_bfs_init(int root) {
     goal_oriented_bfs_root_ = root;
     goal_oriented_bfs_depth_.clear();
-    goal_oriented_bfs_depth_.resize(n, n); // bfsの深さをn(=INF)で初期化
+    goal_oriented_bfs_depth_.resize(n_, n_); // bfsの深さをn(=INF)で初期化
 
     // set goal_oriented_bfs_depth_
     queue<int> q;
@@ -369,7 +371,7 @@ public:
     }
 
     //sort edges by depth order
-    for(int v = 0; v < n; v++) {
+    for(int v = 0; v < n_; v++) {
       // dep[l.to]は3つの値しか取らないので高速化可能
       sort(e[v].begin(), e[v].end(), [&dep = goal_oriented_bfs_depth_](const E& l, const E& r) {
         return dep[l.to_] < dep[r.to_];
@@ -385,10 +387,15 @@ public:
 
   }
 
+  int n() const { return n_; }
+  reason_for_finishing_bfs_t reason_for_finishing_bfs() const { return reason_for_finishing_bfs_; }
 
-public:
-  int n;
+  V to(const E& e) const { return e.to_; }
+  int cap(E& e) { return e.cap(graph_revision); }
+  E& rev(const E& e_in) { return e[e_in.to_][e_in.reverse]; }
+
 private:
+  int n_;
   vector<pair<int, int>> level_;
   vector<int> iter_;
   vector<int> bfs_revision_, dfs_revision_;
@@ -396,9 +403,8 @@ public:
   vector<vector<E>> e;
 private:
   int s_side_bfs_revision_, t_side_bfs_revision_;
-public:
   int graph_revision;
-  reason_for_finishing_bfs_t reason_for_finishing_bfs;
+  reason_for_finishing_bfs_t reason_for_finishing_bfs_;
 
 private:
   int goal_oriented_bfs_root_;

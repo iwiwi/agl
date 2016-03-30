@@ -256,7 +256,7 @@ class separator {
     queue<int> q;
     const int F = used_flag_value();
     int one_side = 0;
-    if (dz_.reason_for_finishing_bfs == bi_dinitz::kQsIsEmpty) {
+    if (dz_.reason_for_finishing_bfs() == bi_dinitz::kQsIsEmpty) {
       //s側に属する頂点の親を新しいgroupに移動する
       q.push(s);
       grouping_used_[s] = F;
@@ -265,14 +265,14 @@ class separator {
         V v = q.front(); q.pop();
         one_side++;
         for (auto& e : dz_.e[v]) {
-          const int cap = e.cap(dz_.graph_revision);
-          if (cap == 0 || grouping_used_[e.to_] == F) continue;
-          grouping_used_[e.to_] = F;
-          q.push(e.to_);
-          if (dcs_.is_same_group(t, e.to_)) {
-            dcs_.move_other_group(e.to_, s); //tと同じgroupにいた頂点を、s側のgroupに移動
+          const int cap = dz_.cap(e);
+          if (cap == 0 || grouping_used_[dz_.to(e)] == F) continue;
+          grouping_used_[dz_.to(e)] = F;
+          q.push(dz_.to(e));
+          if (dcs_.is_same_group(t, dz_.to(e))) {
+            dcs_.move_other_group(dz_.to(e), s); //tと同じgroupにいた頂点を、s側のgroupに移動
           } else {
-            check_crossed_mincut(e.to_);
+            check_crossed_mincut(dz_.to(e));
           }
         }
       }
@@ -285,14 +285,14 @@ class separator {
         V v = q.front(); q.pop();
         one_side++;
         for (auto& e : dz_.e[v]) {
-          const int cap = dz_.e[e.to_][e.reverse].cap(dz_.graph_revision);
-          if (cap == 0 || grouping_used_[e.to_] == F) continue;
-          grouping_used_[e.to_] = F;
-          q.push(e.to_);
-          if (dcs_.is_same_group(s, e.to_)) {
-            dcs_.move_other_group(e.to_, t); //sと同じgroupにいた頂点を、t側のgroupに移動
+          const int cap = dz_.cap(dz_.rev(e));
+          if (cap == 0 || grouping_used_[dz_.to(e)] == F) continue;
+          grouping_used_[dz_.to(e)] = F;
+          q.push(dz_.to(e));
+          if (dcs_.is_same_group(s, dz_.to(e))) {
+            dcs_.move_other_group(dz_.to(e), t); //sと同じgroupにいた頂点を、t側のgroupに移動
           } else {
-            check_crossed_mincut(e.to_);
+            check_crossed_mincut(dz_.to(e));
           }
         }
       }
@@ -305,7 +305,7 @@ class separator {
     contraction_count_++;
     //gomory_hu algorithm
     //縮約後の頂点2つを追加する
-    const int sside_new_vtx = dz_.n;
+    const int sside_new_vtx = dz_.n();
     const int tside_new_vtx = sside_new_vtx + 1;
     for(int _ = 0; _ < 2; _++) {
       dz_.add_vertex();
@@ -316,23 +316,23 @@ class separator {
     queue<int> q;
     const int F = used_flag_value();
     int num_reconnected = 0; //枝を繋ぎ直した回数
-    if (dz_.reason_for_finishing_bfs == bi_dinitz::kQsIsEmpty) {
+    if (dz_.reason_for_finishing_bfs() == bi_dinitz::kQsIsEmpty) {
       q.push(s);
       contraction_used_[s] = F;
       while (!q.empty()) {
         V v = q.front(); q.pop();
         for (auto& e : dz_.e[v]) {
-          const int cap = e.cap(dz_.graph_revision);
-          if (contraction_used_[e.to_] == F) continue;
+          const int cap = dz_.cap(e);
+          if (contraction_used_[dz_.to(e)] == F) continue;
           if (cap == 0) {
-            if (grouping_used_[e.to_] != F) {
+            if (grouping_used_[dz_.to(e)] != F) {
               //辺を上手に張り替える
               dz_.reconnect_edge(e, sside_new_vtx, tside_new_vtx);
               num_reconnected++;
             }
           } else {
-            contraction_used_[e.to_] = F;
-            q.push(e.to_);
+            contraction_used_[dz_.to(e)] = F;
+            q.push(dz_.to(e));
           }
         }
       }
@@ -342,17 +342,17 @@ class separator {
       while (!q.empty()) {
         V v = q.front(); q.pop();
         for (auto& e : dz_.e[v]) {
-          const int cap = dz_.e[e.to_][e.reverse].cap(dz_.graph_revision);
-          if (contraction_used_[e.to_] == F) continue;
+          const int cap = dz_.cap(dz_.rev(e));
+          if (contraction_used_[dz_.to(e)] == F) continue;
           if (cap == 0) {
-            if (grouping_used_[e.to_] != F) {
+            if (grouping_used_[dz_.to(e)] != F) {
               //辺を上手に張り替える
               dz_.reconnect_edge(e, tside_new_vtx, sside_new_vtx);
               num_reconnected++;
             }
           } else {
-            contraction_used_[e.to_] = F;
-            q.push(e.to_);
+            contraction_used_[dz_.to(e)] = F;
+            q.push(dz_.to(e));
           }
         }
       }
@@ -364,7 +364,7 @@ public:
 
   separator(bi_dinitz& dz, disjoint_cut_set& dcs, gomory_hu_tree_builder& gh_builder) 
     : dz_(dz), dcs_(dcs), gh_builder_(gh_builder),
-      max_flow_times_(0), contraction_count_(0), grouping_used_(dz.n), contraction_used_(dz.n), 
+      max_flow_times_(0), contraction_count_(0), grouping_used_(dz.n()), contraction_used_(dz.n()), 
       mincut_group_counter_(dcs.node_num()), mincut_group_revision_(dcs.node_num()) {
   }
 
@@ -377,7 +377,7 @@ public:
 
     const int one_side = max_flow(s, t);
     if (enable_contraction) {
-      const int other_side_estimated = dz_.n - one_side;
+      const int other_side_estimated = dz_.n() - one_side;
       if(cross_other_mincut_count_ != 0) {
         fprintf(stderr, "(%d,%d) couldn't separate (crossed).\n", s, t);
       }
@@ -406,9 +406,9 @@ public:
 
   void debug_verify() const {
     if(dcs_.node_num() > 10000) fprintf(stderr, "separator::debug_verify... ");
-    union_find uf(dz_.n);
-    for(int i = 0; i < dz_.n; i++) for (const auto& to_edge : dz_.e[i]) {
-      uf.unite(i, to_edge.to_);
+    union_find uf(dz_.n());
+    for(int i = 0; i < dz_.n(); i++) for (const auto& to_edge : dz_.e[i]) {
+      uf.unite(i, dz_.to(to_edge));
     }
     for(int g = 0; g < dcs_.debug_group_num(); g++) {
       auto v = dcs_.get_group(g);
@@ -610,7 +610,7 @@ class cut_tree_with_2ECC {
 
     for(int s = 0; s < num_vertices_; s++) {
       for(const auto& to_edge : dz.e[s]) {
-        const V t = to_edge.to_;
+        const V t = dz.to(to_edge);
         if (!dcs.is_same_group(s, t)) continue;
         sep.mincut(s, t);
       }
@@ -644,13 +644,13 @@ class cut_tree_with_2ECC {
         for(int _ = 0; _ < loop_num; _++) {
           const V v = q.front(); q.pop();
           for(auto& to_edge : dz.e[v]) {
-              const V t = to_edge.to_;
+              const V t = dz.to(to_edge);
               if(used[t] == used_revision) continue;
               used[t] = used_revision;
               q.push(t);
               if(s != t && dcs.is_same_group(s, t)) {
                 sep.mincut(s, t);
-                used.resize(dz.n, -1); // dinic中に頂点数が変わる場合がある
+                used.resize(dz.n(), -1); // dinic中に頂点数が変わる場合がある
               }
           }
         }
