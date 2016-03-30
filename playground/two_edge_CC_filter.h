@@ -54,7 +54,7 @@ public:
 
       CHECK(bridge_.size() + biconnected_graphs_edges_.size() == size_t(num_edges));
 
-      g_.clear();
+      g_.clear_and_shrink_to_fit();
       new_g = G(biconnected_graphs_edges_, n_);
 
       //dealloc

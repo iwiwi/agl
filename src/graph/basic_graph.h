@@ -98,7 +98,7 @@ class basic_graph {
     return *this;
   }
 
-  void clear() {
+  void clear_and_shrink_to_fit() {
     edges_from_[0].clear(); edges_from_[0].shrink_to_fit();
     edges_from_[1].clear(); edges_from_[1].shrink_to_fit();
     graph_indices_.clear(); graph_indices_.shrink_to_fit();
