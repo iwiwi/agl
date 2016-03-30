@@ -50,16 +50,16 @@ public:
     root[0] = 0;
     nodes[0].pv = -1;
     nodes[n - 1].nt = -1;
-    FOR(i, n - 1) {
+    for(int i = 0; i < n - 1; i++) {
       nodes[i].nt = i + 1;
       nodes[i + 1].pv = i;
     }
-    FOR(i, n) nodes[i].root = 0;
+    for(int i = 0; i < n; i++) nodes[i].root = 0;
     group_size_[0] = n;
   }
 
   const int node_num() const {
-    return sz(nodes);
+    return int(nodes.size());
   }
 
   void create_new_group(int id) {
@@ -68,7 +68,7 @@ public:
   }
 
   bool is_same_group(int a, int b) const {
-    if (a >= sz(nodes) || b >= sz(nodes)) return false;
+    if (a >= int(nodes.size()) || b >= int(nodes.size())) return false;
     return nodes[a].root == nodes[b].root;
   }
 
@@ -236,7 +236,7 @@ class separator {
 
     cross_other_mincut_count_ = 0;
     auto check_crossed_mincut = [this](const V add) {
-      if(add >= sz(this->mincut_group_revision_)) return ;
+      if(add >= int(this->mincut_group_revision_.size())) return ;
       const int group_id = this->dcs_.group_id(add);
       const int group_size = this->dcs_.group_size(group_id);
       if(group_size == 1) return;
@@ -307,7 +307,7 @@ class separator {
     //縮約後の頂点2つを追加する
     const int sside_new_vtx = dz_.n;
     const int tside_new_vtx = sside_new_vtx + 1;
-    FOR(_, 2) {
+    for(int _ = 0; _ < 2; _++) {
       dz_.add_vertex();
       grouping_used_.emplace_back();
       contraction_used_.emplace_back();
@@ -373,7 +373,7 @@ public:
   }
 
   void mincut(V s, V t, bool enable_contraction = true) {
-    if (sz(dz_.e[s]) > sz(dz_.e[t])) swap(s, t);
+    if (dz_.e[s].size() > dz_.e[t].size()) swap(s, t);
 
     const int one_side = max_flow(s, t);
     if (enable_contraction) {
@@ -395,7 +395,7 @@ public:
   }
 
   void output_debug_infomation() const {
-    if (sz(debug_count_cut_size_all_time) > 10) {
+    if (debug_count_cut_size_all_time.size() > 10) {
       stringstream debug_count_cut_size_all_time_ss;
       for (auto& kv : debug_count_cut_size_all_time) debug_count_cut_size_all_time_ss << "(" << kv.first << "," << kv.second << "), ";
       JLOG_ADD("separator.debug_count_cut_size_all_time", debug_count_cut_size_all_time_ss.str());
@@ -407,13 +407,13 @@ public:
   void debug_verify() const {
     if(dcs_.node_num() > 10000) fprintf(stderr, "separator::debug_verify... ");
     union_find uf(dz_.n);
-    FOR(i, dz_.n) for (const auto& to_edge : dz_.e[i]) {
+    for(int i = 0; i < dz_.n; i++) for (const auto& to_edge : dz_.e[i]) {
       uf.unite(i, to_edge.to);
     }
-    FOR(g, dcs_.debug_group_num()) {
+    for(int g = 0; g < dcs_.debug_group_num(); g++) {
       auto v = dcs_.get_group(g);
-      CHECK(sz(v) == dcs_.group_size(g));
-      FOR(i, sz(v) - 1) {
+      CHECK(int(v.size()) == dcs_.group_size(g));
+      for(int i = 0; i < int(v.size()) - 1; i++) {
         int u = v[i], x = v[i + 1];
         CHECK(uf.is_same(u, x));
       }
@@ -459,14 +459,14 @@ class cut_tree_with_2ECC {
 
     //degreeの最も大きな頂点をrootに
     int temp_root = 0;
-    FOR(v, num_vertices_) {
+    for(int v = 0; v < num_vertices_; v++) {
       if (degree[temp_root] < degree[v]) {
         temp_root = v;
       }
     }
 
     //次数2のcutを設定
-    FOR(v, num_vertices_) {
+    for(int v = 0; v < num_vertices_; v++) {
       if (v == temp_root) continue;
       if (degree[v] == 2) set_solved(v, temp_root, 2); //二重連結成分分解後なので自明なcut
     }
@@ -475,12 +475,12 @@ class cut_tree_with_2ECC {
       //次数の高い頂点から順に、 一定回数 greedy tree packingを行って、flowの下界を求める
       const int iteration = min(FLAGS_try_greedy_tree_packing, num_vertices_);
       vector<int> idx(num_vertices_);
-      FOR(i, num_vertices_) idx[i] = i;
+      for(int i = 0; i < num_vertices_; i++) idx[i] = i;
       partial_sort(idx.begin(), idx.begin() + iteration, idx.end(), [&degree](int l, int r) {
         return degree[l] > degree[r];
       });
 
-      FOR(trying, iteration) {
+      for(int trying = 0; trying < iteration; trying++) {
         const V v = idx[trying];
         if (degree[v] == 2) continue; // 自明なcutがある
 
@@ -503,7 +503,7 @@ class cut_tree_with_2ECC {
         if (current_parent[v] != -1) {
           current_parent[v] = v; // 閉路が出来上がるのを防ぐために、親を自分自身であると登録しておく
         }
-        FOR(to, num_vertices_) {
+        for(int to = 0; to < num_vertices_; to++) {
           if (to == v) continue;
           if (current_parent[to] != -1) continue;
           //tree packingの結果がdegreeと一致するなら、flowは流さなくてよい
@@ -515,7 +515,7 @@ class cut_tree_with_2ECC {
       }
 
       //閉路が出来上がるのを防ぐためcurrent_parentに代入していた値を、元に戻す
-      FOR(trying, iteration) {
+      for(int trying = 0; trying < iteration; trying++) {
         const V v = idx[trying];
         if (current_parent[v] == v) current_parent[v] = -1;
       }
@@ -524,7 +524,7 @@ class cut_tree_with_2ECC {
 
     // cutの求まっていない頂点達について、gusfieldでcutを求める
     int pruned = 0;
-    FOR(v, num_vertices_) {
+    for(int v = 0; v < num_vertices_; v++) {
       if (v == temp_root) continue;
       if (current_parent[v] != -1) {
         // cutがもとまっている
@@ -543,7 +543,7 @@ class cut_tree_with_2ECC {
   }
 
   void contract_degree_2_vertices(vector<pair<V,V>>& edges, vector<int>& degree) {
-    const int n = sz(degree);
+    const int n = int(degree.size());
     vector<vector<int>> e(n);
 
     for (auto& uv : edges) {
@@ -552,7 +552,7 @@ class cut_tree_with_2ECC {
       e[v].push_back(u);
     }
 
-    FOR(i, n) if (sz(e[i]) == 2) {
+    for(int i = 0; i < n; i++) if (e[i].size() == 2) {
       int a = e[i][0], b = e[i][1];
       e[a].erase(find(e[a].begin(), e[a].end(), i));
       e[b].erase(find(e[b].begin(), e[b].end(), i));
@@ -563,7 +563,7 @@ class cut_tree_with_2ECC {
 
     edges.clear();
 
-    FOR(i, n) {
+    for(int i = 0; i < n; i++) {
       for (auto to : e[i]) {
         if (i < to) {
           edges.emplace_back(i, to);
@@ -578,12 +578,12 @@ class cut_tree_with_2ECC {
     const bi_dinitz& dz = sep.get_bi_dinitz();
 
     vector<int> vtxs;
-    FOR(v, num_vertices_) {
+    for(int v = 0; v < num_vertices_; v++) {
       if (dcs.group_size(v) >= 2) vtxs.push_back(v);
     }
-    const int tries = max(min(FLAGS_try_large_degree_pairs, sz(vtxs) - 1), 0);
+    const int tries = max(min(FLAGS_try_large_degree_pairs, int(vtxs.size()) - 1), 0);
     partial_sort(vtxs.begin(), vtxs.begin() + tries, vtxs.end(), [&dz](V l, V r) {
-      return sz(dz.e[l]) > sz(dz.e[r]);
+      return dz.e[l].size() > dz.e[r].size();
     });
 
     int cut_large_degree_count = 0;
@@ -608,7 +608,7 @@ class cut_tree_with_2ECC {
     const bi_dinitz& dz = sep.get_bi_dinitz();
     const disjoint_cut_set& dcs = sep.get_disjoint_cut_set();
 
-    FOR(s, num_vertices_) {
+    for(int s = 0; s < num_vertices_; s++) {
       for(const auto& to_edge : dz.e[s]) {
         const V t = to_edge.to;
         if (!dcs.is_same_group(s, t)) continue;
@@ -619,7 +619,7 @@ class cut_tree_with_2ECC {
 
   void separate_all(separator& sep) {
     const disjoint_cut_set& dcs = sep.get_disjoint_cut_set();
-    FOR(group_id, num_vertices_) {
+    for(int group_id = 0; group_id < num_vertices_; group_id++) {
       while (dcs.has_two_elements(group_id)) {
         V s, t; tie(s, t) = dcs.get_two_elements(group_id);
         sep.mincut(s, t);
@@ -634,14 +634,14 @@ class cut_tree_with_2ECC {
     vector<int> used(num_vertices_ * 2, -1);
     int used_revision = 0;
 
-    FOR(s, num_vertices_) {
+    for(int s = 0; s < num_vertices_; s++) {
       if(dcs.group_size(s) <= 1) continue;
       queue<V> q;
       q.push(s);
       used[s] = used_revision;
-      FOR(depth, FLAGS_separate_near_pairs_d) {
-        const int loop_num = sz(q);
-        FOR(_, loop_num) {
+      for(int depth = 0; depth < FLAGS_separate_near_pairs_d; depth++) {
+        const int loop_num = int(q.size());
+        for(int _ = 0; _ < loop_num; _++) {
           const V v = q.front(); q.pop();
           for(auto& to_edge : dz.e[v]) {
               const V t = to_edge.to;
@@ -665,10 +665,11 @@ class cut_tree_with_2ECC {
     const disjoint_cut_set& dcs = sep.get_disjoint_cut_set();
     
     int max_degree_vtx = 0;
-    FOR(v, num_vertices_) if (sz(dz.e[max_degree_vtx]) < sz(dz.e[v])) max_degree_vtx = v;
+    for(int v = 0; v < num_vertices_; v++) 
+      if (dz.e[max_degree_vtx].size() < dz.e[v].size()) max_degree_vtx = v;
 
     sep.goal_oriented_bfs_init(max_degree_vtx);
-    FOR(v, num_vertices_) {
+    for(int v = 0; v < num_vertices_; v++) {
       if (v == max_degree_vtx) continue;
       if (!dcs.is_same_group(v, max_degree_vtx)) continue;
       //graphの形状が変わると損なので、ここでは enable_contraction = false する

@@ -97,7 +97,6 @@ void check(G& g, map<int, vector<pair<V, V>>>& l, map<int, vector<pair<V, V>>>& 
   }
 
   for (const int w : weight) {
-    // CHECK(sz(l[w]) == sz(r[w]));
     for (auto& uv : l[w]) {
       int u, v; tie(u, v) = uv;
       u = ufl.root(u), v = ufl.root(v);

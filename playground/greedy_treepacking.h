@@ -19,16 +19,16 @@ class greedy_treepacking {
     }
 
     bool empty() const { return to_.empty(); }
-    int size() const { return sz(to_); }
+    int size() const { return int(to_.size()); }
     void advance() {
       idx_++;
-      if (sz(to_) == idx_) idx_ = 0;
+      if (int(to_.size()) == idx_) idx_ = 0;
     }
     const V current() const { return to_[idx_]; }
     void remove_current() { 
       swap(to_[idx_], to_.back());
       to_.pop_back();
-      if(sz(to_) == idx_) idx_ = 0;
+      if (int(to_.size()) == idx_) idx_ = 0;
     }
   public:
     int rem_size_, idx_;
@@ -39,8 +39,7 @@ class greedy_treepacking {
     used_revision_[v] = vertices_revision_;
     auto& to_edges = edges_[v];
     const int rem_edges = min(to_edges.size(), FLAGS_gtp_dfs_edge_max);
-    // const int rem_edges = to_edges.size();
-    FOR(i, rem_edges) {
+    for(int i = 0; i < rem_edges; i++) {
       V to = to_edges.current();
       gtp_edge_count++;
       if (used_revision_[to] == vertices_revision_) {
@@ -73,7 +72,7 @@ public:
   }
 
   void arborescence_packing(int from) {
-    FOR(_, sz(edges_[from])) {
+    for(int i = 0; i < edges_[from].size(); i++) {
       if(vertices_revision_% 1000 == 0) {
         stringstream ss;
         ss << "revision = " << vertices_revision_ << ", gtp_edge_count = " << gtp_edge_count << ", gtp_edge_use = " << gtp_edge_use;

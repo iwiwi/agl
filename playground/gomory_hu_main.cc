@@ -1,8 +1,6 @@
 #include <easy_cui.h>
 
 DEFINE_string(method, "gusfield", "gusfield, print_gomory_hu_tree");
-#define FOR(i,n) for(int i = 0; i < (n); i++)
-#define sz(c) ((int)(c).size())
 
 #include "bi_dinitz.h"
 #include "connected_components_filter.h"
@@ -28,7 +26,7 @@ DEFINE_string(gomory_hu_builder, "cut_tree_with_2ECC", "cut_tree_with_2ECC");
 string graph_name() {
   string x = FLAGS_graph;
   string ret;
-  for (int i = sz(x) - 1; i >= 0; i--) {
+  for (int i = int(x.size()) - 1; i >= 0; i--) {
     if (x[i] == '/' || x[i] == '\\') break;
     ret.push_back(x[i]);
   }

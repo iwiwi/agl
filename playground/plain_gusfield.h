@@ -24,25 +24,25 @@ public:
   plain_gusfield(G& g) : num_vertices_(g.num_vertices()), binary_tree_edges_(g.num_vertices()) {
     union_find uf(num_vertices_);
 
-    FOR(v, num_vertices_) for (auto& e : g.edges(v)) {
+    for(int v = 0; v < num_vertices_; v++) for (auto& e : g.edges(v)) {
       uf.unite(v, to(e));
     }
     vector<int> p(num_vertices_);
-    FOR(v, num_vertices_) {
+    for(int v = 0; v < num_vertices_; v++) {
       if (v == uf.root(v)) p[v] = -1;
       else p[v] = uf.root(v);
     }
     vector<int> root_vtxs;
-    FOR(v, num_vertices_) if(p[v] == -1) root_vtxs.push_back(v);
-    FOR(i, sz(root_vtxs) - 1) {
+    for(int v = 0; v < num_vertices_; v++) if(p[v] == -1) root_vtxs.push_back(v);
+    for(int i = 0; i < int(root_vtxs.size()) - 1; i++) {
       add_edge(root_vtxs[i], root_vtxs[i+1], 0);
     }
 
-    FOR(s, num_vertices_) {
+    for(int s = 0; s < num_vertices_; s++) {
       if (p[s] == -1) continue;
       V t = p[s];
       dinitz dc(num_vertices_);
-      FOR(v, num_vertices_) {
+      for(int v = 0; v < num_vertices_; v++) {
         if (!uf.is_same(s, v)) continue;
         for (auto& e : g.edges(v)) {
           dc.add_undirected_edge(v, to(e), 1);

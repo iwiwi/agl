@@ -24,7 +24,7 @@ class dinitz {
 
   int dfs(int v, int t, int f) {
     if (v == t) return f;
-    for (int &i = iter[v]; i < sz(e[v]); i++) {
+    for (int &i = iter[v]; i < int(e[v].size()); i++) {
       E& _e = e[v][i];
       if (_e.cap > 0 && level[v] < level[_e.to]) {
         int d = dfs(_e.to, t, min(f, _e.cap));
@@ -45,8 +45,8 @@ public:
   }
 
   void add_undirected_edge(int f, int t, int c) {
-    e[f].push_back(E(t, sz(e[t]), c));
-    e[t].push_back(E(f, sz(e[f]) - 1, c));
+    e[f].push_back(E(t, int(e[t].size()), c));
+    e[t].push_back(E(f, int(e[f].size()) - 1, c));
   }
 
   int max_flow(int s, int t) {
