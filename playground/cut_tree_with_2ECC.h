@@ -212,7 +212,7 @@ class separator {
     int cost = dz_.max_flow(s, t);
     debug_last_max_flow_cost_ = cost;
 
-    gh_builder_.add_edge(s, t, cost); //cutした結果をgomory_hu treeの枝を登録
+    gh_builder_->add_edge(s, t, cost); //cutした結果をgomory_hu treeの枝を登録
                       // fprintf(stderr, "(%d,%d) : %d\n", s, t, cost);
                       //debug infomation
     
@@ -222,8 +222,8 @@ class separator {
     cross_other_mincut_count_ = 0;
     auto check_crossed_mincut = [this](const V add) {
       if(add >= int(this->mincut_group_revision_.size())) return ;
-      const int group_id = this->dcs_.group_id(add);
-      const int group_size = this->dcs_.group_size(group_id);
+      const int group_id = this->dcs_->group_id(add);
+      const int group_size = this->dcs_->group_size(group_id);
       if(group_size == 1) return;
 
       const int F = this->used_flag_value();
@@ -245,7 +245,7 @@ class separator {
       //s側に属する頂点の親を新しいgroupに移動する
       q.push(s);
       grouping_used_[s] = F;
-      dcs_.create_new_group(s);
+      dcs_->create_new_group(s);
       while (!q.empty()) {
         V v = q.front(); q.pop();
         one_side++;
@@ -254,8 +254,8 @@ class separator {
           if (cap == 0 || grouping_used_[dz_.to(e)] == F) continue;
           grouping_used_[dz_.to(e)] = F;
           q.push(dz_.to(e));
-          if (dcs_.is_same_group(t, dz_.to(e))) {
-            dcs_.move_other_group(dz_.to(e), s); //tと同じgroupにいた頂点を、s側のgroupに移動
+          if (dcs_->is_same_group(t, dz_.to(e))) {
+            dcs_->move_other_group(dz_.to(e), s); //tと同じgroupにいた頂点を、s側のgroupに移動
           } else {
             check_crossed_mincut(dz_.to(e));
           }
@@ -265,7 +265,7 @@ class separator {
       //t側に属する頂点の親を,tに変更する
       q.push(t);
       grouping_used_[t] = F;
-      dcs_.create_new_group(t);
+      dcs_->create_new_group(t);
       while (!q.empty()) {
         V v = q.front(); q.pop();
         one_side++;
@@ -274,8 +274,8 @@ class separator {
           if (cap == 0 || grouping_used_[dz_.to(e)] == F) continue;
           grouping_used_[dz_.to(e)] = F;
           q.push(dz_.to(e));
-          if (dcs_.is_same_group(s, dz_.to(e))) {
-            dcs_.move_other_group(dz_.to(e), t); //sと同じgroupにいた頂点を、t側のgroupに移動
+          if (dcs_->is_same_group(s, dz_.to(e))) {
+            dcs_->move_other_group(dz_.to(e), t); //sと同じgroupにいた頂点を、t側のgroupに移動
           } else {
             check_crossed_mincut(dz_.to(e));
           }
@@ -347,10 +347,10 @@ class separator {
 
 public:
 
-  separator(bi_dinitz& dz, disjoint_cut_set& dcs, gomory_hu_tree_builder& gh_builder) 
+  separator(bi_dinitz& dz, disjoint_cut_set* dcs, unique_ptr<gomory_hu_tree_builder>& gh_builder) 
     : dz_(dz), dcs_(dcs), gh_builder_(gh_builder),
       max_flow_times_(0), contraction_count_(0), grouping_used_(dz.n()), contraction_used_(dz.n()), 
-      mincut_group_counter_(dcs.node_num()), mincut_group_revision_(dcs.node_num()) {
+      mincut_group_counter_(dcs->node_num()), mincut_group_revision_(dcs->node_num()) {
   }
 
   void goal_oriented_bfs_init(const V goal){
@@ -390,32 +390,32 @@ public:
 
 
   void debug_verify() const {
-    if(dcs_.node_num() > 10000) fprintf(stderr, "separator::debug_verify... ");
+    if(dcs_->node_num() > 10000) fprintf(stderr, "separator::debug_verify... ");
     union_find uf(dz_.n());
     for(int i = 0; i < dz_.n(); i++) for (const auto& to_edge : dz_.edges(i)) {
       uf.unite(i, dz_.to(to_edge));
     }
-    for(int g = 0; g < dcs_.debug_group_num(); g++) {
-      auto v = dcs_.get_group(g);
-      CHECK(int(v.size()) == dcs_.group_size(g));
+    for(int g = 0; g < dcs_->debug_group_num(); g++) {
+      auto v = dcs_->get_group(g);
+      CHECK(int(v.size()) == dcs_->group_size(g));
       for(int i = 0; i < int(v.size()) - 1; i++) {
         int u = v[i], x = v[i + 1];
         CHECK(uf.is_same(u, x));
       }
     }
-    if(dcs_.node_num() > 10000) fprintf(stderr, "OK\n");
+    if(dcs_->node_num() > 10000) fprintf(stderr, "OK\n");
   }
 
   const bi_dinitz& get_bi_dinitz() const { return dz_; }
-  const disjoint_cut_set& get_disjoint_cut_set() const { return dcs_; }
+  const disjoint_cut_set* get_disjoint_cut_set() const { return dcs_; }
 
   const int contraction_count() { return contraction_count_; }
 
 private:
 
   bi_dinitz& dz_;
-  disjoint_cut_set& dcs_;
-  gomory_hu_tree_builder& gh_builder_;
+  disjoint_cut_set* dcs_;
+  unique_ptr<gomory_hu_tree_builder>& gh_builder_;
 
   int max_flow_times_; //maxflowを流した回数
   int contraction_count_; // contractionが呼ばれた回数
@@ -432,7 +432,7 @@ private:
 };
 
 class cut_tree_with_2ECC {
-  void find_cuts_by_tree_packing(vector<pair<V,V>>& edges, disjoint_cut_set& dcs, const vector<int>& degree) {
+  void find_cuts_by_tree_packing(vector<pair<V,V>>& edges, disjoint_cut_set* dcs, const vector<int>& degree) {
     vector<int> current_parent(num_vertices_, -1);
     vector<int> current_weight(num_vertices_, -1);
     greedy_treepacking packing_base(edges, num_vertices_);
@@ -501,8 +501,8 @@ class cut_tree_with_2ECC {
       if (v == temp_root) continue;
       if (current_parent[v] != -1) {
         // cutがもとまっている
-        dcs.create_new_group(v);
-        gh_builder_.add_edge(v, current_parent[v], current_weight[v]);
+        dcs->create_new_group(v);
+        gh_builder_->add_edge(v, current_parent[v], current_weight[v]);
         pruned++;
       }
     }
@@ -547,12 +547,12 @@ class cut_tree_with_2ECC {
 
   //次数の大きい頂点対をcutする
   void separate_high_degreepairs(separator& sep) {
-    const disjoint_cut_set& dcs = sep.get_disjoint_cut_set();
+    const disjoint_cut_set* dcs = sep.get_disjoint_cut_set();
     const bi_dinitz& dz = sep.get_bi_dinitz();
 
     vector<int> vtxs;
     for(int v = 0; v < num_vertices_; v++) {
-      if (dcs.group_size(v) >= 2) vtxs.push_back(v);
+      if (dcs->group_size(v) >= 2) vtxs.push_back(v);
     }
     const int tries = max(min(FLAGS_try_large_degreepairs, int(vtxs.size()) - 1), 0);
     partial_sort(vtxs.begin(), vtxs.begin() + tries, vtxs.end(), [&dz](V l, V r) {
@@ -564,7 +564,7 @@ class cut_tree_with_2ECC {
       for (int pari = 0; pari < i; pari++) {
         V s = vtxs[i];
         V t = vtxs[pari];
-        if (!dcs.is_same_group(s, t)) continue;
+        if (!dcs->is_same_group(s, t)) continue;
         sep.mincut(s, t);
         cut_large_degreecount++;
       }
@@ -579,36 +579,36 @@ class cut_tree_with_2ECC {
   //隣接頂点同士を見て、まだ切れていなかったらcutする
   void separate_adjacent_pairs(separator& sep) {
     const bi_dinitz& dz = sep.get_bi_dinitz();
-    const disjoint_cut_set& dcs = sep.get_disjoint_cut_set();
+    const disjoint_cut_set* dcs = sep.get_disjoint_cut_set();
 
     for(int s = 0; s < num_vertices_; s++) {
       for(const auto& to_edge : dz.edges(s)) {
         const V t = dz.to(to_edge);
-        if (!dcs.is_same_group(s, t)) continue;
+        if (!dcs->is_same_group(s, t)) continue;
         sep.mincut(s, t);
       }
     }
   }
 
   void separate_all(separator& sep) {
-    const disjoint_cut_set& dcs = sep.get_disjoint_cut_set();
+    const disjoint_cut_set* dcs = sep.get_disjoint_cut_set();
     for(int group_id = 0; group_id < num_vertices_; group_id++) {
-      while (dcs.has_two_elements(group_id)) {
-        V s, t; tie(s, t) = dcs.get_two_elements(group_id);
+      while (dcs->has_two_elements(group_id)) {
+        V s, t; tie(s, t) = dcs->get_two_elements(group_id);
         sep.mincut(s, t);
       }
     }
   }
 
   void separate_near_pairs(separator& sep) {
-    const disjoint_cut_set& dcs = sep.get_disjoint_cut_set();
+    const disjoint_cut_set* dcs = sep.get_disjoint_cut_set();
     const bi_dinitz& dz = sep.get_bi_dinitz();
 
     vector<int> used(num_vertices_ * 2, -1);
     int used_revision = 0;
 
     for(int s = 0; s < num_vertices_; s++) {
-      if(dcs.group_size(s) <= 1) continue;
+      if(dcs->group_size(s) <= 1) continue;
       queue<V> q;
       q.push(s);
       used[s] = used_revision;
@@ -621,7 +621,7 @@ class cut_tree_with_2ECC {
               if(used[t] == used_revision) continue;
               used[t] = used_revision;
               q.push(t);
-              if(s != t && dcs.is_same_group(s, t)) {
+              if(s != t && dcs->is_same_group(s, t)) {
                 sep.mincut(s, t);
                 used.resize(dz.n(), -1); // dinic中に頂点数が変わる場合がある
               }
@@ -635,7 +635,7 @@ class cut_tree_with_2ECC {
   //次数の最も高い頂点に対して、出来る限りの頂点からflowを流してmincutを求める
   void find_cuts_by_goal_oriented_search(separator& sep) {
     const bi_dinitz& dz = sep.get_bi_dinitz();
-    const disjoint_cut_set& dcs = sep.get_disjoint_cut_set();
+    const disjoint_cut_set* dcs = sep.get_disjoint_cut_set();
     
     int max_degreevtx = 0;
     for(int v = 0; v < num_vertices_; v++) 
@@ -644,7 +644,7 @@ class cut_tree_with_2ECC {
     sep.goal_oriented_bfs_init(max_degreevtx);
     for(int v = 0; v < num_vertices_; v++) {
       if (v == max_degreevtx) continue;
-      if (!dcs.is_same_group(v, max_degreevtx)) continue;
+      if (!dcs->is_same_group(v, max_degreevtx)) continue;
       //graphの形状が変わると損なので、ここでは enable_contraction = false する
       sep.mincut(v, max_degreevtx, false);
     }
@@ -654,7 +654,7 @@ public:
 
   cut_tree_with_2ECC(vector<pair<V, V>>&& edges, int num_vs) :
     num_vertices_(num_vs),
-    gh_builder_(num_vs) {
+    gh_builder_(new gomory_hu_tree_builder(num_vs)) {
     vector<int> degree(num_vertices_);
     for (auto& e : edges) degree[e.first]++, degree[e.second]++;
 
@@ -663,16 +663,16 @@ public:
       contract_degree2_vertices(edges, degree);
     }
 
-    disjoint_cut_set dcs(num_vs);
+    unique_ptr<disjoint_cut_set> dcs(new disjoint_cut_set(num_vs));
 
     JLOG_ADD_BENCHMARK_IF("time.find_cuts_by_tree_packing", num_vertices_ > 10000) {
-      find_cuts_by_tree_packing(edges, dcs, degree);
+      find_cuts_by_tree_packing(edges, dcs.get(), degree);
     }
 
     //dinicの初期化
     bi_dinitz dz_base(std::move(edges), num_vs);
 
-    separator sep(dz_base, dcs, gh_builder_);
+    separator sep(dz_base, dcs.get(), gh_builder_);
 
     if (FLAGS_enable_goal_oriented_search) {
       JLOG_ADD_BENCHMARK_IF("time.find_cuts_by_goal_oriented_search", num_vertices_ > 10000) {
@@ -709,20 +709,20 @@ public:
 
     sep.output_debug_infomation();
 
-    gh_builder_.build();
+    gh_builder_->build();
   }
 
   int query(V u, V v) const {
-    return gh_builder_.query(u, v);
+    return gh_builder_->query(u, v);
   }
 
   const vector<pair<V, int>>& parent_weight() const {
-    return gh_builder_.parent_weight();
+    return gh_builder_->parent_weight();
   }
 
 private:
   const int num_vertices_;
   //todo .ccと.hに分ける時に、std::unique_ptrで囲む
-  gomory_hu_tree_builder gh_builder_;
+  std::unique_ptr<gomory_hu_tree_builder> gh_builder_;
 };
 } // namespace agl
