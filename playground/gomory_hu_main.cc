@@ -1,13 +1,15 @@
-#include <easy_cui.h>
 
-DEFINE_string(method, "gusfield", "gusfield, print_gomory_hu_tree");
 
 #include "bi_dinitz.h"
 #include "connected_components_filter.h"
 #include "two_edge_CC_filter.h"
+
+#include <easy_cui.h>
 #include "cut_tree_with_2ECC.h"
 #include "plain_gusfield.h"
 #include "plain_gusfield_bi_dinitz.h"
+
+DEFINE_string(method, "gusfield", "gusfield, print_gomory_hu_tree");
 
 G to_directed_graph(G&& g) {
   vector<pair<V, V>> ret;
@@ -57,11 +59,7 @@ void print_gomory_hu_tree(G&& g) {
 
 template<class T>
 void main_(G&& g) {
-  if (FLAGS_method == "gusfield") {
-    JLOG_PUT_BENCHMARK("gusfield_time") {
-      T gf(g);
-    }
-  } else if (FLAGS_method == "print_gomory_hu_tree") {
+  if (FLAGS_method == "print_gomory_hu_tree") {
     print_gomory_hu_tree<T>(std::move(g));
   } else {
     fprintf(stderr, "unrecognized option '%s'\n", FLAGS_method.c_str());

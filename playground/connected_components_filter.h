@@ -47,7 +47,7 @@ public:
       }
 
       edges.shrink_to_fit();
-      handlers_.emplace_back(std::move(edges), num_vs);
+      handlers_.emplace_back(new handler_t(std::move(edges), num_vs));
     }
   }
 
@@ -60,7 +60,7 @@ public:
   }
 
   int num_connected_components() const { return num_connected_components_; }
-  const std::vector<handler_t>& handlers() const { return handlers_; }
+  const std::vector<std::unique_ptr<handler_t>>& handlers() const { return handlers_; }
   const std::vector<int>& local_indices() const { return local_indices_; }
   const int handlers_index(int v) { return handlers_indices_[uf_.root(v)]; }
 
@@ -68,7 +68,7 @@ private:
   const int n_;
   union_find uf_;
   std::vector<int> local_indices_, handlers_indices_;
-  std::vector<handler_t> handlers_;
+  std::vector<std::unique_ptr<handler_t>> handlers_;
   int num_connected_components_;
 };
 } //namespace agl

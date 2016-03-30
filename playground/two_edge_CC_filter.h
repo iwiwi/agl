@@ -88,8 +88,8 @@ public:
     for(int i = 0; i < int(biconnected_graph_handler_->handlers().size()); i++) {
       const auto& l2g = local_id2global_id[i];
       const auto& gusfield_core = biconnected_graph_handler_->handlers()[i];
-      for(int v = 0; v < int(gusfield_core.parent_weight().size()); v++) {
-        const auto& kv = gusfield_core.parent_weight()[v];
+      for(int v = 0; v < int(gusfield_core->parent_weight().size()); v++) {
+        const auto& kv = gusfield_core->parent_weight()[v];
         int u = kv.first;
         if (u == -1) continue; // 親への辺が存在しない
         int weight = kv.second;
