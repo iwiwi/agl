@@ -447,7 +447,7 @@ private:
   int debug_last_max_flow_cost;
 };
 
-class OptimizedGusfieldWith2ECC {
+class cut_tree_with_2ECC {
   void find_cuts_by_tree_packing(vector<pair<V,V>>& edges, disjoint_cut_set& dcs, const vector<int>& degree) {
     vector<int> current_parent(num_vertices_, -1);
     vector<int> current_weight(num_vertices_, -1);
@@ -679,10 +679,10 @@ class OptimizedGusfieldWith2ECC {
 
 public:
 
-  OptimizedGusfieldWith2ECC(vector<pair<V, V>>&& edges, int num_vs) :
+  cut_tree_with_2ECC(vector<pair<V, V>>&& edges, int num_vs) :
     num_vertices_(num_vs),
     gh_builder_(num_vs) {
-    if(num_vs > 10000) fprintf(stderr, "OptimizedGusfieldWith2ECC::constructor start : memory %ld MB\n", jlog_internal::get_memory_usage() / 1024);
+    if(num_vs > 10000) fprintf(stderr, "cut_tree_with_2ECC::constructor start : memory %ld MB\n", jlog_internal::get_memory_usage() / 1024);
     vector<int> degree(num_vertices_);
     for (auto& e : edges) degree[e.first]++, degree[e.second]++;
 
@@ -701,10 +701,10 @@ public:
     auto preflow_eq_degree_before = preflow_eq_degree;
     auto flow_eq_0_before = flow_eq_0;
 
-    if(num_vs > 10000) fprintf(stderr, "OptimizedGusfieldWith2ECC::bi_dinitz before init : memory %ld MB\n", jlog_internal::get_memory_usage() / 1024);
+    if(num_vs > 10000) fprintf(stderr, "cut_tree_with_2ECC::bi_dinitz before init : memory %ld MB\n", jlog_internal::get_memory_usage() / 1024);
     //dinicの初期化
     bi_dinitz dz_base(std::move(edges), num_vs);
-    if(num_vs > 10000) fprintf(stderr, "OptimizedGusfieldWith2ECC::bi_dinitz after init : memory %ld MB\n", jlog_internal::get_memory_usage() / 1024);
+    if(num_vs > 10000) fprintf(stderr, "cut_tree_with_2ECC::bi_dinitz after init : memory %ld MB\n", jlog_internal::get_memory_usage() / 1024);
 
     separator sep(dz_base, dcs, gh_builder_);
 
