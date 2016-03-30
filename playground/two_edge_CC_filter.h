@@ -1,9 +1,9 @@
 #pragma once
-#include "ConnectedComponentsFilter.h"
+#include "connected_components_filter.h"
 
 // 2ECC = 2-edge connected components
 template<class handler_t>
-class TwoEdgeCCFilter {
+class two_edge_CC_filter {
 public:
   const int n;
   G& g;
@@ -38,10 +38,10 @@ public:
     return local_id2global_id;
   }
 
-  TwoEdgeCCFilter(G& g) : n(g.num_vertices()), g(g), uf(n), lowlink(n, -1), order(n, -1) {
+  two_edge_CC_filter(G& g) : n(g.num_vertices()), g(g), uf(n), lowlink(n, -1), order(n, -1) {
 
     G new_g;
-    fprintf(stderr, "TwoEdgeCCFilter::constructor start : memory %ld MB\n", jlog_internal::get_memory_usage() / 1024);
+    fprintf(stderr, "two_edge_CC_filter::constructor start : memory %ld MB\n", jlog_internal::get_memory_usage() / 1024);
     JLOG_ADD_BENCHMARK("time.decompose_2_connected_components") {
       FOR(v, n) for (auto& e : g.edges(v)) {
         uf.unite(v, to(e));
@@ -65,9 +65,9 @@ public:
       // bridge.clear(); bridge.shrink_to_fit();
       biconnected_graphs_edges.clear(); biconnected_graphs_edges.shrink_to_fit();
     }
-    fprintf(stderr, "TwoEdgeCCFilter::constructor end, before ConnectedComponentsFilter : memory %ld MB\n", jlog_internal::get_memory_usage() / 1024);
+    fprintf(stderr, "two_edge_CC_filter::constructor end, before connected_components_filter : memory %ld MB\n", jlog_internal::get_memory_usage() / 1024);
 
-    biconnected_graph_handler.reset(new ConnectedComponentsFilter<handler_t>(new_g));
+    biconnected_graph_handler.reset(new connected_components_filter<handler_t>(new_g));
   }
 
 public:
@@ -108,5 +108,5 @@ private:
   vector<int> lowlink, order;
   vector<pair<V, V>> bridge, biconnected_graphs_edges;
 
-  unique_ptr<ConnectedComponentsFilter<handler_t>> biconnected_graph_handler;
+  unique_ptr<connected_components_filter<handler_t>> biconnected_graph_handler;
 };

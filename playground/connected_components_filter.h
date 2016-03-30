@@ -1,11 +1,11 @@
 #pragma once
 
 template<class handler_t>
-class ConnectedComponentsFilter {
+class connected_components_filter {
 public:
-  ConnectedComponentsFilter(const G& g) 
+  connected_components_filter(const G& g) 
   : n(g.num_vertices()), uf_(n), local_indices_(n), handlers_indices_(n), num_connected_components_(0) {
-    fprintf(stderr, "ConnectedComponentsFilter::constructor start memory %ld MB\n", jlog_internal::get_memory_usage() / 1024);
+    fprintf(stderr, "connected_components_filter::constructor start memory %ld MB\n", jlog_internal::get_memory_usage() / 1024);
 
     const double start_uf = jlog_internal::get_current_time_sec();
     FOR(v, n) for (auto e : g.edges(v)) {

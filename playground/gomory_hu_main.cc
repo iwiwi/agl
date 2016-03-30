@@ -5,8 +5,8 @@ DEFINE_string(method, "gusfield", "gusfield, print_gomory_hu_tree");
 #define sz(c) ((int)(c).size())
 
 #include "bi_dinitz.h"
-#include "ConnectedComponentsFilter.h"
-#include "TwoEdgeCCFilter.h"
+#include "connected_components_filter.h"
+#include "two_edge_CC_filter.h"
 #include "cut_tree_with_2ECC.h"
 #include "plain_gusfield.h"
 #include "plain_gusfield_bi_dinitz.h"
@@ -23,7 +23,7 @@ G to_directed_graph(G&& g) {
   return G(ret);
 }
 
-using Gusfield = TwoEdgeCCFilter<cut_tree_with_2ECC>;
+using Gusfield = two_edge_CC_filter<cut_tree_with_2ECC>;
 DEFINE_string(gomory_hu_builder, "cut_tree_with_2ECC", "cut_tree_with_2ECC");
 
 string graph_name() {

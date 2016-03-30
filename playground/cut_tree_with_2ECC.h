@@ -1,5 +1,4 @@
 #pragma once
-#include "ConnectedComponentsFilter.h"
 #include "greedy_treepacking.h"
 #include "conditional_benchmark.h"
 
