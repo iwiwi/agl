@@ -145,7 +145,7 @@ TYPED_TEST(dpll_test, medium_ba) {
 TYPED_TEST(dpll_test, large_ba) {
   for (int trial = 0; trial < 5; ++trial) {
     V m = agl::random(10) + 2;
-    V n = agl::random(10000) + m + 1;
+    V n = 3000 + m;
     auto es = generate_ba(n, m);
     G g(es);
     pretty_print(g);
@@ -184,7 +184,7 @@ TYPED_TEST(dpll_test, dynamic_medium_ba) {
 TYPED_TEST(dpll_test, dynamic_large_ba) {
   for (int trial = 0; trial < 5; ++trial) {
     V m = agl::random(10) + 2;
-    V n = agl::random(10000) + 1 + m;
+    V n = 3000 + m;
     auto es = generate_ba(n, m);
     G g(es);
     pretty_print(g);
