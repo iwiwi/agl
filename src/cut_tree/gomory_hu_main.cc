@@ -2,6 +2,8 @@
 #include <easy_cui.h>
 
 DEFINE_string(method, "gusfield", "gusfield, print_gomory_hu_tree");
+DEFINE_string(gomory_hu_builder, "cut_tree_with_2ecc", "cut_tree_with_2ecc, PlainGusfield, PlainGusfield_bi_dinitz");
+DEFINE_string(validation_data_path, "", "output gomory_hu tree path");
 
 G to_directed_graph(G&& g) {
   vector<pair<V, V>> ret;
@@ -14,8 +16,6 @@ G to_directed_graph(G&& g) {
   return G(ret);
 }
 
-DEFINE_string(gomory_hu_builder, "cut_tree_with_2ecc", "cut_tree_with_2ecc");
-
 string graph_name() {
   string x = FLAGS_graph;
   string ret;
@@ -27,11 +27,9 @@ string graph_name() {
   return ret;
 }
 
-DEFINE_string(validation_data_path, "", "");
 
 template<class gomory_hu_tree_t>
 void print_gomory_hu_tree(G&& g) {
-
   fprintf(stderr, "print_gomory_hu_tree : memory %ld MB\n", jlog_internal::get_memory_usage() / 1024);
 
   if (FLAGS_validation_data_path == "") {
@@ -79,12 +77,10 @@ int main(int argc, char** argv) {
     exit(0);
   }
 
-  using agl::cut_tree_internal::plain_gusfield;
-  using agl::cut_tree_internal::dinitz;
   if (FLAGS_gomory_hu_builder == "PlainGusfield") { 
-    main_<plain_gusfield<dinitz>>(std::move(g));
+    main_<plain_gusfield_dinitz>(std::move(g));
   } else if (FLAGS_gomory_hu_builder == "PlainGusfield_bi_dinitz") { 
-    main_<plain_gusfield<bi_dinitz>>(std::move(g));
+    main_<plain_gusfield_bi_dinitz>(std::move(g));
   } else if (FLAGS_gomory_hu_builder == "cut_tree_with_2ecc") {
     main_<cut_tree>(std::move(g));
   } else {
