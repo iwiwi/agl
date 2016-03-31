@@ -1,5 +1,6 @@
 #pragma once
-#include "greedy_treepacking.h"
+#include <base/base.h>
+#include <graph/graph.h>
 
 DECLARE_int32(try_greedy_tree_packing);
 DECLARE_int32(try_large_degreepairs);
@@ -46,4 +47,5 @@ private:
   const int num_vertices_;
   std::unique_ptr<cut_tree_internal::gomory_hu_tree_builder> gh_builder_;
 };
+
 } // namespace agl

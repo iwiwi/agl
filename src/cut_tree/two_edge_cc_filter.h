@@ -2,7 +2,7 @@
 #include "connected_components_filter.h"
 
 namespace agl {
-
+namespace cut_tree_internal {
 // two-edge connected components filter
 template<class handler_t>
 class two_edge_cc_filter {
@@ -108,4 +108,5 @@ private:
 
   std::unique_ptr<connected_components_filter<handler_t>> biconnected_graph_handler_;
 };
-} //namespace agl
+} // namespace cut_tree_internal
+} // namespace agl

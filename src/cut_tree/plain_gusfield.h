@@ -1,4 +1,10 @@
 #pragma once
+#include <base/base.h>
+#include <graph/graph.h>
+#include <vector>
+#include <queue>
+#include <iostream>
+#include <limits>
 
 namespace agl {
 namespace cut_tree_internal {
@@ -7,9 +13,9 @@ class plain_gusfield{
   int query_dfs(V v, V t, int cost, V par = -1) const {
     if (v == t) return cost;
     for (const auto& to_cost : binary_tree_edges_[v]) {
-      V to; int edge_cost; tie(to, edge_cost) = to_cost;
+      V to; int edge_cost; std::tie(to, edge_cost) = to_cost;
       if (to == par) continue;
-      int ncost = query_dfs(to, t, min(cost, edge_cost), v);
+      int ncost = query_dfs(to, t, std::min(cost, edge_cost), v);
       if (ncost != -1) return ncost;
     }
 
@@ -29,12 +35,12 @@ public:
     for(int v = 0; v < num_vertices_; v++) for (auto& e : g.edges(v)) {
       uf.unite(v, to(e));
     }
-    vector<int> p(num_vertices_);
+    std::vector<int> p(num_vertices_);
     for(int v = 0; v < num_vertices_; v++) {
       if (v == uf.root(v)) p[v] = -1;
       else p[v] = uf.root(v);
     }
-    vector<int> root_vtxs;
+    std::vector<int> root_vtxs;
     for(int v = 0; v < num_vertices_; v++) if(p[v] == -1) root_vtxs.push_back(v);
     for(int i = 0; i < int(root_vtxs.size()) - 1; i++) {
       add_edge(root_vtxs[i], root_vtxs[i+1], 0);
@@ -51,8 +57,8 @@ public:
       add_edge(s, t, cost);
 
 
-      vector<char> used(num_vertices_);
-      queue<int> q;
+      std::vector<char> used(num_vertices_);
+      std::queue<int> q;
       q.push(s);
       used[s] = true;
       while (!q.empty()) {
@@ -70,28 +76,28 @@ public:
   int query(V u, V v) const {
     CHECK(u != v);
     CHECK(u < num_vertices_ && v < num_vertices_);
-    int ans = query_dfs(u, v, numeric_limits<int>::max());
+    int ans = query_dfs(u, v, std::numeric_limits<int>::max());
     if (ans == -1) {
       return 0; // 到達できなかった
     }
     return ans;
   }
 
-  void print_gomory_hu_tree_dfs(V v,V par,ostream& os) {
+  void print_gomory_hu_tree_dfs(V v,V par,std::ostream& os) {
     for(auto& to : binary_tree_edges_[v]) {
       if(to.first == par) continue;
-      os << v << " " << to.first << " " << to.second << endl;
+      os << v << " " << to.first << " " << to.second << std::endl;
       print_gomory_hu_tree_dfs(to.first, v, os);
     }
   }
 
-  void print_gomory_hu_tree(ostream& os) {
+  void print_gomory_hu_tree(std::ostream& os) {
     print_gomory_hu_tree_dfs(0, -1, os);
   }
 
 private:
   const int num_vertices_;
-  vector<vector<pair<V, int>>> binary_tree_edges_;
+  std::vector<std::vector<std::pair<V, int>>> binary_tree_edges_;
 };
 } // namespace cut_tree_internal
 } // namespace agl

@@ -1,5 +1,6 @@
 #include "cut_tree_with_2ecc.h"
 #include "bi_dinitz.h"
+#include "greedy_treepacking.h"
 #include <queue>
 
 DEFINE_int32(try_greedy_tree_packing, 1, "number of tree packing");
