@@ -47,7 +47,7 @@
 #include <stdint.h>
 #include <vector>
 #include <unistd.h>
-#include <math.h>
+#include <cmath>
 
 extern std::string FLAGS_jlog_out;
 extern bool FLAGS_jlog_suppress_log;
@@ -135,7 +135,7 @@ template<typename value_t> struct json_leaf_real : json_node {
   }
 
   virtual void print(std::ostream &os, int, bool last) {
-    if (isnan(value) || isinf(value)) {
+    if (std::isnan(value) || std::isinf(value)) {
       os << "\"" << value << (last ? "\"" : "\",") << std::endl;
     } else {
       os << value << (last ? "" : ",") << std::endl;
