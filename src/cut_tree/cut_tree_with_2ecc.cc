@@ -1,4 +1,4 @@
-#include "cut_tree_with_2ECC.h"
+#include "cut_tree_with_2ecc.h"
 #include "bi_dinitz.h"
 #include <queue>
 
@@ -437,8 +437,8 @@ private:
 };
 } // cut_tree_internal
 
-//class cut_tree_with_2ECC
-void cut_tree_with_2ECC::find_cuts_by_tree_packing(vector<pair<V,V>>& edges, disjoint_cut_set* dcs, const vector<int>& degree) {
+//class cut_tree_with_2ecc
+void cut_tree_with_2ecc::find_cuts_by_tree_packing(vector<pair<V,V>>& edges, disjoint_cut_set* dcs, const vector<int>& degree) {
   vector<int> current_parent(num_vertices_, -1);
   vector<int> current_weight(num_vertices_, -1);
   greedy_treepacking packing_base(edges, num_vertices_);
@@ -521,7 +521,7 @@ void cut_tree_with_2ECC::find_cuts_by_tree_packing(vector<pair<V,V>>& edges, dis
   }
 }
 
-void cut_tree_with_2ECC::contract_degree2_vertices(vector<pair<V,V>>& edges, vector<int>& degree) {
+void cut_tree_with_2ecc::contract_degree2_vertices(vector<pair<V,V>>& edges, vector<int>& degree) {
   const int n = int(degree.size());
   vector<vector<int>> e(n);
 
@@ -552,7 +552,7 @@ void cut_tree_with_2ECC::contract_degree2_vertices(vector<pair<V,V>>& edges, vec
 }
 
 //次数の大きい頂点対をcutする
-void cut_tree_with_2ECC::separate_high_degreepairs(separator* sep) {
+void cut_tree_with_2ecc::separate_high_degreepairs(separator* sep) {
   const disjoint_cut_set* dcs = sep->get_disjoint_cut_set();
   const bi_dinitz& dz = sep->get_bi_dinitz();
 
@@ -583,7 +583,7 @@ void cut_tree_with_2ECC::separate_high_degreepairs(separator* sep) {
 }
 
 //隣接頂点同士を見て、まだ切れていなかったらcutする
-void cut_tree_with_2ECC::separate_adjacent_pairs(separator* sep) {
+void cut_tree_with_2ecc::separate_adjacent_pairs(separator* sep) {
   const bi_dinitz& dz = sep->get_bi_dinitz();
   const disjoint_cut_set* dcs = sep->get_disjoint_cut_set();
 
@@ -596,7 +596,7 @@ void cut_tree_with_2ECC::separate_adjacent_pairs(separator* sep) {
   }
 }
 
-void cut_tree_with_2ECC::separate_all(separator* sep) {
+void cut_tree_with_2ecc::separate_all(separator* sep) {
   const disjoint_cut_set* dcs = sep->get_disjoint_cut_set();
   for(int group_id = 0; group_id < num_vertices_; group_id++) {
     while (dcs->has_two_elements(group_id)) {
@@ -606,7 +606,7 @@ void cut_tree_with_2ECC::separate_all(separator* sep) {
   }
 }
 
-void cut_tree_with_2ECC::separate_near_pairs(separator* sep) {
+void cut_tree_with_2ecc::separate_near_pairs(separator* sep) {
   const disjoint_cut_set* dcs = sep->get_disjoint_cut_set();
   const bi_dinitz& dz = sep->get_bi_dinitz();
 
@@ -639,7 +639,7 @@ void cut_tree_with_2ECC::separate_near_pairs(separator* sep) {
 }
 
 //次数の最も高い頂点に対して、出来る限りの頂点からflowを流してmincutを求める
-void cut_tree_with_2ECC::find_cuts_by_goal_oriented_search(separator* sep) {
+void cut_tree_with_2ecc::find_cuts_by_goal_oriented_search(separator* sep) {
   const bi_dinitz& dz = sep->get_bi_dinitz();
   const disjoint_cut_set* dcs = sep->get_disjoint_cut_set();
   
@@ -656,7 +656,7 @@ void cut_tree_with_2ECC::find_cuts_by_goal_oriented_search(separator* sep) {
   }
 }
 
-cut_tree_with_2ECC::cut_tree_with_2ECC(vector<pair<V, V>>&& edges, int num_vs) :
+cut_tree_with_2ecc::cut_tree_with_2ecc(vector<pair<V, V>>&& edges, int num_vs) :
   num_vertices_(num_vs),
   gh_builder_(new gomory_hu_tree_builder(num_vs)) {
   vector<int> degree(num_vertices_);
@@ -716,13 +716,13 @@ cut_tree_with_2ECC::cut_tree_with_2ECC(vector<pair<V, V>>&& edges, int num_vs) :
   gh_builder_->build();
 }
 
-cut_tree_with_2ECC::~cut_tree_with_2ECC() = default;
+cut_tree_with_2ecc::~cut_tree_with_2ecc() = default;
 
-int cut_tree_with_2ECC::query(V u, V v) const {
+int cut_tree_with_2ecc::query(V u, V v) const {
   return gh_builder_->query(u, v);
 }
 
-const vector<pair<V, int>>& cut_tree_with_2ECC::parent_weight() const {
+const vector<pair<V, int>>& cut_tree_with_2ecc::parent_weight() const {
   return gh_builder_->parent_weight();
 }
 } // namespace agl

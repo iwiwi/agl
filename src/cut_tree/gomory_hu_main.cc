@@ -1,7 +1,7 @@
 #include <cut_tree/bi_dinitz.h>
 #include <cut_tree/connected_components_filter.h>
-#include <cut_tree/two_edge_CC_filter.h>
-#include <cut_tree/cut_tree_with_2ECC.h>
+#include <cut_tree/two_edge_cc_filter.h>
+#include <cut_tree/cut_tree_with_2ecc.h>
 #include <easy_cui.h>
 
 #include "dinitz.h"
@@ -20,8 +20,8 @@ G to_directed_graph(G&& g) {
   return G(ret);
 }
 
-using Gusfield = two_edge_CC_filter<cut_tree_with_2ECC>;
-DEFINE_string(gomory_hu_builder, "cut_tree_with_2ECC", "cut_tree_with_2ECC");
+using Gusfield = two_edge_cc_filter<cut_tree_with_2ecc>;
+DEFINE_string(gomory_hu_builder, "cut_tree_with_2ecc", "cut_tree_with_2ecc");
 
 string graph_name() {
   string x = FLAGS_graph;
@@ -92,7 +92,7 @@ int main(int argc, char** argv) {
     main_<plain_gusfield<dinitz>>(std::move(g));
   } else if (FLAGS_gomory_hu_builder == "PlainGusfield_bi_dinitz") { 
     main_<plain_gusfield<bi_dinitz>>(std::move(g));
-  } else if (FLAGS_gomory_hu_builder == "cut_tree_with_2ECC") {
+  } else if (FLAGS_gomory_hu_builder == "cut_tree_with_2ecc") {
     main_<Gusfield>(std::move(g));
   } else {
     fprintf(stderr, "unrecognized option -gomory_hu_builder='%s'\n", FLAGS_gomory_hu_builder.c_str());

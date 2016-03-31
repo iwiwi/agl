@@ -3,9 +3,9 @@
 
 namespace agl {
 
-// 2ECC = 2-edge connected components
+// two-edge connected components filter
 template<class handler_t>
-class two_edge_CC_filter {
+class two_edge_cc_filter {
 public:
 
   void lowlink_dfs(int v, int par, int& cur_ord) {
@@ -38,7 +38,7 @@ public:
     return local_id2global_id;
   }
 
-  two_edge_CC_filter(G& g) : n_(g.num_vertices()), g_(g), uf_(n_), lowlink_(n_, -1), order_(n_, -1) {
+  two_edge_cc_filter(G& g) : n_(g.num_vertices()), g_(g), uf_(n_), lowlink_(n_, -1), order_(n_, -1) {
 
     G new_g;
     for(int v = 0; v < n_; v++) for (auto& e : g_.edges(v)) {

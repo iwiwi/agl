@@ -16,7 +16,8 @@ class separator;
 class gomory_hu_tree_builder;
 } // cut_tree_internal
 
-class cut_tree_with_2ECC {
+// 2ecc = two-edge connected components
+class cut_tree_with_2ecc {
   void find_cuts_by_tree_packing(std::vector<std::pair<V,V>>& edges, cut_tree_internal::disjoint_cut_set* dcs, const std::vector<int>& degree);
   void contract_degree2_vertices(std::vector<std::pair<V,V>>& edges, std::vector<int>& degree);
 
@@ -35,8 +36,8 @@ class cut_tree_with_2ECC {
 
 public:
 
-  cut_tree_with_2ECC(std::vector<std::pair<V, V>>&& edges, int num_vs);
-  ~cut_tree_with_2ECC();
+  cut_tree_with_2ecc(std::vector<std::pair<V, V>>&& edges, int num_vs);
+  ~cut_tree_with_2ecc();
 
   int query(V u, V v) const;
   const std::vector<std::pair<V, int>>& parent_weight() const;
