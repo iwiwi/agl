@@ -58,18 +58,39 @@ TYPED_TEST(cut_tree_test, output_tree) {
     }
 }
 
-TEST(cut_tree_test, max_flow) {
-  G g = to_directed_graph(built_in_graph("ca_grqc"));
-  dinitz dz1(g);
-  bi_dinitz dz2(g);
-  for (int i = 0; i < 1000; i++) {
-    V s = agl::random() % g.num_vertices();
-    V t = agl::random() % (g.num_vertices() - 1);
-    if (s <= t) t++;
-    int a = dz1.max_flow(s,t);
-    int b = dz2.max_flow(s,t);
-    ASSERT_EQ(a,b);
-  }
+TEST(cut_tree_test, dinitz_eq_bi_dinitz) {
+  auto check = [](G&& g) {
+    dinitz dz1(g);
+    bi_dinitz dz2(g);
+    for (int i = 0; i < 1000; i++) {
+      V s = agl::random() % g.num_vertices();
+      V t = agl::random() % (g.num_vertices() - 1);
+      if (s <= t) t++;
+      int a = dz1.max_flow(s, t);
+      int b = dz2.max_flow(s, t);
+      ASSERT_EQ(a, b);
+    }
+  };
+  check(to_directed_graph(built_in_graph("ca_grqc")));
+}
+
+TEST(cut_tree_test, cut_tree_) {
+  auto check = [](G&& g) {
+    const int n = g.num_vertices();
+    bi_dinitz dt(g);
+    //cut_tree constructor break down 'g'
+    cut_tree ct(g);
+    ASSERT_EQ(g.num_vertices(), 0);
+    for (int i = 0; i < 10000; i++) {
+      V s = agl::random() % n;
+      V t = agl::random() % (n - 1);
+      if (s <= t) t++;
+      int a = ct.query(s, t);
+      int b = dt.max_flow(s, t);
+      ASSERT_EQ(a, b);
+    }
+  };
+  check(to_directed_graph(built_in_graph("ca_grqc")));
 }
 
 TYPED_TEST(cut_tree_test, corner_case_small_graph) {
@@ -87,19 +108,5 @@ TYPED_TEST(cut_tree_test, corner_case_small_graph) {
     ct.print_gomory_hu_tree(ss);
   }
 }
-
-// TEST(cut_tree_test, cut_tree_) {
-//   G g = to_directed_graph(built_in_graph("ca_grqc"));
-//   dinitz dz1(g);
-//   bi_dinitz dz2(g);
-//   for (int i = 0; i < 1000; i++) {
-//     V s = agl::random() % g.num_vertices();
-//     V t = agl::random() % (g.num_vertices() - 1);
-//     if (s <= t) t++;
-//     int a = dz1.max_flow(s,t);
-//     int b = dz2.max_flow(s,t);
-//     ASSERT_EQ(a,b);
-//   }
-// }
 
 }
