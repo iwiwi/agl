@@ -288,8 +288,8 @@ void bi_dinitz::goal_oriented_bfs_init(int root) {
 
   //sort edges by depth order
   for (int v = 0; v < n_; v++) {
-    // dep[l.to]は3つの値しか取らないので高速化可能
-    sort(e_[v].begin(), e_[v].end(), [&dep = goal_oriented_bfs_depth_](const E& l, const E& r) {
+    auto& dep = goal_oriented_bfs_depth_;
+    sort(e_[v].begin(), e_[v].end(), [&dep](const E& l, const E& r) {
       return dep[l.to_] < dep[r.to_];
     });
 
