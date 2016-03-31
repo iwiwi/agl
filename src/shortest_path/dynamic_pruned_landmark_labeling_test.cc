@@ -308,12 +308,12 @@ TYPED_TEST(dpll_test, remove_vertices) {
   g.add_vertices(100);
   TypeParam dpll;
   dpll.construct(g);
-  ASSERT_EQ(dpll.test_get_rank().size(), g.num_vertices());
+  ASSERT_EQ(dpll.test_get_rank().size(), (size_t)g.num_vertices());
 
   V old_num_vertices = g.num_vertices();
   g.remove_vertices(50);
   dpll.remove_vertices(g, old_num_vertices);
-  ASSERT_EQ(dpll.test_get_rank().size(), g.num_vertices());
+  ASSERT_EQ(dpll.test_get_rank().size(), (size_t)g.num_vertices());
 }
 
 TYPED_TEST(dpll_test, add_vertices) {
@@ -321,12 +321,12 @@ TYPED_TEST(dpll_test, add_vertices) {
   G g(es);
   TypeParam dpll;
   dpll.construct(g);
-  ASSERT_EQ(dpll.test_get_rank().size(), g.num_vertices());
+  ASSERT_EQ(dpll.test_get_rank().size(), (size_t)g.num_vertices());
 
   V old_num_vertices = g.num_vertices();
   g.add_vertices(50);
   dpll.add_vertices(g, old_num_vertices);
-  ASSERT_EQ(dpll.test_get_rank().size(), g.num_vertices());
+  ASSERT_EQ(dpll.test_get_rank().size(), (size_t)g.num_vertices());
 }
 
 TYPED_TEST(dpll_test, death_test) {
@@ -350,25 +350,25 @@ TYPED_TEST(dpll_test, small_case) {
     G g(es);
     TypeParam dpll;
     dpll.construct(g);
-    ASSERT_EQ(dpll.test_get_rank().size(), 0);
+    ASSERT_EQ(dpll.test_get_rank().size(), 0UL);
     g.add_vertices(1);
     dpll.add_vertices(g, 0);
-    ASSERT_EQ(dpll.test_get_rank().size(), 1);
+    ASSERT_EQ(dpll.test_get_rank().size(), 1UL);
     g.add_vertices(2);
     dpll.add_vertices(g, 1);
-    ASSERT_EQ(dpll.test_get_rank().size(), 2);
+    ASSERT_EQ(dpll.test_get_rank().size(), 2UL);
     g.add_edge(0, 1);
     dpll.add_edge(g, 0, 1);
     ASSERT_EQ(dpll.query_distance(g, 0, 1), 1);
     g.add_vertices(3);
     dpll.add_vertices(g, 2);
-    ASSERT_EQ(dpll.test_get_rank().size(), 3);
+    ASSERT_EQ(dpll.test_get_rank().size(), 3UL);
     g.add_edge(1, 2);
     dpll.add_edge(g, 1, 2);
     ASSERT_EQ(dpll.query_distance(g, 0, 2), 2);
     g.add_vertices(4);
     dpll.add_vertices(g, 3);
-    ASSERT_EQ(dpll.test_get_rank().size(), 4);
+    ASSERT_EQ(dpll.test_get_rank().size(), 4UL);
     g.add_edge(3, 1);
     dpll.add_edge(g, 3, 1);
     ASSERT_EQ(dpll.query_distance(g, 3, 1), 1);
@@ -378,7 +378,7 @@ TYPED_TEST(dpll_test, small_case) {
     G g(es);
     TypeParam dpll;
     dpll.construct(g);
-    ASSERT_EQ(dpll.test_get_rank().size(), 2);
+    ASSERT_EQ(dpll.test_get_rank().size(), 2UL);
     ASSERT_EQ(dpll.query_distance(g, 0, 1), 1);
     ASSERT_EQ(dpll.query_distance(g, 1, 0), 100);
     g.add_vertices(3);
@@ -392,7 +392,7 @@ TYPED_TEST(dpll_test, small_case) {
     G g(es);
     TypeParam dpll;
     dpll.construct(g);
-    ASSERT_EQ(dpll.test_get_rank().size(), 2);
+    ASSERT_EQ(dpll.test_get_rank().size(), 2UL);
     ASSERT_EQ(dpll.query_distance(g, 0, 1), 100);
     ASSERT_EQ(dpll.query_distance(g, 1, 0), 1);
   }
@@ -401,7 +401,7 @@ TYPED_TEST(dpll_test, small_case) {
     G g(make_undirected(es));
     TypeParam dpll;
     dpll.construct(g);
-    ASSERT_EQ(dpll.test_get_rank().size(), 2);
+    ASSERT_EQ(dpll.test_get_rank().size(), 2UL);
     ASSERT_EQ(dpll.query_distance(g, 0, 1), 1);
     ASSERT_EQ(dpll.query_distance(g, 1, 0), 1);
   }

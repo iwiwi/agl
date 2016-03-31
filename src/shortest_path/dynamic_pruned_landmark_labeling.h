@@ -102,7 +102,7 @@ std::vector<std::pair<V, W>> dynamic_pruned_landmark_labeling<kNumBitParallelRoo
   assert(v < num_v_);
   int direction = dir == kFwd ? 0 : 1;
   std::vector<std::pair<V, W>> ret(idx_[direction][v].size());
-  for (int i = 0; i < idx_[direction][v].size(); ++i) {
+  for (size_t i = 0; i < idx_[direction][v].size(); ++i) {
     ret[i].first = idx_[direction][v].spt_v[i];
     ret[i].second = idx_[direction][v].spt_d[i];
   }
@@ -146,7 +146,7 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>
   std::vector<std::pair<V, V>> sibling_es(num_e);
   std::vector<std::pair<V, V>> child_es(num_e);
   V bp_roots[64];
-  for (int bp_i = 0; bp_i < kNumBitParallelRoots; ++bp_i) {
+  for (size_t bp_i = 0; bp_i < kNumBitParallelRoots; ++bp_i) {
     // Select Root
     while (root < num_v_ && used[root]) root++;
     if (root == num_v_) {
@@ -184,7 +184,7 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>
       bfs_que_[q_tail++] = root;
       bfs_dist_[root] = 0;
 
-      for (size_t i = 0; i < selected_num; ++i) {
+      for (V i = 0; i < selected_num; ++i) {
         V v = bp_roots[i];
         bfs_que_[q_tail++] = v;
         bfs_dist_[v] = 1;
@@ -217,13 +217,13 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>
           }
         }
 
-        for (int p = 0; p < num_sibling_es; ++p) {
+        for (size_t p = 0; p < num_sibling_es; ++p) {
           V v, w;
           std::tie(v, w) = sibling_es[p];
           tmp_s[v].second |= tmp_s[w].first;
           tmp_s[w].second |= tmp_s[v].first;
         }
-        for (int p = 0; p < num_child_es; ++p) {
+        for (size_t p = 0; p < num_child_es; ++p) {
           V v, c;
           std::tie(v, c) = child_es[p];
           tmp_s[c].first |= tmp_s[v].first;
@@ -251,7 +251,7 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>
   V old_idx_size = idx_[0].size();
   idx_[0].resize(num_v_), idx_[1].resize(num_v_);
   for (V v = old_idx_size; v < num_v_; ++v) {
-    for (int bp_i = 0; bp_i < kNumBitParallelRoots; ++bp_i) {
+    for (size_t bp_i = 0; bp_i < kNumBitParallelRoots; ++bp_i) {
       idx_[0][v].bpspt_d[bp_i] = D_INF_;
       idx_[1][v].bpspt_d[bp_i] = D_INF_;
     }
@@ -330,7 +330,7 @@ template <size_t kNumBitParallelRoots>
 W dynamic_pruned_landmark_labeling<kNumBitParallelRoots>
 ::query_distance(const G &g, V v_from, V v_to) {
   assert(v_from >= 0 && v_to >= 0);
-  assert(v_from < rank_.size() && v_to < rank_.size());
+  assert(v_from < num_v_ && v_to < num_v_);
   if (v_from == v_to) return 0;
   v_from = rank_[v_from], v_to = rank_[v_to];
   return distance_less(v_from, v_to, 0, 0);
@@ -355,7 +355,7 @@ uint8_t dynamic_pruned_landmark_labeling<kNumBitParallelRoots>
   const index_t &idx_from = idx_[direction][inv_[v_from]];
   const index_t &idx_to = idx_[another][inv_[v_to]];
 
-  for (int bp_i = 0; bp_i < kNumBitParallelRoots; ++bp_i) {
+  for (size_t bp_i = 0; bp_i < kNumBitParallelRoots; ++bp_i) {
     uint8_t td = idx_from.bpspt_d[bp_i] + idx_to.bpspt_d[bp_i];
     if (td - 2 >= d) continue;
     if (idx_from.bpspt_s[bp_i][0] & idx_to.bpspt_s[bp_i][0]) {
@@ -499,14 +499,14 @@ void dynamic_pruned_landmark_labeling<kNumBitParallelRoots>
   assert(v_a < num_v_ && v_b < num_v_);
   v_a = rank_[v_a], v_b = rank_[v_b];
 
-  for (int bp_i = 0; bp_i < kNumBitParallelRoots; ++bp_i) {
+  for (size_t bp_i = 0; bp_i < kNumBitParallelRoots; ++bp_i) {
     partial_bp_bfs(g, bp_i, v_a, 0);
     partial_bp_bfs(g, bp_i, v_b, 1);
   }
 
   index_t &idx_a = idx_[1][inv_[v_a]];
   index_t &idx_b = idx_[0][inv_[v_b]];
-  for (int ia = 0, ib = 0; ia < idx_a.size() || ib < idx_b.size();) {
+  for (size_t ia = 0, ib = 0; ia < idx_a.size() || ib < idx_b.size();) {
     V r_a = ia < idx_a.size() ? idx_a.spt_v[ia] : num_v_;
     V r_b = ib < idx_b.size() ? idx_b.spt_v[ib] : num_v_;
     if (r_a == r_b) {
