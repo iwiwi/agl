@@ -1,5 +1,4 @@
 box: kenkoooo/waf-compile
-command-timeout: 60
 build:
   steps:
     - script:
