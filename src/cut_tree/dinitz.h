@@ -2,7 +2,6 @@
 
 #include <base/base.h>
 #include <graph/graph.h>
-#include <queue>
 
 namespace agl {
 namespace cut_tree_internal {
