@@ -45,6 +45,11 @@ void read_binary(std::istream &is, T *t) {
 }
 
 template<typename T>
+void read_binary(std::istream &is, T *t, std::size_t count) {
+  CHECK_PERROR(is.read((char*)t, sizeof(T) * count));
+}
+
+template<typename T>
 void write_binary(std::ostream &os, const T &t) {
   CHECK_PERROR(os.write((char*)&t, sizeof(T)));
 }

@@ -47,7 +47,8 @@
 #include <stdint.h>
 #include <vector>
 #include <unistd.h>
-#include <math.h>
+#include <cmath>
+#include <memory>
 
 extern std::string FLAGS_jlog_out;
 extern bool FLAGS_jlog_suppress_log;
@@ -135,7 +136,7 @@ template<typename value_t> struct json_leaf_real : json_node {
   }
 
   virtual void print(std::ostream &os, int, bool last) {
-    if (isnan(value) || isinf(value)) {
+    if (std::isnan(value) || std::isinf(value)) {
       os << "\"" << value << (last ? "\"" : "\",") << std::endl;
     } else {
       os << value << (last ? "" : ",") << std::endl;
@@ -361,8 +362,8 @@ class jlog {
 
 class jlog_opener {
  public:
-  jlog_opener(bool add, const char *path, bool glog = true) {
-    prev_ = jlog::instance_.current_;
+  jlog_opener(bool add, const char *path, bool glog = true) 
+      : prev_(jlog::instance_.current_), prev_glog_flag_(false) {
     if (jlog::instance_.ignore_nest_level_ > 0) return;
     if (add == false) {
       json_node *& jn = jlog::instance_.reach_path(path);
@@ -440,6 +441,20 @@ class jlog_ignorer {
   }
 };
 
+class jlog_conditional_benchmarker {
+ public:
+  jlog_conditional_benchmarker(bool add, const char *path, bool condition, bool glog = true) {
+    if (condition) benchmarker_.reset(new jlog_benchmarker(add, path, glog));
+  }
+
+  operator bool() {
+    return false;
+  }
+
+ private:
+  std::unique_ptr<jlog_benchmarker> benchmarker_;
+};
+
 }  // namespace jlog_internal
 
 #define JLOG_OPEN(...)                                              \
@@ -461,6 +476,16 @@ class jlog_ignorer {
 #define JLOG_IGNORE                                                 \
   if (jlog_internal::jlog_ignorer o__                               \
       = jlog_internal::jlog_ignorer()); else
+
+
+#define JLOG_PUT_BENCHMARK_IF(...)                                  \
+  if (jlog_internal::jlog_conditional_benchmarker o__               \
+      = jlog_internal::jlog_conditional_benchmarker(false, __VA_ARGS__)); else
+
+#define JLOG_ADD_BENCHMARK_IF(...)                                  \
+  if (jlog_internal::jlog_conditional_benchmarker o__               \
+      = jlog_internal::jlog_conditional_benchmarker(true, __VA_ARGS__)); else
+
 
 template<typename value_t>
 inline void JLOG_PUT(const char *path, value_t value, bool glog = true) {

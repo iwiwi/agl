@@ -23,12 +23,12 @@ typename GraphType::edge_list_type read_edge_list_tsv(std::istream &is = std::ci
   typename GraphType::edge_list_type es;
   std::string line;
   int line_no = 1; //1-origin
-  while(std::getline(is,line)) {
+  while (std::getline(is, line)) {
     std::istringstream iss(line);
     V v;
     E e;
     CHECK_MSG(iss >> v >> e, ("at line " + to_string(line_no) + ": \"" + line + "\"").c_str());
-    es.emplace_back(v,e);
+    es.emplace_back(v, e);
     line_no++;
   }
   return es;
@@ -57,10 +57,10 @@ GraphType read_graph_tsv(const char *filename) {
 }
 
 template<typename EdgeType>
-void write_graph_tsv_edge(const EdgeType& e, std::ostream &os){
+void write_graph_tsv_edge(const EdgeType& e, std::ostream &os) {
   os << to(e) << " " << weight(e);
 }
-template<> void write_graph_tsv_edge(const unweighted_edge& e,std::ostream &os);
+template<> void write_graph_tsv_edge(const unweighted_edge& e, std::ostream &os);
 
 template<typename GraphType = G>
 void write_graph_tsv(const GraphType &g, std::ostream &os = std::cout) {
@@ -114,24 +114,24 @@ void pretty_print(const GraphType &g, std::ostream &os = std::cerr) {
 //format
 template<typename WeightType,
   enabler_if<std::is_integral<WeightType>::value> = enabler >
-std::string graph_binary_format_weight() {
+  std::string graph_binary_format_weight() {
   return "weight=int,weight_size=" + to_string(sizeof(WeightType));
 }
 template<typename WeightType,
   enabler_if<std::is_floating_point<WeightType>::value> = enabler >
-std::string graph_binary_format_weight() {
+  std::string graph_binary_format_weight() {
   return "weight=float,weight_size=" + to_string(sizeof(WeightType));
 }
 
 template<typename GraphType,
-  enabler_if<std::is_same<typename std::decay<GraphType>::type,G>::value> = enabler >
-const std::string graph_binary_format() {
+  enabler_if<std::is_same<typename std::decay<GraphType>::type, G>::value> = enabler >
+  const std::string graph_binary_format() {
   return "unweighted";
 }
 
 template<typename GraphType,
-  enabler_if<!std::is_same<typename std::decay<GraphType>::type,G>::value> = enabler >
-const std::string graph_binary_format() {
+  enabler_if<!std::is_same<typename std::decay<GraphType>::type, G>::value> = enabler >
+  const std::string graph_binary_format() {
   using decayed_gragh_type = typename std::decay<GraphType>::type;
   using weight_type = typename decayed_gragh_type::W;
 
@@ -141,7 +141,7 @@ const std::string graph_binary_format() {
 // write_binary
 template<typename EdgeType,
   enabler_if<std::is_pod<EdgeType>::value> = enabler >
-void write_edge_binary(std::ostream& os, const EdgeType& e) {
+  void write_edge_binary(std::ostream& os, const EdgeType& e) {
   write_binary(os, e);
 }
 
@@ -153,10 +153,10 @@ void write_graph_binary(const GraphType &g, std::ostream &os = std::cout) {
   //body
   write_binary(os, g.num_vertices());
   write_binary(os, g.num_edges());
-  for(V v = 0; v < g.num_vertices(); v++) {
+  for (V v = 0; v < g.num_vertices(); v++) {
     write_binary(os, g.degree(v));
-    for(std::size_t i = 0; i < g.degree(v); i++) {
-      write_binary(os, g.edge(v,i));
+    for (std::size_t i = 0; i < g.degree(v); i++) {
+      write_binary(os, g.edge(v, i));
     }
   }
   os.flush();
@@ -176,16 +176,14 @@ void write_graph_binary(const GraphType &g, const char *filename) {
 //reader binary
 template<typename EdgeType,
   enabler_if<std::is_pod<EdgeType>::value> = enabler >
-EdgeType read_edge_binary(std::istream& is) {
-  EdgeType e;
-  read_binary(is, &e);
-  return e;
+  void read_edge_binary(std::istream& is, EdgeType* dst, std::size_t edge_count) {
+  read_binary(is, dst, edge_count);
 }
 
 template<typename GraphType = G>
 GraphType read_graph_binary(std::istream &is = std::cin) {
   //header
-  std::string magic,version,format;
+  std::string magic, version, format;
   std::getline(is, magic, kEndLine);
   std::getline(is, version, kEndLine);
   std::getline(is, format, kEndLine);
@@ -202,13 +200,11 @@ GraphType read_graph_binary(std::istream &is = std::cin) {
 
   std::vector<std::vector<typename GraphType::E>> edges(num_vertices);
 
-  for(V v = 0; v < num_vertices; v++) {
+  for (V v = 0; v < num_vertices; v++) {
     std::size_t degree;
     read_binary(is, &degree);
-    edges[v].reserve(degree);
-    for(std::size_t i = 0; i < degree; i++) {
-      edges[v].emplace_back(read_edge_binary<typename GraphType::E>(is));
-    }
+    edges[v].resize(degree);
+    read_edge_binary<typename GraphType::E>(is, edges[v].data(), degree);
   }
 
   GraphType deserialized_graph;
