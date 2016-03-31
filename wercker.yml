@@ -1,40 +1,41 @@
-box: kenkoooo/compile-latex
+box: kenkoooo/waf-compile
+command-timeout: 60
 build:
   steps:
     - script:
-        name: prepare
+        name: build-gcc
         code: |
-          export USER=hoge
-          export UPLOAD_FOLDER=/akiba-lab
+          CXX=g++ ./waf configure
+          ./waf clean
+          ./waf build-full
     - script:
-        name: kdd16
+        name: test-gcc
         code: |
-          cd kdd16/
-          latexmk -C
-          latexmk main
-          cp main.pdf ${WERCKER_REPORT_ARTIFACTS_DIR}/kdd16.pdf
-          filename=kdd16.pdf
-          token=lwQg7SpB-j0AAAAAAAA9TDUUb_MuCebF_ALfUFrX0Q8Id9o0mRGpSWJSf10A38VI
-          curl --fail -X POST https://content.dropboxapi.com/2/files/upload \
-              --header "Authorization: Bearer $token" \
-              --header "Dropbox-API-Arg: {\"path\": \"$UPLOAD_FOLDER/$filename\",\"mode\": \"overwrite\",\"autorename\": true,\"mute\": false}" \
-              --header "Content-Type: application/octet-stream" \
-              --data-binary @main.pdf \
-              || exit 1
-          cd ../
+          bin/test
     - script:
-        name: jsai16
+        name: build-clang
         code: |
-          cd jsai16/
-          latexmk -C
-          latexmk -shell-escape -f main
-          cp main.pdf ${WERCKER_REPORT_ARTIFACTS_DIR}/jsai16.pdf
-          filename=jsai.pdf
-          token=lwQg7SpB-j0AAAAAAAA9TDUUb_MuCebF_ALfUFrX0Q8Id9o0mRGpSWJSf10A38VI
-          curl --fail -X POST https://content.dropboxapi.com/2/files/upload \
-              --header "Authorization: Bearer $token" \
-              --header "Dropbox-API-Arg: {\"path\": \"$UPLOAD_FOLDER/$filename\",\"mode\": \"overwrite\",\"autorename\": true,\"mute\": false}" \
-              --header "Content-Type: application/octet-stream" \
-              --data-binary @main.pdf \
-              || exit 1
-          cd ../
+          CXX=clang++-3.6 CXXFLAGS="-lstdc++" LINKFLAGS="-lstdc++" ./waf configure
+          ./waf clean
+          ./waf
+    - script:
+        name: test-clang
+        code: |
+          bin/test
+
+deploy:
+  steps:
+    - script:
+        name: doxygen
+        code: |
+          doxygen
+    - script:
+        name: heroku-preparation
+        code: |
+          curl https://codeload.github.com/nulltask/heroku-static-provider/zip/master -o heroku-static-provider-master.zip
+          unzip -o heroku-static-provider-master.zip
+          cp -r html/* heroku-static-provider-master/public/
+    - heroku-deploy:
+        # cwd: heroku-static-provider-master/
+        source_dir: heroku-static-provider-master/
+        key-name: default_ssh_key
