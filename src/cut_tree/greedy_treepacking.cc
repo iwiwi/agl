@@ -31,7 +31,8 @@ greedy_treepacking::greedy_treepacking(const vector<pair<V, V>>& edges, int num_
   }
 
   for (auto& e : edges_) {
-    sort(e.to_.begin(), e.to_.end(), [&edges_ = this->edges_](const V l, const V r) {
+    auto& edges_ = this->edges_;
+    sort(e.to_.begin(), e.to_.end(), [&edges_](const V l, const V r) {
       int a = edges_[l].size();
       int b = edges_[r].size();
       return a < b;

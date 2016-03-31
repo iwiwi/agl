@@ -440,14 +440,14 @@ class jlog_ignorer {
   }
 };
 
-class jlog_conditional {
+class jlog_conditional_benchmarker {
  public:
-  jlog_conditional(bool add, const char *path, bool condition, bool glog = true)
+  jlog_conditional_benchmarker(bool add, const char *path, bool condition, bool glog = true)
       : path_(path), add_(add), condition_(condition), glog_(glog) {
     if(condition_) start_ = get_current_time_sec();
   }
 
-  ~jlog_conditional() {
+  ~jlog_conditional_benchmarker() {
     if(condition_) {
     double r = get_current_time_sec() - start_;
       if (add_) {
@@ -494,12 +494,12 @@ class jlog_conditional {
 
 
 #define JLOG_PUT_BENCHMARK_IF(...)                                  \
-  if (jlog_internal::jlog_conditional o__                           \
-      = jlog_internal::jlog_conditional(false, __VA_ARGS__)); else
+  if (jlog_internal::jlog_conditional_benchmarker o__               \
+      = jlog_internal::jlog_conditional_benchmarker(false, __VA_ARGS__)); else
 
 #define JLOG_ADD_BENCHMARK_IF(...)                                  \
-  if (jlog_internal::jlog_conditional o__                           \
-      = jlog_internal::jlog_conditional(true, __VA_ARGS__)); else
+  if (jlog_internal::jlog_conditional_benchmarker o__               \
+      = jlog_internal::jlog_conditional_benchmarker(true, __VA_ARGS__)); else
 
 
 template<typename value_t>
