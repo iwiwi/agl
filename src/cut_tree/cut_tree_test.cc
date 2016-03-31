@@ -72,4 +72,34 @@ TEST(cut_tree_test, max_flow) {
   }
 }
 
+TYPED_TEST(cut_tree_test, corner_case_small_graph) {
+  using cut_tree_t = TypeParam;
+  for(int vertex = 0; vertex <= 2; vertex++){
+    vector<pair<V,V>> es;
+    for(int i = 0; i < vertex; i++) {
+      for(int j = i + 1; j < vertex; j++) {
+        es.emplace_back(i, j);
+      }
+    }
+    G g(es, vertex);
+    cut_tree_t ct(g);
+    stringstream ss;
+    ct.print_gomory_hu_tree(ss);
+  }
+}
+
+// TEST(cut_tree_test, cut_tree_) {
+//   G g = to_directed_graph(built_in_graph("ca_grqc"));
+//   dinitz dz1(g);
+//   bi_dinitz dz2(g);
+//   for (int i = 0; i < 1000; i++) {
+//     V s = agl::random() % g.num_vertices();
+//     V t = agl::random() % (g.num_vertices() - 1);
+//     if (s <= t) t++;
+//     int a = dz1.max_flow(s,t);
+//     int b = dz2.max_flow(s,t);
+//     ASSERT_EQ(a,b);
+//   }
+// }
+
 }

@@ -92,7 +92,7 @@ public:
   }
 
   void print_gomory_hu_tree(std::ostream& os) {
-    print_gomory_hu_tree_dfs(0, -1, os);
+    if(num_vertices_ > 0) print_gomory_hu_tree_dfs(0, -1, os);
   }
 
 private:
