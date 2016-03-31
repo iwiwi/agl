@@ -22,6 +22,7 @@ build:
         name: test-clang
         code: |
           bin/test
+
 deploy:
   steps:
     - script:
