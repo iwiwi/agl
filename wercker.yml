@@ -1,4 +1,4 @@
-box: kenkoooo/waf-compile
+box: kenkoooo/agl-build
 command-timeout: 60
 build:
   steps:
