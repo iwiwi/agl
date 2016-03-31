@@ -12,7 +12,7 @@ class tree_query {
     depth_.resize(num_vertices_, -1);
     parent_weight_.resize(num_vertices_, make_pair(-2, -2));
 
-    for(V v = 0; v < num_vertices_; v++) {
+    for (V v = 0; v < num_vertices_; v++) {
       if (depth_[v] >= 0) continue;
 
       depth_[v] = 0;
@@ -77,7 +77,7 @@ public:
   }
 
   const int num_vertices() { return num_vertices_; }
-  
+
 public:
   int num_vertices_;
   vector<pair<V, int>> parent_weight_;
@@ -93,10 +93,10 @@ void from_file() {
 
   agl::random_type random(FLAGS_node_pair_random_seed);
   JLOG_PUT_BENCHMARK("query_time") {
-    for(int i = 0; i < FLAGS_num_query; i++) {
+    for (int i = 0; i < FLAGS_num_query; i++) {
       V s = random() % tq.num_vertices();
       V t = random() % (tq.num_vertices() - 1);
-      if(s <= t) t++;
+      if (s <= t) t++;
       tq.query(s, t);
     }
   }

@@ -58,28 +58,28 @@ void main_(G&& g) {
   JLOG_PUT("try_greedy_tree_packing", FLAGS_try_greedy_tree_packing);
 }
 
-DEFINE_string(write_directed_graph_name,"", "");
+DEFINE_string(write_directed_graph_name, "", "");
 
 int main(int argc, char** argv) {
   G g = easy_cui_init(argc, argv);
   fprintf(stderr, "easy_cui_init : memory %ld MB\n", jlog_internal::get_memory_usage() / 1024);
-  if(FLAGS_graph.find(".directed") == string::npos) {
+  if (FLAGS_graph.find(".directed") == string::npos) {
     g = to_directed_graph(std::move(g));
     fprintf(stderr, "load graph : memory %ld MB\n", jlog_internal::get_memory_usage() / 1024);
   }
 
-  if(FLAGS_gomory_hu_builder == "write_directed_graph") {
+  if (FLAGS_gomory_hu_builder == "write_directed_graph") {
     string output = FLAGS_write_directed_graph_name;
-    if(output == "") {
-      output = FLAGS_graph + ".directed"; 
+    if (output == "") {
+      output = FLAGS_graph + ".directed";
     }
     write_graph_binary(g, output.c_str());
     exit(0);
   }
 
-  if (FLAGS_gomory_hu_builder == "PlainGusfield") { 
+  if (FLAGS_gomory_hu_builder == "PlainGusfield") {
     main_<plain_gusfield_dinitz>(std::move(g));
-  } else if (FLAGS_gomory_hu_builder == "PlainGusfield_bi_dinitz") { 
+  } else if (FLAGS_gomory_hu_builder == "PlainGusfield_bi_dinitz") {
     main_<plain_gusfield_bi_dinitz>(std::move(g));
   } else if (FLAGS_gomory_hu_builder == "cut_tree_with_2ecc") {
     main_<cut_tree>(std::move(g));

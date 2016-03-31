@@ -1,5 +1,4 @@
 #pragma once
-
 #include <base/base.h>
 #include <graph/graph.h>
 
@@ -27,7 +26,7 @@ public:
 
 private:
   G g;
-  std::vector<int> level_,iter_;
+  std::vector<int> level_, iter_;
   std::vector<std::vector<E>> e_;
 };
 

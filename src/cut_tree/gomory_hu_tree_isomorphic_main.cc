@@ -20,7 +20,7 @@ void check(G& g, map<int, vector<pair<V, V>>>& l, map<int, vector<pair<V, V>>>& 
   int n = 1;
   for (auto& kv : l) n += int(kv.second.size());
   vector<ull> zobrist_hash(n);
-  for(int i = 0; i < n; i++) zobrist_hash[i] = (ull(agl::random()) << 32) | ull(agl::random());
+  for (int i = 0; i < n; i++) zobrist_hash[i] = (ull(agl::random()) << 32) | ull(agl::random());
 
   union_find ufl(n), ufr(n);
   vector<ull> hl = zobrist_hash, hr = zobrist_hash;
@@ -30,41 +30,41 @@ void check(G& g, map<int, vector<pair<V, V>>>& l, map<int, vector<pair<V, V>>>& 
   reverse(weight.begin(), weight.end());
 
   auto on_mismatched = [&](V u) {
-    set<int> onlyl,onlyr,intersect;
-    for(int a = 0; a < n; a++) if (ufl.is_same(u, a)) onlyl.insert(a);
-    for(int a = 0; a < n; a++) if (ufr.is_same(u, a)) {
-      if(onlyl.count(a)) onlyl.erase(a), intersect.insert(a);
+    set<int> onlyl, onlyr, intersect;
+    for (int a = 0; a < n; a++) if (ufl.is_same(u, a)) onlyl.insert(a);
+    for (int a = 0; a < n; a++) if (ufr.is_same(u, a)) {
+      if (onlyl.count(a)) onlyl.erase(a), intersect.insert(a);
       else onlyr.insert(a);
-    } 
+    }
     int cnt;
     printf("left: ");
     cnt = 0;
-    for(auto x : onlyl) {
-      printf("%d, ",x);
+    for (auto x : onlyl) {
+      printf("%d, ", x);
       cnt++;
-      if(cnt >= 10) { printf("..."); break; }
+      if (cnt >= 10) { printf("..."); break; }
     }
     puts("");
     printf("right: ");
     cnt = 0;
-    for(auto x : onlyr) {
-      printf("%d, ",x);
+    for (auto x : onlyr) {
+      printf("%d, ", x);
       cnt++;
-      if(cnt >= 10) { printf("..."); break; }
+      if (cnt >= 10) { printf("..."); break; }
     }
     puts("");
     printf("intersect: ");
     cnt = 0;
-    for(auto x : intersect) {
-      printf("%d, ",x);
+    for (auto x : intersect) {
+      printf("%d, ", x);
       cnt++;
-      if(cnt >= 10) { printf("..."); break; }
+      if (cnt >= 10) { printf("..."); break; }
     }
     puts("");
 
-    auto check_cost = [&](int x,map<int,vector<pair<int,int>>>& mp,string name) {
+    auto check_cost = [&](int x, map<int, vector<pair<int, int>>>& mp, string name) {
       bi_dinitz dc(g);
-      for (auto& kv : mp){
+      for (auto& kv : mp) {
         int w = kv.first;
         for (auto& uv : kv.second) {
           int u, v; tie(u, v) = uv;
@@ -91,7 +91,7 @@ void check(G& g, map<int, vector<pair<V, V>>>& l, map<int, vector<pair<V, V>>>& 
   };
 
   for (const int w : weight) {
-    if(l[w].size() != r[w].size()) printf("*");
+    if (l[w].size() != r[w].size()) printf("*");
     printf("w = %d, L : %d , R : %d", w, int(l[w].size()), int(r[w].size()));
     puts("");
   }

@@ -44,13 +44,14 @@ void dinitz::add_undirected_edge(int f, int t, int c) {
 
 void dinitz::reset_graph() {
   const int n = g.num_vertices();
-  for(int v = 0; v < n; v++) e_[v].clear();
-  for(int v = 0; v < n; v++) for (auto& e : g.edges(v)) {
+  for (int v = 0; v < n; v++) e_[v].clear();
+  for (int v = 0; v < n; v++) for (auto& e : g.edges(v)) {
     add_undirected_edge(v, agl::to(e), 1);
   }
 }
 dinitz::dinitz(const G& g)
-  : g(g), level_(g.num_vertices()), iter_(g.num_vertices()), e_(g.num_vertices()) {}
+  : g(g), level_(g.num_vertices()), iter_(g.num_vertices()), e_(g.num_vertices()) {
+}
 
 int dinitz::max_flow(int s, int t) {
   assert(s != t);
@@ -66,7 +67,6 @@ int dinitz::max_flow(int s, int t) {
     }
   }
 }
-
 
 } //namespace cut_tree_internal
 } //namespace agl

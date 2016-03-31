@@ -1,5 +1,4 @@
 #pragma once
-
 #include <base/base.h>
 #include <graph/graph.h>
 #include <vector>
@@ -9,21 +8,21 @@ namespace agl {
 template<class handler_t>
 class connected_components_filter {
 public:
-  connected_components_filter(const G& g) 
-  : n_(g.num_vertices()), uf_(n_), local_indices_(n_), handlers_indices_(n_), num_connected_components_(0) {
+  connected_components_filter(const G& g)
+    : n_(g.num_vertices()), uf_(n_), local_indices_(n_), handlers_indices_(n_), num_connected_components_(0) {
 
-    for(int v = 0; v < n_; v++) for (auto e : g.edges(v)) {
+    for (int v = 0; v < n_; v++) for (auto e : g.edges(v)) {
       V u = to(e);
-    uf_.unite(u, v);
+      uf_.unite(u, v);
     }
     num_connected_components_ = 0;
-    for(int v = 0; v < n_; v++) {
+    for (int v = 0; v < n_; v++) {
       if (uf_.root(v) != v) local_indices_[v] = ++local_indices_[uf_.root(v)];
       else handlers_indices_[v] = num_connected_components_++;
     }
 
     std::vector<bool> used(n_);
-    for(int v = 0; v < n_; v++) {
+    for (int v = 0; v < n_; v++) {
       if (uf_.root(v) != v) continue;
       used[v] = true;
 
@@ -34,7 +33,7 @@ public:
       q.push(v);
       while (!q.empty()) {
         V u = q.front(); q.pop();
-        for(int dir = 0; dir < 2; dir++) for (auto& e : g.edges(u, D(dir))) {
+        for (int dir = 0; dir < 2; dir++) for (auto& e : g.edges(u, D(dir))) {
           V w = to(e);
           if (!used[w]) {
             used[w] = true;

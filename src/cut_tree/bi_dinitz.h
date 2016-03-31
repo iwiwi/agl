@@ -17,7 +17,7 @@ public:
   class E {
   public:
     E(int to, int rev, int cap) :
-      revision_(0),to_(to),  cap_(cap), rev_(rev) {
+      revision_(0), to_(to), cap_(cap), rev_(rev) {
       CHECK(init_cap_ == cap);
     }
 
@@ -43,7 +43,7 @@ public:
       cap_ = init_cap_;
     }
 
-private:
+  private:
     static const int init_cap_ = 1;
     int revision_;
     int to_;
@@ -58,7 +58,7 @@ private:
   int dfs(int v, int t, bool use_slevel_, int f);
   void add_undirected_edge(int f, int t, int c);
   void reset_revision();
-  int goal_oriented_dfs_inner(int v, int flow,int astar_cost);
+  int goal_oriented_dfs_inner(int v, int flow, int astar_cost);
 
   //v -> goal_oriented_bfs_root_ にflowを出来る限り送る
   int goal_oriented_dfs(int v);
@@ -68,7 +68,7 @@ public:
   bi_dinitz(const G& g)
     : n_(g.num_vertices()), level_(n_), iter_(n_), bfs_revision_(n_), dfs_revision_(n_), e_(n_),
     s_side_bfs_revision_(2), t_side_bfs_revision_(3), graph_revision_(0), goal_oriented_bfs_root_(-1) {
-    for(int v = 0; v < n_; v++) for (auto& e : g.edges(v)) {
+    for (int v = 0; v < n_; v++) for (auto& e : g.edges(v)) {
       add_undirected_edge(v, agl::to(e), 1);
     }
   }
@@ -82,21 +82,21 @@ public:
   bi_dinitz(std::vector<std::pair<V, V>>&& edges, int num_vs)
     : n_(num_vs), level_(n_), iter_(n_), bfs_revision_(n_), dfs_revision_(n_), e_(n_),
     s_side_bfs_revision_(2), t_side_bfs_revision_(3), graph_revision_(0), goal_oriented_bfs_root_(-1) {
-      edges.shrink_to_fit();
+    edges.shrink_to_fit();
 
-      //こまめに解放しながら辺を追加していく
-      while(edges.size() >= 1) {
-        std::size_t loop = std::max(edges.size() / 2, size_t(10000));
-        loop = std::min(loop, edges.size());
-        while(loop--) {
-          auto& uv = edges.back();
-          add_undirected_edge(uv.first, uv.second, 1);
-          edges.pop_back();
-        }
-        edges.shrink_to_fit();
+    //こまめに解放しながら辺を追加していく
+    while (edges.size() >= 1) {
+      std::size_t loop = std::max(edges.size() / 2, size_t(10000));
+      loop = std::min(loop, edges.size());
+      while (loop--) {
+        auto& uv = edges.back();
+        add_undirected_edge(uv.first, uv.second, 1);
+        edges.pop_back();
       }
+      edges.shrink_to_fit();
+    }
 
-      for(auto& e : e_) e.shrink_to_fit();
+    for (auto& e : e_) e.shrink_to_fit();
   }
 
   void add_vertex();

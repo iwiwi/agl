@@ -9,7 +9,7 @@ void greedy_treepacking::dfs(int v) {
   used_revision_[v] = vertices_revision_;
   auto& to_edges = edges_[v];
   const int rem_edges = min(to_edges.size(), FLAGS_gtp_dfs_edge_max);
-  for(int i = 0; i < rem_edges; i++) {
+  for (int i = 0; i < rem_edges; i++) {
     V to = to_edges.current();
     // logging::gtp_edge_count++;
     if (used_revision_[to] == vertices_revision_) {
@@ -30,8 +30,8 @@ greedy_treepacking::greedy_treepacking(const vector<pair<V, V>>& edges, int num_
     edges_[e.second].add(e.first);
   }
 
-  for(auto& e : edges_) {
-    sort(e.to_.begin(), e.to_.end(), [&edges_ = this->edges_](const V l,const V r) {
+  for (auto& e : edges_) {
+    sort(e.to_.begin(), e.to_.end(), [&edges_ = this->edges_](const V l, const V r) {
       int a = edges_[l].size();
       int b = edges_[r].size();
       return a < b;
@@ -40,7 +40,7 @@ greedy_treepacking::greedy_treepacking(const vector<pair<V, V>>& edges, int num_
 }
 
 void greedy_treepacking::arborescence_packing(int from) {
-  for(int i = 0; i < edges_[from].size(); i++) {
+  for (int i = 0; i < edges_[from].size(); i++) {
     dfs(from);
     vertices_revision_++;
   }

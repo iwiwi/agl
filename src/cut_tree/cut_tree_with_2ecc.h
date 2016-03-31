@@ -19,8 +19,8 @@ class gomory_hu_tree_builder;
 
 // 2ecc = two-edge connected components
 class cut_tree_with_2ecc {
-  void find_cuts_by_tree_packing(std::vector<std::pair<V,V>>& edges, cut_tree_internal::disjoint_cut_set* dcs, const std::vector<int>& degree);
-  void contract_degree2_vertices(std::vector<std::pair<V,V>>& edges, std::vector<int>& degree);
+  void find_cuts_by_tree_packing(std::vector<std::pair<V, V>>& edges, cut_tree_internal::disjoint_cut_set* dcs, const std::vector<int>& degree);
+  void contract_degree2_vertices(std::vector<std::pair<V, V>>& edges, std::vector<int>& degree);
 
   //次数の大きい頂点対をcutする
   void separate_high_degreepairs(cut_tree_internal::separator* sep);

@@ -8,7 +8,6 @@ namespace agl {
 
 // ある頂点からdfsをして、貪欲にtree packingを求める
 class greedy_treepacking {
-  
   class vecE {
   public:
     vecE() {
@@ -26,7 +25,7 @@ class greedy_treepacking {
       if (int(to_.size()) == idx_) idx_ = 0;
     }
     const V current() const { return to_[idx_]; }
-    void remove_current() { 
+    void remove_current() {
       std::swap(to_[idx_], to_.back());
       to_.pop_back();
       if (int(to_.size()) == idx_) idx_ = 0;

@@ -7,7 +7,7 @@ using namespace std;
 
 namespace agl {
 
-bool bi_dinitz::bi_dfs(int s,int t) {
+bool bi_dinitz::bi_dfs(int s, int t) {
   queue<int> qs, qt;
   qs.push(s); qt.push(t);
   level_[s].first = level_[t].second = 0;
@@ -21,7 +21,7 @@ bool bi_dinitz::bi_dfs(int s,int t) {
     bool path_found = false;
     if (qs_next_get_cap <= qt_next_get_cap) {
       int size = int(qs.size());
-      for(int _ = 0; _ < size; _++) {
+      for (int _ = 0; _ < size; _++) {
         const int v = qs.front(); qs.pop();
         qs_next_get_cap -= e_[v].size();
         for (auto& t : e_[v]) {
@@ -39,7 +39,7 @@ bool bi_dinitz::bi_dfs(int s,int t) {
       slevel_++;
     } else {
       int size = int(qt.size());
-      for(int _ = 0; _ < size; _++) {
+      for (int _ = 0; _ < size; _++) {
         const int v = qt.front(); qt.pop();
         qt_next_get_cap -= e_[v].size();
         for (auto& t : e_[v]) {
@@ -66,7 +66,7 @@ bool bi_dinitz::bi_dfs(int s,int t) {
 
 int bi_dinitz::dfs(int v, int t, bool use_slevel, int f) {
   // goal_oriented_dfs_aster_ub >= 3 を設定すると、dfs中に同じ辺を使ってしまい、辺のコストが破綻して f < 0 となることがある
-  CHECK(f >= 0); 
+  CHECK(f >= 0);
 
   if (v == t) return f;
   if (dfs_revision_[v] != bfs_revision_[v]) {
@@ -100,7 +100,7 @@ void bi_dinitz::add_undirected_edge(int f, int t, int c) {
 }
 
 void bi_dinitz::reset_revision() {
-  for(int v = 0; v < n_; v++) for (auto& e : e_[v]) e.reset();
+  for (int v = 0; v < n_; v++) for (auto& e : e_[v]) e.reset();
   memset(bfs_revision_.data(), 0, sizeof(bfs_revision_[0]) * bfs_revision_.size());
   memset(dfs_revision_.data(), 0, sizeof(dfs_revision_[0]) * dfs_revision_.size());
   s_side_bfs_revision_ = 2;
@@ -108,7 +108,7 @@ void bi_dinitz::reset_revision() {
   graph_revision_ = 0;
 }
 
-int bi_dinitz::goal_oriented_dfs_inner(int v, int flow,int astar_cost) {
+int bi_dinitz::goal_oriented_dfs_inner(int v, int flow, int astar_cost) {
   if (v == goal_oriented_bfs_root_)
     return flow;
 
@@ -120,7 +120,7 @@ int bi_dinitz::goal_oriented_dfs_inner(int v, int flow,int astar_cost) {
     E& to_edge = e_[v][i];
     int to = to_edge.to_;
     int add_aster_cost = goal_oriented_bfs_depth_[to] - goal_oriented_bfs_depth_[v] + 1;
-    if(add_aster_cost == 2) return 0; //コストの増える頂点は辿らない
+    if (add_aster_cost == 2) return 0; //コストの増える頂点は辿らない
     int n_astar_cost = astar_cost + add_aster_cost;
     if (n_astar_cost > FLAGS_goal_oriented_dfs_aster_ub) {
       //sort済なので, これより後で自身の深さよりも浅い頂点は存在しない
@@ -199,14 +199,14 @@ int bi_dinitz::max_flow_core(int s, int t) {
     preflow = goal_oriented_dfs(s);
   }
 
-  if(preflow == int(e_[s].size())) {
+  if (preflow == int(e_[s].size())) {
     reason_for_finishing_bfs_ = kQsIsEmpty;
   } else {
     s_side_bfs_revision_ += 2;
     t_side_bfs_revision_ += 2;
 
     int bfs_counter = 0;
-    for (; ; s_side_bfs_revision_ += 2, t_side_bfs_revision_ += 2) {
+    for (;; s_side_bfs_revision_ += 2, t_side_bfs_revision_ += 2) {
       // fprintf(stderr, "bfs_start\n");
       bool path_found = bi_dfs(s, t);
       bfs_counter++;
@@ -220,8 +220,8 @@ int bi_dinitz::max_flow_core(int s, int t) {
     // fprintf(stderr, "bfs_counter : %d\n", bfs_counter);
   }
   // fprintf(stderr, "(%d,%d) : preflow = %d, flow = %d\n", s, t, preflow, flow);
-  if(flow == 0 && preflow > 0) {
-    if(int(e_[s].size()) == preflow) {
+  if (flow == 0 && preflow > 0) {
+    if (int(e_[s].size()) == preflow) {
       // logging::preflow_eq_degree++;
     }
     // logging::flow_eq_0++;
@@ -287,14 +287,14 @@ void bi_dinitz::goal_oriented_bfs_init(int root) {
   }
 
   //sort edges by depth order
-  for(int v = 0; v < n_; v++) {
+  for (int v = 0; v < n_; v++) {
     // dep[l.to]は3つの値しか取らないので高速化可能
     sort(e_[v].begin(), e_[v].end(), [&dep = goal_oriented_bfs_depth_](const E& l, const E& r) {
       return dep[l.to_] < dep[r.to_];
     });
 
     //reset rev_ edge's "rev_" value
-    for(int i = 0; i < int(e_[v].size()); i++) {
+    for (int i = 0; i < int(e_[v].size()); i++) {
       const E& to_edge = e_[v][i];
       E& rev = e_[to_edge.to_][to_edge.rev_];
       rev.rev_ = i;

@@ -10,7 +10,7 @@ public:
 
   void lowlink_dfs(int v, int par, int& cur_ord) {
     lowlink_[v] = order_[v] = cur_ord++;
-    for(int dir = 0; dir < 2; dir++) for (auto to : g_.edges(v, D(dir))) {
+    for (int dir = 0; dir < 2; dir++) for (auto to : g_.edges(v, D(dir))) {
       if (to == par) continue;
       if (order_[to] == -1) {
         lowlink_dfs(to, v, cur_ord);
@@ -29,7 +29,7 @@ public:
     std::vector<std::vector<int>> local_id2global_id(cc_size);
 
     const auto& local_indices = biconnected_graph_handler_->local_indices();
-    for(int v = 0; v < n_; v++) {
+    for (int v = 0; v < n_; v++) {
       auto& l2g = local_id2global_id[biconnected_graph_handler_->handlers_index(v)];
       if (int(l2g.size()) < local_indices[v] + 1) l2g.resize(local_indices[v] + 1);
       l2g[local_indices[v]] = v;
@@ -41,13 +41,13 @@ public:
   two_edge_cc_filter(G& g) : n_(g.num_vertices()), g_(g), uf_(n_), lowlink_(n_, -1), order_(n_, -1) {
 
     G new_g;
-    for(int v = 0; v < n_; v++) for (auto& e : g_.edges(v)) {
+    for (int v = 0; v < n_; v++) for (auto& e : g_.edges(v)) {
       uf_.unite(v, to(e));
     }
 
     const int num_edges = g_.num_edges();
 
-    for(int v = 0; v < n_; v++) if (uf_.root(v) == v) {
+    for (int v = 0; v < n_; v++) if (uf_.root(v) == v) {
       int cur_ord = 0;
       lowlink_dfs(v, -1, cur_ord);
     }
@@ -78,17 +78,17 @@ public:
 
   void print_gomory_hu_tree(std::ostream& os) {
     std::vector<int> roots;
-    for(int v = 0; v < n_; v++) if (uf_.root(v) == v) roots.push_back(v);
-    for(int i = 0; i < int(roots.size()) - 1; i++) os << roots[0] << " " << roots[i + 1] << " 0\n";
+    for (int v = 0; v < n_; v++) if (uf_.root(v) == v) roots.push_back(v);
+    for (int i = 0; i < int(roots.size()) - 1; i++) os << roots[0] << " " << roots[i + 1] << " 0\n";
     for (auto& e : bridge_) os << e.first << " " << e.second << " 1\n";
 
     std::vector<std::vector<int>> local_id2global_id = get_local_id2global_id();
 
     //weight2以上
-    for(int i = 0; i < int(biconnected_graph_handler_->handlers().size()); i++) {
+    for (int i = 0; i < int(biconnected_graph_handler_->handlers().size()); i++) {
       const auto& l2g = local_id2global_id[i];
       const auto& gusfield_core = biconnected_graph_handler_->handlers()[i];
-      for(int v = 0; v < int(gusfield_core->parent_weight().size()); v++) {
+      for (int v = 0; v < int(gusfield_core->parent_weight().size()); v++) {
         const auto& kv = gusfield_core->parent_weight()[v];
         int u = kv.first;
         if (u == -1) continue; // 親への辺が存在しない
