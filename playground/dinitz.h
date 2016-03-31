@@ -1,5 +1,7 @@
 #pragma once
 
+namespace agl {
+namespace cut_tree_internal {
 class dinitz {
   struct E {
     int to_, rev_, cap_;
@@ -38,34 +40,48 @@ class dinitz {
     return 0;
   }
 
-  static const int INF = (int)1e8;
-public:
-  dinitz(int num_vs)
-  : level_(num_vs), iter_(num_vs), e_(num_vs) {
-  }
-
   void add_undirected_edge(int f, int t, int c) {
     e_[f].push_back(E(t, int(e_[t].size()), c));
     e_[t].push_back(E(f, int(e_[f].size()) - 1, c));
   }
 
+  void reset_graph() {
+    const int n = g.num_vertices();
+    for(int v = 0; v < n; v++) e_[v].clear();
+    for(int v = 0; v < n; v++) for (auto& e : g.edges(v)) {
+      add_undirected_edge(v, agl::to(e), 1);
+    }
+  }
+
+public:
+  dinitz(const G& g)
+    : g(g), level_(g.num_vertices()), iter_(g.num_vertices()), e_(g.num_vertices()) {}
+
   int max_flow(int s, int t) {
     assert(s != t);
+    reset_graph();
     int flow = 0;
     while (true) {
       bfs(s);
       if (level_[t] < 0) return flow;
       iter_.assign(iter_.size(), 0);
       int f;
-      while ((f = dfs(s, t, INF)) > 0) {
+      while ((f = dfs(s, t, numeric_limits<int>::max())) > 0) {
         flow += f;
       }
     }
   }
 
   vector<E>& edges(V v) { return e_[v]; }
+  V to(const E& e) const { return e.to_; }
+  int cap(E& e) { return e.cap_; }
+  E& rev(const E& e_in) { return e_[e_in.to_][e_in.rev_]; }
 
 private:
+  G g;
   vector<int> level_,iter_;
   vector<vector<E>> e_;
 };
+
+} //namespace cut_tree_internal
+} //namespace agl

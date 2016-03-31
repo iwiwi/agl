@@ -1,6 +1,7 @@
 #pragma once
 #include "dinitz.h"
 
+template<class max_flow_t>
 class plain_gusfield{
   int query_dfs(V v, V t, int cost, V par = -1) const {
     if (v == t) return cost;
@@ -38,16 +39,11 @@ public:
       add_edge(root_vtxs[i], root_vtxs[i+1], 0);
     }
 
+    max_flow_t dc(g);
+
     for(int s = 0; s < num_vertices_; s++) {
       if (p[s] == -1) continue;
       V t = p[s];
-      dinitz dc(num_vertices_);
-      for(int v = 0; v < num_vertices_; v++) {
-        if (!uf.is_same(s, v)) continue;
-        for (auto& e : g.edges(v)) {
-          dc.add_undirected_edge(v, to(e), 1);
-        }
-      }
 
       int cost = dc.max_flow(s, t);
       // fprintf(stderr, "(%d,%d) cost = %d\n", s, t, cost);
@@ -61,10 +57,10 @@ public:
       while (!q.empty()) {
         V v = q.front(); q.pop();
         for (auto& e : dc.edges(v)) {
-          if (e.cap_ == 0 || used[e.to_]) continue;
-          used[e.to_] = true;
-          q.push(e.to_);
-          if (p[e.to_] == t) p[e.to_] = s;
+          if (dc.cap(e) == 0 || used[dc.to(e)]) continue;
+          used[dc.to(e)] = true;
+          q.push(dc.to(e));
+          if (p[dc.to(e)] == t) p[dc.to(e)] = s;
         }
       }
     }
