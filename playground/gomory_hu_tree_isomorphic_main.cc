@@ -3,7 +3,7 @@
 DEFINE_string(s1, "s1.txt", "gomory-hu tree 1");
 DEFINE_string(s2, "s2.txt", "gomory-hu tree 2");
 
-#include "bi_dinitz.h"
+#include <cut_tree/bi_dinitz.h>
 
 map<int, vector<pair<V, V>>> load(const string& path) {
   FILE* fp = fopen(path.c_str(), "r");

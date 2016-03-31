@@ -1,5 +1,4 @@
 #pragma once
-#include "bi_dinitz.h"
 
 class plain_gusfield_bi_dinitz{
   int query_dfs(V v, V t, int cost, V par = -1) const {

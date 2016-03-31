@@ -1,11 +1,9 @@
-
-
-#include "bi_dinitz.h"
-#include "connected_components_filter.h"
-#include "two_edge_CC_filter.h"
-
+#include <cut_tree/bi_dinitz.h>
+#include <cut_tree/connected_components_filter.h>
+#include <cut_tree/two_edge_CC_filter.h>
+#include <cut_tree/cut_tree_with_2ECC.h>
 #include <easy_cui.h>
-#include "cut_tree_with_2ECC.h"
+
 #include "plain_gusfield.h"
 #include "plain_gusfield_bi_dinitz.h"
 
