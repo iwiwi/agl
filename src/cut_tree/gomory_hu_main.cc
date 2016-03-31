@@ -1,9 +1,9 @@
 #include <cut_tree/cut_tree.h>
 #include <easy_cui.h>
 
-DEFINE_string(method, "gusfield", "gusfield, print_gomory_hu_tree");
-DEFINE_string(gomory_hu_builder, "cut_tree_with_2ecc", "cut_tree_with_2ecc, PlainGusfield, PlainGusfield_bi_dinitz");
-DEFINE_string(validation_data_path, "", "output gomory_hu tree path");
+DEFINE_string(cut_tree_method, "gusfield", "gusfield, print_gomory_hu_tree");
+DEFINE_string(cut_tree_gomory_hu_builder, "cut_tree_with_2ecc", "cut_tree_with_2ecc, PlainGusfield, PlainGusfield_bi_dinitz");
+DEFINE_string(cut_tree_gomory_hu_tree_path, "", "output gomory_hu tree path");
 
 G to_directed_graph(G&& g) {
   vector<pair<V, V>> ret;
@@ -32,30 +32,30 @@ template<class gomory_hu_tree_t>
 void print_gomory_hu_tree(G&& g) {
   fprintf(stderr, "print_gomory_hu_tree : memory %ld MB\n", jlog_internal::get_memory_usage() / 1024);
 
-  if (FLAGS_validation_data_path == "") {
+  if (FLAGS_cut_tree_gomory_hu_tree_path == "") {
     auto gname = graph_name();
-    FLAGS_validation_data_path = gname + ".tree";
+    FLAGS_cut_tree_gomory_hu_tree_path = gname + ".tree";
   }
   gomory_hu_tree_t* gf;
   JLOG_PUT_BENCHMARK("gusfield_time") {
     gf = new gomory_hu_tree_t(g);
   }
 
-  ofstream os(FLAGS_validation_data_path.c_str(), ios_base::out);
+  ofstream os(FLAGS_cut_tree_gomory_hu_tree_path.c_str(), ios_base::out);
   gf->print_gomory_hu_tree(os);
   delete gf;
 }
 
 template<class T>
 void main_(G&& g) {
-  if (FLAGS_method == "print_gomory_hu_tree") {
+  if (FLAGS_cut_tree_method == "print_gomory_hu_tree") {
     print_gomory_hu_tree<T>(std::move(g));
   } else {
-    fprintf(stderr, "unrecognized option '%s'\n", FLAGS_method.c_str());
+    fprintf(stderr, "unrecognized option '%s'\n", FLAGS_cut_tree_method.c_str());
     exit(-1);
   }
 
-  JLOG_PUT("try_greedy_tree_packing", FLAGS_try_greedy_tree_packing);
+  JLOG_PUT("try_greedy_tree_packing", FLAGS_cut_tree_try_greedy_tree_packing);
 }
 
 DEFINE_string(write_directed_graph_name, "", "");
@@ -68,7 +68,7 @@ int main(int argc, char** argv) {
     fprintf(stderr, "load graph : memory %ld MB\n", jlog_internal::get_memory_usage() / 1024);
   }
 
-  if (FLAGS_gomory_hu_builder == "write_directed_graph") {
+  if (FLAGS_cut_tree_gomory_hu_builder == "write_directed_graph") {
     string output = FLAGS_write_directed_graph_name;
     if (output == "") {
       output = FLAGS_graph + ".directed";
@@ -77,14 +77,14 @@ int main(int argc, char** argv) {
     exit(0);
   }
 
-  if (FLAGS_gomory_hu_builder == "PlainGusfield") {
+  if (FLAGS_cut_tree_gomory_hu_builder == "PlainGusfield") {
     main_<plain_gusfield_dinitz>(std::move(g));
-  } else if (FLAGS_gomory_hu_builder == "PlainGusfield_bi_dinitz") {
+  } else if (FLAGS_cut_tree_gomory_hu_builder == "PlainGusfield_bi_dinitz") {
     main_<plain_gusfield_bi_dinitz>(std::move(g));
-  } else if (FLAGS_gomory_hu_builder == "cut_tree_with_2ecc") {
+  } else if (FLAGS_cut_tree_gomory_hu_builder == "cut_tree_with_2ecc") {
     main_<cut_tree>(std::move(g));
   } else {
-    fprintf(stderr, "unrecognized option -gomory_hu_builder='%s'\n", FLAGS_gomory_hu_builder.c_str());
+    fprintf(stderr, "unrecognized option -cut_tree_gomory_hu_builder='%s'\n", FLAGS_cut_tree_gomory_hu_builder.c_str());
     exit(-1);
   }
 }

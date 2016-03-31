@@ -2,13 +2,13 @@
 #include <base/base.h>
 #include <graph/graph.h>
 
-DECLARE_int32(try_greedy_tree_packing);
-DECLARE_int32(try_large_degreepairs);
-DECLARE_int32(separate_near_pairs_d);
-DECLARE_int32(contraction_lower_bound);
-DECLARE_bool(enable_greedy_tree_packing);
-DECLARE_bool(enable_adjacent_cut);
-DECLARE_bool(enable_goal_oriented_search);
+DECLARE_int32(cut_tree_try_greedy_tree_packing);
+DECLARE_int32(cut_tree_try_large_degreepairs);
+DECLARE_int32(cut_tree_separate_near_pairs_d);
+DECLARE_int32(cut_tree_contraction_lower_bound);
+DECLARE_bool(cut_tree_enable_greedy_tree_packing);
+DECLARE_bool(cut_tree_enable_adjacent_cut);
+DECLARE_bool(cut_tree_enable_goal_oriented_search);
 
 namespace agl {
 namespace cut_tree_internal {

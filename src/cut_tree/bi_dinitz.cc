@@ -1,7 +1,7 @@
 #include "bi_dinitz.h"
 #include <queue>
 
-DEFINE_int32(goal_oriented_dfs_aster_ub, 2, "bi_dinitz's goal oriented search relaxation");
+DEFINE_int32(cut_tree_goal_oriented_dfs_aster_ub, 2, "bi_dinitz's goal oriented search relaxation");
 
 using namespace std;
 
@@ -65,7 +65,7 @@ bool bi_dinitz::bi_dfs(int s, int t) {
 }
 
 int bi_dinitz::dfs(int v, int t, bool use_slevel, int f) {
-  // goal_oriented_dfs_aster_ub >= 3 を設定すると、dfs中に同じ辺を使ってしまい、辺のコストが破綻して f < 0 となることがある
+  // cut_tree_goal_oriented_dfs_aster_ub >= 3 を設定すると、dfs中に同じ辺を使ってしまい、辺のコストが破綻して f < 0 となることがある
   CHECK(f >= 0);
 
   if (v == t) return f;
@@ -122,7 +122,7 @@ int bi_dinitz::goal_oriented_dfs_inner(int v, int flow, int astar_cost) {
     int add_aster_cost = goal_oriented_bfs_depth_[to] - goal_oriented_bfs_depth_[v] + 1;
     if (add_aster_cost == 2) return 0; //コストの増える頂点は辿らない
     int n_astar_cost = astar_cost + add_aster_cost;
-    if (n_astar_cost > FLAGS_goal_oriented_dfs_aster_ub) {
+    if (n_astar_cost > FLAGS_cut_tree_goal_oriented_dfs_aster_ub) {
       //sort済なので, これより後で自身の深さよりも浅い頂点は存在しない
       return 0;
     }

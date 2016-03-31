@@ -2,7 +2,7 @@
 #include <base/base.h>
 #include <graph/graph.h>
 
-DECLARE_int32(gtp_dfs_edge_max);
+DECLARE_int32(cut_tree_gtp_dfs_edge_max);
 
 namespace agl {
 

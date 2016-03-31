@@ -1,6 +1,6 @@
 #include "greedy_treepacking.h"
 
-DEFINE_int32(gtp_dfs_edge_max, 1000000000, "greedy tree packing breadth limit");
+DEFINE_int32(cut_tree_gtp_dfs_edge_max, 1000000000, "greedy tree packing breadth limit");
 using namespace std;
 
 namespace agl {
@@ -8,7 +8,7 @@ namespace agl {
 void greedy_treepacking::dfs(int v) {
   used_revision_[v] = vertices_revision_;
   auto& to_edges = edges_[v];
-  const int rem_edges = min(to_edges.size(), FLAGS_gtp_dfs_edge_max);
+  const int rem_edges = min(to_edges.size(), FLAGS_cut_tree_gtp_dfs_edge_max);
   for (int i = 0; i < rem_edges; i++) {
     V to = to_edges.current();
     // logging::gtp_edge_count++;

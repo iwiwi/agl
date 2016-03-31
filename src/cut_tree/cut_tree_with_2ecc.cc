@@ -3,13 +3,13 @@
 #include "greedy_treepacking.h"
 #include <queue>
 
-DEFINE_int32(try_greedy_tree_packing, 1, "number of tree packing");
-DEFINE_int32(try_large_degreepairs, 10, "number of separate large degree pairs");
-DEFINE_int32(separate_near_pairs_d, 1, "separate near pairs radius");
-DEFINE_int32(contraction_lower_bound, 2, "contraction upper bound");
-DEFINE_bool(enable_greedy_tree_packing, true, "");
-DEFINE_bool(enable_adjacent_cut, true, "");
-DEFINE_bool(enable_goal_oriented_search, true, "");
+DEFINE_int32(cut_tree_try_greedy_tree_packing, 1, "number of tree packing");
+DEFINE_int32(cut_tree_try_large_degreepairs, 10, "number of separate large degree pairs");
+DEFINE_int32(cut_tree_separate_near_pairs_d, 1, "separate near pairs radius");
+DEFINE_int32(cut_tree_contraction_lower_bound, 2, "contraction upper bound");
+DEFINE_bool(cut_tree_enable_greedy_tree_packing, true, "");
+DEFINE_bool(cut_tree_enable_adjacent_cut, true, "");
+DEFINE_bool(cut_tree_enable_goal_oriented_search, true, "");
 
 using namespace std;
 using namespace agl::cut_tree_internal;
@@ -374,7 +374,7 @@ public:
       }
 
       const bool contract = cross_other_mincut_count_ == 0 &&
-        min(one_side, other_side_estimated) >= FLAGS_contraction_lower_bound;
+        min(one_side, other_side_estimated) >= FLAGS_cut_tree_contraction_lower_bound;
       if (contract) {
         contraction(s, t);
       }
@@ -463,9 +463,9 @@ void cut_tree_with_2ecc::find_cuts_by_tree_packing(vector<pair<V, V>>& edges, di
     if (degree[v] == 2) set_solved(v, temp_root, 2); //二重連結成分分解後なので自明なcut
   }
 
-  if (FLAGS_enable_greedy_tree_packing) {
+  if (FLAGS_cut_tree_enable_greedy_tree_packing) {
     //次数の高い頂点から順に、 一定回数 greedy tree packingを行って、flowの下界を求める
-    const int iteration = min(FLAGS_try_greedy_tree_packing, num_vertices_);
+    const int iteration = min(FLAGS_cut_tree_try_greedy_tree_packing, num_vertices_);
     vector<int> idx(num_vertices_);
     for (int i = 0; i < num_vertices_; i++) idx[i] = i;
     partial_sort(idx.begin(), idx.begin() + iteration, idx.end(), [&degree](int l, int r) {
@@ -561,7 +561,7 @@ void cut_tree_with_2ecc::separate_high_degreepairs(separator* sep) {
   for (int v = 0; v < num_vertices_; v++) {
     if (dcs->group_size(v) >= 2) vtxs.push_back(v);
   }
-  const int tries = max(min(FLAGS_try_large_degreepairs, int(vtxs.size()) - 1), 0);
+  const int tries = max(min(FLAGS_cut_tree_try_large_degreepairs, int(vtxs.size()) - 1), 0);
   partial_sort(vtxs.begin(), vtxs.begin() + tries, vtxs.end(), [&dz](V l, V r) {
     return dz.edges(l).size() > dz.edges(r).size();
   });
@@ -619,7 +619,7 @@ void cut_tree_with_2ecc::separate_near_pairs(separator* sep) {
     queue<V> q;
     q.push(s);
     used[s] = used_revision;
-    for (int depth = 0; depth < FLAGS_separate_near_pairs_d; depth++) {
+    for (int depth = 0; depth < FLAGS_cut_tree_separate_near_pairs_d; depth++) {
       const int loop_num = int(q.size());
       for (int _ = 0; _ < loop_num; _++) {
         const V v = q.front(); q.pop();
@@ -679,7 +679,7 @@ cut_tree_with_2ecc::cut_tree_with_2ecc(vector<pair<V, V>>&& edges, int num_vs) :
 
   separator sep(dz_base, dcs.get(), gh_builder_);
 
-  if (FLAGS_enable_goal_oriented_search) {
+  if (FLAGS_cut_tree_enable_goal_oriented_search) {
     JLOG_ADD_BENCHMARK_IF("time.find_cuts_by_goal_oriented_search", num_vertices_ > 10000) {
       find_cuts_by_goal_oriented_search(&sep);
     }
@@ -692,9 +692,9 @@ cut_tree_with_2ecc::cut_tree_with_2ecc(vector<pair<V, V>>&& edges, int num_vs) :
   }
 
   //まず隣接頂点対からcutしていく
-  if (FLAGS_enable_adjacent_cut) {
-    CHECK(FLAGS_separate_near_pairs_d >= 1);
-    if (FLAGS_separate_near_pairs_d == 1) {
+  if (FLAGS_cut_tree_enable_adjacent_cut) {
+    CHECK(FLAGS_cut_tree_separate_near_pairs_d >= 1);
+    if (FLAGS_cut_tree_separate_near_pairs_d == 1) {
       JLOG_ADD_BENCHMARK_IF("time.separate_adjacent_pairs", num_vertices_ > 10000) {
         separate_adjacent_pairs(&sep);
       }

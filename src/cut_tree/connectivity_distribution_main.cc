@@ -1,5 +1,8 @@
 #include <easy_cui.h>
 
+DEFINE_string(cut_tree_gomory_hu_tree_path, "", "");
+DEFINE_string(cut_tree_output_path, "", "");
+
 class union_find_with_size {
 private:
   int n;
@@ -40,27 +43,24 @@ void save(const string& path, const map<int, long long>& connectivity_distributi
   }
 }
 
-DEFINE_string(gomory_hu_tree_path, "", "");
-DEFINE_string(output_path, "", "");
-
-string get_output_path() {
-  string output_path = FLAGS_output_path;
-  if (output_path == "") {
-    output_path = FLAGS_gomory_hu_tree_path;
-    auto idx = output_path.find_last_of('.');
+string get_cut_tree_output_path() {
+  string cut_tree_output_path = FLAGS_cut_tree_output_path;
+  if (cut_tree_output_path == "") {
+    cut_tree_output_path = FLAGS_cut_tree_gomory_hu_tree_path;
+    auto idx = cut_tree_output_path.find_last_of('.');
     if (idx != string::npos) {
-      output_path = output_path.substr(0, idx);
+      cut_tree_output_path = cut_tree_output_path.substr(0, idx);
     }
-    output_path += ".cdist";
+    cut_tree_output_path += ".cdist";
   }
-  return output_path;
+  return cut_tree_output_path;
 }
 
 int main(int argc, char** argv) {
   google::ParseCommandLineFlags(&argc, &argv, true);
-  const string output_path = get_output_path();
+  const string cut_tree_output_path = get_cut_tree_output_path();
 
-  auto gomory_hu_tree = load(FLAGS_gomory_hu_tree_path);
+  auto gomory_hu_tree = load(FLAGS_cut_tree_gomory_hu_tree_path);
   //graph size
   const int n = [&gomory_hu_tree]() {
     int edges = 0;
@@ -85,5 +85,5 @@ int main(int argc, char** argv) {
     connectivity_distribution_sum[w] = cur;
   }
 
-  save(output_path, connectivity_distribution_sum);
+  save(cut_tree_output_path, connectivity_distribution_sum);
 }
