@@ -36,10 +36,11 @@ void print_gomory_hu_tree(G&& g) {
     auto gname = graph_name();
     FLAGS_cut_tree_gomory_hu_tree_path = gname + ".tree";
   }
-  gomory_hu_tree_t* gf;
+  gomory_hu_tree_t* gf = nullptr;
   JLOG_PUT_BENCHMARK("gusfield_time") {
     gf = new gomory_hu_tree_t(g);
   }
+  CHECK(gf);
 
   ofstream os(FLAGS_cut_tree_gomory_hu_tree_path.c_str(), ios_base::out);
   gf->print_gomory_hu_tree(os);
