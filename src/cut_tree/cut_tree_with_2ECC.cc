@@ -11,8 +11,10 @@ DEFINE_bool(enable_adjacent_cut, true, "");
 DEFINE_bool(enable_goal_oriented_search, true, "");
 
 using namespace std;
+using namespace agl::cut_tree_internal;
 
 namespace agl {
+namespace cut_tree_internal {
 class disjoint_cut_set {
   struct Node {
     int pv, nt;
@@ -433,6 +435,7 @@ private:
   map<int, int> debug_count_cut_size_for_a_period_;
   int debug_last_max_flow_cost_;
 };
+} // cut_tree_internal
 
 //class cut_tree_with_2ECC
 void cut_tree_with_2ECC::find_cuts_by_tree_packing(vector<pair<V,V>>& edges, disjoint_cut_set* dcs, const vector<int>& degree) {
