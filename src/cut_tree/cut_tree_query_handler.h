@@ -11,7 +11,7 @@ namespace agl {
 class cut_tree_query_handler {
   void build(std::vector<std::vector<std::pair<V, int>>>& edges) {
     depth_.resize(num_vertices_, -1);
-    parent_weight_.resize(num_vertices_, make_pair(-2, -2));
+    parent_weight_.resize(num_vertices_, std::make_pair(-2, -2));
 
     for (V v = 0; v < num_vertices_; v++) {
       if (depth_[v] >= 0) continue;

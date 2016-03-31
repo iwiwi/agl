@@ -53,9 +53,9 @@ public:
   int query(V u, V v) {
     if (!uf_.is_same(u, v)) return 0;
     int lu = local_indices_[u], lv = local_indices_[v];
-    handler_t& handler = handlers_[handlers_indices_[uf_.root(u)]];
     CHECK(lu != lv);
-    return handler.query(lu, lv);
+    auto& handler = handlers_[handlers_indices_[uf_.root(u)]];
+    return handler->query(lu, lv);
   }
 
   int num_connected_components() const { return num_connected_components_; }
