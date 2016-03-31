@@ -2,10 +2,10 @@
 #include "bi_dinitz.h"
 #include <queue>
 
-DEFINE_int32(try_greedy_tree_packing, 1, "");
-DEFINE_int32(try_large_degreepairs, 10, "");
-DEFINE_int32(separate_near_pairs_d, 1, "");
-DEFINE_int32(contraction_lower_bound, 2, "");
+DEFINE_int32(try_greedy_tree_packing, 1, "number of tree packing");
+DEFINE_int32(try_large_degreepairs, 10, "number of separate large degree pairs");
+DEFINE_int32(separate_near_pairs_d, 1, "separate near pairs radius");
+DEFINE_int32(contraction_lower_bound, 2, "contraction upper bound");
 DEFINE_bool(enable_greedy_tree_packing, true, "");
 DEFINE_bool(enable_adjacent_cut, true, "");
 DEFINE_bool(enable_goal_oriented_search, true, "");
