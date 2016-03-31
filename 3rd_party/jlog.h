@@ -48,6 +48,7 @@
 #include <vector>
 #include <unistd.h>
 #include <cmath>
+#include <memory>
 
 extern std::string FLAGS_jlog_out;
 extern bool FLAGS_jlog_suppress_log;
@@ -442,20 +443,8 @@ class jlog_ignorer {
 
 class jlog_conditional_benchmarker {
  public:
-  jlog_conditional_benchmarker(bool add, const char *path, bool condition, bool glog = true)
-      : path_(path), add_(add), condition_(condition), glog_(glog) {
-    if(condition_) start_ = get_current_time_sec();
-  }
-
-  ~jlog_conditional_benchmarker() {
-    if(condition_) {
-      double r = get_current_time_sec() - start_;
-      if (add_) {
-        jlog::jlog_add(path_, r, glog_);
-      } else {
-        jlog::jlog_put(path_, r, glog_);
-      }
-    }
+  jlog_conditional_benchmarker(bool add, const char *path, bool condition, bool glog = true) {
+    if(condition) benchmarker_.reset(new jlog_benchmarker(add, path, glog));
   }
 
   operator bool() {
@@ -463,11 +452,7 @@ class jlog_conditional_benchmarker {
   }
 
  private:
-  const char *path_;
-  bool add_;
-  bool condition_;
-  double start_;
-  bool glog_;
+  std::unique_ptr<jlog_benchmarker> benchmarker_;
 };
 
 }  // namespace jlog_internal
