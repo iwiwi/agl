@@ -59,7 +59,8 @@ TYPED_TEST(cut_tree_test, output_tree) {
 }
 
 TEST(cut_tree_test, dinitz_eq_bi_dinitz) {
-  auto check = [](G&& g) {
+  auto check = [](vector<pair<V,V>>&& es) {
+    G g = to_directed_graph(G(es));
     dinitz dz1(g);
     bi_dinitz dz2(g);
     for (int i = 0; i < 1000; i++) {
@@ -71,11 +72,28 @@ TEST(cut_tree_test, dinitz_eq_bi_dinitz) {
       ASSERT_EQ(a, b);
     }
   };
-  check(to_directed_graph(built_in_graph("ca_grqc")));
+  
+  check(built_in_graph("ca_grqc").edge_list());
+  check(generate_path(100));
+  for (int trial = 0; trial < 3; ++trial) {
+    check(generate_erdos_renyi(500,10));
+  }
+  for (int trial = 0; trial < 3; ++trial) {
+    check(generate_grid(30,3));
+    check(generate_grid(10,10));
+  }
+  check(generate_barbell(100));
+  check(generate_cycle(100));
+  for (int trial = 0; trial < 3; ++trial) {
+    V M = 3;
+    V N = M + agl::random(1000);
+    check(generate_ba(N, M));
+  }
 }
 
-TEST(cut_tree_test, cut_tree_) {
-  auto check = [](G&& g) {
+TEST(cut_tree_test, cut_tree_eq_bi_dinitz) {
+  auto check = [](vector<pair<V,V>>&& es) {
+    G g = to_directed_graph(G(es));
     const int n = g.num_vertices();
     bi_dinitz dt(g);
     //cut_tree constructor break down 'g'
@@ -90,7 +108,22 @@ TEST(cut_tree_test, cut_tree_) {
       ASSERT_EQ(a, b);
     }
   };
-  check(to_directed_graph(built_in_graph("ca_grqc")));
+  check(built_in_graph("ca_grqc").edge_list());
+  check(generate_path(100));
+  for (int trial = 0; trial < 3; ++trial) {
+    check(generate_erdos_renyi(500,10));
+  }
+  for (int trial = 0; trial < 3; ++trial) {
+    check(generate_grid(30,3));
+    check(generate_grid(10,10));
+  }
+  check(generate_barbell(100));
+  check(generate_cycle(100));
+  for (int trial = 0; trial < 3; ++trial) {
+    V M = 3;
+    V N = M + agl::random(1000);
+    check(generate_ba(N, M));
+  }
 }
 
 TYPED_TEST(cut_tree_test, corner_case_small_graph) {
