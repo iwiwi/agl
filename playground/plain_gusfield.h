@@ -1,6 +1,7 @@
 #pragma once
-#include "dinitz.h"
 
+namespace agl {
+namespace cut_tree_internal {
 template<class max_flow_t>
 class plain_gusfield{
   int query_dfs(V v, V t, int cost, V par = -1) const {
@@ -92,3 +93,5 @@ private:
   const int num_vertices_;
   vector<vector<pair<V, int>>> binary_tree_edges_;
 };
+} // namespace cut_tree_internal
+} // namespace agl

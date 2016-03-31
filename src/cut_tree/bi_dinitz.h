@@ -2,7 +2,6 @@
 #include <base/base.h>
 #include <graph/graph.h>
 
-
 DECLARE_int32(goal_oriented_dfs_aster_ub);
 
 namespace agl {

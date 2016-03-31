@@ -4,6 +4,7 @@
 #include <cut_tree/cut_tree_with_2ECC.h>
 #include <easy_cui.h>
 
+#include "dinitz.h"
 #include "plain_gusfield.h"
 
 DEFINE_string(method, "gusfield", "gusfield, print_gomory_hu_tree");
@@ -85,8 +86,10 @@ int main(int argc, char** argv) {
     exit(0);
   }
 
+  using agl::cut_tree_internal::plain_gusfield;
+  using agl::cut_tree_internal::dinitz;
   if (FLAGS_gomory_hu_builder == "PlainGusfield") { 
-    main_<plain_gusfield<agl::cut_tree_internal::dinitz>>(std::move(g));
+    main_<plain_gusfield<dinitz>>(std::move(g));
   } else if (FLAGS_gomory_hu_builder == "PlainGusfield_bi_dinitz") { 
     main_<plain_gusfield<bi_dinitz>>(std::move(g));
   } else if (FLAGS_gomory_hu_builder == "cut_tree_with_2ECC") {
