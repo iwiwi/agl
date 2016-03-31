@@ -444,7 +444,7 @@ class jlog_ignorer {
 class jlog_conditional_benchmarker {
  public:
   jlog_conditional_benchmarker(bool add, const char *path, bool condition, bool glog = true) {
-    if(condition) benchmarker_.reset(new jlog_benchmarker(add, path, glog));
+    if (condition) benchmarker_.reset(new jlog_benchmarker(add, path, glog));
   }
 
   operator bool() {
