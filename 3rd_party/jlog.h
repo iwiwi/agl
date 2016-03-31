@@ -449,7 +449,7 @@ class jlog_conditional_benchmarker {
 
   ~jlog_conditional_benchmarker() {
     if(condition_) {
-    double r = get_current_time_sec() - start_;
+      double r = get_current_time_sec() - start_;
       if (add_) {
         jlog::jlog_add(path_, r, glog_);
       } else {
