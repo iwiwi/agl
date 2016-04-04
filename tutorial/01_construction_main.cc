@@ -54,7 +54,7 @@ int main() {
     assert(is_adjacent(g2, 1, 0) == true);
 
     // 一方向のみの辺リストに逆辺を追加するには，|make_undirected| 関数を用います．
-    unweighted_edge_list el3 = make_undirected(el2);
+    unweighted_edge_list el3 = make_undirected(el1);
     G g3(el3);
     pretty_print(g3);  // g2 と全く同じ
   }
