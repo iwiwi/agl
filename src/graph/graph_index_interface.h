@@ -40,4 +40,12 @@ class closeness_centrality_query_interface {
   virtual double query_closeness_centrality
   (const GraphType &g, V v, std::function<double(typename GraphType::W)>) = 0;
 };
+
+template<typename GraphType>
+class betweenness_centrality_query_interface {
+ public:
+  virtual ~betweenness_centrality_query_interface() {}
+
+  virtual double query_betweenness_centrality(const GraphType &g, V v) = 0;
+};
 }  // namespace agl
