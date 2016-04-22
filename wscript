@@ -17,7 +17,7 @@ def options(opt):
 def configure(conf):
   conf.load('compiler_cxx')
   conf.load('unittest_gtest')
-  conf.env.CXXFLAGS += ['-Wall', '-g', '-std=c++0x', '-pthread']
+  conf.env.CXXFLAGS += ['-Wall', '-g', '-std=c++0x', '-pthread', '-DGTEST_HAS_TR1_TUPLE=0']
   conf.env.LINKFLAGS += ['-pthread']
 
   if conf.options.build_debug:
