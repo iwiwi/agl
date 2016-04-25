@@ -4,8 +4,8 @@
 #include "connectivity/strongly_connected_components.h"
 
 namespace agl {
-template<typename GraphT = G, int kNumDoubleSweep = 10>
-typename GraphT::W diameter(const GraphT& g) {
+template<typename GraphT = G>
+typename GraphT::W diameter(const GraphT& g, const int kNumDoubleSweep = 10) {
   using W = typename GraphT::W;
   constexpr W INF = std::numeric_limits<W>::max();
   auto cmp = [](W a, W b){return (a != INF ? a : -1) < (b != INF ? b : -1);};
