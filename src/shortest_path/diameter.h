@@ -65,10 +65,10 @@ typename GraphT::W diameter(const GraphT& g, const int kNumDoubleSweep = 10) {
         lb = std::min(lb, neighbors[j].second);
       }
       ub = std::max(ub, lb);
-      if (ub > diameter) break;
+      if (is_lt(diameter, ub)) break;
     }
 
-    if (ub <= diameter) {
+    if (is_le(ub, diameter)) {
       ecc[u] = ub;
       continue;
     }
