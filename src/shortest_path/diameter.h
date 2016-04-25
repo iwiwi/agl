@@ -14,7 +14,7 @@ typename GraphT::W diameter(const GraphT& g, const int kNumDoubleSweep = 10) {
   const auto scc = strongly_connected_components(g);
 
   // Order vertices
-  std::vector<std::pair<int64_t, V>> order(num_v);
+  std::vector<std::tuple<V, double, V>> order(num_v);
   for (V v : make_irange(num_v)) {
     V in = 0, out = 0;
     for (const auto& e : g.edges(v, kBwd)) {
@@ -25,7 +25,7 @@ typename GraphT::W diameter(const GraphT& g, const int kNumDoubleSweep = 10) {
     }
     // SCC : reverse topological order
     // inside an SCC : decreasing order of the product of the indegree and outdegree for vertices in the same SCC
-    order[v] = std::make_pair(((int64_t)scc[v] << 32) - in * out, v);
+    order[v] = std::make_tuple(scc[v], -(double)in * out, v);
   }
   std::sort(order.begin(), order.end());
 
@@ -42,7 +42,7 @@ typename GraphT::W diameter(const GraphT& g, const int kNumDoubleSweep = 10) {
   // Examine every vertex
   std::vector<W> ecc(num_v, INF);
   for (V i : make_irange(num_v)) {
-    V u = order[i].second;
+    V u = std::get<2>(order[i]);
     if (ecc[u] <= diameter) continue;
 
     // Refine the eccentricity upper bound
