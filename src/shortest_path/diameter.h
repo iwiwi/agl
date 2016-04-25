@@ -16,7 +16,7 @@ typename GraphT::W diameter(const GraphT& g) {
   // Order vertices
   std::vector<std::pair<int64_t, V>> order(num_v);
   for (V v : make_irange(num_v)) {
-    int in = 0, out = 0;
+    V in = 0, out = 0;
     for (const auto& e : g.edges(v, kBwd)) {
       if (scc[to(e)] == scc[v]) ++in;
     }
@@ -41,13 +41,13 @@ typename GraphT::W diameter(const GraphT& g) {
 
   // Examine every vertex
   std::vector<W> ecc(num_v, INF);
-  for (int i : make_irange(num_v)) {
+  for (V i : make_irange(num_v)) {
     V u = order[i].second;
     if (ecc[u] <= diameter) continue;
 
     // Refine the eccentricity upper bound
     W ub = 0;
-    std::vector<std::pair<int, W>> neighbors;
+    std::vector<std::pair<V, W>> neighbors;
     for (const auto& e : g.edges(u)) {
       if (ecc[to(e)] != INF) {
         neighbors.emplace_back(scc[to(e)], ecc[to(e)] + weight(e));
@@ -56,7 +56,7 @@ typename GraphT::W diameter(const GraphT& g) {
     sort(neighbors.begin(), neighbors.end());
 
     for (size_t j = 0; j < neighbors.size(); ) {
-      int component = neighbors[j].first;
+      V component = neighbors[j].first;
       W lb = INF;
       for (; j < neighbors.size(); ++j) {
         if (neighbors[j].first != component) break;

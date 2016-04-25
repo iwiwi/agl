@@ -6,15 +6,15 @@
 
 namespace agl {
 template<typename GraphT = G>
-std::vector<int> strongly_connected_components(const GraphT& g) {
+std::vector<V> strongly_connected_components(const GraphT& g) {
   const V num_v = g.num_vertices();
-  std::vector<int> scc(num_v);
-  int num_visit = 0, num_scc = 0;
-  std::vector<int> ord(num_v, -1);
-  std::vector<int> low(num_v);
+  std::vector<V> scc(num_v);
+  V num_visit = 0, num_scc = 0;
+  std::vector<V> ord(num_v, -1);
+  std::vector<V> low(num_v);
   std::vector<bool> in(num_v, false);
   std::stack<V, std::vector<V>> s;
-  std::stack<std::pair<V, int>, std::vector<std::pair<V, int>>> dfs;
+  std::stack<std::pair<V, V>, std::vector<std::pair<V, V>>> dfs;
 
   for (V i : make_irange(num_v)) {
     if (ord[i] != -1) continue;
@@ -22,7 +22,7 @@ std::vector<int> strongly_connected_components(const GraphT& g) {
 
     while (!dfs.empty()) {
       V v = dfs.top().first;
-      int index = dfs.top().second;
+      V index = dfs.top().second;
       dfs.pop();
       if (index == -1) {
         ord[v] = low[v] = num_visit++;
