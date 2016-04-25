@@ -7,8 +7,8 @@ namespace agl {
 template<typename GraphT = G>
 typename GraphT::W diameter(const GraphT& g, const int kNumDoubleSweep = 10) {
   using W = typename GraphT::W;
-  constexpr W INF = std::numeric_limits<W>::max();
-  auto cmp = [](W a, W b){return (a != INF ? a : -1) < (b != INF ? b : -1);};
+  constexpr W kInfW = infinity_weight<W>();
+  auto cmp = [](W a, W b){return (a != kInfW ? a : -1) < (b != kInfW ? b : -1);};
 
   const V num_v = g.num_vertices();
   const auto scc = strongly_connected_components(g);
@@ -40,7 +40,7 @@ typename GraphT::W diameter(const GraphT& g, const int kNumDoubleSweep = 10) {
   }
 
   // Examine every vertex
-  std::vector<W> ecc(num_v, INF);
+  std::vector<W> ecc(num_v, kInfW);
   for (V i : make_irange(num_v)) {
     V u = std::get<2>(order[i]);
     if (is_le(ecc[u], diameter)) continue;
@@ -49,7 +49,7 @@ typename GraphT::W diameter(const GraphT& g, const int kNumDoubleSweep = 10) {
     W ub = 0;
     std::vector<std::pair<V, W>> neighbors;
     for (const auto& e : g.edges(u)) {
-      if (ecc[to(e)] != INF) {
+      if (ecc[to(e)] != kInfW) {
         neighbors.emplace_back(scc[to(e)], ecc[to(e)] + weight(e));
       }
     }
@@ -57,7 +57,7 @@ typename GraphT::W diameter(const GraphT& g, const int kNumDoubleSweep = 10) {
 
     for (size_t j = 0; j < neighbors.size(); ) {
       V component = neighbors[j].first;
-      W lb = INF;
+      W lb = kInfW;
       for (; j < neighbors.size(); ++j) {
         if (neighbors[j].first != component) break;
         lb = std::min(lb, neighbors[j].second);
