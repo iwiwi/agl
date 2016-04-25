@@ -35,7 +35,7 @@ typename GraphT::W diameter(const GraphT& g, const int kNumDoubleSweep = 10) {
     V start = agl::random(num_v);
     auto dist = single_source_distance(g, start);
     start = max_element(dist.begin(), dist.end(), cmp) - dist.begin();
-    dist = single_source_distance(g, start);
+    dist = single_source_distance(g, start, kBwd);
     diameter = std::max(diameter, *max_element(dist.begin(), dist.end(), cmp));
   }
 
@@ -51,6 +51,8 @@ typename GraphT::W diameter(const GraphT& g, const int kNumDoubleSweep = 10) {
     for (const auto& e : g.edges(u)) {
       if (ecc[to(e)] != kInfW) {
         neighbors.emplace_back(scc[to(e)], ecc[to(e)] + weight(e));
+      } else {
+        neighbors.emplace_back(scc[to(e)], kInfW);
       }
     }
     sort(neighbors.begin(), neighbors.end());
