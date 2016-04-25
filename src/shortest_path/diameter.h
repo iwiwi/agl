@@ -43,7 +43,7 @@ typename GraphT::W diameter(const GraphT& g, const int kNumDoubleSweep = 10) {
   std::vector<W> ecc(num_v, INF);
   for (V i : make_irange(num_v)) {
     V u = std::get<2>(order[i]);
-    if (ecc[u] <= diameter) continue;
+    if (is_le(ecc[u], diameter)) continue;
 
     // Refine the eccentricity upper bound
     W ub = 0;
