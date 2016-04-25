@@ -38,7 +38,7 @@ TEST(diameter, weighted_grid) {
   using GraphT = weighted_graph<double>;
   auto es = generate_grid(3, 3);
   GraphT g(add_random_weight<GraphT>(es));
-  ASSERT_EQ(diameter(g), dijkstra_diameter(g));
+  ASSERT_TRUE(is_eq(diameter(g), dijkstra_diameter(g)));
 }
 
 TEST(diameter, weighted_ba) {
@@ -48,6 +48,6 @@ TEST(diameter, weighted_ba) {
     V n = agl::random(50) + m + 1;
     auto es = generate_ba(n, m);
     GraphT g(add_random_weight<GraphT>(es));
-    ASSERT_EQ(diameter(g), dijkstra_diameter(g));
+    ASSERT_TRUE(is_eq(diameter(g), dijkstra_diameter(g)));
   }
 }
