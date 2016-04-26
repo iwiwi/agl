@@ -5,7 +5,7 @@ int main(int argc, char** argv) {
   G g = easy_cui_init(argc, argv);
   V d;
 
-  JLOG_PUT_BENCHMARK("diameter") {
+  JLOG_PUT_BENCHMARK("diameter_time") {
     d = diameter(g);
   }
 
