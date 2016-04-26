@@ -1,3 +1,5 @@
+#pragma once
+
 #include "graph/graph.h"
 #include "heap/heap.h"
 

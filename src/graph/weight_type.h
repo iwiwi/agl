@@ -32,6 +32,10 @@ struct weight_traits {
   static constexpr inline T unit() {
     return 1;
   }
+
+  static constexpr inline T infinity() {
+    return std::numeric_limits<T>::max();
+  }
 };
 
 template<class T, class Derived>
@@ -54,6 +58,10 @@ struct weight_traits_decimal {
 
   static constexpr inline T unit() {
     return 1;
+  }
+
+  static constexpr inline T infinity() {
+    return std::numeric_limits<T>::max();
   }
 };
 
@@ -119,5 +127,10 @@ inline T random_weight() {
 template<typename T>
 inline T unit_weight() {
   return weight_traits<T>::unit();
+}
+
+template<typename T>
+inline constexpr T infinity_weight() {
+  return weight_traits<T>::infinity();
 }
 }  // namespace agl
