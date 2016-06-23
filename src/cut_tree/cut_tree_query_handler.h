@@ -68,7 +68,7 @@ public:
   int query(V u, V v) const {
     CHECK(u != v);
     CHECK(u < num_vertices_ && v < num_vertices_);
-    int ans = std::numeric_limits<int>::max();
+    int ans = infinity_weight<int>();
     while (u != v) {
       if (depth_[u] > depth_[v]) std::swap(u, v);
       ans = std::min(ans, parent_weight_[v].second);

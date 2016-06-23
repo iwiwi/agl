@@ -10,7 +10,7 @@ typename GraphT::W dijkstra_diameter(const GraphT& g) {
   auto dm = all_pairs_distance(g);
   for (const auto& v : g.vertices()) {
     for (V u : irange<V>(g.num_vertices())) {
-      if (dm[v][u] != numeric_limits<W>::max()) {
+      if (dm[v][u] != infinity_weight<W>()) {
         diameter = max(diameter, dm[v][u]);
       }
     }

@@ -9,7 +9,7 @@ public:
   using V = typename GraphT::V;
   using W = typename GraphT::W;
 
-  explicit dijkstra_heap(V num_vertices = 0) : ws_(num_vertices, infinity_weight()) {}
+  explicit dijkstra_heap(V num_vertices = 0) : ws_(num_vertices, infinity_weight<W>()) {}
 
   inline bool decrease(V v, W w) {
     if (is_le(ws_[v], w)) return false;
@@ -24,10 +24,10 @@ public:
   }
 
   void clear() {
-    for (auto v : vs_) ws_[v] = kInfW;
+    for (auto v : vs_) ws_[v] = infinity_weight<W>();
     vs_.clear();
     while (!h_.empty()) {
-      ws_[top_vertex()] = kInfW;
+      ws_[top_vertex()] = infinity_weight<W>();
       h_.pop();
     }
     h_.clear();
@@ -64,10 +64,6 @@ private:
       if (ws_[h_.top_value()] == h_.top_key()) break;
       h_.pop();
     }
-  }
-
-  static constexpr W infinity_weight() {
-    return std::numeric_limits<W>::max();
   }
 };
 
