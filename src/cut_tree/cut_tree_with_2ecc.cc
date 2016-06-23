@@ -166,7 +166,7 @@ public:
   int query(V u, V v) const {
     CHECK(u != v);
     CHECK(u < n_ && v < n_);
-    int ans = numeric_limits<int>::max();
+    int ans = infinity_weight<int>();
     while (u != v) {
       if (depth_[u] > depth_[v]) {
         ans = min(ans, parent_cost_[u].second);

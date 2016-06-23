@@ -98,7 +98,7 @@ edge_centrality_map edge_betweenness_centrality_naive(const G &g) {
           assert(is_eq(ms[t].second, mt[s].second));
 
           const auto &psu = ms[u], &pvt = mt[v], &pst = ms[t];
-          if (pst.first == kInfW || psu.first == kInfW || pvt.first == kInfW) continue;
+          if (pst.first == infinity_weight<W>() || psu.first == infinity_weight<W>() || pvt.first == infinity_weight<W>()) continue;
           const W td = psu.first + weight(e) + pvt.first;
           assert(is_le(pst.first, td));
           if (is_lt(pst.first, td)) continue;
@@ -137,7 +137,7 @@ edge_centrality_map edge_betweenness_centrality_sample_slow(const G &g) {
         auto v = to(e);
 
         const auto &psu = ms[u], &pvt = mt[v], &pst = ms[t];
-        if (pst.first == kInfW || psu.first == kInfW || pvt.first == kInfW) continue;
+        if (pst.first == infinity_weight<W>() || psu.first == infinity_weight<W>() || pvt.first == infinity_weight<W>()) continue;
         const W td = psu.first + weight(e) + pvt.first;
         assert(is_le(pst.first, td));
         if (is_lt(pst.first, td)) continue;
@@ -159,8 +159,8 @@ edge_centrality_map edge_betweenness_centrality_sample(const G &g) {
   auto res = init_edge_centrality_map(g);
   dijkstra_heap<G> hs[2] = {make_dijkstra_heap(g), make_dijkstra_heap(g)};
   vector<pair<W, double>> ds[2];
-  ds[kFwd].assign(g.num_vertices(), {kInfW, 0});
-  ds[kBwd].assign(g.num_vertices(), {kInfW, 0});
+  ds[kFwd].assign(g.num_vertices(), {infinity_weight<W>(), 0});
+  ds[kBwd].assign(g.num_vertices(), {infinity_weight<W>(), 0});
 
   for (pair<V, V> p : sampled_vertex_pairs) {
     // Sampled vertex pair
@@ -172,7 +172,7 @@ edge_centrality_map edge_betweenness_centrality_sample(const G &g) {
 
     // Bidirectional dijkstra search
     vector<pair<V, E>> relaxed_es[2];
-    W d = kInfW;
+    W d = infinity_weight<W>();
     for (;;) {
       if (hs[kFwd].empty() || hs[kBwd].empty()) break;
       const W lb = hs[kFwd].top_weight() + hs[kBwd].top_weight();
@@ -194,10 +194,10 @@ edge_centrality_map edge_betweenness_centrality_sample(const G &g) {
           relaxed_es[dir].emplace_back(v, e);
         }
 
-        if (ds[1 - dir][tv].first != kInfW) d = min(d, tw + ds[1 - dir][tv].first);
+        if (ds[1 - dir][tv].first != infinity_weight<W>()) d = min(d, tw + ds[1 - dir][tv].first);
       }
     }
-    if (d == kInfW) goto cleanup;
+    if (d == infinity_weight<W>()) goto cleanup;
 
     // Further propagation on relaxed edges
     for (auto dir : directions()) {
@@ -206,7 +206,7 @@ edge_centrality_map edge_betweenness_centrality_sample(const G &g) {
       for (const auto &e : es) {
         const V u = e.first, v = to(e.second);
         auto &dsu = ds[1 - dir][u], &dsv = ds[1 - dir][v];
-        if (dsv.first == kInfW) continue;
+        if (dsv.first == infinity_weight<W>()) continue;
         const W tw = weight(e.second) + dsv.first;
         if (is_lt(tw, dsu.first)) dsu = make_pair(tw, 0);
         if (is_le(tw, dsu.first)) dsu.second += dsv.second;
@@ -220,7 +220,7 @@ edge_centrality_map edge_betweenness_centrality_sample(const G &g) {
         if (dir == kBwd) swap(u, v);
 
         const auto &psu = ds[kFwd][u], &pvt = ds[kBwd][v], &pst = ds[kFwd][t];
-        if (pst.first == kInfW || psu.first == kInfW || pvt.first == kInfW) continue;
+        if (pst.first == infinity_weight<W>() || psu.first == infinity_weight<W>() || pvt.first == infinity_weight<W>()) continue;
         const W td = psu.first + weight(e.second) + pvt.first;
         assert(is_le(pst.first, td));
         if (is_lt(pst.first, td)) continue;
@@ -236,12 +236,12 @@ edge_centrality_map edge_betweenness_centrality_sample(const G &g) {
     for (auto dir : directions()) {
       for (const auto &e : relaxed_es[dir]) {
         const V u = e.first, v = to(e.second);
-        ds[kFwd][u] = ds[kBwd][u] = make_pair(kInfW, 0);
-        ds[kFwd][v] = ds[kBwd][v] = make_pair(kInfW, 0);
+        ds[kFwd][u] = ds[kBwd][u] = make_pair(infinity_weight<W>(), 0);
+        ds[kFwd][v] = ds[kBwd][v] = make_pair(infinity_weight<W>(), 0);
       }
     }
-    ds[kFwd][s] = ds[kBwd][s] = make_pair(kInfW, 0);
-    ds[kFwd][t] = ds[kBwd][t] = make_pair(kInfW, 0);
+    ds[kFwd][s] = ds[kBwd][s] = make_pair(infinity_weight<W>(), 0);
+    ds[kFwd][t] = ds[kBwd][t] = make_pair(infinity_weight<W>(), 0);
 
     hs[kFwd].clear();
     hs[kBwd].clear();

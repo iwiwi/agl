@@ -76,7 +76,7 @@ public:
   int query(V u, V v) const {
     CHECK(u != v);
     CHECK(u < num_vertices_ && v < num_vertices_);
-    int ans = query_dfs(u, v, std::numeric_limits<int>::max());
+    int ans = query_dfs(u, v, infinity_weight<int>());
     if (ans == -1) {
       return 0; // 到達できなかった
     }

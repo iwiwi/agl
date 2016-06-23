@@ -3,7 +3,7 @@ using namespace std;
 
 namespace agl {
 vector<pair<W, double>> single_source_distance_with_num_paths(const G &g, V s, D dir) {
-  vector<pair<W, double>> dps(g.num_vertices(), {kInfW, 0});
+  vector<pair<W, double>> dps(g.num_vertices(), {infinity_weight<W>(), 0});
   auto h = make_dijkstra_heap(g);
 
   h.decrease(s, 0);

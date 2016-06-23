@@ -62,7 +62,7 @@ int dinitz::max_flow(int s, int t) {
     if (level_[t] < 0) return flow;
     iter_.assign(iter_.size(), 0);
     int f;
-    while ((f = dfs(s, t, numeric_limits<int>::max())) > 0) {
+    while ((f = dfs(s, t, infinity_weight<int>())) > 0) {
       flow += f;
     }
   }

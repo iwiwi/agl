@@ -212,7 +212,7 @@ int bi_dinitz::max_flow_core(int s, int t) {
       bfs_counter++;
       if (!path_found) break;
       while (true) {
-        int f = dfs(s, t, true, numeric_limits<int>::max());
+        int f = dfs(s, t, true, infinity_weight<int>());
         if (f == 0) break;
         flow += f;
       }
